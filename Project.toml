@@ -1,0 +1,13 @@
+name = "BALL"
+uuid = "9d651bdf-8945-47d1-9188-34e269d8f7b5"
+authors = ["Andreas Hildebrandt <andreas.hildebrandt@uni-mainz.de> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1.7"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
