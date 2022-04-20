@@ -12,4 +12,6 @@ end
 
 using .PubChem
 
+export load_pubchem_json!
+
 end

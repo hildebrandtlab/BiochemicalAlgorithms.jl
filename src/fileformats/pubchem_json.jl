@@ -1,6 +1,9 @@
-using StructTypes
+export load_pubchem_json!
 
-export PCResult, load_pubchem_json
+using BALL: System, Atom, Elements, Element, Vector3, add_molecule!, add_atom!
+
+using StructTypes
+using JSON3
 
 mutable struct PCAtomInt
     aid::Int64
@@ -19,7 +22,7 @@ end
 StructTypes.StructType(::Type{PCAtomString}) = StructTypes.Mutable()
 
 @enum(PCUrnDataType,
-    STRING = 1,      # String                             [maps to a VisibleString]
+    STRING = 1,    # String                             [maps to a VisibleString]
     STRINGLIST,    # List of Strings                    [maps to VisibleString list]
     INT,           # 32-Bit Signed Integer              [maps to an INTEGER]
     INTVEC,        # Vector of 32-Bit Signed Integer    [maps to INTEGER vector]
@@ -170,7 +173,7 @@ end
 StructTypes.StructType(::Type{PCConformer}) = StructTypes.Mutable()
 
 @enum(PCCoordinateType,
-        CT_2D = 1,             # 2D Coordinates
+        CT_2D = 1,           # 2D Coordinates
         CT_3D,               # 3D Coordinates (should also indicate units, below)
         CT_SUBMITTED,        # Depositor Provided Coordinates
         CT_EXPERIMENTAL,     # Experimentally Determined Coordinates
@@ -476,8 +479,72 @@ mutable struct PCResult
 end
 StructTypes.StructType(::Type{PCResult}) = StructTypes.Mutable()
 
-function load_pubchem_json(fname::String)
-    pb = JSON3.read(read_json("./test/data/aspirin_pug.json"), PCResult)
+function convert_coordinates(pb_coords_vec::Vector{PCCoordinates})
+    if isnothing(pb_coords_vec)
+        return []
+    end
 
+    result = []
 
+    for pb_coords in pb_coords_vec
+        # first, figure out what unit to use for the Coordinates
+        # we interpret pixels, points, and stdbonds as Angstroms
+        scale = CT_UNITS_NANOMETERS in pb_coords.type ? 10. : 1.
+
+        # do we have 3d information, or only 2d?
+        is_3d = CT_3D in pb_coords.type
+
+        for c in pb_coords.conformers
+            converted = Array{Vector3}(undef, length(c.x))
+
+            for i in 1:length(c.x)
+                converted[i] = Vector3(c.x[i], c.y[i], (is_3d && !isnothing(c.z)) ? c.z[i] : 0.0) * scale
+            end
+
+            push!(result, converted)
+        end
+    end
+
+    result
+end
+
+# TODO: 
+#   - full conversion, adding all properties
+
+# NOTE: conformers are stored as frames
+function load_pubchem_json!(sys::System, fname::String)
+    pb = JSON3.read(read(fname, String), PCResult)
+
+    for compound in pb.PC_Compounds
+        # for now, use the file name as the name for the molecule
+        mol = add_molecule!(sys, fname)
+
+        if !isnothing(compound.atoms) && !isnothing(compound.coords)
+            conformers = convert_coordinates(compound.coords)
+
+            for i in 1:length(compound.atoms.aid)
+                for j in 1:length(conformers)
+                    # Note: the atom will be assigned an id in add_atom!
+                    atom = (id=0,
+                            molecule_id=mol.id, 
+                            frame_id=j,
+                            number=compound.atoms.aid[i],
+                            element=isnothing(compound.atoms.element) 
+                                ? Elements.Unknown 
+                                : Element(Int(compound.atoms.element[i])),
+                            atomtype=isnothing(compound.atoms.label)
+                                ? ""
+                                : compound.atoms.label[i].value, # does the label contain the atom type?
+                            r=conformers[j][i],
+                            v=Vector3(0., 0., 0.),
+                            F=Vector3(0., 0., 0.),
+                            has_velocity=false,
+                            has_force=false
+                    )
+
+                    add_atom!(sys, atom)
+                end
+            end
+        end
+    end
 end
