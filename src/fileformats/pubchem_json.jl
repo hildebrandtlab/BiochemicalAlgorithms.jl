@@ -1,6 +1,6 @@
 export load_pubchem_json
 
-using BALL: Molecule, Atom, BondOrderType, Bond, Elements, Element, Vector3
+using BiochemicalAlgorithms: Molecule, Atom, BondOrderType, Bond, Elements, Element, Vector3
 
 using StructTypes
 using JSON3

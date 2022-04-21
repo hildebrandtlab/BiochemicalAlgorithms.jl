@@ -1,4 +1,4 @@
-module BALL
+module BiochemicalAlgorithms
 
 include("core/types.jl")
 include("core/element.jl")

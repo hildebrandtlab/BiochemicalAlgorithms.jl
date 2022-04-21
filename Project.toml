@@ -1,4 +1,4 @@
-name = "BALL"
+name = "BiochemicalAlgorithms"
 uuid = "9d651bdf-8945-47d1-9188-34e269d8f7b5"
 authors = ["Andreas Hildebrandt <andreas.hildebrandt@uni-mainz.de> and contributors"]
 version = "0.1.0"

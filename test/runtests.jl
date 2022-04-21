@@ -1,4 +1,4 @@
-using BALL
+using BiochemicalAlgorithms
 using Test
 
 function test_pubchem()
@@ -12,6 +12,6 @@ function test_pubchem()
     end
 end
 
-@testset "BALL.jl" begin
+@testset "BiochemicalAlgorithms.jl" begin
     test_pubchem()
 end
