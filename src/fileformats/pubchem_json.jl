@@ -1,6 +1,6 @@
-export load_pubchem_json!
+export load_pubchem_json
 
-using BALL: System, Atom, Elements, Element, Vector3, add_molecule!, add_atom!
+using BALL: Molecule, Atom, BondOrderType, Bond, Elements, Element, Vector3
 
 using StructTypes
 using JSON3
@@ -512,12 +512,13 @@ end
 #   - full conversion, adding all properties
 
 # NOTE: conformers are stored as frames
-function load_pubchem_json!(sys::System, fname::String)
+function load_pubchem_json(fname::String)
     pb = JSON3.read(read(fname, String), PCResult)
 
+    # for now, use the file name as the name for the molecule
+    mol = Molecule(fname)
+
     for compound in pb.PC_Compounds
-        # for now, use the file name as the name for the molecule
-        mol = add_molecule!(sys, fname)
 
         if !isnothing(compound.atoms) && !isnothing(compound.coords)
             conformers = convert_coordinates(compound.coords)
@@ -525,10 +526,7 @@ function load_pubchem_json!(sys::System, fname::String)
             for i in 1:length(compound.atoms.aid)
                 for j in 1:length(conformers)
                     # Note: the atom will be assigned an id in add_atom!
-                    atom = (id=0,
-                            molecule_id=mol.id, 
-                            frame_id=j,
-                            number=compound.atoms.aid[i],
+                    atom = (number=compound.atoms.aid[i],
                             element=isnothing(compound.atoms.element) 
                                 ? Elements.Unknown 
                                 : Element(Int(compound.atoms.element[i])),
@@ -539,12 +537,28 @@ function load_pubchem_json!(sys::System, fname::String)
                             v=Vector3(0., 0., 0.),
                             F=Vector3(0., 0., 0.),
                             has_velocity=false,
-                            has_force=false
+                            has_force=false,
+                            frame_id=j
                     )
 
-                    add_atom!(sys, atom)
+                    push!(mol, atom)
                 end
             end
         end
+
+        if !isnothing(compound.bonds)
+            for i in 1:length(compound.bonds.aid1)
+                order = Int(compound.bonds.order[i])
+
+                b = (a1=compound.bonds.aid1[i], 
+                     a2=compound.bonds.aid2[i],
+                     order=(order <= 4) ? BondOrderType(order) : Bond.Unknown
+                )
+
+                push!(mol, b)
+            end
+        end
     end
+
+    mol
 end

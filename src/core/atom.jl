@@ -1,9 +1,6 @@
 export Atom
 
 const Atom{T} = @NamedTuple begin
-    id::Int
-    molecule_id::Int
-    frame_id::Int
     number::Int
     element::Element
     atomtype::String
@@ -12,4 +9,5 @@ const Atom{T} = @NamedTuple begin
     F::Vector3{T}
     has_velocity::Bool
     has_force::Bool
+    frame_id::Int
 end
