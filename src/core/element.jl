@@ -1,6 +1,6 @@
 using EnumX
 
-export Elements
+export Elements, Element
 
 @enumx Elements begin
   H = 1

@@ -54,6 +54,6 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Documenter: DocMeta, doctest
-            using BALL
-            DocMeta.setdocmeta!(BALL, :DocTestSetup, :(using BALL); recursive=true)
-            doctest(BALL)'
+            using BiochemicalAlgorithms
+            DocMeta.setdocmeta!(BiochemicalAlgorithms, :DocTestSetup, :(using BiochemicalAlgorithms); recursive=true)
+            doctest(BiochemicalAlgorithms)'
