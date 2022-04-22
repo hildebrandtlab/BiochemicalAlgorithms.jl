@@ -8,7 +8,7 @@ git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
 uuid = "a4c015fc-c6ff-483c-b24f-f7ea428134e9"
 version = "0.0.1"
 
-[[deps.BALL]]
+[[deps.BiochemicalAlgorithms]]
 path = ".."
 uuid = "9d651bdf-8945-47d1-9188-34e269d8f7b5"
 version = "0.1.0"
