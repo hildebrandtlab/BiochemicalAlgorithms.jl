@@ -1,6 +1,17 @@
-using BALL
+using BiochemicalAlgorithms
 using Test
 
-@testset "BALL.jl" begin
-    # Write your tests here.
+function test_pubchem()
+    @testset "PubChem" begin
+        mol = load_pubchem_json("./data/aspirin_pug.json")
+
+        @test mol.name == "./data/aspirin_pug.json"
+
+        @test count_atoms(mol) == 21
+        @test count_bonds(mol) == 21
+    end
+end
+
+@testset "BiochemicalAlgorithms.jl" begin
+    test_pubchem()
 end

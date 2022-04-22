@@ -1,4 +1,4 @@
-name = "BALL"
+name = "BiochemicalAlgorithms"
 uuid = "9d651bdf-8945-47d1-9188-34e269d8f7b5"
 authors = ["Andreas Hildebrandt <andreas.hildebrandt@uni-mainz.de> and contributors"]
 version = "0.1.0"
@@ -13,6 +13,8 @@ Tables = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
 
 [compat]
 DataFrames = "1"
+StaticArrays = "1"
+Tables = "1"
 julia = "1.7"
 
 [extras]
