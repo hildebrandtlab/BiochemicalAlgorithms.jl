@@ -11,3 +11,5 @@ const Atom{T} = @NamedTuple begin
     has_force::Bool
     frame_id::Int
 end
+
+Atom() = Atom{Float32}()
