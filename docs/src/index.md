@@ -1,14 +1,14 @@
 ```@meta
-CurrentModule = BALL
+CurrentModule = BiochemicalAlgorithms
 ```
 
-# BALL
+# BiochemicalAlgorithms
 
-Documentation for [BALL](https://github.com/hildebrandtlab/BALL.jl).
+Documentation for [BiochemicalAlgorithms](https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl).
 
 ```@index
 ```
 
 ```@autodocs
-Modules = [BALL]
+Modules = [BiochemicalAlgorithms]
 ```
