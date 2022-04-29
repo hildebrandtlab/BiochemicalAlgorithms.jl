@@ -512,7 +512,7 @@ end
 #   - full conversion, adding all properties
 
 # NOTE: conformers are stored as frames
-function load_pubchem_json(fname::String)
+function load_pubchem_json(fname::String, T=Float32)
     pb = JSON3.read(read(fname, String), PCResult)
 
     # for now, use the file name as the name for the molecule
@@ -527,15 +527,16 @@ function load_pubchem_json(fname::String)
                 for j in 1:length(conformers)
                     # Note: the atom will be assigned an id in add_atom!
                     atom = (number=compound.atoms.aid[i],
+                            name="",
                             element=isnothing(compound.atoms.element) 
                                 ? Elements.Unknown 
                                 : Element(Int(compound.atoms.element[i])),
                             atomtype=isnothing(compound.atoms.label)
                                 ? ""
                                 : compound.atoms.label[i].value, # does the label contain the atom type?
-                            r=conformers[j][i],
-                            v=Vector3(0., 0., 0.),
-                            F=Vector3(0., 0., 0.),
+                            r=T.(conformers[j][i]),
+                            v=Vector3(T(0.), T(0.), T(0.)),
+                            F=Vector3(T(0.), T(0.), T(0.)),
                             has_velocity=false,
                             has_force=false,
                             frame_id=j

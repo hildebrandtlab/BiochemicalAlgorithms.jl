@@ -124,3 +124,5 @@ export Elements, Element
 end
 
 const Element = Elements.T
+
+Base.parse(Elements, s) = getproperty(Elements, Symbol(s))
