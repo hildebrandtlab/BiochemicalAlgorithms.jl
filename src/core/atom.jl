@@ -1,4 +1,4 @@
-export Atom
+export Atom, AtomProperties
 
 const Atom{T} = @NamedTuple begin
     number::Int
@@ -14,3 +14,5 @@ const Atom{T} = @NamedTuple begin
 end
 
 Atom() = Atom{Float32}()
+
+const AtomProperties = Dict{String, Any}

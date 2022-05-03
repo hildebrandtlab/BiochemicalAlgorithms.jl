@@ -4,6 +4,7 @@ authors = ["Andreas Hildebrandt <andreas.hildebrandt@uni-mainz.de> and contribut
 version = "0.1.0"
 
 [deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 BioStructures = "de9282ab-8554-53be-b2d6-f6c222edabfc"
 BioSymbols = "3c28c6f8-a34d-59c4-9654-267d177fcfa9"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
