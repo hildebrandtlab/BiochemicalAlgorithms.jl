@@ -1,4 +1,4 @@
-using BioStructures: read, collectatoms, PDB
+using BioStructures: read, collectatoms, collectchains, collectresidues, PDB
 
 export load_pdb
 
@@ -87,8 +87,6 @@ function load_pdb(fname::String, T=Float32)
     # note: we will remove this column as soon as we have filtered out alternates
     atoms.altlocid = orig_df.altlocid
 
-    chains = DataFrame(Chain.(Ref.(unique(orig_df.chainid))))
-
     # convert other columns of interest to atom properties
     atom_properties = Dict(
         Pair.(orig_df.serial, 
@@ -107,7 +105,21 @@ function load_pdb(fname::String, T=Float32)
     )
 
     bonds = DataFrame(Bond[])
-    residues = DataFrame(Residue[])
+
+    chains = Vector{PDBChain}()
+
+    orig_chains = collectchains(orig_pdb)
+    for chain in orig_chains
+        orig_residues = collectresidues(chain)
+
+        fragments = DataFrame(
+            number = getproperty.(orig_residues, :number),
+            name   = getproperty.(orig_residues, :name),
+            chain_id = repeat([chain.id], length(orig_residues))
+        )
+
+        push!(chains, PDBChain(chain.id, fragments))
+    end
 
     # now, handle alternate location ids
 
@@ -137,5 +149,5 @@ function load_pdb(fname::String, T=Float32)
     # drop the altlocid-column
     select!(atoms, Not(:altlocid))
     
-    p = Protein{T}(orig_pdb.name, atoms, bonds, atom_properties, residues, chains)
+    p = PDBMolecule{T}(orig_pdb.name, atoms, bonds, atom_properties, chains)
 end

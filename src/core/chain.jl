@@ -1,8 +1,17 @@
 using DataFrames
 
-export AbstractChain, ProteinChain, HeteroAtomChain, NucleotideChain, fragments
+export AbstractChain, PDBChain, ProteinChain, HeteroAtomChain, NucleotideChain, fragments
 
 abstract type AbstractChain end
+
+struct PDBChain <: AbstractChain
+    name::String
+    fragments::DataFrame
+
+    function PDBChain(name="", fragments=DataFrame(Fragment[]))
+        new(name, fragments)
+    end
+end
 
 struct ProteinChain <: AbstractChain
     name::String

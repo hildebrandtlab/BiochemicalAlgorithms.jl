@@ -25,7 +25,7 @@ function test_pdb()
 
         @test pdb_5pti.name == "5PTI.pdb"
 
-        @test count_atoms(pdb_5pti) == 1087 # currently fails b/c auf alternate locations
+        @test count_atoms(pdb_5pti) == 1087
         @test count_bonds(pdb_5pti) == 0
     end
 end

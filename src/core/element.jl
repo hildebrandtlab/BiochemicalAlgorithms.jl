@@ -125,4 +125,4 @@ end
 
 const Element = Elements.T
 
-function Base.parse(Elements, s) = getproperty(Elements, Symbol(s))
+Base.parse(Elements, s) = getproperty(Elements, Symbol(s))
