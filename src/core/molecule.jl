@@ -1,6 +1,6 @@
 using DataFrames
 
-export AbstractMolecule, Molecule, count_atoms, count_bonds
+export AbstractMolecule, Molecule, count_atoms, count_bonds, atom_properties
 
 abstract type AbstractMolecule{T} end
 
@@ -10,12 +10,20 @@ mutable struct Molecule{T<:Real} <: AbstractMolecule{T}
     atoms::DataFrame
     bonds::DataFrame
 
-    function Molecule{T}(name = "", atoms = DataFrame(Atom{T}[]), bonds = DataFrame(Bond[])) where {T<:Real}
-        new(name, atoms, bonds)
+    atom_properties::Dict{Int, AtomProperties} # mapping of atom.number => properties
+
+    function Molecule{T}(name = "", 
+                         atoms = DataFrame(Atom{T}[]), 
+                         bonds = DataFrame(Bond[]), 
+                         atom_properties=Dict{Int, AtomProperties}()) where {T<:Real}
+        new(name, atoms, bonds, atom_properties)
     end
 end
 
-Molecule(name="", atoms=DataFrame(Atom[]), bonds=DataFrame(Bond[])) = Molecule{Float32}(name, atoms, bonds)
+Molecule(name="", 
+         atoms=DataFrame(Atom[]), 
+         bonds=DataFrame(Bond[]), 
+         atom_properties=Dict{Int, AtomProperties}()) = Molecule{Float32}(name, atoms, bonds, atom_properties)
 
 ### Functions
 
@@ -25,6 +33,14 @@ end
 
 function Base.push!(m::AbstractMolecule, bond::Bond)
     push!(m.bonds, bond)
+end
+
+function atom_properties(m, i::Int)
+    return m.atom_properties[i]
+end
+
+function atom_properties(m, a)
+    return m.atom_properties[a.number]
 end
 
 function count_atoms(m::AbstractMolecule)
