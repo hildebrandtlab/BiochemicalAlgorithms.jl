@@ -20,5 +20,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/hildebrandtlab/BiochemicalAlgorithms.jl",
-    devbranch="main",
+    devbranch="develop",
 )
