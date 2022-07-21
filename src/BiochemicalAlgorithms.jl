@@ -14,6 +14,7 @@ include("core/fragment.jl")
 include("core/nucleotide.jl")
 include("core/protein.jl")
 include("core/system.jl")
+include("core/atomtyping.jl")
 
 module PubChem
 include("fileformats/pubchem_json.jl")
