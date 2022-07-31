@@ -1,5 +1,6 @@
 module BiochemicalAlgorithms
 
+
 include("core/types.jl")
 include("core/element.jl")
 include("core/amino_acid.jl")
@@ -16,6 +17,7 @@ include("core/protein.jl")
 include("core/system.jl")
 include("core/atomtyping.jl")
 include("core/atomtyping_prep.jl")
+
 
 module PubChem
 include("fileformats/pubchem_json.jl")

@@ -22,6 +22,7 @@ function df_maker(mapfile::AbstractString)
     return df
 end
 
+
 function column_info_from_lines(line::AbstractString)
     col_data = ["" for _ = (1:9)]
     current_col = 1

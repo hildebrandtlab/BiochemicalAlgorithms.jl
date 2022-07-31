@@ -39,7 +39,6 @@ function atomtype_gaff(num::Int64, mol::Molecule)
     end
 
     df_ATD = filter(:num_neighbors => n -> n == connected_atoms, df_ATD)
-    println(df_ATD)
 
 end
 
