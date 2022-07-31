@@ -1,12 +1,16 @@
+using CSV
+using DataFrames
+using DelimitedFiles
 
-using DataFrames, DelimitedFiles, CSV
+export df_maker
 
 
 function df_maker(mapfile::AbstractString)
     source_file = open(mapfile)
-    temp_str = ""
     df = DataFrame([[] for _ = (1:9)], 
-    ["ATD", "type_name", "residue_names", "atomic_number", "num._attached_atoms", "num._attached_H", "electron_withdrawal_groups", "atomic_property", "CES"])
+    ["ATD" , "type_name", "residue_names", "atomic_number", "num_neighbors",
+     "num_H_bonds", "electron_withdrawal_groups", "atomic_property", "CES"])
+    ### possibly add type casting for columns ??
     
     for line in readlines(source_file)
         if lastindex(line)>=3 && line[1:3] == "ATD"
@@ -32,3 +36,5 @@ function column_info_from_lines(line::AbstractString)
     end
     return col_data
 end
+
+

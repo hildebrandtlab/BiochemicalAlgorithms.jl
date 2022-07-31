@@ -1,4 +1,4 @@
-ATD,type_name,residue_names,atomic_number,num._attached_atoms,num._attached_H,electron_withdrawal_groups,atomic_property,CES
+ATD,type_name,residue_names,atomic_number,num_neighbors,num_H_bonds,electron_withdrawal_groups,atomic_property,CES
 ATD,cx,*,6,4,*,*,[RG3],
 ATD,cy,*,6,4,*,*,[RG4],
 ATD,c3,*,6,4,,,,
