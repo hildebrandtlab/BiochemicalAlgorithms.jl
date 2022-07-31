@@ -6,7 +6,6 @@ using DelimitedFiles
 
 # export atomtype_gaff, build_connectivity_matrix
 
-
 function atomtype_gaff(num::Int64, mol::Molecule)
     element_gaff = Int((filter(:number => n -> n == num, mol.atoms).element[1]))
     

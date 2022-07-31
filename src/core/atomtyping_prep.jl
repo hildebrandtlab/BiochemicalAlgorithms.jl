@@ -4,7 +4,6 @@ using DelimitedFiles
 
 export df_maker
 
-
 function df_maker(mapfile::AbstractString)
     source_file = open(mapfile)
     df = DataFrame([[] for _ = (1:9)], 
@@ -21,7 +20,6 @@ function df_maker(mapfile::AbstractString)
     CSV.write("atomtype_gff.csv", df)
     return df
 end
-
 
 function column_info_from_lines(line::AbstractString)
     col_data = ["" for _ = (1:9)]
