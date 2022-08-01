@@ -11,29 +11,27 @@ function atomtype_gaff(num::Int64, mol::Molecule)
     
     ### Get Dataframe from csv file or from df_maker function ###
     df_ATD = CSV.read("atomtype_gff.csv", DataFrame)
-    # df_ATD = df_maker("src/mappings/antechamber/ATOMTYPE_GFF.DEF")
+    #df_ATD = df_maker("src/mappings/antechamber/ATOMTYPE_GFF.DEF")
     ### To Do: df_maker erstellt mit Typ Symbol. Schlecht für späteres Filtern mit Typ Int
     ###
     
     ### loop see below doesn't work (??) ###
-    #for name in enumerate(names(df_ATD))
-    #   df_ATD[:, name] = replace(df_ATD[:, name], missing => '*')
+    #for col in eachcol(df_ATD)
+    #    replace(col, missing => -1)
+       # df_ATD[Str(name)] = replace(df_ATD[Str(name)], missing => '*')
     #end
     ###
+    
+    #df_ATD.atomic_number = replace(df_ATD.atomic_number, missing => -1)
+    #df_ATD.num_single_bonds = replace(df_ATD.num_neighbors, missing => -1)
+    df_ATD = filter(:atomic_number => x -> x == element_gaff, df_ATD)
+    
 
-    df_ATD.atomic_number = replace(:atomic_number, missing => '*')
-    df_ATD.num_single_bonds = replace(:num_neighbors, missing => '*')
-    
-    df_ATD = filter(:atomic_number => n -> n == element_gaff, df_ATD)
-    ## probleme mit element_gaff, da hier nicht die Zahl weitergegeben wird -.-
-    
     bond_matrix = build_connectivity_matrix(mol)
     connected_atoms = 0
-    for i = (1:lastindex(bond_matrix[num]))
-        println(bond_matrix[num][i])        
+    for i = (1:lastindex(bond_matrix[num]))      
         if bond_matrix[num][i] >= 1
             connected_atoms += 1
-            println("connected_atoms = ", connected_atoms)
         end
     end
 
