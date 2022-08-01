@@ -45,7 +45,7 @@ function compute_rmsd_minimizer(f::AbstractAtomBijection{T}) where {T<:Real}
 
     R = mapreduce(t -> t[1] * transpose(t[2]), +, zip(r_B .- Ref(mean_B), r_A .- Ref(mean_A)))
 
-    C = transpose(R) * R
+    C = Hermitian(transpose(R) * R)
 
     μ = eigvals(C)
     a = eigvecs(C)
