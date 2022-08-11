@@ -16,6 +16,7 @@ include("core/protein.jl")
 include("core/system.jl")
 include("core/atomtyping.jl")
 include("core/atomtyping_prep.jl")
+include("core/def_bond.jl")
 
 module PubChem
 include("fileformats/pubchem_json.jl")
