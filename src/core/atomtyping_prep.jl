@@ -2,9 +2,9 @@ using CSV
 using DataFrames
 using DelimitedFiles
 
-export df_maker
+export DEFtoCSV_converter
 
-function df_maker(mapfile::AbstractString)
+function DEFtoCSV_converter(mapfile::AbstractString)
     source_file = open(mapfile)
     df = DataFrame([[] for _ = (1:9)],
         ["ATD" , "type_name", "residue_names", "atomic_number", "num_neighbors",

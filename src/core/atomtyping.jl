@@ -30,11 +30,14 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
     # Cycle detection and list
     cycle_bool = (ne(mol_graph) >= nv(mol_graph))
     chem_cycle_list = cycle_checker(mol_graph)
+    ring_intersections_matrix = ring_Intersections(chem_cycle_list)
+    ring_class_list = hueckel_test(chem_cycle_list)
 
     # Dataframe of Elements from Molecule that is later filled 
     # with specific atomtype definitions and returned
     # here: filling of Element_wNeighborCount and BondTypes
-    ATD_df = DataFrame([Array{String, 1}(undef, nrow(mol.atoms)) for _ = (1:3)], ["Element_wNeighborCount", "BondTypes", "Possible_Atomtypes"])
+    ATD_df = DataFrame([Array{String, 1}(undef, nrow(mol.atoms)), Vector{Vector{String}}(undef, nrow(mol.atoms)), Array{String, 1}(undef, nrow(mol.atoms))], 
+    ["Element_wNeighborCount", "BondTypes", "Possible_Atomtypes"])
     for i = (1:nrow(ATD_df)) 
         ATD_df.Element_wNeighborCount[i] = string(toString(mol.atoms.element[i]), lastindex(neighbors(mol_graph, i)))
         for (j, neigh) in enumerate(neighbors(mol_graph, i))
@@ -43,11 +46,15 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
                 ATD_df.BondTypes[i] = toString(BondDef(bond_type_num))
             else
                 ATD_df.BondTypes[i] = string(ATD_df.BondTypes[i], toString(BondDef(bond_type_num)))
-            end    
+                #push!(ATD_df.BondTypes[i], uppercase(toString(BondDef(bond_type_num))))
+            end
         end
-        if !(i in enumerate(chem_cycle_list))
-            uppercase(ATD_df.BondTypes[i])
+        for cycnum = (1:lastindex(chem_cycle_list)) 
+            if cycle_bool && i in chem_cycle_list[cycnum]
+                ATD_df.BondTypes[i] = lowercase(ATD_df.BondTypes[i])
+            end 
         end
+        ATD_df.BondTypes[i] = format_BondTypes(ATD_df.BondTypes[i])
     end
 
     for num = (1:nrow(mol.atoms))
@@ -104,24 +111,11 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         # filter out obvious loop properties if no cycle detected
         # or add cycle length property through RG3,...,9 
         part_of_num_rings = 0
-        if !(num in enumerate(chem_cycle_list)) 
+        if !occursin("AR", ATD_df.BondTypes[num]) && !occursin("RG", ATD_df.BondTypes[num])
             df_ATD_temp = filter(:atomic_property => n -> !occursin("RG", n), df_ATD_temp)
             df_ATD_temp = filter(:atomic_property => n -> !occursin("AR", n), df_ATD_temp)
-        elseif num in enumerate(chem_cycle_list)
-            for ringlist in enumerate(chem_cycle_list)
-                if num in ringlist
-                    part_of_num_rings += 1
-                    bondsum = 0
-                    ring_size = lastindex(ringlist)
-                    for bond = (1:lastindex(ringlist)-1)
-                        if bond == 1
-                            bondsum += wgraph_adj_matrix[ringlist[bond], ringlist[lastindex(ringlist)]]
-                        end
-                        bondsum += wgraph_adj_matrix[ringlist[bond], ringlist[lastindex(ringlist)]]
-                    end
-                end                    
-            end
         end
+        
         
         println(df_ATD_temp)
         if nrow(df_ATD_temp) == 1
@@ -129,6 +123,44 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         end
     end
     return ATD_df
+end
+
+
+function ring_Intersections(LList::Vector{Vector{Int64}})
+    inters_matrix = Matrix{Vector{Int64}}(undef, lastindex(LList), lastindex(LList))
+    for i = (1:lastindex(LList))
+        curr1_list = LList[i]
+        for j = (1:lastindex(LList))
+            curr2_list = LList[j]
+            inters_matrix[i,j] = inters_matrix[j,i] = intersect!(curr1_list, curr2_list)
+        end
+    end
+
+function hueckel_test(LList::Vector{Vector{Int64}}, wgraph_adj::adjacency_matrix)
+    ### n = (num_pi_elec - 2) / 4 , if n % 1 == 0 then Hueckel
+    ring_list = Vector{Vector{String}}()
+    for vlist in LList
+        push!(ring_list, string("RG", String(lastindex(vlist))))
+        pi_elec = 0
+        for bond = (1:lastindex(vlist)-1)
+            if bond == 1 && Int(wgraph_adj[vlist[bond], vlist[lastindex(vlist)]]) == 2
+                pi_elec += 2
+            elseif Int(wgraph_adj[vlist[bond], vlist[bond+1]]) == 2
+                pi_elec += 2
+            end
+            bondsum += wgraph_adj_matrix[ringlist[bond], ringlist[lastindex(ringlist)]]
+        end 
+            for (i,vert) in enumerate(vlist)
+                if num in ringlist
+                    part_of_num_rings += 1
+                    bondsum = 0
+                    ring_size = lastindex(ringlist)
+                    
+                        
+            end
+        end
+    end
+    return
 end
 
 

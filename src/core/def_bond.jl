@@ -6,7 +6,7 @@ export BondDef, BondDefs
 @enumx BondDefs begin
     sb = 1
     db = 2
-    tp = 3
+    tb = 3
     Unknown = 100
 end
 
