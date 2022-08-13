@@ -2,7 +2,7 @@
 using BiochemicalAlgorithms
 using Graphs, SimpleWeightedGraphs
 
-export select_atomtyping, get_atomtype, build_graph, cycle_checker, build_weighted_graph, toString
+export select_atomtyping, get_atomtype, build_graph, cycle_checker, build_weighted_graph, toString, cycle_intersections
 
 
 function select_atomtyping()
@@ -30,31 +30,26 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
     # Cycle detection and list
     cycle_bool = (ne(mol_graph) >= nv(mol_graph))
     chem_cycle_list = cycle_checker(mol_graph)
-    ring_intersections_matrix = ring_Intersections(chem_cycle_list)
-    ring_class_list = hueckel_test(chem_cycle_list)
-
+    ring_intersections_matrix = Matrix{Vector{Int64}}(undef, lastindex(chem_cycle_list), lastindex(chem_cycle_list))
+    ring_class_list = Vector{Vector{String}}()
+    ring_intersections_matrix = cycle_intersections(chem_cycle_list)
+    ring_class_list = NG_RG_AR_DEFtype(chem_cycle_list, mol_graph, wgraph_adj_matrix, ring_intersections_matrix, mol)
+    println(ring_class_list)
+    readline()
     # Dataframe of Elements from Molecule that is later filled 
     # with specific atomtype definitions and returned
     # here: filling of Element_wNeighborCount and BondTypes
     ATD_df = DataFrame([Array{String, 1}(undef, nrow(mol.atoms)), Vector{Vector{String}}(undef, nrow(mol.atoms)), Array{String, 1}(undef, nrow(mol.atoms))], 
     ["Element_wNeighborCount", "BondTypes", "Possible_Atomtypes"])
     for i = (1:nrow(ATD_df)) 
+        str_for_BondTypes = ""
         ATD_df.Element_wNeighborCount[i] = string(toString(mol.atoms.element[i]), lastindex(neighbors(mol_graph, i)))
-        for (j, neigh) in enumerate(neighbors(mol_graph, i))
+        for neigh in neighbors(mol_graph, i)
             bond_type_num = Int(wgraph_adj_matrix[i,neigh])
-            if j == 1
-                ATD_df.BondTypes[i] = toString(BondDef(bond_type_num))
-            else
-                ATD_df.BondTypes[i] = string(ATD_df.BondTypes[i], toString(BondDef(bond_type_num)))
-                #push!(ATD_df.BondTypes[i], uppercase(toString(BondDef(bond_type_num))))
-            end
+            str_for_BondTypes = string(str_for_BondTypes, toString(BondDef(bond_type_num)))
         end
-        for cycnum = (1:lastindex(chem_cycle_list)) 
-            if cycle_bool && i in chem_cycle_list[cycnum]
-                ATD_df.BondTypes[i] = lowercase(ATD_df.BondTypes[i])
-            end 
-        end
-        ATD_df.BondTypes[i] = format_BondTypes(ATD_df.BondTypes[i])
+        ATD_df.BondTypes[i] = format_BondTypes!(i, str_for_BondTypes, chem_cycle_list, ring_class_list)
+              
     end
 
     for num = (1:nrow(mol.atoms))
@@ -126,21 +121,40 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
 end
 
 
-function ring_Intersections(LList::Vector{Vector{Int64}})
-    inters_matrix = Matrix{Vector{Int64}}(undef, lastindex(LList), lastindex(LList))
-    for i = (1:lastindex(LList))
-        curr1_list = LList[i]
-        for j = (1:lastindex(LList))
-            curr2_list = LList[j]
-            inters_matrix[i,j] = inters_matrix[j,i] = intersect!(curr1_list, curr2_list)
+function format_BondTypes!(num::Int64, str_Bonds::AbstractString, chem_cycle_list::Vector{Vector{Int64}}, ring_class_list::Vector{Vector{String}})
+    str_bondtypes_list = [sb, db, tb]
+    ret_list = Vector{String}()
+    for type in str_bondtypes_list
+        count_type = count(==(type), str_Bonds)
+        if count_type > 0
+            push!(ret_list, string(count_type, type))     
         end
     end
+end
 
-function hueckel_test(LList::Vector{Vector{Int64}}, wgraph_adj::adjacency_matrix)
-    ### n = (num_pi_elec - 2) / 4 , if n % 1 == 0 then Hueckel
-    ring_list = Vector{Vector{String}}()
-    for vlist in LList
-        push!(ring_list, string("RG", String(lastindex(vlist))))
+
+function NG_RG_AR_DEFtype(LList::Vector{Vector{Int64}}, mol_graph::SimpleGraph, wgraph_adj::Graphs.SparseMatrix, inters_matrix::Matrix{Vector{Int64}}, mol::AbstractMolecule)
+    ### n = (num_db*2 - 2) / 4 , if n % 1 == 0 then Hueckel
+    ring_class_list = Vector{Vector{String}}(undef, nrow(mol.atoms))
+    for i = (1:nrow(mol.atoms))
+        ring_class_list[i] = ["NG"]
+    end
+    for (numvlist, vlist) in enumerate(LList)
+        for x in vlist
+            if ring_class_list[x] == ["NG"]
+                ring_class_list[x] = [string(x, "RG", string(lastindex(vlist)))]
+            end
+        end
+
+        # check if is O, N, or S present in Ring vlist
+        ONS_present = false
+        for i = (1:lastindex(vlist))
+            if Int(mol.atoms.element[vlist[i]]) == 8 || Int(mol.atoms.element[vlist[i]]) == 7 || Int(mol.atoms.element[vlist[i]]) == 16
+                ONS_present = true
+            end
+        end
+
+        # check number of pi electrons
         pi_elec = 0
         for bond = (1:lastindex(vlist)-1)
             if bond == 1 && Int(wgraph_adj[vlist[bond], vlist[lastindex(vlist)]]) == 2
@@ -148,20 +162,43 @@ function hueckel_test(LList::Vector{Vector{Int64}}, wgraph_adj::adjacency_matrix
             elseif Int(wgraph_adj[vlist[bond], vlist[bond+1]]) == 2
                 pi_elec += 2
             end
-            bondsum += wgraph_adj_matrix[ringlist[bond], ringlist[lastindex(ringlist)]]
-        end 
-            for (i,vert) in enumerate(vlist)
-                if num in ringlist
-                    part_of_num_rings += 1
-                    bondsum = 0
-                    ring_size = lastindex(ringlist)
-                    
-                        
+        end
+        if (pi_elec / lastindex(vlist)) == 1.0
+            for x in vlist
+                push!(ring_class_list[x], "AR1")
+            end
+        elseif (pi_elec / lastindex(vlist)) > 1/2 && (pi_elec / lastindex(vlist)) < 1 && ONS_present
+            for x in vlist
+                push!(ring_class_list[x], "AR2")
+            end
+        elseif (pi_elec / lastindex(vlist)) > 1/2 && (pi_elec / lastindex(vlist)) < 1 && !ONS_present
+            # check if Ring vlist has intersections with other rings in molecule and if these are aromatic
+            has_aromatic_inters = false
+            for i = (1:lastindex(LList))
+                if !isempty(inters_matrix[numvlist,i]) && lastindex(inters_matrix[numvlist, i]) == 2
+                    for j in inters_matrix[numvlist,i]
+                        db_inters_atom = 0
+                        for k in neighbors(mol_graph, j)
+                            if wgraph_adj[j,k] == 2
+                                db_inters_atom += 1
+                            end
+                        end
+                        if db_inters_atom == 1
+                            has_aromatic_inters = true
+                            push!(ring_class_list[j], "AR3")
+                        end                    
+                    end                 
+                end
+            end
+        elseif (pi_elec / lastindex(vlist)) < 1/2
+            for x in vlist
+                push!(ring_class_list[x], "AR5")
             end
         end
     end
-    return
+    return ring_class_list
 end
+
 
 
 function count_withdrawal_groups(num::Int, mol::AbstractMolecule, mol_graph::SimpleGraph)
@@ -187,6 +224,23 @@ function CES_checker(num::Integer, mol::AbstractMolecule, graph::SimpleGraph, df
     
     ### To Do: check for neighbors with Graphs. neighbors(graph, num) in 
     return df
+end
+
+
+function cycle_intersections(LList::Vector{Vector{Int64}})
+    inters_matrix = Matrix{Vector{Int64}}(undef, lastindex(LList), lastindex(LList))
+    for i = (1:lastindex(LList))
+        curr1_list = copy(LList[i])
+        for j = (1:lastindex(LList))
+            curr2_list = copy(LList[j])
+            if curr1_list != curr2_list
+                inters_matrix[i,j] = inters_matrix[j,i] = intersect(curr1_list, curr2_list)
+            else
+                inters_matrix[i,j] = inters_matrix[j,i] = []
+            end
+        end
+    end
+    return inters_matrix
 end
 
 
