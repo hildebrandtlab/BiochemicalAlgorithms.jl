@@ -68,7 +68,7 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
             neighbor_element = toString(mol.atoms.element[neigh_list[1]])
             elec_wgroups = count_withdrawal_groups(neighbors(mol_graph, num)[1], mol, mol_graph)
             df_ATD_temp_save = copy(df_ATD_temp)
-            # case neighbor is Oxygen
+            # case: neighbor is Oxygen
             if neighbor_element == "O" && all(in(["H1"]).(ATD_df.Element_wNeighborCount[neighbors(mol_graph,neigh_list)]))
                 df_ATD_temp = filter(:CES => n -> n == "(O(H1))", df_ATD_temp)
                 ATD_df.Possible_Atomtypes[num] = df_ATD_temp.type_name[1]
@@ -78,8 +78,7 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
                 ATD_df.Possible_Atomtypes[num] = df_ATD_temp.type_name[1]
                 continue
             end
-
-            # case C3 with no EWD
+            # case: C3 with no EWD
             if ATD_df.Element_wNeighborCount[neigh_list[1]] == "C3" && elec_wgroups == -1
                 df_ATD_temp = filter(:CES => n -> n == "*", df_ATD_temp)
                 ATD_df.Possible_Atomtypes[num] = df_ATD_temp.type_name[1]
@@ -110,21 +109,13 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
             end
         end
 
-        # filter for connected_atoms and connected_H_atoms
-        connected_atoms = 0
-        connected_H_atoms = 0
-        for i = (1:nrow(mol.atoms))      
-            if adj_matrix[num,i] >= 1
-                connected_atoms += 1
-                if element_number(i,mol) == 1
-                    connected_H_atoms += 1
-                end
-            end
-        end
-        
+        # filter for connected_atoms
+        connected_atoms = lastindex(neighbors(mol_graph, num))
         df_ATD_temp = filter(:num_neighbors => n -> n == connected_atoms, df_ATD_temp)
-        if connected_H_atoms >= 1 && true in in(df_ATD_temp.num_H_bonds).([1,2,3])
-            println("we got in H atoms")
+        
+        # filter for connected_H_atoms
+        if true in in(df_ATD_temp.num_H_bonds).([1,2,3]) && in(mol.atoms.element[neigh_list]).(Elements.H)
+            connected_H_atoms = countmap(mol.atoms.element[neigh_list])[Elements.H]
             df_ATD_temp = filter(:num_H_bonds => n -> n == connected_H_atoms, df_ATD_temp)
         end
 
@@ -234,15 +225,16 @@ end
 
 
 function count_withdrawal_groups(num::Int, mol::AbstractMolecule, mol_graph::SimpleGraph)
-    elec_pullers = ["COO", "OH", "SOO", "Cl", "F", "Br", "I", "NOO"] ### To Do: extend for all EWD Groups
+    # rework to create suitable neighborstring or if cascade for certain elements
+    elec_pullers = ["COO", "CHO", "COH", "SOO", "Cl", "F", "Br", "I", "NOO"] ### To Do: extend for all EWD Groups
     elec_pullers_num = 0
     for neigh1 in neighbors(mol_graph, num)
         neighbor_str = toString(mol.atoms.element[neigh1])
         for neigh2 in neighbors(mol_graph, neigh1)
             neighbor_str = string(neighbor_str, toString(mol.atoms.element[neigh2]))
         end
-        if all(in(elec_pullers).([neighbor_str]))
-            println("we got an elec puller")
+        if in(elec_pullers).(neighbor_str)
+            println("we got an elec_puller")
             elec_pullers_num += 1
         end
     end
