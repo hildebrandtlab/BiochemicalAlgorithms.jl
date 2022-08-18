@@ -245,13 +245,6 @@ function count_withdrawal_groups(num::Int, mol::AbstractMolecule, mol_graph::Sim
 end
 
 
-function CES_checker(num::Integer, mol::AbstractMolecule, graph::SimpleGraph, df::DataFrame, ATD_array::AbstractArray)
-    
-    ### To Do: check for neighbors with Graphs. neighbors(graph, num) in 
-    return df
-end
-
-
 function cycle_intersections(LList::Vector{Vector{Int64}})
     inters_matrix = Matrix{Vector{Int64}}(undef, lastindex(LList), lastindex(LList))
     for i = (1:lastindex(LList))
