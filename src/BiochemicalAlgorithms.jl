@@ -18,6 +18,9 @@ include("core/atomtyping.jl")
 include("core/atomtyping_prep.jl")
 include("core/def_bond.jl")
 
+# testing script to load all molecules from folder
+include("core/testing_script.jl")
+
 module PubChem
 include("fileformats/pubchem_json.jl")
 end

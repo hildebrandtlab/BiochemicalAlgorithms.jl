@@ -1,6 +1,7 @@
 
 using BiochemicalAlgorithms
 using Graphs, SimpleWeightedGraphs
+using StatsBase
 
 export select_atomtyping, get_atomtype, build_graph, cycle_checker, build_weighted_graph, toString, cycle_intersections
 
@@ -39,7 +40,7 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
     # Dataframe of Elements from Molecule that is later filled 
     # with specific atomtype definitions and returned
     # here: filling of Element_wNeighborCount and BondTypes
-    ATD_df = DataFrame([Array{String, 1}(undef, nrow(mol.atoms)), Vector{Vector{String}}(undef, nrow(mol.atoms)), Array{String, 1}(undef, nrow(mol.atoms))], 
+    ATD_df = DataFrame([Array{String, 1}(undef, nrow(mol.atoms)), Vector{Vector{String}}(undef, nrow(mol.atoms)), Vector{Vector{String}}(undef, nrow(mol.atoms))], 
     ["Element_wNeighborCount", "BondTypes", "Possible_Atomtypes"])
     for i = (1:nrow(ATD_df)) 
         str_for_BondTypes = ""
@@ -59,7 +60,7 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         neigh_list = neighbors(mol_graph, num)
 
         if nrow(df_ATD_temp) == 1
-            ATD_df.Possible_Atomtypes[num] = df_ATD_temp.type_name[1]
+            ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
             continue
         end
         
@@ -67,33 +68,33 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         if element_num == 1
             neighbor_element = toString(mol.atoms.element[neigh_list[1]])
             elec_wgroups = count_withdrawal_groups(neighbors(mol_graph, num)[1], mol, mol_graph)
-            df_ATD_temp_save = copy(df_ATD_temp)
+            
             # case: neighbor is Oxygen
-            if neighbor_element == "O" && all(in(["H1"]).(ATD_df.Element_wNeighborCount[neighbors(mol_graph,neigh_list)]))
+            if neighbor_element == "O" && all(in(["H1"]).(ATD_df.Element_wNeighborCount[neighbors(mol_graph,neigh_list[1])]))
                 df_ATD_temp = filter(:CES => n -> n == "(O(H1))", df_ATD_temp)
-                ATD_df.Possible_Atomtypes[num] = df_ATD_temp.type_name[1]
+                ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
                 continue
-            elseif neighbor_element == "O" && !all(in(["H1"]).(ATD_df.Element_wNeighborCount[neighbors(mol_graph,neigh_list)]))
+            elseif neighbor_element == "O" && !all(in(["H1"]).(ATD_df.Element_wNeighborCount[neighbors(mol_graph,neigh_list[1])]))
                 df_ATD_temp = filter(:CES => n -> n == "(O)", df_ATD_temp)
-                ATD_df.Possible_Atomtypes[num] = df_ATD_temp.type_name[1]
+                ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
                 continue
             end
             # case: C3 with no EWD
             if ATD_df.Element_wNeighborCount[neigh_list[1]] == "C3" && elec_wgroups == -1
                 df_ATD_temp = filter(:CES => n -> n == "*", df_ATD_temp)
-                ATD_df.Possible_Atomtypes[num] = df_ATD_temp.type_name[1]
+                ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
                 continue
             elseif ATD_df.Element_wNeighborCount[neigh_list[1]] == "C3" && elec_wgroups >= 1
                 df_ATD_temp = filter(:CES => n -> (occursin(ATD_df.Element_wNeighborCount[neigh_list[1]], n) || occursin("XX", n)), df_ATD_temp)
                 df_ATD_temp = filter(:electron_withdrawal_groups => n -> n == elec_wgroups, df_ATD_temp)
-                ATD_df.Possible_Atomtypes[num] = df_ATD_temp.type_name[1]
+                ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
                 continue
             end
 
             # other cases
             df_ATD_temp = filter(:CES => n -> (occursin(neighbor_element, n) || occursin("X", n)) , df_ATD_temp)
             if nrow(df_ATD_temp) == 1
-                ATD_df.Possible_Atomtypes[num] = df_ATD_temp.type_name[1]
+                ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
                 continue
             elseif nrow(df_ATD_temp) == 0
                 df_ATD_temp = copy(df_ATD_temp_save)
@@ -101,12 +102,6 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
 
             df_ATD_temp = filter(:CES => n -> (occursin(ATD_df.Element_wNeighborCount[neigh_list[1]], n) || occursin("XX", n)), df_ATD_temp)
             df_ATD_temp = filter(:electron_withdrawal_groups => n -> n == elec_wgroups, df_ATD_temp)
-            if nrow(df_ATD_temp) == 1
-                ATD_df.Possible_Atomtypes[num] = df_ATD_temp.type_name[1]
-                continue
-            elseif nrow(df_ATD_temp) == 0
-                df_ATD_temp = copy(df_ATD_temp_save)
-            end
         end
 
         # filter for connected_atoms
@@ -114,21 +109,60 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         df_ATD_temp = filter(:num_neighbors => n -> n == connected_atoms, df_ATD_temp)
         
         # filter for connected_H_atoms
-        if true in in(df_ATD_temp.num_H_bonds).([1,2,3]) && in(mol.atoms.element[neigh_list]).(Elements.H)
-            connected_H_atoms = countmap(mol.atoms.element[neigh_list])[Elements.H]
+        if (true in in(df_ATD_temp.num_H_bonds).([1,2,3]) && in(mol.atoms.element[neigh_list]).(Elements.H)) ||
+            (in(df_ATD_temp.num_H_bonds).(0) && !in(mol.atoms.element[neigh_list]).(Elements.H))
+            connected_H_atoms = countmap(in([Elements.H]).(mol.atoms.element[neigh_list]))[true]
             df_ATD_temp = filter(:num_H_bonds => n -> n == connected_H_atoms, df_ATD_temp)
         end
 
         # filter out obvious loop properties if no cycle detected
         # To Do: filter for all loop properties in BondTypes, maybe finding and selecting through properties instead of process of elimination as seen below
+        AR1_RG6 = ["RG6", "AR1"]
+        AR2_RG6 = ["RG6", "AR2"]
         if "NG" in ATD_df.BondTypes[num]
             df_ATD_temp = filter(:atomic_property => n -> (!occursin("RG", n) && !occursin("AR", n)), df_ATD_temp)
             df_ATD_temp = filter(:atomic_property => n -> (!occursin("sb", n) && !occursin("db", n)), df_ATD_temp)
+        elseif in(ATD_df.BondTypes[num]).("AR1") #&& in(ATD_df.BondTypes[neigh_list]).("NG")
+            # nur NG rausfiltern funktioniert nicht für GAFF def. Und in BCC DEF nicht eindeutig (s. Zeile 18)
+            df_ATD_temp = filter(:atomic_property => n -> (occursin("AR1", n) && !occursin("RG6", n)), df_ATD_temp)
+        elseif in(ATD_df.BondTypes[num]).("AR2")
+            df_ATD_temp = filter(:atomic_property => n -> occursin("AR2", n), df_ATD_temp)
+        elseif in(ATD_df.BondTypes[num]).("AR3")
+            df_ATD_temp = filter(:atomic_property => n -> occursin("AR3", n), df_ATD_temp)
         end
-        
-        println(df_ATD_temp)
+
+        # specific non-cycle C3 filter for XA1 (which is O1 or S1) or XB (which are the Halogens)
+        XB_elements = [Elements.Cl, Elements.Br, Elements.F, Elements.I, Elements.At, Elements.Ts]
+        XA1_elements = [Elements.O, Elements.S]
+        XB_ATD_df = ["Cl1", "F1", "I1", "Br1", "At1", "Ts1"]
+        XA1_ATD_df = ["O1", "S1"]
+        df_ATD_temp_save = copy(df_ATD_temp)
+        if ATD_df.Element_wNeighborCount[num] == "C3" && "NG" in ATD_df.BondTypes[num]
+            if true in in(mol.atoms.element[neigh_list]).(XB_elements)  
+                df_ATD_temp = filter(:CES => n -> (occursin("XB", n) || occursin("*", n)), df_ATD_temp)
+            elseif true in in(mol.atoms.element[neigh_list]).(XA1_elements)
+                df_ATD_temp = filter(:CES => n -> occursin("XA1", n), df_ATD_temp)
+            elseif all(in(["N3"]).(ATD_df.Element_wNeighborCount[neigh_list]))
+                df_ATD_temp = filter(:CES => n -> occursin("N3", n), df_ATD_temp)
+            end
+        end
         if nrow(df_ATD_temp) == 1
-            ATD_df.Possible_Atomtypes[num] = df_ATD_temp.type_name[1]
+            ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
+            continue
+        elseif nrow(df_ATD_temp) == 0
+            df_ATD_temp = copy(df_ATD_temp_save)
+        end
+
+        println(ATD_df.BondTypes[num])
+        if nrow(df_ATD_temp) == 1
+            ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
+            continue
+        else
+            count_dict = countmap(df_ATD_temp.type_name)
+            ATD_df.Possible_Atomtypes[num] = []
+            for (key, value) in count_dict
+                push!(ATD_df.Possible_Atomtypes[num], key)
+            end
         end
     end
     return ATD_df
@@ -164,20 +198,16 @@ function NG_RG_AR_DEFtype(LList::Vector{Vector{Int64}}, mol_graph::SimpleGraph, 
     for (numvlist, vlist) in enumerate(LList)
         for x in vlist
             if ring_class_list[x] == ["NG"]
-                ring_class_list[x] = ["RG"]
-                push!(ring_class_list[x], "AR")
-                push!(ring_class_list[x], string("RG", string(lastindex(vlist))))
+                ring_class_list[x] = [string("RG", string(lastindex(vlist)))]
             end
         end
 
         # check if is O, N, or S present in Ring vlist
         ONS_present = false
-        for i = (1:lastindex(vlist))
-            if Int(mol.atoms.element[vlist[i]]) == 8 || Int(mol.atoms.element[vlist[i]]) == 7 || Int(mol.atoms.element[vlist[i]]) == 16
-                ONS_present = true
-            end
+        if true in in(mol.atoms.element[vlist]).([Elements.O,Elements.N,Elements.S])
+            ONS_present = true
         end
-
+        
         # check number of pi electrons
         pi_elec = 0
         for bond = (1:lastindex(vlist)-1)
@@ -187,36 +217,38 @@ function NG_RG_AR_DEFtype(LList::Vector{Vector{Int64}}, mol_graph::SimpleGraph, 
                 pi_elec += 2
             end
         end
-        if (pi_elec / lastindex(vlist)) == 1.0
+        if (pi_elec / lastindex(vlist)) == 1.0 && !ONS_present
+            println("we got in")
             for x in vlist
                 push!(ring_class_list[x], "AR1")
             end
-        elseif (pi_elec / lastindex(vlist)) > 1/2 && (pi_elec / lastindex(vlist)) < 1 && ONS_present
+        elseif (pi_elec / lastindex(vlist)) > 1/2 && (pi_elec / lastindex(vlist)) <= 1 && ONS_present && lastindex(vlist) > 4
             for x in vlist
                 push!(ring_class_list[x], "AR2")
             end
-        elseif (pi_elec / lastindex(vlist)) > 1/2 && (pi_elec / lastindex(vlist)) < 1 && !ONS_present
+        elseif (pi_elec / lastindex(vlist)) > 1/2 && (pi_elec / lastindex(vlist)) < 1 && !ONS_present && lastindex(vlist) > 4
             # check if Ring vlist has intersections with other rings in molecule and if these are aromatic
+            #intersection_db = countmap(in(inters_matrix).()
             has_aromatic_inters = false
             for i = (1:lastindex(LList))
                 if !isempty(inters_matrix[numvlist,i]) && lastindex(inters_matrix[numvlist, i]) == 2
-                    for j in inters_matrix[numvlist,i]
-                        db_inters_atom = 0
-                        for k in neighbors(mol_graph, j)
-                            if wgraph_adj[j,k] == 2
-                                db_inters_atom += 1
+                    atom1_bonds = filter(:a1 => n -> n == inters_matrix[numvlist,i][1], mol.bonds)
+                    atom2_bonds = filter(:a1 => n -> n == inters_matrix[numvlist,i][2], mol.bonds)
+                    if countmap(in([BondOrder.Double]).(atom1_bonds.order))[1] == 1 &&
+                        countmap(in([BondOrder.Double]).(atom2_bonds.order))[1] == 1
+                        for x in vlist
+                            if !in(ring_class_list[x]).("AR1")
+                                push!(ring_class_list[x], "AR1")
                             end
-                        end
-                        if db_inters_atom == 1
-                            has_aromatic_inters = true
-                            push!(ring_class_list[j], "AR3")
-                        end                    
-                    end                 
+                        end 
+                    end           
                 end
             end
-        elseif (pi_elec / lastindex(vlist)) < 1/2
+        elseif (pi_elec / lastindex(vlist)) == 0
             for x in vlist
-                push!(ring_class_list[x], "AR5")
+                if !in(ring_class_list[x]).("AR5")
+                    push!(ring_class_list[x], "AR5")    
+                end
             end
         end
     end
