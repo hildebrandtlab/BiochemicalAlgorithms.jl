@@ -47,7 +47,7 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         ATD_df.Element_wNeighborCount[i] = string(toString(mol.atoms.element[i]), lastindex(neighbors(mol_graph, i)))
         for neigh in neighbors(mol_graph, i)
             bond_type_num = Int(wgraph_adj_matrix[i,neigh])
-            str_for_BondTypes = string(str_for_BondTypes, toString(BondDef(bond_type_num)))
+            str_for_BondTypes = string(str_for_BondTypes, toString(DefBond(bond_type_num)))
         end
         ATD_df.BondTypes[i] = format_BondTypes!(i, str_for_BondTypes, ring_class_list)
     end
@@ -153,7 +153,6 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
             df_ATD_temp = copy(df_ATD_temp_save)
         end
 
-        println(ATD_df.BondTypes[num])
         if nrow(df_ATD_temp) == 1
             ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
             continue
@@ -173,7 +172,7 @@ function format_BondTypes!(num::Int64, str_Bonds::AbstractString, ring_class_lis
     str_bondtypes_list = Vector{String}()
     non_ring_atom_bool = ("NG" in ring_class_list[num]) 
     for defi = (1:3)
-        push!(str_bondtypes_list, toString(BondDef(defi)))
+        push!(str_bondtypes_list, toString(DefBond(defi)))
     end
     ret_list = Vector{String}()
     for (j, type) in enumerate(str_bondtypes_list)
@@ -218,7 +217,6 @@ function NG_RG_AR_DEFtype(LList::Vector{Vector{Int64}}, mol_graph::SimpleGraph, 
             end
         end
         if (pi_elec / lastindex(vlist)) == 1.0 && !ONS_present
-            println("we got in")
             for x in vlist
                 push!(ring_class_list[x], "AR1")
             end
