@@ -1,15 +1,15 @@
 
 using EnumX
 
-export BondDef, BondDefs
+export DefBond, DefBonds
 
-@enumx BondDefs begin
+@enumx DefBonds begin
     sb = 1
     db = 2
     tb = 3
     Unknown = 100
 end
 
-const BondDef = BondDefs.T
+const DefBond = DefBonds.T
 
-Base.parse(BondDef, s) = getproperty(BondDef, Symbol(s))
+Base.parse(DefBond, x) = getproperty(DefBond, Symbol(x))
