@@ -79,6 +79,7 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
                 ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
                 continue
             end
+            
             # case: C3 with no EWD
             if ATD_df.Element_wNeighborCount[neigh_list[1]] == "C3" && elec_wgroups == -1
                 df_ATD_temp = filter(:CES => n -> n == "*", df_ATD_temp)
@@ -92,7 +93,11 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
             end
 
             # other cases
-            df_ATD_temp = filter(:CES => n -> (occursin(neighbor_element, n) || occursin("X", n)) , df_ATD_temp)
+            if neighbor_element == "N"
+                df_ATD_temp = filter(:CES => n -> n == "(N)" , df_ATD_temp)
+            else
+                df_ATD_temp = filter(:CES => n -> (occursin(neighbor_element, n) || occursin("X", n)) , df_ATD_temp)
+            end
             if nrow(df_ATD_temp) == 1
                 ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
                 continue
@@ -131,6 +136,12 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
             df_ATD_temp = filter(:atomic_property => n -> occursin("AR3", n), df_ATD_temp)
         end
 
+        # neighbor_elements List
+        neighbor_mol_elements = Vector{String}()
+        for element in mol.atoms.element[neigh_list]
+            push!(neighbor_mol_elements, toString(element))
+        end
+
         # specific non-cycle C3 filter for XA1 (which is O1 or S1) or XB (which are the Halogens)
         XB_elements = [Elements.Cl, Elements.Br, Elements.F, Elements.I, Elements.At, Elements.Ts]
         XA1_elements = [Elements.O, Elements.S]
@@ -140,10 +151,10 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         if ATD_df.Element_wNeighborCount[num] == "C3" && "NG" in ATD_df.BondTypes[num]
             if true in in(mol.atoms.element[neigh_list]).(XB_elements)  
                 df_ATD_temp = filter(:CES => n -> (occursin("XB", n) || occursin("*", n)), df_ATD_temp)
-            elseif true in in(mol.atoms.element[neigh_list]).(XA1_elements)
+            elseif true in in(ATD_df.Element_wNeighborCount[neigh_list]).(XA1_ATD_df)
                 df_ATD_temp = filter(:CES => n -> occursin("XA1", n), df_ATD_temp)
-            elseif all(in(["N3"]).(ATD_df.Element_wNeighborCount[neigh_list]))
-                df_ATD_temp = filter(:CES => n -> occursin("N3", n), df_ATD_temp)
+            elseif countmap(in(["N3"]).(ATD_df.Element_wNeighborCount[neigh_list]))[1] == 3
+                df_ATD_temp = filter(:CES => n -> n == "(N3,N3,N3)", df_ATD_temp)
             end
         end
         if nrow(df_ATD_temp) == 1
@@ -153,6 +164,24 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
             df_ATD_temp = copy(df_ATD_temp_save)
         end
 
+        # specific non-cycle N3 filtering
+        if ATD_df.Element_wNeighborCount[num] == "N3" && "NG" in ATD_df.BondTypes[num]
+            if in(ATD_df.Element_wNeighborCount[neigh_list]).("C4") && !in(wgraph_adj_matrix[num, neigh_list]).(2)
+                df_ATD_temp = filter(:CES => n -> n == "(C3(XA1))", df_ATD_temp)
+            elseif true in in(ATD_df.Element_wNeighborCount[neigh_list]).(XA1_ATD_df)
+                df_ATD_temp = filter(:CES => n -> occursin("XA1", n), df_ATD_temp)
+            elseif countmap(in(["N3"]).(ATD_df.Element_wNeighborCount[neigh_list]))[1] == 3
+                df_ATD_temp = filter(:CES => n -> n == "(N3,N3,N3)", df_ATD_temp)
+            end
+        end
+        if nrow(df_ATD_temp) == 1
+            ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
+            continue
+        elseif nrow(df_ATD_temp) == 0
+            df_ATD_temp = copy(df_ATD_temp_save)
+        end
+
+        # add all left over atomtypes into a list
         if nrow(df_ATD_temp) == 1
             ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
             continue
@@ -165,6 +194,19 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         end
     end
     return ATD_df
+end
+
+
+function check_neigh_paths(num::Int64, ATD_df::Dataframe, mol_wgraph::SimpleWeightedGraph, adj_mol_wgraph::AbstractMatrix, neigh_list::AbstractArray, df_ATD_temp::DataFrame)
+    neigh_paths = Vector{Vector{Int64}}()
+    neigh_bond_to_previous = Vector{Vector{Int64}}()
+    for prim_neigh in neigh_list
+        for sec_neigh in neighbors(mol_wgraph, prim_neigh)
+            push!(neigh_paths, [prim_neigh, sec_neigh])
+            push!(neigh_bond_to_previous, [adj_mol_wgraph[num,prim_neigh],adj_mol_wgraph[prim_neigh,sec_neigh]])
+        end
+    end
+    CES_paths = [df_ATD_temp.CES]
 end
 
 
