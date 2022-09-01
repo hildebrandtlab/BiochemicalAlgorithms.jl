@@ -59,11 +59,9 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         ATD_df.BondTypes[i] = format_BondTypes!(i, str_for_BondTypes, ring_class_list)
         # neighbors and neighbors of neighbors for each atom into ATD_df.Neighbors
         ATD_df.Neighbors[i] = neighbors(mol_graph, i)
-        ATD_df.Secondary_Neighbors[i] = Vector{Vector{String}}()
-        println(ATD_df.Secondary_Neighbors[i])
+        ATD_df.Secondary_Neighbors[i] = Vector{Vector{Int64}}()
         for (n, prim_neigh) in enumerate(ATD_df.Neighbors[i])
-            push!(ATD_df.Secondary_Neighbors[i],[])
-            println(ATD_df.Secondary_Neighbors[i])
+            push!(ATD_df.Secondary_Neighbors[i],[]) #Careful, neighbor of neighbor of H, Halogens, double Bond O and S are now empty lists
             for sec_neigh in neighbors(mol_graph, prim_neigh)
                 if sec_neigh != i
                     push!(ATD_df.Secondary_Neighbors[i][n], sec_neigh)
@@ -71,8 +69,6 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
             end
         end
     end
-    println(ATD_df)
-    readline()
     
     # Filter Dataframe process for each atom in molecule
     for num = (1:nrow(mol.atoms))
@@ -92,7 +88,7 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         # Filtering if current element is H atom
         if element_num == 1
             neighbor_element = toString(mol.atoms.element[ATD_df.Neighbors[num][1]])
-            elec_wgroups = count_withdrawal_groups(neighbors(mol_graph, num)[1], mol, mol_graph)
+            elec_wgroups = count_withdrawal_groups(num, ATD_df)
             
             # case: neighbor is Oxygen
             if neighbor_element == "O" && all(in(["H1"]).(ATD_df.Element_wNeighborCount[neighbors(mol_graph,ATD_df.Neighbors[num][1])]))
@@ -313,11 +309,21 @@ function NG_RG_AR_DEFtype(LList::Vector{Vector{Int64}}, mol_graph::SimpleGraph, 
 end
 
 
-function count_withdrawal_groups(num::Int, mol::AbstractMolecule, mol_graph::SimpleGraph)
+function count_withdrawal_groups(num::Int, ATD_df::DataFrame)
     # rework to create suitable neighborstring or if cascade for certain elements
-    elec_pullers = ["COO", "CHO", "COH", "SOO", "Cl", "F", "Br", "I", "NOO"] ### To Do: extend for all EWD Groups
+    strong_pullers = ["Cl1", "F1", "Br1", "I1", "O1"]
+    possible_pullers = ["C3", "S3", "N3", "P"] ### To Do: extend for all EWD Groups
     elec_pullers_num = 0
-    for neigh1 in neighbors(mol_graph, num)
+    if true in in(ATD.Element_wNeighborCount[ATD_df.Neighbors[num]]).(possible_pullers)
+        for (i, prim_neigh) in enumerate(ATD_df.Neighbors[num])
+            if in(possible_pullers).(ATD_df.Element_wNeighborCount[prim_neigh])
+                if true in in(strong_pullers).(ATD_df.Element_wNeighborCount[ATD_df.Secondary_Neighbors[num][i]])
+                    elec_pullers_num += 1
+                end
+            end
+        end
+    end
+    for neigh1 in ATD_df.Neighbors[num]
         neighbor_str = toString(mol.atoms.element[neigh1])
         for neigh2 in neighbors(mol_graph, neigh1)
             neighbor_str = string(neighbor_str, toString(mol.atoms.element[neigh2]))
