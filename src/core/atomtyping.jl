@@ -44,7 +44,7 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
     
     # Dataframe of Elements from Molecule that is later filled 
     # with specific atomtype definitions and returned
-    # here: filling of Element_wNeighborCount and BondTypes
+    # here: filling of Element_wNeighborCount, BondTypes, Neighbors and Secondary_Neighbors
     ATD_df = DataFrame([Array{String, 1}(undef, nrow(mol.atoms)), 
                 Vector{Vector{String}}(undef, nrow(mol.atoms)), Vector{Vector{Int64}}(undef, nrow(mol.atoms)), 
                 Vector{Vector{Vector{Int64}}}(undef, nrow(mol.atoms)), Vector{Vector{String}}(undef, nrow(mol.atoms))], 
@@ -157,9 +157,7 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         AR2_RG6 = ["RG6", "AR2"]
         if "NG" in ATD_df.BondTypes[num]
             df_ATD_temp = filter(:atomic_property => n -> (!occursin("RG", n) && !occursin("AR", n)), df_ATD_temp)
-            df_ATD_temp = filter(:atomic_property => n -> (!occursin("sb", n) && !occursin("db", n)), df_ATD_temp)
-        elseif in(ATD_df.BondTypes[num]).("AR1") #&& in(ATD_df.BondTypes[neigh_list]).("NG")
-            # nur NG rausfiltern funktioniert nicht für GAFF def. Und in BCC DEF nicht eindeutig (s. Zeile 18)
+        elseif in(ATD_df.BondTypes[num]).("AR1") 
             df_ATD_temp = filter(:atomic_property => n -> (occursin("AR1", n) && !occursin("RG6", n)), df_ATD_temp)
         elseif in(ATD_df.BondTypes[num]).("AR2")
             df_ATD_temp = filter(:atomic_property => n -> occursin("AR2", n), df_ATD_temp)
@@ -224,20 +222,45 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
 end
 
 
-function c_tag(num::Int64, ATD_df::DataFrame)
-    # the "c" tag is added in GAFF.DEF to atomtypes in aromatic rings with one of the following properties
-    bool_c_tag = false
-    c_tag_list = [["(C3(C3))"], ["(C3(C2))"], ["(C3(XB3))"], ["(XB2(XB2))"], ["(XB2(C2))"], ["(XB2(C3))"],
-                    ["(C3[sb'])"], ["(XB2[sb'])"], ["(XD3[sb',db])"], ["(XD4[sb',db])"]]
+function DEF_c_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix)
+    # the "c" tag is added in GAFF.DEF to atomtypes in aromatic rings with one or more of the c_tag_list properties
+    c_tag_list = [["C3","C3"], ["C3","C2"], ["C3","XB3"], ["XB2","XB2"], ["XB2","C2"], ["XB2","C3"],
+                    ["C3","sb"], ["XB2","sb"], ["XD3","sb","db"], ["XD4","sb", "db"]]
     for (i,prim_neigh) in enumerate(ATD_df.Neighbors[num])
         for sec_neigh in ATD_df.Secondary_Neighbors[num][i]
-
-            if in() ### build neighbor string and check if in c_tag_list
-
+            # build neighbor-"neighbors of neighbor" or bond tuple and check if in c_tag_list
+            path_stan_stan = [ATD_df.Element_wNeighborCount[prim_neigh], ATD_df.Element_wNeighborCount[sec_neigh]]
+            path_stan_XB = [ATD_df.Element_wNeighborCount[prim_neigh], string("XB",ATD_df.Element_wNeighborCount[sec_neigh][lastindex(ATD_df.Element_wNeighborCount[sec_neigh])])]
+            path_XB_stan = [string("XB",ATD_df.Element_wNeighborCount[prim_neigh][lastindex(ATD_df.Element_wNeighborCount[prim_neigh])]), ATD_df.Element_wNeighborCount[sec_neigh]]
+            path_XB_XB = [string("XB",ATD_df.Element_wNeighborCount[prim_neigh][lastindex(ATD_df.Element_wNeighborCount[prim_neigh])]), string("XB",ATD_df.Element_wNeighborCount[sec_neigh][lastindex(ATD_df.Element_wNeighborCount[sec_neigh])])]
+            bond_stan = [ATD_df.Element_wNeighborCount[prim_neigh], enumToString(DefBond(wgraph_adj[num,prim_neigh]))]
+            bond_XB = [string("XB",ATD_df.Element_wNeighborCount[prim_neigh][lastindex(ATD_df.Element_wNeighborCount[prim_neigh])]), enumToString(DefBond(wgraph_adj[num,prim_neigh]))]
+            bond_XD = [string("XD",ATD_df.Element_wNeighborCount[prim_neigh][lastindex(ATD_df.Element_wNeighborCount[prim_neigh])]), enumToString(DefBond(wgraph_adj[num,prim_neigh])), enumToString(DefBond(wgraph_adj[prim_neigh, sec_neigh]))]
+            if in(c_tag_list).(path_stan_stan) || in(c_tag_list).(path_stan_XB) || in(c_tag_list).(path_XB_XB) || in(c_tag_list).(path_XB_stan) || 
+                in(c_tag_list).(bond_stan) || in(c_tag_list).(bond_XB) || in(c_tag_list).(bond_XD)
+                return true
             end
         end
     end
-    return bool_c_tag
+    return false
+end
+
+
+function DEF_e_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix)
+    # the "e" tag is added in GAFF.DEF to atomtypes in aromatic non-ring systems with one or more of the e_tag_list properties
+    e_tag_list = [["C3","sb"], ["C2","sb"], ["XB2","sb"], ["XD3","sb","db"], ["XD4","sb", "db"]]
+    for (i,prim_neigh) in enumerate(ATD_df.Neighbors[num])
+        for sec_neigh in ATD_df.Secondary_Neighbors[num][i]
+            # build neighbor-bond tuple and check if in e_tag_list
+            bond_stan = [ATD_df.Element_wNeighborCount[prim_neigh], enumToString(DefBond(wgraph_adj[num,prim_neigh]))]
+            bond_XB = [string("XB",ATD_df.Element_wNeighborCount[prim_neigh][lastindex(ATD_df.Element_wNeighborCount[prim_neigh])]), enumToString(DefBond(wgraph_adj[num,prim_neigh]))]
+            bond_XD = [string("XD",ATD_df.Element_wNeighborCount[prim_neigh][lastindex(ATD_df.Element_wNeighborCount[prim_neigh])]), enumToString(DefBond(wgraph_adj[num,prim_neigh])), enumToString(DefBond(wgraph_adj[prim_neigh, sec_neigh]))]
+            if in(e_tag_list).(bond_stan) || in(e_tag_list).(bond_XB) || in(e_tag_list).(bond_XD)
+                return true
+            end
+        end
+    end
+    return false
 end
 
 
@@ -248,7 +271,7 @@ function format_BondTypes!(num::Int64, str_Bonds::AbstractString, ring_class_lis
         push!(str_bondtypes_list, enumToString(DefBond(defi)))
     end
     ret_list = Vector{String}()
-    for (j, type) in enumerate(str_bondtypes_list)
+    for type in str_bondtypes_list
         count_type = count(==(type[1]), str_Bonds)
         if count_type > 0 && !non_ring_atom_bool
             push!(ret_list, string(count_type, type))  
