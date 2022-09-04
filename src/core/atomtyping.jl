@@ -151,28 +151,42 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
             df_ATD_temp = filter(:num_H_bonds => n -> n == connected_H_atoms, df_ATD_temp)
         end
 
+        # tag functions for grouping of properties according to GAFF.DEF
+        # wildcat Elements: X Types Dictionary, as seen in from antechamber documentation
+        X_dict = Dict{String, Vector{String}}("XX"=>["C","N","O","S","P"], "XA"=>["O","S"], "XB"=>["N","P"], "XD"=>["S","P"])
+        is_c_tagged, is_e_tagged, is_g_tagged, is_x_tagged, is_h_tagged = repeat([false],5)
+        if in([Elements.C, Elements.N, Elements.P]).(mol.atoms.element[num]) && (occursin("AR2",ATD_df.BondTypes[num]) || occursin("AR3",ATD_df.BondTypes[num]))
+            is_c_tagged = DEF_c_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix, mol::AbstractMolecule, X_dict::AbstractDict)
+        elseif in([Elements.C, Elements.N, Elements.P]).(mol.atoms.element[num]) && occursin("NG", ATD_df.BondTypes[num]) && all(in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).([1,2]))
+            is_e_tagged = DEF_e_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix, X_dict::AbstractDict)
+        elseif ATD_df.Element_wNeighborCount[num] == "C2" && all(in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).([1,3]))
+            is_g_tagged = DEF_g_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix, X_dict::AbstractDict)
+        elseif ATD_df.Element_wNeighborCount[num] == "P3" && in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).(2)
+            is_x_tagged = DEF_x_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix, X_dict::AbstractDict)
+        elseif ATD_df.Element_wNeighborCount[num] == "N3" && true in in(X_dict["XX"]).(mol.atoms.element[ATD_df.Neighbors[num]])
+            is_h_tagged = DEF_h_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix, X_dict::AbstractDict)
+        end
+
         # filter out obvious loop properties if no cycle detected
         # To Do: filter for all loop properties in BondTypes, maybe finding and selecting through properties instead of process of elimination as seen below
-        AR1_RG6 = ["RG6", "AR1"]
-        AR2_RG6 = ["RG6", "AR2"]
-        if "NG" in ATD_df.BondTypes[num]
-            df_ATD_temp = filter(:atomic_property => n -> (!occursin("RG", n) && !occursin("AR", n)), df_ATD_temp)
+        if "NG" in ATD_df.BondTypes[num] && !is_e_tagged
+            df_ATD_temp = filter(:atomic_property => n -> (!occursin("RG", n) && !occursin("AR", n) && !occursin("sb", n) && !occursin("db", n)), df_ATD_temp)
         elseif in(ATD_df.BondTypes[num]).("AR1") 
             df_ATD_temp = filter(:atomic_property => n -> (occursin("AR1", n) && !occursin("RG6", n)), df_ATD_temp)
-        elseif in(ATD_df.BondTypes[num]).("AR2")
+        elseif in(ATD_df.BondTypes[num]).("AR2") && is_c_tagged
             df_ATD_temp = filter(:atomic_property => n -> occursin("AR2", n), df_ATD_temp)
-        elseif in(ATD_df.BondTypes[num]).("AR3")
+        elseif in(ATD_df.BondTypes[num]).("AR3") && is_c_tagged
             df_ATD_temp = filter(:atomic_property => n -> occursin("AR3", n), df_ATD_temp)
         end
 
-        # specific non-cycle C3 filter for XA1 (which is O1 or S1) or XB (which are the Halogens)
-        XB_elements = [Elements.Cl, Elements.Br, Elements.F, Elements.I, Elements.At, Elements.Ts]
+        # specific non-cycle C3 filter for XA1 (which is O1 or S1) or XB1 (which here are the Halogens)
+        XB1_elements = [Elements.Cl, Elements.Br, Elements.F, Elements.I, Elements.At, Elements.Ts]
         XA1_elements = [Elements.O, Elements.S]
         XB_ATD_df = ["Cl1", "F1", "I1", "Br1", "At1", "Ts1"]
         XA1_ATD_df = ["O1", "S1"]
         df_ATD_temp_save = copy(df_ATD_temp)
         if ATD_df.Element_wNeighborCount[num] == "C3" && "NG" in ATD_df.BondTypes[num]
-            if true in in(mol.atoms.element[ATD_df.Neighbors[num]]).(XB_elements)  
+            if true in in(mol.atoms.element[ATD_df.Neighbors[num]]).(XB1_elements)
                 df_ATD_temp = filter(:CES => n -> (occursin("XB", n) || occursin("*", n)), df_ATD_temp)
             elseif true in in(ATD_df.Element_wNeighborCount[ATD_df.Neighbors[num]]).(XA1_ATD_df)
                 df_ATD_temp = filter(:CES => n -> occursin("XA1", n), df_ATD_temp)
@@ -222,41 +236,75 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
 end
 
 
-function DEF_c_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix)
+function DEF_c_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix, mol::AbstractMolecule, X_dict::AbstractDict)
     # the "c" tag is added in GAFF.DEF to atomtypes in aromatic rings with one or more of the c_tag_list properties
-    c_tag_list = [["C3","C3"], ["C3","C2"], ["C3","XB3"], ["XB2","XB2"], ["XB2","C2"], ["XB2","C3"],
-                    ["C3","sb"], ["XB2","sb"], ["XD3","sb","db"], ["XD4","sb", "db"]]
+    c_tag_list = ["(C3(C3))", "(C3(C2))", "(C3(XB3))", "(XB2(XB2))", "(XB2(C2))", "(XB2(C3))",
+                    "(C3[sb'])", "(XB2[sb'])", "(XD3[sb',db])", "(XD4[sb',db])"]
+    c_tag_counter = 0 
     for (i,prim_neigh) in enumerate(ATD_df.Neighbors[num])
-        for sec_neigh in ATD_df.Secondary_Neighbors[num][i]
-            # build neighbor-"neighbors of neighbor" or bond tuple and check if in c_tag_list
-            path_stan_stan = [ATD_df.Element_wNeighborCount[prim_neigh], ATD_df.Element_wNeighborCount[sec_neigh]]
-            path_stan_XB = [ATD_df.Element_wNeighborCount[prim_neigh], string("XB",ATD_df.Element_wNeighborCount[sec_neigh][lastindex(ATD_df.Element_wNeighborCount[sec_neigh])])]
-            path_XB_stan = [string("XB",ATD_df.Element_wNeighborCount[prim_neigh][lastindex(ATD_df.Element_wNeighborCount[prim_neigh])]), ATD_df.Element_wNeighborCount[sec_neigh]]
-            path_XB_XB = [string("XB",ATD_df.Element_wNeighborCount[prim_neigh][lastindex(ATD_df.Element_wNeighborCount[prim_neigh])]), string("XB",ATD_df.Element_wNeighborCount[sec_neigh][lastindex(ATD_df.Element_wNeighborCount[sec_neigh])])]
-            bond_stan = [ATD_df.Element_wNeighborCount[prim_neigh], enumToString(DefBond(wgraph_adj[num,prim_neigh]))]
-            bond_XB = [string("XB",ATD_df.Element_wNeighborCount[prim_neigh][lastindex(ATD_df.Element_wNeighborCount[prim_neigh])]), enumToString(DefBond(wgraph_adj[num,prim_neigh]))]
-            bond_XD = [string("XD",ATD_df.Element_wNeighborCount[prim_neigh][lastindex(ATD_df.Element_wNeighborCount[prim_neigh])]), enumToString(DefBond(wgraph_adj[num,prim_neigh])), enumToString(DefBond(wgraph_adj[prim_neigh, sec_neigh]))]
-            if in(c_tag_list).(path_stan_stan) || in(c_tag_list).(path_stan_XB) || in(c_tag_list).(path_XB_XB) || in(c_tag_list).(path_XB_stan) || 
-                in(c_tag_list).(bond_stan) || in(c_tag_list).(bond_XB) || in(c_tag_list).(bond_XD)
-                return true
+        if occursin("AR",ATD_df.BondTypes[prim_neigh])
+            for sec_neigh in ATD_df.Secondary_Neighbors[num][i]
+                if occursin("AR",ATD_df.BondTypes[sec_neigh])
+                    # build neighbor-"neighbors of neighbor" or bond tuple and check if in c_tag_list
+                    if enumToString(mol.atoms.element[prim_neigh]) == "C" && enumToString(mol.atoms.element[sec_neigh]) == "C" 
+                        path_stan_stan = string("(", ATD_df.Element_wNeighborCount[prim_neigh],"(", ATD_df.Element_wNeighborCount[sec_neigh],"))")
+                        if in(c_tag_list).(path_stan_stan) 
+                            c_tag_counter += 1
+                        end
+                    elseif enumToString(mol.atoms.element[prim_neigh]) == "C" && in(X_dict["XB"]).(enumToString(mol.atoms.element[sec_neigh])) 
+                        path_stan_XB = string("(",ATD_df.Element_wNeighborCount[prim_neigh],"(","XB", ATD_df.Element_wNeighborCount[sec_neigh][lastindex(ATD_df.Element_wNeighborCount[sec_neigh])],"))")
+                        if in(c_tag_list).(path_stan_XB)
+                            c_tag_counter += 1
+                        end
+                    elseif in(X_dict["XB"]).(enumToString(mol.atoms.element[prim_neigh])) && enumToString(mol.atoms.element[sec_neigh]) == "C"
+                        path_XB_stan = string("(","XB", ATD_df.Element_wNeighborCount[prim_neigh][lastindex(ATD_df.Element_wNeighborCount[prim_neigh])],"(", ATD_df.Element_wNeighborCount[sec_neigh],"))")    
+                        if in(c_tag_list).(path_XB_XB)
+                            c_tag_counter += 1
+                        end                            
+                    elseif in(X_dict["XB"]).(enumToString(mol.atoms.element[prim_neigh])) && in(X_dict["XB"]).(enumToString(mol.atoms.element[sec_neigh]))
+                        path_XB_XB = string("(","XB", ATD_df.Element_wNeighborCount[prim_neigh][lastindex(ATD_df.Element_wNeighborCount[prim_neigh])],
+                                            "(","XB", ATD_df.Element_wNeighborCount[sec_neigh][lastindex(ATD_df.Element_wNeighborCount[sec_neigh])],"))")
+                        if in(c_tag_list).(path_XB_stan) 
+                            c_tag_counter += 1
+                        end                            
+                    elseif ATD_df.Element_wNeighborCount[prim_neigh] == "C3" && wgraph_adj[num,prim_neigh] == 1
+                            c_tag_counter += 1
+                    elseif in(X_dict["XB"]).(enumToString(mol.atoms.element[prim_neigh])) && wgraph_adj[num,prim_neigh] == 1
+                        c_tag_counter += 1
+                    elseif in(X_dict["XD"]).(enumToString(mol.atoms.element[prim_neigh])) && wgraph_adj[num,prim_neigh] == 1 && wgraph_adj[prim_neigh,sec_neigh] == 2
+                        c_tag_counter += 1
+                    end
+                end
             end
         end
     end
-    return false
+    if c_tag_counter < 2
+        return false
+    end
+    return true
 end
 
 
-function DEF_e_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix)
+function DEF_e_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix, X_dict::AbstractDict)
     # the "e" tag is added in GAFF.DEF to atomtypes in aromatic non-ring systems with one or more of the e_tag_list properties
-    e_tag_list = [["C3","sb"], ["C2","sb"], ["XB2","sb"], ["XD3","sb","db"], ["XD4","sb", "db"]]
+    e_tag_list = ["(C2[SB'])", "(C3[SB'])", "(XA1[SB'])", "(XB2[SB'])", "(XD3[SB',db])", "(XD4[SB',db])"]
     for (i,prim_neigh) in enumerate(ATD_df.Neighbors[num])
-        for sec_neigh in ATD_df.Secondary_Neighbors[num][i]
-            # build neighbor-bond tuple and check if in e_tag_list
-            bond_stan = [ATD_df.Element_wNeighborCount[prim_neigh], enumToString(DefBond(wgraph_adj[num,prim_neigh]))]
-            bond_XB = [string("XB",ATD_df.Element_wNeighborCount[prim_neigh][lastindex(ATD_df.Element_wNeighborCount[prim_neigh])]), enumToString(DefBond(wgraph_adj[num,prim_neigh]))]
-            bond_XD = [string("XD",ATD_df.Element_wNeighborCount[prim_neigh][lastindex(ATD_df.Element_wNeighborCount[prim_neigh])]), enumToString(DefBond(wgraph_adj[num,prim_neigh])), enumToString(DefBond(wgraph_adj[prim_neigh, sec_neigh]))]
-            if in(e_tag_list).(bond_stan) || in(e_tag_list).(bond_XB) || in(e_tag_list).(bond_XD)
-                return true
+        if occursin("NG",ATD_df.BondTypes[prim_neigh])
+            for sec_neigh in ATD_df.Secondary_Neighbors[num][i]
+                if occursin("NG",ATD_df.BondTypes[sec_neigh])
+                    # build neighbor-"neighbors of neighbor" or bond tuple and check if in c_tag_list
+                    if ATD_df.Element_wNeighborCount[prim_neigh] == "C2" && wgraph_adj[num,prim_neigh] == 1
+                        return true                            
+                    elseif ATD_df.Element_wNeighborCount[prim_neigh] == "C3" && wgraph_adj[num,prim_neigh] == 1
+                        return true
+                    elseif in(X_dict["XA"]).(enumToString(mol.atoms.element[prim_neigh])) && wgraph_adj[num,prim_neigh] == 1
+                        return true
+                    elseif in(X_dict["XB"]).(enumToString(mol.atoms.element[prim_neigh])) && wgraph_adj[num,prim_neigh] == 1
+                        return true
+                    elseif in(X_dict["XD"]).(enumToString(mol.atoms.element[prim_neigh])) && wgraph_adj[num,prim_neigh] == 1 && wgraph_adj[prim_neigh,sec_neigh] == 2
+                        return true
+                    end
+                end
             end
         end
     end
@@ -298,9 +346,9 @@ function NG_RG_AR_DEFtype(LList::Vector{Vector{Int64}}, wgraph_adj::Graphs.Spars
         end
 
         # check if is O, N, or S present in Ring vertex list
-        ONS_present = false
-        if true in in(mol.atoms.element[vlist]).([Elements.O,Elements.N,Elements.S])
-            ONS_present = true
+        ONSP_present = false
+        if true in in(mol.atoms.element[vlist]).([Elements.O,Elements.N,Elements.S,Elements.P])
+            ONSP_present = true
         end
         
         # check number of pi electrons
@@ -312,18 +360,16 @@ function NG_RG_AR_DEFtype(LList::Vector{Vector{Int64}}, wgraph_adj::Graphs.Spars
                 pi_elec += 2
             end
         end
-        if (pi_elec / lastindex(vlist)) == 1.0 && !ONS_present
+        if (pi_elec / lastindex(vlist)) == 1.0
             for x in vlist
                 push!(ring_class_list[x], "AR1")
             end
-        elseif (pi_elec / lastindex(vlist)) > 1/2 && (pi_elec / lastindex(vlist)) <= 1 && ONS_present && lastindex(vlist) > 4
+        elseif (pi_elec / lastindex(vlist)) > 1/2 && (pi_elec / lastindex(vlist)) <= 1 && ONSP_present && lastindex(vlist) > 4
             for x in vlist
                 push!(ring_class_list[x], "AR2")
             end
-        elseif (pi_elec / lastindex(vlist)) > 1/2 && (pi_elec / lastindex(vlist)) < 1 && !ONS_present && lastindex(vlist) > 4
+        elseif (pi_elec / lastindex(vlist)) > 1/2 && (pi_elec / lastindex(vlist)) < 1 && !ONSP_present && lastindex(vlist) > 4
             # check if Ring vlist has intersections with other rings in molecule and if these are aromatic
-            #intersection_db = countmap(in(inters_matrix).()
-            has_aromatic_inters = false
             for i = (1:lastindex(LList))
                 if !isempty(inters_matrix[numvlist,i]) && lastindex(inters_matrix[numvlist, i]) == 2
                     atom1_bonds = filter(:a1 => n -> n == inters_matrix[numvlist,i][1], mol.bonds)
@@ -351,8 +397,10 @@ end
 
 
 function count_EWG(num::Int64, ATD_df::DataFrame)
+    # Electron withdrawal Atoms according to antechamber document are only: N, O, F, Cl, and Br
+    # To Do: Test differences for Atom Typing, see below typical know EWG
     strong_pullers = ["Cl1", "F1", "Br1", "I1", "O1", "S1"]
-    possible_pullers = ["C2", "C3", "C4", "S3", "N3", "P3", "P4", "O2", "S2"] ### To Do: extend for all EWD Groups
+    possible_pullers = ["C2", "C3", "C4", "S3", "N3", "P3", "P4", "O2", "S2"]
     elec_pullers_num = 0
     if true in in(ATD_df.Element_wNeighborCount[ATD_df.Neighbors[num]]).(possible_pullers)
         for i = (1:lastindex(ATD_df.Neighbors[num]))
