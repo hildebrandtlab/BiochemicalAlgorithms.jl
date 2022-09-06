@@ -155,16 +155,21 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         # wildcat Elements: X Types Dictionary, as seen in from antechamber documentation
         X_dict = Dict{String, Vector{String}}("XX"=>["C","N","O","S","P"], "XA"=>["O","S"], "XB"=>["N","P"], "XD"=>["S","P"])
         is_c_tagged, is_e_tagged, is_g_tagged, is_x_tagged, is_h_tagged = repeat([false],5)
-        if in([Elements.C, Elements.N, Elements.P]).(mol.atoms.element[num]) && (occursin("AR2",ATD_df.BondTypes[num]) || occursin("AR3",ATD_df.BondTypes[num]))
+        if in([Elements.C, Elements.N, Elements.P]).(mol.atoms.element[num]) && (in(ATD_df.BondTypes[num]).("AR2") || in(ATD_df.BondTypes[num]).("AR3"))
             is_c_tagged = DEF_c_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix, mol::AbstractMolecule, X_dict::AbstractDict)
-        elseif in([Elements.C, Elements.N, Elements.P]).(mol.atoms.element[num]) && occursin("NG", ATD_df.BondTypes[num]) && all(in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).([1,2]))
+            df_ATD_temp = filter(:type_name => n -> n[2] == "c", df_ATD_temp)
+        elseif in([Elements.C, Elements.N, Elements.P]).(mol.atoms.element[num]) && in(ATD_df.BondTypes[num]).("NG") && all(in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).([1,2]))
             is_e_tagged = DEF_e_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix, X_dict::AbstractDict)
+            df_ATD_temp = filter(:type_name => n -> n[2] == "e", df_ATD_temp)
         elseif ATD_df.Element_wNeighborCount[num] == "C2" && all(in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).([1,3]))
             is_g_tagged = DEF_g_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix, X_dict::AbstractDict)
+            df_ATD_temp = filter(:type_name => n -> n[2] == "g", df_ATD_temp)
         elseif ATD_df.Element_wNeighborCount[num] == "P3" && in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).(2)
             is_x_tagged = DEF_x_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix, X_dict::AbstractDict)
+            df_ATD_temp = filter(:type_name => n -> n[2] == "x", df_ATD_temp)
         elseif ATD_df.Element_wNeighborCount[num] == "N3" && true in in(X_dict["XX"]).(mol.atoms.element[ATD_df.Neighbors[num]])
             is_h_tagged = DEF_h_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix, X_dict::AbstractDict)
+            df_ATD_temp = filter(:type_name => n -> n[2] == "h", df_ATD_temp)
         end
 
         # filter out obvious loop properties if no cycle detected
@@ -299,9 +304,10 @@ function DEF_e_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatri
                         return true
                     elseif in(X_dict["XA"]).(enumToString(mol.atoms.element[prim_neigh])) && wgraph_adj[num,prim_neigh] == 1
                         return true
-                    elseif in(X_dict["XB"]).(enumToString(mol.atoms.element[prim_neigh])) && wgraph_adj[num,prim_neigh] == 1
+                    elseif in(X_dict["XB"]).(enumToString(mol.atoms.element[prim_neigh])) && wgraph_adj[num,prim_neigh] == 1 && lastindex(ATD_df.Neighbors[prim_neigh]) == 2
                         return true
-                    elseif in(X_dict["XD"]).(enumToString(mol.atoms.element[prim_neigh])) && wgraph_adj[num,prim_neigh] == 1 && wgraph_adj[prim_neigh,sec_neigh] == 2
+                    elseif in(X_dict["XD"]).(enumToString(mol.atoms.element[prim_neigh])) && wgraph_adj[num,prim_neigh] == 1 && wgraph_adj[prim_neigh,sec_neigh] == 2 &&
+                        (lastindex(ATD_df.Neighbors[prim_neigh]) == 3 || lastindex(ATD_df.Neighbors[prim_neigh]) == 4)
                         return true
                     end
                 end
@@ -311,6 +317,81 @@ function DEF_e_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatri
     return false
 end
 
+
+function DEF_g_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix, X_dict::AbstractDict)
+    # the "g" tag is added in GAFF.DEF to atomtypes in aromatic non-ring systems with one or more of the g_tag_list properties
+    e_tag_list = ["(C2[SB'])", "(C3[SB'])", "(N1[SB'])", "(XB2[SB'])"]
+    for (i,prim_neigh) in enumerate(ATD_df.Neighbors[num])
+        if occursin("NG",ATD_df.BondTypes[prim_neigh])
+            for sec_neigh in ATD_df.Secondary_Neighbors[num][i]
+                if occursin("NG",ATD_df.BondTypes[sec_neigh])
+                    # build neighbor-"neighbors of neighbor" or bond tuple and check if in c_tag_list
+                    if ATD_df.Element_wNeighborCount[prim_neigh] == "C2" && wgraph_adj[num,prim_neigh] == 1
+                        return true                            
+                    elseif ATD_df.Element_wNeighborCount[prim_neigh] == "C3" && wgraph_adj[num,prim_neigh] == 1
+                        return true
+                    elseif ATD_df.Element_wNeighborCount[prim_neigh] == "N1" && wgraph_adj[num,prim_neigh] == 1
+                        return true
+                    elseif in(X_dict["XB"]).(enumToString(mol.atoms.element[prim_neigh])) && wgraph_adj[num,prim_neigh] == 1 && lastindex(ATD_df.Neighbors[prim_neigh]) == 2
+                        return true
+                    end
+                end
+            end
+        end
+    end
+    return false
+end
+
+
+function DEF_x_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix, X_dict::AbstractDict)
+    # the "g" tag is added in GAFF.DEF to atomtypes in aromatic non-ring systems with one or more of the g_tag_list properties
+    e_tag_list = ["(C3[SB'])", "(XB2[SB'])", "(XD3[sb',db])","(XD4[sb',db])"]
+    for (i,prim_neigh) in enumerate(ATD_df.Neighbors[num])
+        if occursin("NG",ATD_df.BondTypes[prim_neigh])
+            for sec_neigh in ATD_df.Secondary_Neighbors[num][i]
+                if occursin("NG",ATD_df.BondTypes[sec_neigh])
+                    # build neighbor-"neighbors of neighbor" or bond tuple and check if in c_tag_list
+                    if ATD_df.Element_wNeighborCount[prim_neigh] == "C2" && wgraph_adj[num,prim_neigh] == 1
+                        return true                            
+                    elseif ATD_df.Element_wNeighborCount[prim_neigh] == "C3" && wgraph_adj[num,prim_neigh] == 1
+                        return true
+                    elseif in(X_dict["XB"]).(enumToString(mol.atoms.element[prim_neigh])) && wgraph_adj[num,prim_neigh] == 1 && lastindex(ATD_df.Neighbors[prim_neigh]) == 2
+                        return true
+                    elseif in(X_dict["XD"]).(enumToString(mol.atoms.element[prim_neigh])) && wgraph_adj[num,prim_neigh] == 1 && 
+                        (lastindex(ATD_df.Neighbors[prim_neigh]) == 3 || lastindex(ATD_df.Neighbors[prim_neigh]) == 4)
+                        return true
+                    end
+                end
+            end
+        end
+    end
+    return false
+end
+
+
+function DEF_h_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatrix, X_dict::AbstractDict)
+    # the "g" tag is added in GAFF.DEF to atomtypes in aromatic non-ring systems with one or more of the g_tag_list properties
+    e_tag_list = ["(XX[AR1.AR2.AR3])","(C3[DB])", "(N2[DB])", "(P2[DB])"]
+    for (i,prim_neigh) in enumerate(ATD_df.Neighbors[num])
+        if occursin("NG",ATD_df.BondTypes[prim_neigh])
+            for sec_neigh in ATD_df.Secondary_Neighbors[num][i]
+                if occursin("NG",ATD_df.BondTypes[sec_neigh])
+                    # build neighbor-"neighbors of neighbor" or bond tuple and check if in c_tag_list
+                    if in(X_dict["XX"]).(enumToString(mol.atoms.element[prim_neigh])) && !in(ATD_df.BondTypes[prim_neigh]).("NG") && in(wgraph_adj[prim_neigh,ATD_df.Secondary_Neighbors[num][i]]).(2)
+                        return true                            
+                    elseif ATD_df.Element_wNeighborCount[prim_neigh] == "C3" && in(wgraph_adj[prim_neigh,ATD_df.Secondary_Neighbors[num][i]]).(2) && lastindex(ATD_df.Neighbors[prim_neigh]) == 3
+                        return true
+                    elseif ATD_df.Element_wNeighborCount[prim_neigh] == "N2" && in(wgraph_adj[prim_neigh,ATD_df.Secondary_Neighbors[num][i]]).(2) && lastindex(ATD_df.Neighbors[prim_neigh]) == 2
+                        return true
+                    elseif ATD_df.Element_wNeighborCount[prim_neigh] == "P2" && in(wgraph_adj[prim_neigh,ATD_df.Secondary_Neighbors[num][i]]).(2) && lastindex(ATD_df.Neighbors[prim_neigh]) == 2
+                        return true
+                    end
+                end
+            end
+        end
+    end
+    return false
+end
 
 function format_BondTypes!(num::Int64, str_Bonds::AbstractString, ring_class_list::Vector{Vector{String}})
     str_bondtypes_list = Vector{String}()
