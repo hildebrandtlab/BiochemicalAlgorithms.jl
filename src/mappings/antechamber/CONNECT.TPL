@@ -44,5 +44,5 @@ Au  79   1.42  //empirical (+1)
 Hg  80   1.26  //empirical (+2)
 Tl  81   1.55  //empirical (+1)
 Pb  82   1.26  //empirical (+2)
-// empircal formula: parameter = 0.9396*r + 0.006 
+// empirical formula: parameter = 0.9396*r + 0.006 
 // r is the atomic radius at specific valence state

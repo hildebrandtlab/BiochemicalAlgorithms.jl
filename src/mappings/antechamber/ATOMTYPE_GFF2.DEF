@@ -18,7 +18,11 @@ ATD  cx    *   6   4   *   *   [RG3]            &
 ATD  cy    *   6   4   *   *   [RG4]            &
 //other sp3 C
 ATD  c3    *   6   4   &
-//C=O or C=S
+//C=S
+ATD  cs    *   6   3   *   *   [2DL]   		(S1) 	&
+ATD  cs    *   6   3   *   *   [1DB,0DL]  	(S1)	&
+ATD  cs    *   6   3   *   *   [3sb]   		(S1)	&
+//C=O 
 ATD  c     *   6   3   *   *   [2DL]   		(XA1) 	&
 ATD  c     *   6   3   *   *   [1DB,0DL]  	(XA1)	&
 ATD  c     *   6   3   *   *   [3sb]   		(XA1)	&
@@ -133,28 +137,47 @@ ATD  py    *   15  4   *   *   [db]    		(XD4[sb',db])  	&
 ATD  p5    *   15  4   &  
 ATD  p5    *   15  5   &  
 ATD  p5    *   15  6   &  
-ATD  ni    *   7   3   *   *   [RG3]       	(C3(XA1))  	& 
-ATD  nj    *   7   3   *   *   [RG4]       	(C3(XA1))  	& 
+ATD  ns    *   7   3   1   *   *       		(C3(XA1))  	& 
+ATD  nt    *   7   3   2   *   *       		(C3(XA1))  	& 
+ATD  ni    *   7   3   *   *   [RG3]            (C3(XA1))       & 
+ATD  nj    *   7   3   *   *   [RG4]            (C3(XA1))       & 
 ATD  n     *   7   3   *   *   *       		(C3(XA1))  	& 
-ATD  nk    *   7   4   *   *   [RG3]       	& 
-ATD  nl    *   7   4   *   *   [RG4]       	& 
+ATD  nk    *   7   4   *   *   [RG3]            & 
+ATD  nl    *   7   4   *   *   [RG4]            & 
+ATD  nx    *   7   4   1   &
+ATD  ny    *   7   4   2   &
+ATD  nz    *   7   4   3   &
+ATD  n+    *   7   4   4   &
 ATD  n4    *   7   4   &
 ATD  no    *   7   3   *   *   *       		(O1,O1)		& 
 ATD  na    *   7   3   *   *   [AR1.AR2.AR3]    &
-ATD  nm    *   7   3   *   *   [RG3]    	(XX[AR1.AR2.AR3]) & 
-ATD  nm    *   7   3   *   *   [RG3]    	(C3[DB]) 	& 
-ATD  nm    *   7   3   *   *   [RG3]    	(N2[DB])	& 
-ATD  nm    *   7   3   *   *   [RG3]    	(P2[DB])	& 
-ATD  nn    *   7   3   *   *   [RG4]    	(XX[AR1.AR2.AR3]) & 
-ATD  nn    *   7   3   *   *   [RG4]    	(C3[DB]) 	& 
-ATD  nn    *   7   3   *   *   [RG4]    	(N2[DB])	& 
-ATD  nn    *   7   3   *   *   [RG4]    	(P2[DB])	& 
+ATD  nu    *   7   3   1   *   *       		(XX[AR1.AR2.AR3]) & 
+ATD  nu    *   7   3   1   *   *       		(C3[DB]) 	& 
+ATD  nu    *   7   3   1   *   *       		(N2[DB])	& 
+ATD  nu    *   7   3   1   *   *       		(P2[DB])	& 
+ATD  nv    *   7   3   2   *   *       		(XX[AR1.AR2.AR3]) & 
+ATD  nv    *   7   3   2   *   *       		(C3[DB]) 	& 
+ATD  nv    *   7   3   2   *   *       		(N2[DB])	& 
+ATD  nv    *   7   3   2   *   *       		(P2[DB])	& 
+ATD  nm    *   7   3   *   *   [RG3]            (XX[AR1.AR2.AR3]) & 
+ATD  nm    *   7   3   *   *   [RG3]            (C3[DB])        & 
+ATD  nm    *   7   3   *   *   [RG3]            (N2[DB])        & 
+ATD  nm    *   7   3   *   *   [RG3]            (P2[DB])        & 
+ATD  nn    *   7   3   *   *   [RG4]            (XX[AR1.AR2.AR3]) & 
+ATD  nn    *   7   3   *   *   [RG4]            (C3[DB])        & 
+ATD  nn    *   7   3   *   *   [RG4]            (N2[DB])        & 
+ATD  nn    *   7   3   *   *   [RG4]            (P2[DB])        & 
 ATD  nh    *   7   3   *   *   *       		(XX[AR1.AR2.AR3]) & 
 ATD  nh    *   7   3   *   *   *       		(C3[DB]) 	& 
 ATD  nh    *   7   3   *   *   *       		(N2[DB])	& 
 ATD  nh    *   7   3   *   *   *       		(P2[DB])	& 
-ATD  np    *   7   3   *   *   [RG3]            &
-ATD  nq    *   7   3   *   *   [RG4]            &
+ATD  np    *   7   3   0   *   [RG3]            &
+ATD  nq    *   7   3   0   *   [RG4]            &
+ATD  n5    *   7   3   1   *   [RG3]            &
+ATD  n6    *   7   3   1   *   [RG4]            &
+ATD  n7    *   7   3   1   &
+ATD  n8    *   7   3   2   &
+ATD  n9    *   7   3   3   &
 ATD  n3    *   7   3   &
 ATD  nb    *   7   2   *   *   [AR1]            &
 // sp2 N of conjugated ring systems
@@ -178,8 +201,6 @@ ATD  nc    *   7   2   *   *   [sb,db,AR3]       (C3[sb'])	&
 ATD  nc    *   7   2   *   *   [sb,db,AR3]       (XB2[sb'])	&
 ATD  nc    *   7   2   *   *   [sb,db,AR3]       (XD3[sb',db])	&
 ATD  nc    *   7   2   *   *   [sb,db,AR3]       (XD4[sb',db])	&
-ATD  nc    *   7   2   *   *   [RG5]             (N2[RG5](N2[RG5](N2[RG5])))	&
-ATD  nc    *   7   2   *   *   [RG5]             (N2[RG5],N2[RG5](N2[RG5]))	&
 // sp2 N of conjugated chain systems
 ATD  ne    *   7   2   *   *   [sb,db]          (C2[SB'])	&
 ATD  ne    *   7   2   *   *   [sb,db]          (C3[SB'])	&
@@ -197,8 +218,8 @@ ATD  oh    *   8   2   2   &
 ATD  oh    *   8   3   1   &
 ATD  oh    *   8   3   2   &
 ATD  oh    *   8   3   3   &
-ATD  op    *   8   2   *   *   [RG3]  & 
-ATD  oq    *   8   2   *   *   [RG4]  & 
+ATD  op    *   8   2   *   *   [RG3]  &
+ATD  oq    *   8   2   *   *   [RG4]  &
 ATD  os    *   8   2   & 
 ATD  os    *   8   3   & 
 ATD  os    *   8   & 
@@ -207,8 +228,8 @@ ATD  s2    *   16  2   *   *   [DB]              &
 ATD  s2    *   16  2   *   *   [TB]              & 
 ATD  sh    *   16  2   1   &
 ATD  sh    *   16  2   2   &
-ATD  sp    *   16  2   *   *   [RG3]  & 
-ATD  sq    *   16  2   *   *   [RG4]  & 
+ATD  sp    *   16  2   *   *   [RG3]  &
+ATD  sq    *   16  2   *   *   [RG4]  &
 ATD  ss    *   16  2   & 
 ATD  sx    *   16  3   *   *   [db]    		(XB2[sb'])  	&     
 ATD  sx    *   16  3   *   *   [db]    		(C3[sb'])       &
