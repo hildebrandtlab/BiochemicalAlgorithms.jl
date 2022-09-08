@@ -3,7 +3,7 @@ using BiochemicalAlgorithms
 export load_all, run_atomtyping, string_as_variable_name, conti_return, testing_loop_conti
 
 function load_all()
-    file_location = "test/data/gaff_paper_examples/a/"
+    file_location = "test/data/gaff_paper_examples/b/"
     mol_df = DataFrame([Vector{String}(undef, lastindex(readdir(file_location))), Vector{AbstractMolecule}(undef, lastindex(readdir(file_location)))], 
                         ["molname", "abstract_mol"])
     for (num, i) in enumerate(readdir(file_location))
