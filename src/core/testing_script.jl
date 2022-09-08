@@ -18,6 +18,7 @@ function run_atomtyping()
     df = select_atomtyping()
     exit_dict = Dict{Symbol, DataFrame}
     for num = (1:nrow(mol_df))
+        println(string(mol_df.molname[num]))
         atomtypes_list = get_atomtype(mol_df.abstract_mol[num], df)
         exit_dict = merge(exit_dict, Dict(Symbol(string(mol_df.molname[num],"atomtypes")) => atomtypes_list))
     end
