@@ -1,6 +1,6 @@
 CORR C  1 c
 CORR CA 1 c2 ca cc
-CORR CB 1 c2 cc ce
+CORR CB 0 c2 cc ce
 CORR CC 1 c2 cc ce
 CORR CD 1 c2 ce 
 CORR CK 1 c2 cc ce
@@ -34,7 +34,7 @@ CORR N  1 n
 CORR NA 1 na
 CORR NB 0 n2 nc ne
 CORR NC 0 n2 nc ne
-CORR N2 0 n3 nh
+CORR N2 1 n3 nh
 CORR N3 0 n4
 CORR NT 0 n3
 CORR N* 1 na 
@@ -68,6 +68,7 @@ CORR c3 0 c3
 CORR c2 1 c2 
 CORR c1 0 c1 
 CORR c  1 c2
+CORR cs 1 c  c2
 CORR ca 1 c2
 CORR cc 1 c2 ce 
 CORR cd 1 c2 ce 
@@ -82,10 +83,23 @@ CORR cv 0 c2
 CORR cx 0 c3
 CORR cy 0 c3
 CORR cz 1 c2
+CORR ni 1 n
+CORR nj 1 n
+CORR ns 1 n 
+CORR nt 1 n 
 CORR n  1 n 
 CORR n1 0 n1   
 CORR n2 1 n2
 CORR n3 0 n3
+CORR n7 0 n3
+CORR n8 0 n3
+CORR n9 0 n3
+CORR nk 0 n4
+CORR nl 0 n4
+CORR nx 0 n4
+CORR ny 0 n4
+CORR nz 0 n4
+CORR n+ 0 n4
 CORR n4 0 n4
 CORR na 1 n3
 CORR nb 0 n2 nc 
@@ -93,16 +107,28 @@ CORR nc 0 n2 ne
 CORR nd 0 n2 ne
 CORR ne 0 n2 
 CORR nf 0 n2 
+CORR nm 1 nh
+CORR nn 1 nh
+CORR nu 1 nh 
+CORR nv 1 nh 
 CORR nh 1 n3 
+CORR n5 0 n3
+CORR n6 0 n3
+CORR np 0 n3
+CORR nq 0 n3
 CORR no 0 n3
 CORR o  0 o 
 CORR oh 0 oh
+CORR op 0 os
+CORR oq 0 os
 CORR os 0 os
 CORR ow 0 oh
 CORR s  0 s 
 CORR s2 0 s2
 CORR s4 0 s4
 CORR s6 0 s6
+CORR sp 0 ss
+CORR sq 0 ss
 CORR ss 0 ss
 CORR sh 0 sh
 CORR sx 0 s4
