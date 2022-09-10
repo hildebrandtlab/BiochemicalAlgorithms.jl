@@ -76,7 +76,9 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         element_num = element_number(num, mol)
         df_ATD_temp = filter(:atomic_number => x -> x == element_num, df_ATD)
 
-        if nrow(df_ATD_temp) == 1
+        if lastindex(ATD_df.Possible_Atomtypes[num]) == 1
+            continue
+        elseif nrow(df_ATD_temp) == 1
             ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
             continue
         end
@@ -119,7 +121,7 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
             # case: neighbor is Carbon
             if occursin("C", neighbor_element) && !in(ATD_df.Element_wNeighborCount[ATD_df.Secondary_Neighbors[num][1]]).("N4")
                 df_ATD_temp = filter(:CES => n -> occursin(neighbor_element, n), df_ATD_temp)
-            elseif occursin("C", neighbor_element) && in(ATD_df.Element_wNeighborCount[ATD_df.Secondary_Neighbors[num]]).("N4")
+            elseif occursin("C", neighbor_element) && in(ATD_df.Element_wNeighborCount[ATD_df.Secondary_Neighbors[num][1]]).("N4")
                 df_ATD_temp = filter(:CES => n -> n == "(C(N4))", df_ATD_temp)
             end
             if nrow(df_ATD_temp) == 1
@@ -165,40 +167,43 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         # wildcat Elements: X Types Dictionary, as seen in from antechamber documentation
         X_dict = Dict{String, Vector{String}}("XX"=>["C","N","O","S","P"], "XA"=>["O","S"], "XB"=>["N","P"], "XD"=>["S","P"])
         is_c_tagged, is_e_tagged, is_g_tagged, is_x_tagged, is_h_tagged = repeat([false],5)
-        if in([Elements.C, Elements.N, Elements.P]).(mol.atoms.element[num]) && (in(ATD_df.BondTypes[num]).("AR2") || in(ATD_df.BondTypes[num]).("AR3")) &&
-                !(ATD_df.Element_wNeighborCount[num] == "N3")
+        if ((in([Elements.N, Elements.P]).(mol.atoms.element[num]) && lastindex(ATD_df.Neighbors[num]) == 2) || 
+                (in([Elements.C]).(mol.atoms.element[num]) && lastindex(ATD_df.Neighbors[num]) == 3))  && 
+                (in(ATD_df.BondTypes[num]).("AR2") || in(ATD_df.BondTypes[num]).("AR3"))
             is_c_tagged = DEF_c_tag(num, ATD_df, wgraph_adj_matrix, X_dict, mol)
-            println("c_tag: ", is_c_tagged)
+            println("num = ", num, ", c_tag: ", is_c_tagged)
             if is_c_tagged
                 df_ATD_temp = filter(:type_name => n -> (lastindex(n) == 2 && n == string(lowercase(ATD_df.Element_wNeighborCount[num][1]), "c")), df_ATD_temp)
             end
-        elseif in([Elements.C, Elements.N, Elements.P]).(mol.atoms.element[num]) && in(ATD_df.BondTypes[num]).("NG") && all(in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).([1,2]))
+        elseif ((in([Elements.N, Elements.P]).(mol.atoms.element[num]) && lastindex(ATD_df.Neighbors[num]) == 2) || 
+                (in([Elements.C]).(mol.atoms.element[num]) && lastindex(ATD_df.Neighbors[num]) == 3)) && 
+                in(ATD_df.BondTypes[num]).("NG") && all(in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).([1,2]))
             is_e_tagged = DEF_e_tag(num, ATD_df, wgraph_adj_matrix, X_dict, mol)
-            println("e_tag: ", is_e_tagged)
+            println("num = ", num, ", e_tag: ", is_e_tagged)
             if is_e_tagged                
                 df_ATD_temp = filter(:type_name => n -> (lastindex(n) == 2 && n == string(lowercase(ATD_df.Element_wNeighborCount[num][1]), "e")), df_ATD_temp)
             end
         elseif ATD_df.Element_wNeighborCount[num] == "C2" && all(in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).([1,3]))
             is_g_tagged = DEF_g_tag(num, ATD_df, wgraph_adj_matrix, X_dict, mol)
-            println("g_tag: ", is_g_tagged)
+            println("num = ", num, ", g_tag: ", is_g_tagged)
             if is_g_tagged
                 df_ATD_temp = filter(:type_name => n -> (lastindex(n) == 2 && n == string(lowercase(ATD_df.Element_wNeighborCount[num][1]), "g")), df_ATD_temp)
             end
         elseif (ATD_df.Element_wNeighborCount[num] == "P3" || ATD_df.Element_wNeighborCount[num] == "S3") && in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).(2)
             is_x_tagged = DEF_x_tag(num, ATD_df, wgraph_adj_matrix, X_dict, mol)
-            println("x_tag: ", is_x_tagged)
+            println("num = ", num, ", x_tag: ", is_x_tagged)
             if is_x_tagged
                 df_ATD_temp = filter(:type_name => n -> (lastindex(n) == 2 && n == string(lowercase(ATD_df.Element_wNeighborCount[num][1]), "x")), df_ATD_temp)
             end
         elseif (ATD_df.Element_wNeighborCount[num] == "P4" || ATD_df.Element_wNeighborCount[num] == "S4") && in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).(2)
             is_y_tagged = DEF_y_tag(num, ATD_df, wgraph_adj_matrix, X_dict, mol)
-            println("y_tag: ", is_y_tagged)
+            println("num = ", num, ", y_tag: ", is_y_tagged)
             if is_y_tagged
                 df_ATD_temp = filter(:type_name => n -> (lastindex(n) == 2 && n == string(lowercase(ATD_df.Element_wNeighborCount[num][1]), "y")), df_ATD_temp)
             end
         elseif ATD_df.Element_wNeighborCount[num] == "N3" && true in in(X_dict["XX"]).(neighbor_element_list) && in(ATD_df.BondTypes[num]).("NG")
             is_h_tagged = DEF_h_tag(num, ATD_df, wgraph_adj_matrix, X_dict, mol)
-            println("h_tag: ", is_h_tagged)
+            println("num = ", num, ", h_tag: ", is_h_tagged)
             if is_h_tagged
                 df_ATD_temp = filter(:type_name => n -> (lastindex(n) == 2 && n == string(lowercase(ATD_df.Element_wNeighborCount[num][1]), "h")), df_ATD_temp)
             end
@@ -217,7 +222,7 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         if "NG" in ATD_df.BondTypes[num] && !is_e_tagged
             df_ATD_temp = filter(:atomic_property => n -> (!occursin("RG", n) && !occursin("AR", n) && !occursin("sb", n) && !occursin("db", n)), df_ATD_temp)
         elseif in(ATD_df.BondTypes[num]).("AR1") 
-            df_ATD_temp = filter(:atomic_property => n -> (occursin("AR1", n) && !occursin("RG6", n)), df_ATD_temp)
+            df_ATD_temp = filter(:atomic_property => n -> occursin("AR1", n), df_ATD_temp)
         elseif in(ATD_df.BondTypes[num]).("AR2") && is_c_tagged
             df_ATD_temp = filter(:atomic_property => n -> occursin("AR2", n), df_ATD_temp)
         elseif in(ATD_df.BondTypes[num]).("AR3") && is_c_tagged
@@ -240,6 +245,15 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
             else
                 df_ATD_temp = filter(:type_name => n -> n == "c2", df_ATD)
             end
+        end
+
+        # AR1 typed C3, cases: cp or ca
+        if ATD_df.Element_wNeighborCount[num] == "C3" && in(ATD_df.BondTypes[num]).("AR1") &&
+                all(in(["AR1"]).(ATD_df.BondTypes[ATD_df.Neighbors[num]])
+            df_ATD_temp = filter(:type_name => n -> n == "cp", df_ATD) 
+        elseif ATD_df.Element_wNeighborCount[num] == "C3" && in(ATD_df.BondTypes[num]).("AR1") &&
+            !all(in(["AR1"]).(ATD_df.BondTypes[ATD_df.Neighbors[num]])
+            df_ATD_temp = filter(:type_name => n -> n == "ca", df_ATD_temp)
         end
 
         # specific non-cycle N3 and N2 filtering
@@ -283,6 +297,15 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
             df_ATD_temp = filter(:type_name => n -> n == "nb", df_ATD_temp)
         end
 
+        # Oxygen filtering, cases: op, oq, os
+        if ATD_df.Element_wNeighborCount[num] == "O2" && in(ATD_df.BondTypes[num]).("RG3")
+            df_ATD_temp = filter(:type_name => n -> n == "op", df_ATD) 
+        elseif ATD_df.Element_wNeighborCount[num] == "O2" && in(ATD_df.BondTypes[num]).("RG4")
+            df_ATD_temp = filter(:type_name => n -> n == "oq", df_ATD_temp)
+        else
+            df_ATD_temp = filter(:type_name => n -> n == "os", df_ATD_temp)
+        end
+
         # add all left over atomtypes into a list
         if nrow(df_ATD_temp) == 1
             ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
@@ -306,10 +329,15 @@ function DEF_c_tag(num::Int64, ATD_df::DataFrame, wgraph_adj::Graphs.SparseMatri
                     "(C3[sb'])", "(XB2[sb'])", "(XD3[sb',db])", "(XD4[sb',db])"]
     c_tag_counter = 0 
     for (i,prim_neigh) in enumerate(ATD_df.Neighbors[num])
-        if !in(ATD_df.BondTypes[prim_neigh]).("NG")
+        if in(ATD_df.BondTypes[num]).("AR2") || in(ATD_df.BondTypes[num]).("AR3")
+            # since newer version of GAFF.DEF c tag definition is deducible from preclassification of aromatic Ring type AR2 and AR3
+            c_tag_counter += 2
+            break
+        elseif !in(ATD_df.BondTypes[prim_neigh]).("NG") && c_tag_counter < 2
             for sec_neigh in ATD_df.Secondary_Neighbors[num][i]
                 if !in(ATD_df.BondTypes[sec_neigh]).("NG")
                     # build neighbor-"neighbors of neighbor" or bond tuple and check if in c_tag_list
+                    # found in old GAFF.DEF and new GAFF.DEF Version. But filtering not necessary because of aromatic Ring preclassification to AR2 or AR3
                     if enumToString(mol.atoms.element[prim_neigh]) == "C" && enumToString(mol.atoms.element[sec_neigh]) == "C" 
                         path_stan_stan = string("(", ATD_df.Element_wNeighborCount[prim_neigh],"(", ATD_df.Element_wNeighborCount[sec_neigh],"))")
                         if in(c_tag_list).(path_stan_stan) 
