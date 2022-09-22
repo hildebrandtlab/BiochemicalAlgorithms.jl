@@ -1,6 +1,6 @@
 export load_pubchem_json
 
-using BiochemicalAlgorithms: Molecule, Atom, BondOrderType, Bond, Elements, Element, Vector3
+using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Elements, Element, Vector3
 
 using StructTypes
 using JSON3
@@ -528,18 +528,18 @@ function load_pubchem_json(fname::String, T=Float32)
                     # Note: the atom will be assigned an id in add_atom!
                     atom = (number=compound.atoms.aid[i],
                             name="",
-                            element=isnothing(compound.atoms.element) 
+                            element = isnothing(compound.atoms.element) 
                                 ? Elements.Unknown 
                                 : Element(Int(compound.atoms.element[i])),
-                            atomtype=isnothing(compound.atoms.label)
+                            atomtype = isnothing(compound.atoms.label)
                                 ? ""
                                 : compound.atoms.label[i].value, # does the label contain the atom type?
-                            r=T.(conformers[j][i]),
-                            v=Vector3(T(0.), T(0.), T(0.)),
-                            F=Vector3(T(0.), T(0.), T(0.)),
-                            has_velocity=false,
-                            has_force=false,
-                            frame_id=j
+                            r = T.(conformers[j][i]),
+                            v = Vector3(T(0.), T(0.), T(0.)),
+                            F = Vector3(T(0.), T(0.), T(0.)),
+                            has_velocity = false,
+                            has_force = false,
+                            frame_id = j
                     )
 
                     push!(mol, atom)
@@ -551,10 +551,10 @@ function load_pubchem_json(fname::String, T=Float32)
             for i in 1:length(compound.bonds.aid1)
                 order = Int(compound.bonds.order[i])
 
-                b = (a1=compound.bonds.aid1[i], 
-                     a2=compound.bonds.aid2[i],
-                     order=(order <= 4) ? BondOrderType(order) : Bond.Unknown
-                )
+                b = (a1 = compound.bonds.aid1[i], 
+                     a2 = compound.bonds.aid2[i],
+                     order = (order <= 4) ? BondOrderType(order) : BondOrder.Unknown
+                    )
 
                 push!(mol, b)
             end
