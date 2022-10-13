@@ -13,7 +13,7 @@ function select_atomtyping()
     return df_ATD
     ###
 
-    println("Which atomtyping do you want? \n Press: 1 for GAFF,  2 for Amber")
+    # println("Which atomtyping do you want? \n Press: 1 for GAFF,  2 for Amber")
     def_number = readline()
     def_number = parse(Int8, chomp(def_number))
     if def_number == 1
@@ -190,7 +190,7 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
                 (in([Elements.C]).(mol.atoms.element[num]) && lastindex(ATD_df.Neighbors[num]) == 3))  && 
                 (in(ATD_df.BondTypes[num]).("AR2") || in(ATD_df.BondTypes[num]).("AR3"))
             is_c_tagged = DEF_c_tag(num, ATD_df, wgraph_adj_matrix, X_dict, mol)
-            println("num = ", num, ", c_tag: ", is_c_tagged)
+            # println("num = ", num, ", c_tag: ", is_c_tagged)
             if is_c_tagged
                 df_ATD_temp = filter(:type_name => n -> (lastindex(n) == 2 && n == string(lowercase(ATD_df.Element_wNeighborCount[num][1]), "c")), df_ATD_temp)
             end
@@ -198,31 +198,31 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
                 (in([Elements.C]).(mol.atoms.element[num]) && lastindex(ATD_df.Neighbors[num]) == 3)) && 
                 in(ATD_df.BondTypes[num]).("NG") && all(in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).([1,2]))
             is_e_tagged = DEF_e_tag(num, ATD_df, wgraph_adj_matrix, X_dict, mol)
-            println("num = ", num, ", e_tag: ", is_e_tagged)
+            # println("num = ", num, ", e_tag: ", is_e_tagged)
             if is_e_tagged        
                 df_ATD_temp = filter(:type_name => n -> (lastindex(n) == 2 && n == string(lowercase(ATD_df.Element_wNeighborCount[num][1]), "e")), df_ATD_temp)
             end
         elseif ATD_df.Element_wNeighborCount[num] == "C2" && all(in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).([1,3]))
             is_g_tagged = DEF_g_tag(num, ATD_df, wgraph_adj_matrix, X_dict, mol)
-            println("num = ", num, ", g_tag: ", is_g_tagged)
+            # println("num = ", num, ", g_tag: ", is_g_tagged)
             if is_g_tagged
                 df_ATD_temp = filter(:type_name => n -> (lastindex(n) == 2 && n == string(lowercase(ATD_df.Element_wNeighborCount[num][1]), "g")), df_ATD_temp)
             end
         elseif (ATD_df.Element_wNeighborCount[num] == "P3" || ATD_df.Element_wNeighborCount[num] == "S3") && in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).(2)
             is_x_tagged = DEF_x_tag(num, ATD_df, wgraph_adj_matrix, X_dict, mol)
-            println("num = ", num, ", x_tag: ", is_x_tagged)
+            # println("num = ", num, ", x_tag: ", is_x_tagged)
             if is_x_tagged
                 df_ATD_temp = filter(:type_name => n -> (lastindex(n) == 2 && n == string(lowercase(ATD_df.Element_wNeighborCount[num][1]), "x")), df_ATD_temp)
             end
         elseif (ATD_df.Element_wNeighborCount[num] == "P4" || ATD_df.Element_wNeighborCount[num] == "S4") && in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).(2)
             is_y_tagged = DEF_y_tag(num, ATD_df, wgraph_adj_matrix, X_dict, mol)
-            println("num = ", num, ", y_tag: ", is_y_tagged)
+            # println("num = ", num, ", y_tag: ", is_y_tagged)
             if is_y_tagged
                 df_ATD_temp = filter(:type_name => n -> (lastindex(n) == 2 && n == string(lowercase(ATD_df.Element_wNeighborCount[num][1]), "y")), df_ATD_temp)
             end
         elseif ATD_df.Element_wNeighborCount[num] == "N3" && true in in(X_dict["XX"]).(neighbor_element_list) && in(ATD_df.BondTypes[num]).("NG")
             is_h_tagged = DEF_h_tag(num, ATD_df, wgraph_adj_matrix, X_dict, mol)
-            println("num = ", num, ", h_tag: ", is_h_tagged)
+            # println("num = ", num, ", h_tag: ", is_h_tagged)
             if is_h_tagged
                 df_ATD_temp = filter(:type_name => n -> (lastindex(n) == 2 && n == string(lowercase(ATD_df.Element_wNeighborCount[num][1]), "h")), df_ATD_temp)
             end
@@ -343,7 +343,7 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
             end
         end
     end
-    println(ATD_df)
+    # println(ATD_df)
     return ATD_df
 end
 
@@ -633,7 +633,7 @@ function count_EWG(num::Int64, ATD_df::DataFrame)
     if elec_pullers_num == 0
         elec_pullers_num = -1
     end
-    # println("EWG: ", elec_pullers_num)
+    # # println("EWG: ", elec_pullers_num)
     return elec_pullers_num
 end
 
@@ -657,7 +657,7 @@ end
 
 function cycle_checker(graph::SimpleGraph)
     if !(ne(graph) >= nv(graph))
-        println("no cycle detected")
+        # println("no cycle detected")
         empty_vec = Vector{Vector{Int64}}()
         return empty_vec
     else
