@@ -167,16 +167,16 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
 
         # specific C4 filtering
         if ATD_df.Element_wNeighborCount[num] == "C4"
-            if in(ATD_df.BondTypes[num]).("NG")
-                df_ATD_temp = filter(:type_name => n -> n == "c3" , df_ATD_temp)
-                ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
-                continue
-            elseif in(ATD_df.BondTypes[num]).("RG3")
-                df_ATD_temp = filter(:type_name => n -> n == "cy" , df_ATD_temp)
+            if in(ATD_df.BondTypes[num]).("RG3")
+                df_ATD_temp = filter(:type_name => n -> n == "cx" , df_ATD_temp)
                 ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
                 continue
             elseif in(ATD_df.BondTypes[num]).("RG4")
-                df_ATD_temp = filter(:type_name => n -> n == "cx" , df_ATD_temp)
+                df_ATD_temp = filter(:type_name => n -> n == "cy" , df_ATD_temp)
+                ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
+                continue
+            else
+                df_ATD_temp = filter(:type_name => n -> n == "c3" , df_ATD_temp)
                 ATD_df.Possible_Atomtypes[num] = [df_ATD_temp.type_name[1]]
                 continue
             end
@@ -242,7 +242,7 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         XB_ATD_df = ["Cl1", "F1", "I1", "Br1", "At1", "Ts1"]
         XA1_ATD_df = ["O1", "S1"]
         df_ATD_temp_save = copy(df_ATD_temp)
-        if ATD_df.Element_wNeighborCount[num] == "C3" && "NG" in ATD_df.BondTypes[num] && !is_e_tagged
+        if ATD_df.Element_wNeighborCount[num] == "C3" && true in in(ATD_df.BondTypes[num]).(["NG", "AR5"]) && !is_e_tagged
             if true in in(ATD_df.Element_wNeighborCount[ATD_df.Neighbors[num]]).(XA1_ATD_df)
                 df_ATD_temp = filter(:CES => n -> occursin("(XA1)", n), df_ATD_temp)
                 # to get type_name "c" from GAFF.DEF
@@ -275,16 +275,30 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
             df_ATD_temp = filter(:type_name => n -> n == "ca", df_ATD_temp)
         end
 
-        # specific non-cycle N3 and N2 filtering
-        if ATD_df.Element_wNeighborCount[num] == "N3" && "NG" in ATD_df.BondTypes[num]
+        # specific N3 and N2 filtering
+        if ATD_df.Element_wNeighborCount[num] == "N3" && true in in(ATD_df.BondTypes[num]).(["NG", "AR5"]) 
             if in(ATD_df.Element_wNeighborCount[ATD_df.Neighbors[num]]).("C3") && countmap(in(wgraph_adj_matrix[num, ATD_df.Neighbors[num]]).([2,3]))[1] == 0
                 for (i,prim_neigh) in enumerate(ATD_df.Element_wNeighborCount[ATD_df.Neighbors[num]])
-                    for sec_neigh in ATD_df.Element_wNeighborCount[ATD_df.Secondary_Neighbors[num][i]]
-                        if prim_neigh == "C3" && sec_neigh[lastindex[sec_neigh]] == 1
+                    if true in in(ATD_df.Element_wNeighborCount[ATD_df.Secondary_Neighbors[num][i]]).(XA1_ATD_df)
+                        if in(ATD_df.BondTypes[num]).("RG3")
+                            df_ATD_temp = filter(:atomic_property  => m -> m == "[RG3]", df_ATD_temp)
                             df_ATD_temp = filter(:CES => n -> n == "(C3(XA1))", df_ATD_temp)
-                            # to get type_name "n" from GAFF.DEF
+                            # to get type_name "ni" from GAFF.DEF
+                        elseif in(ATD_df.BondTypes[num]).("RG4")
+                            df_ATD_temp = filter(:atomic_property  => m -> m == "[RG4]", df_ATD_temp)
+                            df_ATD_temp = filter(:CES => n -> n == "(C3(XA1))", df_ATD_temp)
+                            # to get type_name "nj" from GAFF.DEF
+                        else
+                            df_ATD_temp = filter(:type_name => n -> n == "n", df_ATD_temp)
                         end
                     end
+                    # for sec_neigh in ATD_df.Element_wNeighborCount[ATD_df.Secondary_Neighbors[num][i]]
+                    #     println(sec_neigh)
+                    #     if prim_neigh == "C3" && sec_neigh[lastindex(sec_neigh)] == "1"
+                    #         df_ATD_temp = filter(:CES => n -> n == "(C3(XA1))", df_ATD_temp)
+                    #         # to get type_name "n" from GAFF.DEF
+                    #     end
+                    # end
                 end
             elseif countmap(in(["N3"]).(ATD_df.Element_wNeighborCount[ATD_df.Neighbors[num]]))[1] == 2
                 df_ATD_temp = filter(:type_name => n -> n == "no", df_ATD)
@@ -597,9 +611,9 @@ function NG_RG_AR_DEFtype(LList::Vector{Vector{Int64}}, wgraph_adj::Graphs.Spars
                     end           
                 end
             end
-        elseif (pi_elec / lastindex(vlist)) == 0
+        elseif (pi_elec / lastindex(vlist)) < 1/2
             for x in vlist
-                if !in(ring_class_list[x]).("AR5")
+                if !in(ring_class_list[x]).("AR5") && !in(ring_class_list[x]).("AR1")
                     push!(ring_class_list[x], "AR5")    
                 end
             end
@@ -621,13 +635,6 @@ function count_EWG(num::Int64, ATD_df::DataFrame)
                 # all neighbors of neighbor that are in strong_pullers are an EWG
                 elec_pullers_num += countmap(in(strong_pullers).(ATD_df.Element_wNeighborCount[ATD_df.Secondary_Neighbors[num][i]]))[true]
             end
-            for sec_neigh in ATD_df.Secondary_Neighbors[num][i]
-                if in(possible_pullers).(ATD_df.Element_wNeighborCount[sec_neigh]) && 
-                    true in in(strong_pullers).(ATD_df.Element_wNeighborCount[ATD_df.Neighbors[sec_neigh]])
-                    # For example for NO2 group. Only counts as one EWG
-                    elec_pullers_num += 1
-                end  
-            end  
         end
     end
     if elec_pullers_num == 0

@@ -1,3 +1,4 @@
+using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Elements, Element, Vector3
 
  export load_mol2, export_mol2
  
@@ -15,10 +16,13 @@
     section_line = 0
 
     for (i, line) in enumerate(readlines(mol2_file))
-        if line[1] == "@"
-            section = string(line)
-            section_line = 0
-            continue
+        if !isempty(line)
+            if line[1] == '@'
+                println(line)
+                section = string(line)
+                section_line = 0
+                continue
+            end
         end
         if section == "@<TRIPOS>MOLECULE"
             section_line += 1
@@ -27,21 +31,42 @@
             end
         elseif section == "@<TRIPOS>ATOM"
             section_line += 1
-            new_atom = Atom()
-            new_atom.number = parse(Int64, line[1:7])
-            new_atom.name = strip(line[9:15])
-            new_atom.element = mol2_get_element(new_atom.name)
-            new_atom.r = mol2_get_r_vector(line)
-            new_atom.v = Ref(Vector3{T}(0.0, 0.0, 0.0))
-            new_atom.F = Ref(Vector3{T}(0.0, 0.0, 0.0))
-            new_atom.has_velocity = false
-            new_atom.has_force = false
-            new_atom.frame_id = 1
+            anumber = parse(Int64, line[1:7])
+            atname = strip(line[9:15])
+            aelement = parse(Elements, mol2_get_element(atname))
+            aatomtype = ""
+            ar = mol2_get_r_vector(line)
+            av = Ref(Vector3{T}(0.0, 0.0, 0.0))
+            aF = Ref(Vector3{T}(0.0, 0.0, 0.0))
+            ahas_velocity = false
+            ahas_force = false
+            aframe_id = 1
+            new_atom = Atom(anumber,atname,aelement, 
+                            aatomtype, ar, av, aF, 
+                            ahas_velocity, ahas_force, 
+                            aframe_id)
+            push!(new_mol.atoms, new_atom)
         elseif section == "@<TRIPOS>BOND"
-            section
+            section_line += 1
+            new_bond = Bond(a1 = parse(Int64, line[8:13]),
+                        a2 = parse(Int64, line[14:19]),
+                        order = BondOrderType(mol2_get_BondOrder(line)))
+            push!(new_mol, new_bond)
         end
     end
+    return new_mol
  end
+
+
+ function mol2_get_BondOrder(line::AbstractString)
+    bondorder_string = strip(line[20:25])
+    if isnumeric(bondorder_string[1])
+        return Int(DefBond(parse(Int64, bondorder_string)))
+    else
+        return Int(parse(DefBonds, bondorder_string))
+    end
+ end
+
 
  function mol2_get_element(name::AbstractString)
     common_elements = ["C", "N", "O", "S", "P", "F", "Cl", "Br", "I"]
@@ -57,6 +82,7 @@
     end
     return element
  end
+
 
  function mol2_get_r_vector(line)
     r_vector = Vector3{Float32}
