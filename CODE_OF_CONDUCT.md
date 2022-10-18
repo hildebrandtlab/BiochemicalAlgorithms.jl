@@ -2,7 +2,7 @@
  
 The development of our project requires the participation and work of many. 
 We value your participation and want to foster a welcoming and empathic environment for everyone. 
-Please take your time and read and value this code of conduct. 
+Please take your time and read and value this Code of Conduct. 
 
 ## The short version: 
 
@@ -135,13 +135,14 @@ https://www.contributor-covenant.org/version/2/0/code_of_conduct.html
 Community Impact Guidelines were inspired by [Mozilla's code of conduct
 enforcement ladder](https://github.com/mozilla/diversity).
 
-[homepage]: https://www.contributor-covenant.org
-
-For answers to common questions about this code of conduct, see the FAQ at
+For answers to common questions about this Code of Conduct, see the FAQ at
 https://www.contributor-covenant.org/faq. Translations are available at
 https://www.contributor-covenant.org/translations.
 
 This Code of Conduct was adapted as well from the following Codes:
-- the Exercism Code of conduct [exercism], available at
-https://exercism.org/docs/using/legal/code-of-conduct
-- the gnome's code of conduct, available at https://wiki.gnome.org/action/show/Foundation/CodeOfConduct
+- the [Exercism] Code of Conduct 
+- the [Gnome]'s Code of Conduct
+
+[homepage]: https://www.contributor-covenant.org
+[Exercism]: https://exercism.org/docs/using/legal/code-of-conduct
+[Gnome]: https://wiki.gnome.org/action/show/Foundation/CodeOfConduct
