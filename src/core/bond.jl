@@ -24,3 +24,9 @@ const Bond = @NamedTuple begin
     a2::Int
     order::BondOrderType
 end
+
+### TODO: function for translating the Aromatic flag to concrete Bond numbers
+
+function Aromatic_to_sbdb_converter()
+
+end

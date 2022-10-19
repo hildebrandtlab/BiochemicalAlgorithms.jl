@@ -9,7 +9,7 @@ using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Ele
  end
 
 
- function load_mol2(fname::AbstractString)
+ function load_mol2(fname::AbstractString, T = Float32)
     mol2_file = open(fname)
     new_mol = Molecule(fname)
     section = ""
@@ -31,27 +31,25 @@ using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Ele
             end
         elseif section == "@<TRIPOS>ATOM"
             section_line += 1
-            anumber = parse(Int64, line[1:7])
-            atname = strip(line[9:15])
-            aelement = parse(Elements, mol2_get_element(atname))
-            aatomtype = ""
-            ar = mol2_get_r_vector(line)
-            av = Ref(Vector3{T}(0.0, 0.0, 0.0))
-            aF = Ref(Vector3{T}(0.0, 0.0, 0.0))
-            ahas_velocity = false
-            ahas_force = false
-            aframe_id = 1
-            new_atom = Atom(anumber,atname,aelement, 
-                            aatomtype, ar, av, aF, 
-                            ahas_velocity, ahas_force, 
-                            aframe_id)
+            number = parse(Int64, line[1:7])
+            name = strip(line[9:15])
+            element = parse(Elements, mol2_get_element(name))
+            atomtype = strip(line[51:54])
+            r = Vector3{T}(parse(T, line[17:27]), parse(T, line[28:38]), parse(T, line[39:49]))
+            v = Vector3{T}(0.0, 0.0, 0.0)
+            F = Vector3{T}(0.0, 0.0, 0.0)
+            has_velocity = false
+            has_force = false
+            frame_id = 1
+            new_atom = (number = number, name = name, element = element, atomtype = atomtype, r = r, 
+                        v = v, F = F, has_velocity = has_velocity, has_force = has_force, frame_id = frame_id)
             push!(new_mol.atoms, new_atom)
         elseif section == "@<TRIPOS>BOND"
             section_line += 1
-            new_bond = Bond(a1 = parse(Int64, line[8:13]),
+            new_bond = (a1 = parse(Int64, line[8:13]),
                         a2 = parse(Int64, line[14:19]),
                         order = BondOrderType(mol2_get_BondOrder(line)))
-            push!(new_mol, new_bond)
+            push!(new_mol.bonds, new_bond)
         end
     end
     return new_mol
@@ -59,7 +57,7 @@ using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Ele
 
 
  function mol2_get_BondOrder(line::AbstractString)
-    bondorder_string = strip(line[20:25])
+    bondorder_string = strip(line[20:lastindex(line)])
     if isnumeric(bondorder_string[1])
         return Int(DefBond(parse(Int64, bondorder_string)))
     else
@@ -69,7 +67,7 @@ using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Ele
 
 
  function mol2_get_element(name::AbstractString)
-    common_elements = ["C", "N", "O", "S", "P", "F", "Cl", "Br", "I"]
+    common_elements = ["H", "C", "N", "O", "S", "P", "F", "Cl", "Br", "I"]
     first_letter = string(name[1])
     two_letters = ""
     if lastindex(name) >= 2 && !isnumeric(name[2]) 
@@ -81,11 +79,4 @@ using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Ele
         element = first_letter
     end
     return element
- end
-
-
- function mol2_get_r_vector(line)
-    r_vector = Vector3{Float32}
-    r_vector = [parse(Float32, line[17:27]), parse(Float32, line[28:38]), parse(Float32, line[39:49])]
-    return r_vector
  end
