@@ -358,6 +358,13 @@ function get_atomtype(mol::AbstractMolecule, df_ATD::DataFrame)
         end
     end
     # println(ATD_df)
+    for i = (1:nrow(ATD_df))
+        if lastindex(ATD_df.Possible_Atomtypes[i]) == 1
+            mol.atoms.atomtype[i] = ATD_df.Possible_Atomtypes[i][1]
+        else
+            mol.atoms.atomtype[i] = "DU"
+        end
+    end
     return ATD_df
 end
 

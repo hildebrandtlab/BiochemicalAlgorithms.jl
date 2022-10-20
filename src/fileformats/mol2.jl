@@ -4,8 +4,121 @@ using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Ele
  
  # TODO: functions for import and export of mol2 files 
 
- function export_mol2()
+ function export_mol2(mol::AbstractMolecule)
+    mol_name = prepare_mol_name(mol.name)
+    export_file = open("test/data/export/$mol_name.mol2", "w")
     
+    ### Molecule section
+    write(export_file, "@<TRIPOS>MOLECULE\n")
+    
+    molecule_section_line1 = string(mol_name, "\n")
+
+    num_atoms = build_flush_right_string(nrow(mol.atoms), 5)
+    num_bonds = build_flush_right_string(nrow(mol.bonds), 6)
+    num_subst = build_flush_right_string(1, 6)
+    num_feat = build_flush_right_string(0, 6)
+    num_sets = build_flush_right_string(0, 6)
+    molecule_section_line2 = string(num_atoms, num_bonds, num_subst, num_feat, num_sets, "\n")
+
+    mol_type = "SMALL" # BIOPOLYMER, PROTEIN, NUCLEIC_ACID, SACCHARIDE possible according to Tripos mol2 specification pdf
+    molecule_section_line3 = string(mol_type, "\n")
+
+    charge_type = "NO_CHARGES" # DEL_RE, GASTEIGER, GAST_HUCK, HUCKEL, PULLMAN, 
+    # GAUSS80_CHARGES, AMPAC_CHARGES, MULLIKEN_CHARGES, DICT_ CHARGES, MMFF94_CHARGES, USER_CHARGES
+    # possible according to Tripos mol2 specification
+    molecule_section_line4 = string(charge_type, "\n")
+
+    status_bits = "\n"
+    molecule_section_line5 = status_bits
+    mol_comment = "\n"
+    molecule_section_line6 = mol_comment
+
+    write(export_file, molecule_section_line1, molecule_section_line2, 
+            molecule_section_line3, molecule_section_line4,
+            molecule_section_line5, molecule_section_line6) 
+
+    ### Atom section
+    write(export_file, "@<TRIPOS>ATOM\n")
+
+    for i = (1:nrow(mol.atoms))
+        atom_id = string(build_flush_right_string(i, 7), " ")
+        atom_name = build_flush_left_string(mol.atoms.element[i], 6)
+        x_coordinate_string = build_Float32_string(mol.atoms.r[i][1], 13, 4)
+        y_coordinate_string = build_Float32_string(mol.atoms.r[i][2], 11, 4)
+        z_coordinate_string = build_Float32_string(mol.atoms.r[i][3], 11, 4)
+        atom_type = string(" ", build_flush_left_string("DU", 6))
+        if !isempty(mol.atoms.atomtype[i])
+            atom_type = string(" ", build_flush_left_string(mol.atoms.atomtype[i], 6))
+        end
+        subst_id = build_flush_right_string(1, 6)
+        subst_name = string(" ", build_flush_left_string("nan", 6))
+        charge = build_Float32_string(0.0, 12, 6)
+        # status_bits never set by user, DSPMOD, TYPECOL, CAP, BACKBONE, DICT, ESSENTIAL, 
+        # WATER and DIRECT are possible according to Tripos mol2 specification
+        atom_section_line = string(atom_id, atom_name, x_coordinate_string, 
+                                    y_coordinate_string, z_coordinate_string,
+                                    atom_type, subst_id, subst_name, charge, "\n")
+        write(export_file, atom_section_line)
+    end 
+
+    ### Bond section
+    write(export_file, "@<TRIPOS>BOND\n")
+
+    for i = (1:nrow(mol.bonds))
+        bond_id = build_flush_right_string(i, 7)
+        origin_atom_id = build_flush_right_string(mol.bonds.a1[i], 6)
+        target_atom_id = build_flush_right_string(mol.bonds.a2[i], 6)
+        bond_type = string(" ", build_flush_left_string(Int(mol.bonds.order[i]), 4))
+        # status_bits never set by user, TYPECOL, GROUP, CAP, BACKBONE, DICT and INTERRES 
+        # are possible according to Tripos mol2 specification
+        bond_section_line = string(bond_id, origin_atom_id, target_atom_id, bond_type, "\n")
+        write(export_file, bond_section_line)
+    end
+
+    close(export_file)
+ end
+
+
+function build_Float32_string(input::AbstractFloat, length::Int, decimals::Int)
+    col_string = string(input)
+    while  (lastindex(col_string)-findfirst('.', col_string)) < decimals
+        col_string = string(col_string, "0")
+    end
+    while lastindex(col_string) < length
+        col_string = string(" ", col_string)
+    end
+    return col_string
+end
+
+ function prepare_mol_name(molname::AbstractString)
+    cleaned_string = ""
+    dot_bool = false
+    for i = (lastindex(molname):-1:1)
+        if molname[i] == '.'
+            dot_bool = true
+        elseif molname[i] == '/' || molname[i] == '\\'
+            return cleaned_string
+        elseif dot_bool == true
+            cleaned_string = string(molname[i], cleaned_string)
+        end
+    end
+    return cleaned_string
+ end
+
+function build_flush_right_string(input::Any, length::Int)
+   col_string = string(input)
+   while lastindex(col_string) < length
+       col_string = string(" ", col_string)
+   end
+   return col_string
+end
+
+function build_flush_left_string(input::Any, length::Int)
+    col_string = string(input)
+    while lastindex(col_string) < length
+        col_string = string(col_string, " ")
+    end
+    return col_string
  end
 
 
