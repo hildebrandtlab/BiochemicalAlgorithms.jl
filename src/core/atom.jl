@@ -13,6 +13,4 @@ const Atom{T} = @NamedTuple begin
     frame_id::Int
 end
 
-Atom() = Atom{Float32}()
-
 const AtomProperties = Dict{String, Any}
