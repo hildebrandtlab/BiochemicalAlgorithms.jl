@@ -1,6 +1,6 @@
 using BiochemicalAlgorithms
 
-export load_all, run_atomtyping, string_as_variable_name, conti_return, testing_loop_conti
+export load_all, run_atomtyping
 
 function load_all()
     file_location_a = "test/data/gaff_paper_examples/a/"
@@ -31,15 +31,4 @@ function run_atomtyping()
         exit_dict = merge(exit_dict, Dict(Symbol(string(mol_df.molname[num],"atomtypes")) => atomtypes_list))
     end
     return exit_dict
-end
-
-
-function gaff_paper_test(mol_dict::AbstractDict)
-    a_dict = Dict{String, Vector{String}}
-end
-
-
-function string_as_variable_name(str::AbstractString, var::Any)
-    str = Symbol(str)
-    return @eval (($str) = ($var))
 end
