@@ -13,7 +13,6 @@ include("core/residue.jl")
 include("core/fragment.jl")
 include("core/nucleotide.jl")
 include("core/protein.jl")
-include("core/system.jl")
 
 module PubChem
 include("fileformats/pubchem_json.jl")
