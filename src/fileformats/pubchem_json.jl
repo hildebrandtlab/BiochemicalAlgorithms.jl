@@ -462,13 +462,13 @@ mutable struct PCCompound
     bonds::Union{Nothing,PCBonds}
     stereo::Union{Nothing,Vector{PCStereoCenter}}      # StereoCenter Descriptions
     coords::Union{Nothing,Vector{PCCoordinates}}       # 2D/3D Coordinate Sets of Compound
-    charge::Int32                                      # Provided Total Formal Charge  (Signed Integer)
+    charge::Union{Nothing,Int32}                                     # Provided Total Formal Charge  (Signed Integer)
     props::Union{Nothing,Vector{PCInfoData}}           # Derived (computed) Properties
     stereogroups::Union{Nothing,Vector{PCStereoGroup}} # Relative stereochemistry groups
     count::Union{Nothing,PCCount}                      # Counts of various properties
     vbalt::Union{Nothing,Vector{PCCompound}}           # Alternate Valence-Bond Forms
 
-    PCCompound() = new()
+    PCCompound() = new(PCCompoundType(), nothing, nothing, nothing,nothing, nothing, nothing, nothing, nothing, nothing)
 end
 StructTypes.StructType(::Type{PCCompound}) = StructTypes.Mutable()
 
