@@ -45,6 +45,8 @@ end
         mol = load_pubchem_json("data/Sustiva_Efavirenz_Conformer3D_CID_64139.json")
         export_mol2(mol)
 
-        exported_mol2_file = open("data/Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")
+        exported_mol2_file = open("data/export/Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")
         @test exported_mol2_file
+
+        close(exported_mol2_file)
 end

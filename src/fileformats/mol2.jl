@@ -1,8 +1,7 @@
 using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Elements, Element, Vector3
 
 export load_mol2, export_mol2
- 
-# TODO: functions for import and export of mol2 files 
+
 
 function export_mol2(mol::AbstractMolecule)
     mol_name = prepare_mol_name(mol.name)
