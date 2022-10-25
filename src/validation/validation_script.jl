@@ -1,4 +1,4 @@
-using BiochemicalAlgorithms: load_all, export_mol2
+using BiochemicalAlgorithms
 
 export export_all_to_mol2
 

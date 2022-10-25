@@ -1,10 +1,10 @@
 using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Elements, Element, Vector3
 
- export load_mol2, export_mol2
+export load_mol2, export_mol2
  
- # TODO: functions for import and export of mol2 files 
+# TODO: functions for import and export of mol2 files 
 
- function export_mol2(mol::AbstractMolecule)
+function export_mol2(mol::AbstractMolecule)
     mol_name = prepare_mol_name(mol.name)
     export_file = open("test/data/export/$mol_name.mol2", "w")
     
@@ -76,7 +76,7 @@ using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Ele
     end
 
     close(export_file)
- end
+end
 
 
 function build_Float32_string(input::AbstractFloat, length::Int, decimals::Int)
@@ -90,7 +90,7 @@ function build_Float32_string(input::AbstractFloat, length::Int, decimals::Int)
     return col_string
 end
 
- function prepare_mol_name(molname::AbstractString)
+function prepare_mol_name(molname::AbstractString)
     cleaned_string = ""
     dot_bool = false
     for i = (lastindex(molname):-1:1)
@@ -103,7 +103,7 @@ end
         end
     end
     return cleaned_string
- end
+end
 
 function build_flush_right_string(input::Any, length::Int)
    col_string = string(input)
@@ -119,10 +119,10 @@ function build_flush_left_string(input::Any, length::Int)
         col_string = string(col_string, " ")
     end
     return col_string
- end
+end
 
 
- function load_mol2(fname::AbstractString, T = Float32)
+function load_mol2(fname::AbstractString, T = Float32)
     mol2_file = open(fname)
     new_mol = Molecule(fname)
     section = ""
@@ -166,20 +166,20 @@ function build_flush_left_string(input::Any, length::Int)
         end
     end
     return new_mol
- end
+end
 
 
- function mol2_get_BondOrder(line::AbstractString)
+function mol2_get_BondOrder(line::AbstractString)
     bondorder_string = strip(line[20:lastindex(line)])
     if isnumeric(bondorder_string[1])
         return Int(DefBond(parse(Int64, bondorder_string)))
     else
         return Int(parse(DefBonds, bondorder_string))
     end
- end
+end
 
 
- function mol2_get_element(name::AbstractString)
+function mol2_get_element(name::AbstractString)
     common_elements = ["H", "C", "N", "O", "S", "P", "F", "Cl", "Br", "I"]
     first_letter = string(name[1])
     two_letters = ""
@@ -192,4 +192,4 @@ function build_flush_left_string(input::Any, length::Int)
         element = first_letter
     end
     return element
- end
+end

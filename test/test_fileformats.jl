@@ -30,3 +30,21 @@ end
         @test count_atoms(mol2) == 21
         @test count_bonds(mol2) == 21
     end
+
+@testset "mol2_import" begin
+        mol = load_mol2("data/sustiva.mol2")
+        
+        @test mol.name == "data/sustiva.mol2"
+
+        @test count_atoms(mol) == 30
+        @test count_bonds(mol) == 32
+end
+
+@testset "mol2_export" begin
+
+        mol = load_pubchem_json("data/Sustiva_Efavirenz_Conformer3D_CID_64139.json")
+        export_mol2(mol)
+
+        exported_mol2_file = open("data/Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")
+        @test exported_mol2_file
+end
