@@ -7,5 +7,6 @@ using Test
     @testset "Core" begin 
             include("test_amino_acid.jl")
             include("test_atom.jl")
+            include("test_bond.jl")
         end
 end
