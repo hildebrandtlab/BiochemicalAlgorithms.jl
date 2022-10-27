@@ -1,3 +1,5 @@
+export PDBAtom
+
 const PDBAtomExtras = @NamedTuple begin
     residue_id::Int
     residue_name::String

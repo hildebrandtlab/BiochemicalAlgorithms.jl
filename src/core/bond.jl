@@ -1,4 +1,4 @@
-export Bond
+export Bond, BondOrder, BondOrderType
 
 using EnumX
 
