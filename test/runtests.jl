@@ -5,6 +5,7 @@ using Test
    
     @testset "Fileformats" begin include("test_fileformats.jl") end
     @testset "Core" begin 
-            include("test_amino_acid.jl") 
+            include("test_amino_acid.jl")
+            include("test_atom.jl")
         end
 end
