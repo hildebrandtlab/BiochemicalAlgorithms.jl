@@ -41,12 +41,12 @@ end
 end
 
 @testset "mol2_export" begin
-        
-        mol = load_pubchem_json("data/Sustiva_Efavirenz_Conformer3D_CID_64139.json")
-        export_mol2(mol)
+        export_mol2(load_pubchem_json("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.json"), "data/")
 
-        exported_mol2_file = open("data/export/Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")
-        @test readlines(exported_mol2_file)[1]
+        @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")[1] == "@<TRIPOS>MOLECULE"
+        @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")[8] == "@<TRIPOS>ATOM"
+        @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")[39] == "@<TRIPOS>BOND"
 
-        close(exported_mol2_file)
+        rm("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")
+
 end

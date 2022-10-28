@@ -3,9 +3,59 @@ using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Ele
 export load_mol2, export_mol2
 
 
-function export_mol2(mol::AbstractMolecule)
+function load_mol2(fname::AbstractString, T = Float32)
+    if fname[lastindex(fname)-4:lastindex(fname)] != ".mol2"
+        println("Please make sure, you are loading a mol2 file!\n(file ending should be mol2)")
+        return
+    end
+    mol2_file = open(fname)
+    new_mol = Molecule(fname)
+    section = ""
+    section_line = 0
+
+    for (i, line) in enumerate(readlines(mol2_file))
+        if !isempty(line)
+            if line[1] == '@'
+                section = string(line)
+                section_line = 0
+                continue
+            end
+        end
+        if section == "@<TRIPOS>MOLECULE"
+            section_line += 1
+            if section_line == 1
+                new_mol.name == string(line)
+            end
+        elseif section == "@<TRIPOS>ATOM"
+            section_line += 1
+            number = parse(Int64, line[1:7])
+            name = strip(line[9:15])
+            element = parse(Elements, mol2_get_element(name))
+            atomtype = strip(line[51:54])
+            r = Vector3{T}(parse(T, line[17:27]), parse(T, line[28:38]), parse(T, line[39:49]))
+            v = Vector3{T}(0.0, 0.0, 0.0)
+            F = Vector3{T}(0.0, 0.0, 0.0)
+            has_velocity = false
+            has_force = false
+            frame_id = 1
+            new_atom = (number = number, name = name, element = element, atomtype = atomtype, r = r, 
+                        v = v, F = F, has_velocity = has_velocity, has_force = has_force, frame_id = frame_id)
+            push!(new_mol.atoms, new_atom)
+        elseif section == "@<TRIPOS>BOND"
+            section_line += 1
+            new_bond = (a1 = parse(Int64, line[8:13]),
+                        a2 = parse(Int64, line[14:19]),
+                        order = BondOrderType(mol2_get_BondOrder(line)))
+            push!(new_mol.bonds, new_bond)
+        end
+    end
+    return new_mol
+end
+
+
+function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
     mol_name = prepare_mol_name(mol.name)
-    export_file = open("test/data/export/$mol_name.mol2", "w")
+    export_file = open(string(filelocation, mol_name, ".mol2") , "w")
     
     ### Molecule section
     write(export_file, "@<TRIPOS>MOLECULE\n")
@@ -90,18 +140,17 @@ function build_Float32_string(input::AbstractFloat, length::Int, decimals::Int)
 end
 
 function prepare_mol_name(molname::AbstractString)
-    cleaned_string = ""
-    dot_bool = false
+    dot_index = 0
+    slash_index = 0
     for i = (lastindex(molname):-1:1)
         if molname[i] == '.'
-            dot_bool = true
+            dot_index = i-1
         elseif molname[i] == '/' || molname[i] == '\\'
-            return cleaned_string
-        elseif dot_bool == true
-            cleaned_string = string(molname[i], cleaned_string)
+            slash_index = i+1
+            return molname[slash_index:dot_index]
         end
     end
-    return cleaned_string
+    return molname[1:dot_index]
 end
 
 function build_flush_right_string(input::Any, length::Int)
@@ -120,52 +169,6 @@ function build_flush_left_string(input::Any, length::Int)
     return col_string
 end
 
-
-function load_mol2(fname::AbstractString, T = Float32)
-    mol2_file = open(fname)
-    new_mol = Molecule(fname)
-    section = ""
-    section_line = 0
-
-    for (i, line) in enumerate(readlines(mol2_file))
-        if !isempty(line)
-            if line[1] == '@'
-                println(line)
-                section = string(line)
-                section_line = 0
-                continue
-            end
-        end
-        if section == "@<TRIPOS>MOLECULE"
-            section_line += 1
-            if section_line == 1
-                new_mol.name == string(line)
-            end
-        elseif section == "@<TRIPOS>ATOM"
-            section_line += 1
-            number = parse(Int64, line[1:7])
-            name = strip(line[9:15])
-            element = parse(Elements, mol2_get_element(name))
-            atomtype = strip(line[51:54])
-            r = Vector3{T}(parse(T, line[17:27]), parse(T, line[28:38]), parse(T, line[39:49]))
-            v = Vector3{T}(0.0, 0.0, 0.0)
-            F = Vector3{T}(0.0, 0.0, 0.0)
-            has_velocity = false
-            has_force = false
-            frame_id = 1
-            new_atom = (number = number, name = name, element = element, atomtype = atomtype, r = r, 
-                        v = v, F = F, has_velocity = has_velocity, has_force = has_force, frame_id = frame_id)
-            push!(new_mol.atoms, new_atom)
-        elseif section == "@<TRIPOS>BOND"
-            section_line += 1
-            new_bond = (a1 = parse(Int64, line[8:13]),
-                        a2 = parse(Int64, line[14:19]),
-                        order = BondOrderType(mol2_get_BondOrder(line)))
-            push!(new_mol.bonds, new_bond)
-        end
-    end
-    return new_mol
-end
 
 
 function mol2_get_BondOrder(line::AbstractString)
