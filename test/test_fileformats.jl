@@ -50,3 +50,24 @@ end
                 @test mol2.bonds.properties[i]["PCBondAnnotation_for_conformer"][2] == values[i]
         end
 end
+
+
+@testset "mol2_import" begin
+        mol = load_mol2("data/sustiva_openbabel.mol2")
+        
+        @test mol.name == "data/sustiva_openbabel.mol2"
+
+        @test count_atoms(mol) == 30
+        @test count_bonds(mol) == 32
+end
+
+@testset "mol2_export" begin
+        export_mol2(load_pubchem_json("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.json"), "data/")
+
+        @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139_balljl_export.mol2")[1] == "@<TRIPOS>MOLECULE"
+        @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139_balljl_export.mol2")[8] == "@<TRIPOS>ATOM"
+        @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139_balljl_export.mol2")[39] == "@<TRIPOS>BOND"
+
+        rm("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139_balljl_export.mol2")
+
+end
