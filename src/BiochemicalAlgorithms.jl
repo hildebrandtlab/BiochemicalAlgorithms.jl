@@ -13,11 +13,14 @@ include("core/residue.jl")
 include("core/fragment.jl")
 include("core/nucleotide.jl")
 include("core/protein.jl")
+include("core/def_bond.jl")
+
 
 module PubChem
 include("fileformats/pubchem_json.jl")
 end
 include("fileformats/PDB.jl")
+include("fileformats/mol2.jl")
 
 include("mappings/atom_bijection.jl")
 include("mappings/rigid_mapping.jl")
