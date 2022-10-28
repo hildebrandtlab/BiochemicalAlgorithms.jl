@@ -1,8 +1,8 @@
 using BiochemicalAlgorithms
 
-export load_all, run_atomtyping
+export load_all_gaff_paper_files, run_atomtyping_on_gaff_paper_files
 
-function load_all()
+function load_all_gaff_paper_files()
     file_location_a = "test/data/gaff_paper_examples/a/"
     file_location_b = "test/data/gaff_paper_examples/b/"
     row_count_a = lastindex(readdir(file_location_a))
@@ -20,8 +20,8 @@ function load_all()
     return mol_df
 end
 
-function run_atomtyping()
-    mol_df = load_all()
+function run_atomtyping_on_gaff_paper_files()
+    mol_df = load_all_gaff_paper_files()
     df = select_atomtyping()
     exit_dict = Dict{Symbol, DataFrame}
     # println((nrow(mol_df))
@@ -31,4 +31,17 @@ function run_atomtyping()
         exit_dict = merge(exit_dict, Dict(Symbol(string(mol_df.molname[num],"atomtypes")) => atomtypes_list))
     end
     return exit_dict
+end
+
+
+function load_all_pdb_test_files()
+    file_location_a = "../huettel-msc/export_folder/pdb_test_files/"
+    row_count = lastindex(readdir("../huettel-msc/export_folder/pdb_test_files/"))
+    mol_df = DataFrame([Vector{String}(undef, row_count), Vector{AbstractMolecule}(undef, row_count)], 
+                        ["molname", "abstract_mol"])
+    for (num, i) in enumerate(readdir(file_location_a))
+        mol_df.molname[num] = string(i[1:lastindex(i)-5])
+        mol_df.abstract_mol[num] = load_pdb(string(file_location_a, i))
+    end
+    return mol_df
 end

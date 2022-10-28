@@ -55,7 +55,7 @@ end
 
 function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
     mol_name = prepare_mol_name(mol.name)
-    export_file = open(string(filelocation, mol_name, ".mol2") , "w")
+    export_file = open(string(filelocation, mol_name, "_balljl_export.mol2") , "w")
     
     ### Molecule section
     write(export_file, "@<TRIPOS>MOLECULE\n")
@@ -64,7 +64,10 @@ function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
 
     num_atoms = build_flush_right_string(nrow(mol.atoms), 5)
     num_bonds = build_flush_right_string(nrow(mol.bonds), 6)
-    num_subst = build_flush_right_string(1, 6)
+    num_subst = build_flush_right_string(0, 6)
+    if typeof(mol) == PDBMolecule{Float32} && !isempty(mol.chains[1].fragments)
+        num_subst = build_flush_right_string(nrow(mol.chains[1].fragments), 6)
+    end
     num_feat = build_flush_right_string(0, 6)
     num_sets = build_flush_right_string(0, 6)
     molecule_section_line2 = string(num_atoms, num_bonds, num_subst, num_feat, num_sets, "\n")
@@ -90,7 +93,7 @@ function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
     write(export_file, "@<TRIPOS>ATOM\n")
 
     for i = (1:nrow(mol.atoms))
-        atom_id = string(build_flush_right_string(i, 7), " ")
+        atom_id = string(build_flush_right_string(mol.atoms.number[i], 7), " ")
         atom_name = build_flush_left_string(mol.atoms.element[i], 6)
         x_coordinate_string = build_Float32_string(mol.atoms.r[i][1], 13, 4)
         y_coordinate_string = build_Float32_string(mol.atoms.r[i][2], 11, 4)
@@ -99,8 +102,16 @@ function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
         if !isempty(mol.atoms.atomtype[i])
             atom_type = string(" ", build_flush_left_string(mol.atoms.atomtype[i], 6))
         end
-        subst_id = build_flush_right_string(1, 6)
-        subst_name = string(" ", build_flush_left_string("nan", 6))
+        subst_id = string(build_flush_right_string(1, 6), " ")
+        subst_name = build_flush_left_string("nan", 6)
+        if typeof(mol) == PDBMolecule{Float32}
+            if !isempty(mol.atoms.residue_id[i])
+                subst_id = string(build_flush_right_string(mol.atoms.residue_id[i], 6), " ")
+            end
+            if !isempty(mol.atoms.residue_name[i])
+                subst_name = build_flush_left_string(mol.atoms.residue_name[i], 6)
+            end
+        end
         charge = build_Float32_string(0.0, 12, 6)
         # status_bits never set by user, DSPMOD, TYPECOL, CAP, BACKBONE, DICT, ESSENTIAL, 
         # WATER and DIRECT are possible according to Tripos mol2 specification
@@ -111,17 +122,49 @@ function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
     end 
 
     ### Bond section
-    write(export_file, "@<TRIPOS>BOND\n")
+    if !isempty(mol.bonds)
+        write(export_file, "@<TRIPOS>BOND\n")
 
-    for i = (1:nrow(mol.bonds))
-        bond_id = build_flush_right_string(i, 7)
-        origin_atom_id = build_flush_right_string(mol.bonds.a1[i], 6)
-        target_atom_id = build_flush_right_string(mol.bonds.a2[i], 6)
-        bond_type = string(" ", build_flush_left_string(Int(mol.bonds.order[i]), 4))
-        # status_bits never set by user, TYPECOL, GROUP, CAP, BACKBONE, DICT and INTERRES 
-        # are possible according to Tripos mol2 specification
-        bond_section_line = string(bond_id, origin_atom_id, target_atom_id, bond_type, "\n")
-        write(export_file, bond_section_line)
+        for i = (1:nrow(mol.bonds))
+            bond_id = build_flush_right_string(i, 6)
+            origin_atom_id = build_flush_right_string(mol.bonds.a1[i], 6)
+            target_atom_id = build_flush_right_string(mol.bonds.a2[i], 6)
+            bond_type = string(" ", build_flush_left_string(Int(mol.bonds.order[i]), 4))
+            # status_bits never set by user, TYPECOL, GROUP, CAP, BACKBONE, DICT and INTERRES 
+            # are possible according to Tripos mol2 specification
+            bond_section_line = string(bond_id, origin_atom_id, target_atom_id, bond_type, "\n")
+            write(export_file, bond_section_line)
+        end
+    end
+
+    ### Substructure section
+    if typeof(mol) == PDBMolecule{Float32} && !isempty(mol.chains[1].fragments)
+        write(export_file, "@<TRIPOS>SUBSTRUCTURE\n")
+        for i = (1:nrow(mol.chains[1].fragments))
+            subst_id = string(build_flush_right_string(i, 6), " ")
+            subst_name = build_flush_left_string(mol.chains[1].fragments.name[i], 6)
+            df_for_root = filter(:residue_name => n -> n == mol.chains[1].fragments.name[i], mol.atoms)
+            df_for_root1 = filter(:residue_id => m -> m == mol.chains[1].fragments.number[i], df_for_root)
+            root_atom = string(build_flush_right_string(-1, 7), " ")
+            if !isempty(df_for_root1)
+                root_atom = string(build_flush_right_string(df_for_root1.number[1], 7), " ")
+            end  
+            subst_type = build_flush_left_string("TEMP", 7)
+            # other Options for subst_type should be. RESIDUE, PERM, DOMAIN, GROUP
+            dict_type = string(" ", build_flush_left_string(0, 4)) # the type of dictionary associated with the substructure.
+            chain_string = "" # the chain to which the substructure belongs (ð 4 chars).
+            sub_type = "" # the subtype of the chain
+            inter_bonds = "" # the number of inter substructure bonds
+            status_string = "" 
+            # status_string are internal SYBYL status bits never set by user
+            # Valid bit values: LEAF, ROOT, TYPECOL, DICT, BACKWARD and BLOCK 
+            # are possible according to Tripos mol2 specification
+            comment_string = "" # the comment for the substructure
+            substructure_section_line = string(subst_id, subst_name, root_atom, subst_type, 
+                                                dict_type, chain_string, sub_type, inter_bonds, 
+                                                status_string, comment_string, "\n")
+            write(export_file, substructure_section_line)
+        end
     end
 
     close(export_file)
