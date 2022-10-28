@@ -1,4 +1,4 @@
-export Bond, BondOrder, BondOrderType, BondProperties
+export Bond, BondOrder, BondOrderType
 
 using EnumX
 
@@ -23,12 +23,4 @@ const Bond = @NamedTuple begin
     a1::Int
     a2::Int
     order::BondOrderType
-end
-
-const BondProperties = Dict{String, Any}
-
-### TODO: function for translating the Aromatic flag to concrete Bond numbers
-
-function Aromatic_to_sbdb_converter()
-
 end

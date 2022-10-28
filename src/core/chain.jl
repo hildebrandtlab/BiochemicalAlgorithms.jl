@@ -40,6 +40,7 @@ struct NucleotideChain <: AbstractChain
     end
 end
 
+fragments(c::PDBChain)        = c.fragments
 fragments(c::ProteinChain)    = c.residues
 fragments(c::HeteroAtomChain) = c.fragments
 fragments(c::NucleotideChain) = c.nucleotides
