@@ -32,12 +32,12 @@ end
     end
 
 @testset "mol2_import" begin
-        mol = load_mol2("data/sustiva.mol2")
+        mol = load_mol2("data/sustiva_openbabel.mol2")
         
-        @test mol.name == "data/sustiva.mol2"
+        @test mol.name == "data/sustiva_openbabel.mol2"
 
-        @test count_atoms(mol) == 30
-        @test count_bonds(mol) == 32
+        @test count_atoms(mol) == 21
+        @test count_bonds(mol) == 23
 end
 
 @testset "mol2_export" begin
