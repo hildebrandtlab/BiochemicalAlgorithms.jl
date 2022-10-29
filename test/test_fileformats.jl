@@ -36,8 +36,8 @@ end
         
         @test mol.name == "data/sustiva_openbabel.mol2"
 
-        @test count_atoms(mol) == 30
-        @test count_bonds(mol) == 32
+        @test count_atoms(mol) == 21
+        @test count_bonds(mol) == 23
 end
 
 @testset "mol2_export" begin

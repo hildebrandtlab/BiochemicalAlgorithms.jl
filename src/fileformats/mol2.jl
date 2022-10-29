@@ -14,6 +14,7 @@ function load_mol2(fname::AbstractString, T = Float32)
     section_line = 0
 
     for (i, line) in enumerate(readlines(mol2_file))
+        println(line)
         if !isempty(line)
             if line[1] == '@'
                 section = string(line)
@@ -28,11 +29,12 @@ function load_mol2(fname::AbstractString, T = Float32)
             end
         elseif section == "@<TRIPOS>ATOM"
             section_line += 1
-            number = parse(Int64, line[1:7])
-            name = strip(line[9:15])
+            line_elements = split(line)
+            number = parse(Int64, line_elements[1])
+            name = line_elements[2]
             element = parse(Elements, mol2_get_element(name))
-            atomtype = strip(line[51:54])
-            r = Vector3{T}(parse(T, line[17:27]), parse(T, line[28:38]), parse(T, line[39:49]))
+            atomtype = line_elements[6]
+            r = Vector3{T}(parse(T, line_elements[3]), parse(T, line_elements[4]), parse(T, line_elements[5]))
             v = Vector3{T}(0.0, 0.0, 0.0)
             F = Vector3{T}(0.0, 0.0, 0.0)
             has_velocity = false
@@ -43,11 +45,13 @@ function load_mol2(fname::AbstractString, T = Float32)
             push!(new_mol.atoms, new_atom)
         elseif section == "@<TRIPOS>BOND"
             section_line += 1
-            new_bond = (a1 = parse(Int64, line[8:13]),
-                        a2 = parse(Int64, line[14:19]),
-                        order = BondOrderType(mol2_get_BondOrder(line)))
+            line_elements = split(line)
+            new_bond = (a1 = parse(Int64, line_elements[2]),
+                        a2 = parse(Int64, line_elements[3]),
+                        order = BondOrderType(mol2_get_BondOrder(line_elements[4])))
             push!(new_mol.bonds, new_bond)
         end
+        ### TODO: import information from @<TRIPOS>SUBSTRUCTURE if given, change Molecule into PDBMolecule
     end
     return new_mol
 end
@@ -216,12 +220,11 @@ function build_flush_left_string(input::Any, length::Int)
 end
 
 
-function mol2_get_BondOrder(line::AbstractString)
-    bondorder_string = strip(line[20:lastindex(line)])
-    if isnumeric(bondorder_string[1])
-        return Int(DefBond(parse(Int64, bondorder_string)))
+function mol2_get_BondOrder(substring::AbstractString)
+    if isnumeric(substring[1])
+        return Int(DefBond(parse(Int64, substring)))
     else
-        return Int(parse(DefBonds, bondorder_string))
+        return Int(parse(DefBonds, substring))
     end
 end
 
