@@ -11,9 +11,9 @@ function export_all_gaff_paper_files_to_mol2()
 end
 
 
-function export_all_pdb_test_files_to_mol2()
-    mol_df = load_all_pdb_test_files()
+function export_all_pdb_test_files_to_mol2(file_location_a::AbstractString, export_to_dir_location::AbstractString)
+    mol_df = load_all_pdb_test_files(file_location_a)
     for num = (1:nrow(mol_df))
-        export_mol2(mol_df.abstract_mol[num], "../huettel-msc/export_folder/mol2_pdb_export/")
+        export_mol2(mol_df.abstract_mol[num], export_to_dir_location)
     end
 end

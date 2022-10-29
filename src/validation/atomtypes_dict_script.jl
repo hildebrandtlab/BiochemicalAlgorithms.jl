@@ -34,9 +34,8 @@ function run_atomtyping_on_gaff_paper_files()
 end
 
 
-function load_all_pdb_test_files()
-    file_location_a = "../huettel-msc/export_folder/pdb_test_files/"
-    row_count = lastindex(readdir("../huettel-msc/export_folder/pdb_test_files/"))
+function load_all_pdb_test_files(file_location_a::AbstractString)
+    row_count = lastindex(readdir(file_location_a))
     mol_df = DataFrame([Vector{String}(undef, row_count), Vector{AbstractMolecule}(undef, row_count)], 
                         ["molname", "abstract_mol"])
     for (num, i) in enumerate(readdir(file_location_a))
