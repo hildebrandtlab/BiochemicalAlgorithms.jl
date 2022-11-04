@@ -1,6 +1,6 @@
 using EnumX
 
-export Elements, Element
+export Elements, ElementType
 
 @enumx Elements begin
   H = 1
@@ -124,6 +124,6 @@ export Elements, Element
   Unknown = 255
 end
 
-const Element = Elements.T
+const ElementType = Elements.T
 
 Base.parse(Elements, s) = getproperty(Elements, Symbol(s))
