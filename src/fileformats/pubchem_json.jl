@@ -1,6 +1,6 @@
 export load_pubchem_json
 
-using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Elements, Element, Vector3
+using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Elements, ElementType, Vector3
 
 using StructTypes
 using JSON3
@@ -530,7 +530,7 @@ function load_pubchem_json(fname::String, T=Float32)
                             name="",
                             element = isnothing(compound.atoms.element) 
                                 ? Elements.Unknown 
-                                : Element(Int(compound.atoms.element[i])),
+                                : ElementType(Int(compound.atoms.element[i])),
                             atomtype = isnothing(compound.atoms.label)
                                 ? ""
                                 : compound.atoms.label[i].value, # does the label contain the atom type?
@@ -560,6 +560,6 @@ function load_pubchem_json(fname::String, T=Float32)
             end
         end
     end
-
+    
     mol
 end
