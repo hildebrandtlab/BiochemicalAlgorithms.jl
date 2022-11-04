@@ -9,5 +9,6 @@ using Test
             include("test_atom.jl")
             include("test_bond.jl")
             include("test_chain.jl")
+            include("test_element.jl")
         end
 end
