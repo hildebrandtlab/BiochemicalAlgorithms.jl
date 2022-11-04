@@ -3,7 +3,7 @@ export Atom
 const Atom{T} = @NamedTuple begin
     number::Int
     name::String
-    element::Element
+    element::ElementType
     atomtype::String
     r::Vector3{T}
     v::Vector3{T}
