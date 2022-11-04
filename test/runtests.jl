@@ -10,5 +10,6 @@ using Test
             include("test_bond.jl")
             include("test_chain.jl")
             include("test_element.jl")
+            include("test_fragment.jl")
         end
 end
