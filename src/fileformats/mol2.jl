@@ -14,7 +14,6 @@ function load_mol2(fname::AbstractString, T = Float32)
     section_line = 0
 
     for (i, line) in enumerate(readlines(mol2_file))
-        println(line)
         if !isempty(line)
             if line[1] == '@'
                 section = string(line)
@@ -59,7 +58,7 @@ end
 
 function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
     mol_name = prepare_mol_name(mol.name)
-    export_file = open(string(filelocation, mol_name, "_balljl_export.mol2") , "w")
+    export_file = open(string(filelocation, mol_name, ".mol2") , "w")
     
     ### Molecule section
     write(export_file, "@<TRIPOS>MOLECULE\n")

@@ -1,6 +1,6 @@
 using BiochemicalAlgorithms
 
-export load_all_gaff_paper_files, run_atomtyping_on_gaff_paper_files
+export load_all_gaff_paper_files, run_atomtyping_on_gaff_paper_files, atomtype_all_gaff_mol2_files
 
 function load_all_gaff_paper_files()
     file_location_a = "test/data/gaff_paper_examples/a/"
@@ -27,8 +27,10 @@ function run_atomtyping_on_gaff_paper_files()
     # println((nrow(mol_df))
     for num = (1:nrow(mol_df))
         # println((num, "/", nrow(mol_df),", name: ",string(mol_df.molname[num]))
-        atomtypes_list = get_atomtype(mol_df.abstract_mol[num], df)
-        exit_dict = merge(exit_dict, Dict(Symbol(string(mol_df.molname[num],"atomtypes")) => atomtypes_list))
+        current_mol = mol_df.abstract_mol[num]
+        atomtypes_for_mol = get_atomtypes!(current_mol, df)
+        exit_dict = merge(exit_dict, Dict(Symbol(string(mol_df.molname[num],"atomtypes")) => current_mol.atoms))
+        export_mol2(current_mol, "C:/Users/samhu/source/repos/huettel-msc/export_folder/gaff_files/")
     end
     return exit_dict
 end
@@ -43,4 +45,13 @@ function load_all_pdb_test_files(file_location_a::AbstractString)
         mol_df.abstract_mol[num] = load_pdb(string(file_location_a, i))
     end
     return mol_df
+end
+
+
+function atomtype_all_gaff_mol2_files(directory::AbstractString)
+    for (i, file) in enumerate(readdir(directory))
+        mol = load_mol2(string(directory, file))
+        get_atomtypes!(mol, select_atomtyping())
+        export_mol2(mol, directory)
+    end
 end

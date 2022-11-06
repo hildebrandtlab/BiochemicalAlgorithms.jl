@@ -3,7 +3,8 @@ using BiochemicalAlgorithms
 using Graphs, SimpleWeightedGraphs
 using StatsBase
 
-export select_atomtyping, get_atomtype, build_graph, cycle_checker, build_weighted_graph, enumToString, cycle_intersections
+export select_atomtyping, get_atomtype,get_atomtypes!, build_graph, cycle_checker, 
+        build_weighted_graph, enumToString, cycle_intersections
 
 
 function select_atomtyping()
@@ -24,6 +25,15 @@ function select_atomtyping()
         return df_ATD
     end
     return "No Atomtype definition chosen. cancelled!"
+end
+
+
+function get_atomtypes!(mol::AbstractMolecule, df::AbstractDataFrame)
+    atomtypes_df = get_atomtype(mol, df)
+    for i = (1:nrow(atomtypes_df))
+        mol.atoms.atomtype[i] = atomtypes_df.Possible_Atomtypes[i][1]
+    end
+    return mol
 end
 
 
