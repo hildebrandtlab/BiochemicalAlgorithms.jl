@@ -13,5 +13,6 @@ using Test
             include("test_fragment.jl")
             include("test_molecule.jl")
             include("test_nucleotide.jl")
+            include("test_PDB_atom.jl")
         end
 end
