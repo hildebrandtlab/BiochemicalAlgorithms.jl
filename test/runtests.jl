@@ -12,5 +12,6 @@ using Test
             include("test_element.jl")
             include("test_fragment.jl")
             include("test_molecule.jl")
+            include("test_nucleotide.jl")
         end
 end
