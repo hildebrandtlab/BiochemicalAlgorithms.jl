@@ -11,5 +11,6 @@ using Test
             include("test_chain.jl")
             include("test_element.jl")
             include("test_fragment.jl")
+            include("test_molecule.jl")
         end
 end
