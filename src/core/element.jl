@@ -96,6 +96,7 @@ export Elements, Element
   Pa = 91
   U = 92
   Np = 93
+  Pu = 94
   Am = 95
   Cm = 96
   Bk = 97
