@@ -59,7 +59,7 @@ end
 
 function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
     mol_name = prepare_mol_name(mol.name)
-    export_file = open(string(filelocation, mol_name, "_balljl_export.mol2") , "w")
+    export_file = open(string(filelocation, mol_name, ".mol2") , "w")
     
     ### Molecule section
     write(export_file, "@<TRIPOS>MOLECULE\n")
