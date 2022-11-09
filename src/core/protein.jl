@@ -21,8 +21,8 @@ mutable struct Protein{T<:Real} <: AbstractMolecule{T}
     end
 end
 
-Protein(name = "", 
-        atoms = DataFrame(PDBAtom[]), 
-        bonds = DataFrame(Bond[]), 
+Protein(name = "",
+        atoms = DataFrame(PDBAtom{Float32}[]),
+        bonds = DataFrame(Bond[]),
         atom_properties = Dict{Int, AtomProperties}(),
         chains = ProteinChain[]) = Protein{Float32}(name, atoms, bonds, atom_properties, chains)
