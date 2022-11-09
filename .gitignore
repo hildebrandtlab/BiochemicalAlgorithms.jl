@@ -4,3 +4,5 @@
 /.vscode/
 /docs/build/
 Manifest.toml
+
+src/validation/ball_atomtyping_validation/.idea/
