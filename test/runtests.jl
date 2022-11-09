@@ -17,6 +17,7 @@ using Test
             include("test_pdb_molecule.jl")
             include("test_protein.jl")
             include("test_residue.jl")
+            include("test_types.jl")
         end
     
 end
