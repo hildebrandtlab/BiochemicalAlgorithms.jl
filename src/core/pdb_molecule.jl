@@ -12,8 +12,8 @@ mutable struct PDBMolecule{T<:Real} <: AbstractMolecule{T}
 
     chains::Vector{PDBChain}
 
-    function PDBMolecule{T}(name = "", 
-                        atoms = DataFrame(PDBAtom{T}[]), 
+    function PDBMolecule{T}(name = "",
+                        atoms = DataFrame(PDBAtom{T}[]),
                         bonds = DataFrame(Bond[]),
                         atom_properties=Dict{Int, AtomProperties}(),
                         chains = PDBChain[]) where {T<:Real}
@@ -21,8 +21,8 @@ mutable struct PDBMolecule{T<:Real} <: AbstractMolecule{T}
     end
 end
 
-PDBMolecule(name="", 
-        atoms=DataFrame(PDBAtom[]), 
-        bonds=DataFrame(Bond[]), 
+PDBMolecule(name="",
+        atoms=DataFrame(PDBAtom{Float32}[]),
+        bonds=DataFrame(Bond[]),
         atom_properties=Dict{Int, AtomProperties}(),
         chains=PDBChain[]) = PDBMolecule{Float32}(name, atoms, bonds, atom_properties, chains)

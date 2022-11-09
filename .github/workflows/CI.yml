@@ -21,12 +21,14 @@ jobs:
         version:
           - '1.7'
           - '1.8'
-          - 'nightly'
+          # Broken by dependency, cf. https://github.com/JuliaIO/JLD2.jl/issues/428
+          # - 'nightly'
         os:
           - ubuntu-latest
         arch:
           - x64
-#          - x86
+          # Broken by dependency, cf. https://github.com/BioJulia/IndexableBitVectors.jl/issues/9
+          # - x86
     steps:
       - uses: actions/checkout@v3
       - uses: julia-actions/setup-julia@v1

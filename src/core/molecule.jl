@@ -12,17 +12,17 @@ mutable struct Molecule{T<:Real} <: AbstractMolecule{T}
 
     atom_properties::Dict{Int, AtomProperties} # mapping of atom.number => properties
 
-    function Molecule{T}(name = "", 
-                         atoms = DataFrame(Atom{T}[]), 
-                         bonds = DataFrame(Bond[]), 
+    function Molecule{T}(name = "",
+                         atoms = DataFrame(Atom{T}[]),
+                         bonds = DataFrame(Bond[]),
                          atom_properties=Dict{Int, AtomProperties}()) where {T<:Real}
         new(name, atoms, bonds, atom_properties)
     end
 end
 
-Molecule(name="", 
-         atoms=DataFrame(Atom[]), 
-         bonds=DataFrame(Bond[]), 
+Molecule(name="",
+         atoms=DataFrame(Atom{Float32}[]),
+         bonds=DataFrame(Bond[]),
          atom_properties=Dict{Int, AtomProperties}()) = Molecule{Float32}(name, atoms, bonds, atom_properties)
 
 ### Functions
