@@ -21,4 +21,4 @@ end
 Protein(name="",
         atoms=DataFrame(PDBAtom{Float32}[]),
         bonds=DataFrame(Bond[]),
-        chains=DataFrame(ProteinChain[])) = Protein{Float32}(name, atoms, bonds, chains)
+        chains=ProteinChain[]) = Protein{Float32}(name, atoms, bonds, chains)
