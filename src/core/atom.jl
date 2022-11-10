@@ -11,7 +11,6 @@ const Atom{T} = @NamedTuple begin
     has_velocity::Bool
     has_force::Bool
     frame_id::Int
-    props::Properties
+    properties::Properties
 end
- 
 Atom() = Atom{Float32}()
