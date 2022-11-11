@@ -24,3 +24,14 @@ end
     @test_throws BoundsError m[10]
     @test_throws DimensionMismatch Matrix3{Int}()
 end
+
+@testset "Properties" begin
+    p = Properties()
+    @test p isa Properties
+
+    p2 = Properties([("A", 23), ("B", 12), ("C", 12)])
+    @test p2 isa Properties
+
+    p3 = Dict([("A", 23), ("B", (1,2)), ("C", "foo")])
+    @test p3 isa Properties
+end
