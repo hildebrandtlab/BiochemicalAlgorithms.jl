@@ -1,4 +1,4 @@
-export Atom, AtomProperties
+export Atom
 
 const Atom{T} = @NamedTuple begin
     number::Int
@@ -11,6 +11,5 @@ const Atom{T} = @NamedTuple begin
     has_velocity::Bool
     has_force::Bool
     frame_id::Int
+    properties::Properties
 end
-
-const AtomProperties = Dict{String, Any}

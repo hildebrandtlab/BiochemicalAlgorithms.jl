@@ -91,22 +91,18 @@ function load_pdb(fname::String, T=Float32)
     atoms.altlocid = orig_df.altlocid
 
     # convert other columns of interest to atom properties
-    atom_properties = Dict(
-        Pair.(orig_df.serial, 
-            AtomProperties.(
-                collect(
-                    zip(
-                        Pair.("tempfactor",            orig_df.tempfactor),
-                        Pair.("occupancy",             orig_df.occupancy),
-                        Pair.("is_hetero_atom",        orig_df.ishetero),
-                        Pair.("insertion_code",        orig_df.inscode),
-                        Pair.("alternate_location_id", orig_df.altlocid)
+    atoms.properties = Properties.(
+                    collect(
+                            zip(
+                                Pair.("tempfactor",            orig_df.tempfactor),
+                                Pair.("occupancy",             orig_df.occupancy),
+                                Pair.("is_hetero_atom",        orig_df.ishetero),
+                                Pair.("insertion_code",        orig_df.inscode),
+                                Pair.("alternate_location_id", orig_df.altlocid)
+                            )
                     )
                 )
-            )
-        )
-    )
-
+                
     bonds = DataFrame(Bond[])
 
     chains = Vector{PDBChain}()
@@ -141,7 +137,7 @@ function load_pdb(fname::String, T=Float32)
 
         if nrow(sorted_altlocs) > 1
             for altloc in eachrow(sorted_altlocs[2:end, :])
-                atom_properties[base_case.number]["alternate_location_$(altloc.altlocid)"] = altloc
+                atoms.properties[base_case.number]["alternate_location_$(altloc.altlocid)"] = altloc
             end
         end
     end
@@ -152,5 +148,5 @@ function load_pdb(fname::String, T=Float32)
     # drop the altlocid-column
     select!(atoms, Not(:altlocid))
     
-    p = PDBMolecule{T}(orig_pdb.name, atoms, bonds, atom_properties, chains)
+    p = PDBMolecule{T}(orig_pdb.name, atoms, bonds, chains)
 end

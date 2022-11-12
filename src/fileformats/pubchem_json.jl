@@ -523,8 +523,8 @@ function load_pubchem_json(fname::String, T=Float32)
         if !isnothing(compound.atoms) && !isnothing(compound.coords)
             conformers = convert_coordinates(compound.coords)
 
-            for i in 1:length(compound.atoms.aid)
-                for j in 1:length(conformers)
+            for i in eachindex(compound.atoms.aid)
+                for j in eachindex(conformers)
                     # Note: the atom will be assigned an id in add_atom!
                     atom = (number=compound.atoms.aid[i],
                             name="",
@@ -539,7 +539,8 @@ function load_pubchem_json(fname::String, T=Float32)
                             F = Vector3(T(0.), T(0.), T(0.)),
                             has_velocity = false,
                             has_force = false,
-                            frame_id = j
+                            frame_id = j,
+                            properties = Dict{String, Any}()
                     )
 
                     push!(mol, atom)
@@ -548,7 +549,7 @@ function load_pubchem_json(fname::String, T=Float32)
         end
 
         if !isnothing(compound.bonds)
-            for i in 1:length(compound.bonds.aid1)
+            for i in eachindex(compound.bonds.aid1)
                 order = Int(compound.bonds.order[i])
 
                 b = (a1 = compound.bonds.aid1[i], 
