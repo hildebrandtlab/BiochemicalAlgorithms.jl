@@ -12,9 +12,6 @@ function parse_element_string(es::String)
         result = Elements.Unknown
     else
         try
-            if lastindex(es) == 2 && !isnumeric(es[2])
-                es = string(uppercase(es[1]), lowercase(es[2]))
-            end
             result = parse(Elements, es)
         catch e
             @warn "BiochemicalAlgorithms::PDB::parse_element_string: could not parse element from $(es); returning Unknown"

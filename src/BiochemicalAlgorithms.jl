@@ -13,19 +13,11 @@ include("core/residue.jl")
 include("core/fragment.jl")
 include("core/nucleotide.jl")
 include("core/protein.jl")
-include("core/atomtyping.jl")
-include("core/atomtyping_prep.jl")
-include("core/def_bond.jl")
-
-# testing script to load all molecules from folder
-include("validation/atomtypes_dict_script.jl")
-include("validation/validation_script.jl")
 
 module PubChem
 include("fileformats/pubchem_json.jl")
 end
 include("fileformats/PDB.jl")
-include("fileformats/mol2.jl")
 
 include("mappings/atom_bijection.jl")
 include("mappings/rigid_mapping.jl")
