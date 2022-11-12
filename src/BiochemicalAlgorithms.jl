@@ -13,6 +13,7 @@ include("core/residue.jl")
 include("core/fragment.jl")
 include("core/nucleotide.jl")
 include("core/protein.jl")
+include("core/atomtyping/DEF_file_parser.jl")
 
 module PubChem
 include("fileformats/pubchem_json.jl")
