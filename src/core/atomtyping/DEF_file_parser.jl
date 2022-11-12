@@ -24,7 +24,11 @@ function lines_for_df(line::AbstractString)
     line_data = split(line)
     for i = (2:9)
         if i <= 3
-            append!(col_data_list, [line_data[i]]) 
+            if (!isassigned(line_data, i) || line_data[i] == "&")
+                append!(col_data_list, ["*"])
+            else
+                append!(col_data_list, [line_data[i]]) 
+            end
         elseif i > 3 && i < 8 
             if isassigned(line_data, i)
                 if (line_data[i] == "*" || line_data[i] == "&")
