@@ -11,6 +11,7 @@
     @test size(mol.bonds) == (0,4)
     @test count_atoms(mol) == 0
     @test count_bonds(mol) == 0
+    @test length(mol.properties) == 0
     # set name
     mol.name = "my_fancy_molecule"
     @test mol.name == "my_fancy_molecule"
@@ -42,4 +43,14 @@
         push!(mol, bond)
         @test count_bonds(mol) == i
     end
+
+    # add properties
+    mol.properties = Properties([("molecule computed", false), ("molecule resolution", 2.5)])
+    @test length(mol.properties) == 2
+
+    mol.properties["resolution unit"] = "Angstroem"
+    @test length(mol.properties) == 3
+    @test !mol.properties["molecule computed"]
+    @test haskey(mol.properties, "resolution unit")
+
 end
