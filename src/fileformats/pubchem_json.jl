@@ -1,6 +1,6 @@
 export load_pubchem_json
 
-using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Elements, Element, Vector3
+using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Elements, Element, Vector3, Properties
 
 using StructTypes
 using JSON3
@@ -540,7 +540,7 @@ function load_pubchem_json(fname::String, T=Float32)
                             has_velocity = false,
                             has_force = false,
                             frame_id = j,
-                            properties = Dict{String, Any}()
+                            properties = Properties()
                     )
 
                     push!(mol, atom)
@@ -554,7 +554,8 @@ function load_pubchem_json(fname::String, T=Float32)
 
                 b = (a1 = compound.bonds.aid1[i], 
                      a2 = compound.bonds.aid2[i],
-                     order = (order <= 4) ? BondOrderType(order) : BondOrder.Unknown
+                     order = (order <= 4) ? BondOrderType(order) : BondOrder.Unknown,
+                     properties = Properties()
                     )
 
                 push!(mol, b)
