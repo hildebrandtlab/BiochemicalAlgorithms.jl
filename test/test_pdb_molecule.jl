@@ -9,7 +9,7 @@
     @test mol.atoms isa DataFrame
     @test size(mol.atoms) == (0, 14)
     @test mol.bonds isa DataFrame
-    @test size(mol.bonds) == (0, 3)
+    @test size(mol.bonds) == (0, 4)
     @test mol.chains isa Vector{PDBChain}
     @test size(mol.chains, 1) == 0
     @test count_atoms(mol) == 0

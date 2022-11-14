@@ -9,7 +9,7 @@
     @test protein.atoms isa DataFrame
     @test size(protein.atoms) == (0, 14)
     @test protein.bonds isa DataFrame
-    @test size(protein.bonds) == (0, 3)
+    @test size(protein.bonds) == (0, 4)
     @test protein.chains isa Vector{ProteinChain}
     @test size(protein.chains, 1) == 0
     @test count_atoms(protein) == 0
