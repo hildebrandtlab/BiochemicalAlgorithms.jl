@@ -58,16 +58,22 @@ end
         @test mol.name == "data/sustiva_openbabel.mol2"
 
         @test count_atoms(mol) == 21
+        @test mol.atoms.name[21] == "C14"
+        @test mol.bonds.properties[2]["TRIPOS_tag"] == "am"
         @test count_bonds(mol) == 23
+        @test mol.bonds.order[2] == BondOrder.Single
+        @test mol.bonds.properties[2]["TRIPOS_tag"] == "am"
+        @test mol.bonds.order[12] == BondOrder.Unknown
+        @test mol.bonds.properties[12]["TRIPOS_tag"] == "ar"
 end
 
 @testset "mol2_export" begin
         export_mol2(load_pubchem_json("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.json"), "data/")
 
-        @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139_balljl_export.mol2")[1] == "@<TRIPOS>MOLECULE"
-        @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139_balljl_export.mol2")[8] == "@<TRIPOS>ATOM"
-        @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139_balljl_export.mol2")[39] == "@<TRIPOS>BOND"
+        @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")[1] == "@<TRIPOS>MOLECULE"
+        @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")[8] == "@<TRIPOS>ATOM"
+        @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")[39] == "@<TRIPOS>BOND"
 
-        rm("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139_balljl_export.mol2")
+        rm("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")
 
 end

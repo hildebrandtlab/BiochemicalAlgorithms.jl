@@ -8,13 +8,11 @@ function load_mol2(fname::AbstractString, T = Float32)
         println("Please make sure, you are loading a mol2 file!\n(file ending should be mol2)")
         return
     end
-    mol2_file = open(fname)
     new_mol = Molecule(fname)
     section = ""
     section_line = 0
 
-    for (i, line) in enumerate(readlines(mol2_file))
-        println(line)
+    for (i, line) in enumerate(readlines(fname))
         if !isempty(line)
             if line[1] == '@'
                 section = string(line)
@@ -40,15 +38,25 @@ function load_mol2(fname::AbstractString, T = Float32)
             has_velocity = false
             has_force = false
             frame_id = 1
+            properties_dict = Dict{String, Any}()
+            properties_dict["Charge"] = parse(T, line_elements[9])
             new_atom = (number = number, name = name, element = element, atomtype = atomtype, r = r, 
-                        v = v, F = F, has_velocity = has_velocity, has_force = has_force, frame_id = frame_id)
+                        v = v, F = F, has_velocity = has_velocity, has_force = has_force, frame_id = frame_id,
+                        properties = properties_dict)
             push!(new_mol.atoms, new_atom)
         elseif section == "@<TRIPOS>BOND"
             section_line += 1
             line_elements = split(line)
+            order_ = BondOrderType(mol2_get_BondOrder(line_elements[4]))
+            properties_dict = Dict{String, Any}()
+            if order_ == BondOrder.Unknown && line_elements[4] == "ar" || 
+                order_ == BondOrder.Single && line_elements[4] == "am"
+                properties_dict["TRIPOS_tag"] = line_elements[4]
+            end
             new_bond = (a1 = parse(Int64, line_elements[2]),
                         a2 = parse(Int64, line_elements[3]),
-                        order = BondOrderType(mol2_get_BondOrder(line_elements[4])))
+                        order = order_, 
+                        properties = properties_dict)
             push!(new_mol.bonds, new_bond)
         end
         ### TODO: import information from @<TRIPOS>SUBSTRUCTURE if given, change Molecule into PDBMolecule
@@ -222,10 +230,15 @@ end
 
 function mol2_get_BondOrder(substring::AbstractString)
     if isnumeric(substring[1])
-        return Int(DefBond(parse(Int64, substring)))
+        return Int(BondShortOrderType(parse(Int64, substring)))
+    elseif isdefined(BondShortOrder, Symbol(substring))
+        return Int(getproperty(BondShortOrder, Symbol(substring)))
+    elseif substring == "am"
+        return Int(BondOrder.Single)
     else
-        return Int(parse(DefBonds, substring))
+        return Int(BondOrder.Unknown)
     end
+    return Int(BondOrder.Unknown)
 end
 
 

@@ -13,7 +13,6 @@ include("core/residue.jl")
 include("core/fragment.jl")
 include("core/nucleotide.jl")
 include("core/protein.jl")
-include("core/def_bond.jl")
 
 
 module PubChem
