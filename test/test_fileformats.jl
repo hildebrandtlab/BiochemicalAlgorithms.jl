@@ -53,9 +53,9 @@ end
 
 
 @testset "mol2_import" begin
-        mol = load_mol2("data/sustiva_openbabel.mol2")
+        mol = load_mol2("data/Import_test_sustiva_modified.mol2")
         
-        @test mol.name == "data/sustiva_openbabel.mol2"
+        @test mol.name == "data/Import_test_sustiva_modified.mol2"
 
         @test count_atoms(mol) == 21
         @test mol.atoms.name[21] == "C14"
