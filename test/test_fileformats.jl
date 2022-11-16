@@ -46,6 +46,7 @@ end
                   "BA_WEDGE_UP", "BA_WEDGE_DOWN", "BA_ARROW", "BA_AROMATIC"]
      
         for i in eachindex(mol2.bonds.properties) 
-                @test mol2.bonds.properties[i]["PCBondAnnotation"] == values[i]
+                @test mol2.bonds.properties[i]["PCBondAnnotation_for_conformer"][1] == values[i]
+                @test mol2.bonds.properties[i]["PCBondAnnotation_for_conformer"][2] == values[i]
         end
 end

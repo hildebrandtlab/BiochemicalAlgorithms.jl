@@ -539,21 +539,31 @@ function parse_atoms!(mol::Molecule, compound::PCCompound, T=Float32)
 end
 
 function parse_bonds!(mol::Molecule, compound::PCCompound, T=Float32)
-    conformer = compound.coords[1].conformers[1]
+    
     if !isnothing(compound.bonds)
         for i in eachindex(compound.bonds.aid1)
             aid1 = compound.bonds.aid1[i] 
             aid2 = compound.bonds.aid2[i]
             order = Int(compound.bonds.order[i])
-            
-            # check for style PCDrawAnnotations
             properties = Properties()
             
-            if !isnothing(conformer.style)
-                if conformer.style.aid1[i] == aid1 && conformer.style.aid2[i] == aid2
-                    properties["PCBondAnnotation"] = string(conformer.style.annotation[i])
+            # check for style PCDrawAnnotations 
+            annotations = []
+            for j in eachindex(compound.coords)
+                
+                for k in eachindex(compound.coords[j].conformers)
+                    conformer = compound.coords[j].conformers[k]
+                    if !isnothing(conformer.style)
+                        if conformer.style.aid1[i] == aid1 && conformer.style.aid2[i] == aid2
+                           push!(annotations, string(conformer.style.annotation[i]))
+                        end
+                    end
                 end
             end
+            if length(annotations) != 0
+                properties["PCBondAnnotation_for_conformer"] = annotations
+            end
+           
             b = (a1 = aid1, 
                  a2 = aid2,
                  order = (order <= 4) ? BondOrderType(order) : BondOrder.Unknown,
