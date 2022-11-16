@@ -168,7 +168,7 @@ mutable struct PCConformer
     style::Union{Nothing,PCDrawAnnotations}
     data::Union{Nothing,Vector{PCInfoData}} # Data Associated with this Conformer
 
-    PCConformer() = new()
+    PCConformer() = new(Vector{Float32}(), Vector{Float32}(), nothing, nothing, nothing)
 end
 StructTypes.StructType(::Type{PCConformer}) = StructTypes.Mutable()
 
@@ -508,20 +508,9 @@ function convert_coordinates(pb_coords_vec::Vector{PCCoordinates})
     result
 end
 
-# TODO: 
-#   - full conversion, adding all properties
-
-# NOTE: conformers are stored as frames
-function load_pubchem_json(fname::String, T=Float32)
-    pb = JSON3.read(read(fname, String), PCResult)
-
-    # for now, use the file name as the name for the molecule
-    mol = Molecule(fname)
-
-    for compound in pb.PC_Compounds
-
-        if !isnothing(compound.atoms) && !isnothing(compound.coords)
-            conformers = convert_coordinates(compound.coords)
+function parse_atoms!(mol::Molecule, compound::PCCompound, T=Float32)
+    if !isnothing(compound.atoms) && !isnothing(compound.coords)
+        conformers = convert_coordinates(compound.coords)
 
             for i in eachindex(compound.atoms.aid)
                 for j in eachindex(conformers)
@@ -543,25 +532,69 @@ function load_pubchem_json(fname::String, T=Float32)
                             properties = Properties()
                     )
 
-                    push!(mol, atom)
-                end
-            end
-        end
-
-        if !isnothing(compound.bonds)
-            for i in eachindex(compound.bonds.aid1)
-                order = Int(compound.bonds.order[i])
-
-                b = (a1 = compound.bonds.aid1[i], 
-                     a2 = compound.bonds.aid2[i],
-                     order = (order <= 4) ? BondOrderType(order) : BondOrder.Unknown,
-                     properties = Properties()
-                    )
-
-                push!(mol, b)
+                push!(mol, atom)
             end
         end
     end
+end
 
-    mol
+function parse_bonds!(mol::Molecule, compound::PCCompound, T=Float32)
+    conformer = compound.coords[1].conformers[1]
+    if !isnothing(compound.bonds)
+        for i in eachindex(compound.bonds.aid1)
+            aid1 = compound.bonds.aid1[i] 
+            aid2 = compound.bonds.aid2[i]
+            order = Int(compound.bonds.order[i])
+            
+            # check for style PCDrawAnnotations
+            properties = Properties()
+            
+            if !isnothing(conformer.style)
+                if conformer.style.aid1[i] == aid1 && conformer.style.aid2[i] == aid2
+                    properties["PCBondAnnotation"] = string(conformer.style.annotation[i])
+                end
+            end
+            b = (a1 = aid1, 
+                 a2 = aid2,
+                 order = (order <= 4) ? BondOrderType(order) : BondOrder.Unknown,
+                 properties = properties
+                )
+
+            push!(mol, b)
+        end
+    end
+end
+
+# TODO:
+# - modelling of properties
+# - currently: urn.label as key and as value PCInfoDataValue
+function parse_props!(mol::Molecule, compound::PCCompound)    
+    if !isnothing(compound.props)
+        for i in eachindex(compound.props)
+            d = compound.props[i]
+            mol.properties[d.urn.label] = d
+        end
+    end
+
+end
+
+# TODO: 
+#   - full conversion, adding all properties
+# NOTE: conformers are stored as frames
+function load_pubchem_json(fname::String, T=Float32)
+    pb = JSON3.read(read(fname, String), PCResult)
+    # each pubchem file can contain more than one molecule
+    molecules = Vector{Molecule}()
+
+    for compound in pb.PC_Compounds
+        # for now, use the file name as the name for the molecule
+        mol = Molecule(fname * "_" * string(compound.id.id.cid))
+        parse_atoms!(mol, compound, T)
+        parse_bonds!(mol, compound, T)
+        parse_props!(mol, compound)
+        
+        push!(molecules, mol)
+    end
+
+    molecules
 end
