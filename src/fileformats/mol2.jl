@@ -8,7 +8,7 @@ function load_mol2(fname::AbstractString, T = Float32)
         println("Please make sure, you are loading a mol2 file!\n(file ending should be mol2)")
         return
     end
-    new_mol = Molecule(fname)
+    new_mol = PDBMolecule(fname)
     section = ""
     section_line = 0
 
@@ -28,21 +28,16 @@ function load_mol2(fname::AbstractString, T = Float32)
         elseif section == "@<TRIPOS>ATOM"
             section_line += 1
             line_elements = split(line)
-            number = parse(Int64, line_elements[1])
-            name = line_elements[2]
-            element = parse(Elements, mol2_get_element(name))
-            atomtype = line_elements[6]
-            r = Vector3{T}(parse(T, line_elements[3]), parse(T, line_elements[4]), parse(T, line_elements[5]))
-            v = Vector3{T}(0.0, 0.0, 0.0)
-            F = Vector3{T}(0.0, 0.0, 0.0)
-            has_velocity = false
-            has_force = false
-            frame_id = 1
-            properties_dict = Dict{String, Any}()
-            properties_dict["Charge"] = parse(T, line_elements[9])
-            new_atom = (number = number, name = name, element = element, atomtype = atomtype, r = r, 
-                        v = v, F = F, has_velocity = has_velocity, has_force = has_force, frame_id = frame_id,
-                        properties = properties_dict)
+            new_atom = (number = parse(Int64, line_elements[1]), 
+                        name = line_elements[2], 
+                        element = parse(Elements, mol2_get_element(line_elements[2])), 
+                        atomtype = line_elements[6], 
+                        r = Vector3{T}(parse(T, line_elements[3]), parse(T, line_elements[4]), parse(T, line_elements[5])), 
+                        v = Vector3{T}(0.0, 0.0, 0.0), F = Vector3{T}(0.0, 0.0, 0.0), 
+                        has_velocity = false, has_force = false, frame_id = 1,
+                        properties = Dict{String, Any}("Charge" => parse(T, line_elements[9])), 
+                        residue_id = parse(Int64,line_elements[7]), 
+                        residue_name = line_elements[8], chain = "")
             push!(new_mol.atoms, new_atom)
         elseif section == "@<TRIPOS>BOND"
             section_line += 1
@@ -58,8 +53,24 @@ function load_mol2(fname::AbstractString, T = Float32)
                         order = order_, 
                         properties = properties_dict)
             push!(new_mol.bonds, new_bond)
+        elseif section == "@<TRIPOS>SUBSTRUCTURE"
+            section_line += 1
+            line_elements = split(line)
+            chain_name = ""
+            if !isdefined(new_mol.chains, :name)
+                chain_name = "Test1"
+            elseif isdefined(new_mol.chains, :name) && 
+                new_mol.chains[1].fragments.name[lastindex(new_mol.chains[1].fragments.number)] == line_elements[2]
+                chain_name = "Test2"
+            else isdefined(new_mol.chains, :name) && 
+                new_mol.chains[1].fragments.name[lastindex(new_mol.chains[1].fragments.number)] != line_elements[2]
+                chain_name = "Test3"
+            end
+            new_chain = PDBChain(chain_name, DataFrame(number = Vector{Int64}([parse(Int64, line_elements[1])]),
+                                                name = Vector{String}([string(line_elements[2])]),
+                                                chain_id = Vector{String}([string(line_elements[3])])))
+            push!(new_mol.chains, new_chain)
         end
-        ### TODO: import information from @<TRIPOS>SUBSTRUCTURE if given, change Molecule into PDBMolecule
     end
     return new_mol
 end
