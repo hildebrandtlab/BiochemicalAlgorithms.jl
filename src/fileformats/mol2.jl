@@ -8,7 +8,7 @@ function load_mol2(fname::AbstractString, T = Float32)
         println("Please make sure, you are loading a mol2 file!\n(file ending should be mol2)")
         return
     end
-    new_mol = PDBMolecule(fname)
+    new_mol = Molecule(fname)
     section = ""
     section_line = 0
 
@@ -35,9 +35,7 @@ function load_mol2(fname::AbstractString, T = Float32)
                         r = Vector3{T}(parse(T, line_elements[3]), parse(T, line_elements[4]), parse(T, line_elements[5])), 
                         v = Vector3{T}(0.0, 0.0, 0.0), F = Vector3{T}(0.0, 0.0, 0.0), 
                         has_velocity = false, has_force = false, frame_id = 1,
-                        properties = Dict{String, Any}("Charge" => parse(T, line_elements[9])), 
-                        residue_id = parse(Int64,line_elements[7]), 
-                        residue_name = line_elements[8], chain = "")
+                        properties = Dict{String, Any}("Charge" => parse(T, line_elements[9])))
             push!(new_mol.atoms, new_atom)
         elseif section == "@<TRIPOS>BOND"
             section_line += 1
@@ -53,21 +51,6 @@ function load_mol2(fname::AbstractString, T = Float32)
                         order = order_, 
                         properties = properties_dict)
             push!(new_mol.bonds, new_bond)
-        elseif section == "@<TRIPOS>SUBSTRUCTURE"
-            section_line += 1
-            line_elements = split(line)
-            chain_name = string(line_elements[3])
-            if isempty(new_mol.chains) || (!isempty(new_mol.chains) && new_mol.chains[lastindex(new_mol.chains)].name != chain_name)
-                new_chain = PDBChain(chain_name, DataFrame(number = Vector{Int64}([parse(Int64, line_elements[1])]),
-                                                name = Vector{String}([string(line_elements[2])]),
-                                                chain_id = Vector{String}([string(line_elements[3])])))
-                push!(new_mol.chains, new_chain)
-            elseif !isempty(new_mol.chains) && new_mol.chains[lastindex(new_mol.chains)].name == chain_name
-                new_fragment = (number = parse(Int64, line_elements[1]),
-                                        name = string(line_elements[2]),
-                                        chain_id = string(line_elements[3]))
-                push!(new_mol.chains[lastindex(new_mol.chains)].fragments, new_fragment)
-            end
         end
     end
     return new_mol
@@ -94,11 +77,17 @@ function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
     molecule_section_line2 = string(num_atoms, num_bonds, num_subst, num_feat, num_sets, "\n")
 
     mol_type = "SMALL" # BIOPOLYMER, PROTEIN, NUCLEIC_ACID, SACCHARIDE possible according to Tripos mol2 specification pdf
+    if haskey(mol.properties, "Type")
+        mol_type = mol.properties["Type"]
+    end
     molecule_section_line3 = string(mol_type, "\n")
 
     charge_type = "NO_CHARGES" # DEL_RE, GASTEIGER, GAST_HUCK, HUCKEL, PULLMAN, 
     # GAUSS80_CHARGES, AMPAC_CHARGES, MULLIKEN_CHARGES, DICT_ CHARGES, MMFF94_CHARGES, USER_CHARGES
     # possible according to Tripos mol2 specification
+    if haskey(mol.properties, "Charge_Type")
+        mol_type = mol.properties["Charge_Type"]
+    end
     molecule_section_line4 = string(charge_type, "\n")
 
     status_bits = "\n"
@@ -133,7 +122,10 @@ function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
                 subst_name = build_flush_left_string(mol.atoms.residue_name[i], 6)
             end
         end
-        charge = build_Float32_string(0.0, 12, 6)
+        charge = build_Float32_string(0.0, 10, 4)
+        if haskey(mol.atoms.properties[i], "Charge")
+            charge = build_Float32_string(mol.atoms.properties[i]["Charge"], 10, 4)
+        end
         # status_bits never set by user, DSPMOD, TYPECOL, CAP, BACKBONE, DICT, ESSENTIAL, 
         # WATER and DIRECT are possible according to Tripos mol2 specification
         atom_section_line = string(atom_id, atom_name, x_coordinate_string, 
@@ -151,6 +143,9 @@ function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
             origin_atom_id = build_flush_right_string(mol.bonds.a1[i], 6)
             target_atom_id = build_flush_right_string(mol.bonds.a2[i], 6)
             bond_type = string(" ", build_flush_left_string(Int(mol.bonds.order[i]), 4))
+            if haskey(mol.bonds.properties[i], "TRIPOS_tag")
+                bond_type = string(" ", build_flush_left_string(mol.bonds.properties[i]["TRIPOS_tag"], 4))
+            end
             # status_bits never set by user, TYPECOL, GROUP, CAP, BACKBONE, DICT and INTERRES 
             # are possible according to Tripos mol2 specification
             bond_section_line = string(bond_id, origin_atom_id, target_atom_id, bond_type, "\n")
@@ -249,7 +244,6 @@ function mol2_get_BondOrder(substring::AbstractString)
     else
         return Int(BondOrder.Unknown)
     end
-    return Int(BondOrder.Unknown)
 end
 
 
