@@ -18,7 +18,10 @@ using Test
             include("test_protein.jl")
             include("test_residue.jl")
             include("test_types.jl")
-            include("test_atomtyping.jl")
-        end
+    end
+
+    @testset "Atomtyping" begin
+        include("test_atomtyping.jl")
+    end
     
 end
