@@ -4,6 +4,7 @@ export load_mol2, export_mol2
 
 
 function load_mol2(fname::AbstractString, T = Float32)
+    # For validation of small molecules only: no <TRIPOS>SUBSTRUCTURES import implemented
     if fname[lastindex(fname)-4:lastindex(fname)] != ".mol2"
         println("Please make sure, you are loading a mol2 file!\n(file ending should be mol2)")
         return
@@ -34,8 +35,8 @@ function load_mol2(fname::AbstractString, T = Float32)
                         atomtype = line_elements[6], 
                         r = Vector3{T}(parse(T, line_elements[3]), parse(T, line_elements[4]), parse(T, line_elements[5])), 
                         v = Vector3{T}(0.0, 0.0, 0.0), F = Vector3{T}(0.0, 0.0, 0.0), 
-                        has_velocity = false, has_force = false, frame_id = 1,
-                        properties = Dict{String, Any}("Charge" => parse(T, line_elements[9])))
+                        has_velocity = false, has_force = false, frame_id = parse(Int64, line_elements[7]),
+                        properties = Dict{String, Any}("Charge" => parse(T, line_elements[9]), "Chain" => string(line_elements[8])))
             push!(new_mol.atoms, new_atom)
         elseif section == "@<TRIPOS>BOND"
             section_line += 1
@@ -58,6 +59,7 @@ end
 
 
 function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
+    # For validation of small molecules only: no <TRIPOS>SUBSTRUCTURES export implemented
     mol_name = prepare_mol_name(mol.name)
     export_file = open(string(filelocation, mol_name, ".mol2") , "w")
     
@@ -150,38 +152,6 @@ function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
             # are possible according to Tripos mol2 specification
             bond_section_line = string(bond_id, origin_atom_id, target_atom_id, bond_type, "\n")
             write(export_file, bond_section_line)
-        end
-    end
-
-    ### Substructure section
-    if typeof(mol) == PDBMolecule{Float32} && !isempty(mol.chains[1].fragments)
-        write(export_file, "@<TRIPOS>SUBSTRUCTURE\n")
-        for j = (1:lastindex(mol.chains))
-            for i = (1:nrow(mol.chains[j].fragments))
-                subst_id = string(build_flush_right_string(i, 6), " ")
-                subst_name = build_flush_left_string(mol.chains[j].fragments.name[i], 6)
-                df_for_root = filter(:residue_name => n -> n == mol.chains[j].fragments.name[i], mol.atoms)
-                df_for_root1 = filter(:residue_id => m -> m == mol.chains[j].fragments.number[i], df_for_root)
-                root_atom = string(build_flush_right_string(-1, 7), " ")
-                if !isempty(df_for_root1)
-                    root_atom = string(build_flush_right_string(df_for_root1.number[1], 7), " ")
-                end  
-                subst_type = build_flush_left_string("TEMP", 7)
-                # other Options for subst_type should be. RESIDUE, PERM, DOMAIN, GROUP
-                dict_type = string(" ", build_flush_left_string(0, 4)) # the type of dictionary associated with the substructure.
-                chain_string = "" # the chain to which the substructure belongs (ð 4 chars).
-                sub_type = "" # the subtype of the chain
-                inter_bonds = "" # the number of inter substructure bonds
-                status_string = "" 
-                # status_string are internal SYBYL status bits never set by user
-                # Valid bit values: LEAF, ROOT, TYPECOL, DICT, BACKWARD and BLOCK 
-                # are possible according to Tripos mol2 specification
-                comment_string = "" # the comment for the substructure
-                substructure_section_line = string(subst_id, subst_name, root_atom, subst_type, 
-                                                    dict_type, chain_string, sub_type, inter_bonds, 
-                                                    status_string, comment_string, "\n")
-                write(export_file, substructure_section_line)
-            end
         end
     end
 
