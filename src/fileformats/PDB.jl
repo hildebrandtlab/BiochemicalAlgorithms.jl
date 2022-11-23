@@ -12,7 +12,7 @@ function parse_element_string(es::String)
         result = Elements.Unknown
     else
         try
-            result = parse(Elements, es)
+            result = parse(Elements, titlecase(es))
         catch e
             @warn "BiochemicalAlgorithms::PDB::parse_element_string: could not parse element from $(es); returning Unknown"
         end
