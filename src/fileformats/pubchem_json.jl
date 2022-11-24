@@ -479,7 +479,7 @@ mutable struct PCResult
 end
 StructTypes.StructType(::Type{PCResult}) = StructTypes.Mutable()
 
-function convert_coordinates(pb_coords_vec::Vector{PCCoordinates})
+function _convert_coordinates(pb_coords_vec::Vector{PCCoordinates})
     if isnothing(pb_coords_vec)
         return []
     end
@@ -508,9 +508,9 @@ function convert_coordinates(pb_coords_vec::Vector{PCCoordinates})
     result
 end
 
-function parse_atoms!(mol::Molecule, compound::PCCompound, T=Float32)
+function _parse_atoms!(mol::Molecule, compound::PCCompound, T=Float32)
     if !isnothing(compound.atoms) && !isnothing(compound.coords)
-        conformers = convert_coordinates(compound.coords)
+        conformers = _convert_coordinates(compound.coords)
 
             for i in eachindex(compound.atoms.aid)
                 for j in eachindex(conformers)
@@ -538,7 +538,7 @@ function parse_atoms!(mol::Molecule, compound::PCCompound, T=Float32)
     end
 end
 
-function parse_bonds!(mol::Molecule, compound::PCCompound, T=Float32)
+function _parse_bonds!(mol::Molecule, compound::PCCompound, T=Float32)
     
     if !isnothing(compound.bonds)
         for i in eachindex(compound.bonds.aid1)
@@ -578,11 +578,14 @@ end
 # TODO:
 # - modelling of properties
 # - currently: urn.label as key and as value PCInfoDataValue
-function parse_props!(mol::Molecule, compound::PCCompound)    
+function _parse_props_for_fragmentdb!(mol::Molecule, compound::PCCompound)    
+    prop_labels = ["Names", "Properties", "Connections", "Variants"]
     if !isnothing(compound.props)
         for i in eachindex(compound.props)
             d = compound.props[i]
-            mol.properties[d.urn.label] = d
+            if d.urn.label in prop_labels
+                mol.properties[d.urn.label] = d.value.slist
+            end
         end
     end
 
@@ -599,9 +602,9 @@ function load_pubchem_json(fname::String, T=Float32)
     for compound in pb.PC_Compounds
         # for now, use the file name as the name for the molecule
         mol = Molecule(fname * "_" * string(compound.id.id.cid))
-        parse_atoms!(mol, compound, T)
-        parse_bonds!(mol, compound, T)
-        parse_props!(mol, compound)
+        _parse_atoms!(mol, compound, T)
+        _parse_bonds!(mol, compound, T)
+        _parse_props_for_fragmentdb!(mol, compound)
         
         push!(molecules, mol)
     end

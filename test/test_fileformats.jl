@@ -25,7 +25,7 @@ end
         mol = mols[1]
         @test mol isa Molecule
         @test mol.name == "data/aspirin_pug.json_2244"
-        @test length(mol.properties) == 3
+        @test length(mol.properties) == 0
 
         @test count_atoms(mol) == 21
         @test count_bonds(mol) == 21
@@ -49,4 +49,13 @@ end
                 @test mol2.bonds.properties[i]["PCBondAnnotation_for_conformer"][1] == values[i]
                 @test mol2.bonds.properties[i]["PCBondAnnotation_for_conformer"][2] == values[i]
         end
+
+        mol3 = load_pubchem_json("data/TRP.json")[1]
+        @test count_atoms(mol3) == 27
+        @test count_bonds(mol3) == 28
+        @test length(mol3.properties) == 4
+        @test mol3.properties["Names"][1] == "Tryptophane"
+        @test mol3.properties["Properties"][1] == "AMINO_ACID"
+        @test mol3.properties["Connections"][3] ==  "C-term"
+        @test mol3.properties["Variants"][4] ==  "Default : 2H"
 end
