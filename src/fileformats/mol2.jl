@@ -60,7 +60,7 @@ end
 
 function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
     # For validation of small molecules only: no <TRIPOS>SUBSTRUCTURES export implemented
-    mol_name = prepare_mol_name(mol.name)
+    mol_name = basename(mol.name)
     export_file = open(string(filelocation, mol_name, ".mol2") , "w")
     
     ### Molecule section
@@ -168,21 +168,6 @@ function build_Float32_string(input::AbstractFloat, length::Int, decimals::Int)
         col_string = string(" ", col_string)
     end
     return col_string
-end
-
-
-function prepare_mol_name(molname::AbstractString)
-    dot_index = 0
-    slash_index = 0
-    for i = (lastindex(molname):-1:1)
-        if molname[i] == '.'
-            dot_index = i-1
-        elseif molname[i] == '/' || molname[i] == '\\'
-            slash_index = i+1
-            return molname[slash_index:dot_index]
-        end
-    end
-    return molname[1:dot_index]
 end
 
 
