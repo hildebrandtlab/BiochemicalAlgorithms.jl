@@ -60,7 +60,7 @@ end
 
 function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
     # For validation of small molecules only: no <TRIPOS>SUBSTRUCTURES export implemented
-    mol_name = mol.name[end-4:end] == ".mol2" ? basename(mol.name)[1:end-5] : basename(mol.name)
+    mol_name = (mol.name[end-4:end] == ".mol2" || mol.name[end-4:end] == ".json") ? basename(mol.name)[1:end-5] : basename(mol.name)
     export_file = open(string(filelocation, mol_name, ".mol2") , "w")
     
     ### Molecule section
@@ -126,7 +126,7 @@ function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
         end
         charge = build_Float32_string(0.0, 10, 4)
         if haskey(mol.atoms.properties[i], "Charge")
-            charge = build_Float32_string(mol.atoms.properties[i]["Charge"], 10, 4)
+            charge = build_Float32_string(convert(Float32, mol.atoms.properties[i]["Charge"]), 10, 4)
         end
         # status_bits never set by user, DSPMOD, TYPECOL, CAP, BACKBONE, DICT, ESSENTIAL, 
         # WATER and DIRECT are possible according to Tripos mol2 specification
