@@ -60,7 +60,7 @@ end
 
 function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
     # For validation of small molecules only: no <TRIPOS>SUBSTRUCTURES export implemented
-    mol_name = (mol.name[end-4:end] == ".mol2" || mol.name[end-4:end] == ".json") ? basename(mol.name)[1:end-5] : basename(mol.name)
+    mol_name = (!isnothing(findlast('.', mol.name)) && in([lastindex(mol.name)-5:lastindex(mol.name);]).(findlast('.', mol.name))) ? basename(mol.name[1:findlast('.', mol.name)-1]) : basename(mol.name)
     export_file = open(string(filelocation, mol_name, ".mol2") , "w")
     
     ### Molecule section
