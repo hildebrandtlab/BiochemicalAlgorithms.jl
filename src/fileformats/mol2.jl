@@ -1,4 +1,3 @@
-using BiochemicalAlgorithms
 
 export load_mol2, export_mol2
 
@@ -45,7 +44,6 @@ function load_mol2(fname::AbstractString, T = Float32)
             properties_dict = Dict{String, Union{T, String}}()
             if order_ == BondOrder.Unknown && line_elements[4] == "ar" || 
                 order_ == BondOrder.Single && line_elements[4] == "am"
-                println(line_elements[4])
                 properties_dict["TRIPOS_tag"] = string(line_elements[4])
             end
             new_bond = (a1 = parse(Int64, line_elements[2]),
