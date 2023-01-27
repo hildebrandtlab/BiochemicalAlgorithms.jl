@@ -24,7 +24,7 @@ end
 
         mol = mols[1]
         @test mol isa Molecule
-        @test mol.name == "data/aspirin_pug.json_2244"
+        @test mol.name == "data/aspirin_pug_CID_2244.json"
         @test length(mol.properties) == 3
 
         @test count_atoms(mol) == 21
@@ -68,12 +68,13 @@ end
 end
 
 @testset "mol2_export" begin
-        export_mol2(load_pubchem_json("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.json"), "data/")
+        for mol in load_pubchem_json("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.json")
+                export_mol2(mol, "data/")
 
-        @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")[1] == "@<TRIPOS>MOLECULE"
-        @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")[8] == "@<TRIPOS>ATOM"
-        @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")[39] == "@<TRIPOS>BOND"
+                @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")[1] == "@<TRIPOS>MOLECULE"
+                @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")[8] == "@<TRIPOS>ATOM"
+                @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")[39] == "@<TRIPOS>BOND"
 
-        rm("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")
-
+                rm("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")
+        end
 end

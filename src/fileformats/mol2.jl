@@ -1,4 +1,4 @@
-using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Elements, Element, Vector3
+using BiochemicalAlgorithms
 
 export load_mol2, export_mol2
 
@@ -36,16 +36,17 @@ function load_mol2(fname::AbstractString, T = Float32)
                         r = Vector3{T}(parse(T, line_elements[3]), parse(T, line_elements[4]), parse(T, line_elements[5])), 
                         v = Vector3{T}(0.0, 0.0, 0.0), F = Vector3{T}(0.0, 0.0, 0.0), 
                         has_velocity = false, has_force = false, frame_id = parse(Int64, line_elements[7]),
-                        properties = Dict{String, Any}("Charge" => parse(T, line_elements[9]), "Chain" => string(line_elements[8])))
+                        properties = Dict{String, Union{T, String}}("Charge" => parse(T, line_elements[9]), "Chain" => string(line_elements[8])))
             push!(new_mol.atoms, new_atom)
         elseif section == "@<TRIPOS>BOND"
             section_line += 1
             line_elements = split(line)
             order_ = BondOrderType(mol2_get_BondOrder(line_elements[4]))
-            properties_dict = Dict{String, Any}()
+            properties_dict = Dict{String, Union{T, String}}()
             if order_ == BondOrder.Unknown && line_elements[4] == "ar" || 
                 order_ == BondOrder.Single && line_elements[4] == "am"
-                properties_dict["TRIPOS_tag"] = line_elements[4]
+                println(line_elements[4])
+                properties_dict["TRIPOS_tag"] = string(line_elements[4])
             end
             new_bond = (a1 = parse(Int64, line_elements[2]),
                         a2 = parse(Int64, line_elements[3]),
@@ -58,9 +59,9 @@ function load_mol2(fname::AbstractString, T = Float32)
 end
 
 
-function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
+function export_mol2(mol::Molecule, filelocation::String)
     # For validation of small molecules only: no <TRIPOS>SUBSTRUCTURES export implemented
-    mol_name = (!isnothing(findlast('.', mol.name)) && in([lastindex(mol.name)-5:lastindex(mol.name);]).(findlast('.', mol.name))) ? basename(mol.name[1:findlast('.', mol.name)-1]) : basename(mol.name)
+    mol_name = (!isnothing(findlast('.', mol.name)) && in(findlast('.', mol.name), [lastindex(mol.name)-5:lastindex(mol.name);])) ? basename(mol.name[1:findlast('.', mol.name)-1]) : basename(mol.name)
     export_file = open(string(filelocation, mol_name, ".mol2") , "w")
     
     ### Molecule section
@@ -145,9 +146,6 @@ function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
             origin_atom_id = build_flush_right_string(mol.bonds.a1[i], 6)
             target_atom_id = build_flush_right_string(mol.bonds.a2[i], 6)
             bond_type = string(" ", build_flush_left_string(Int(mol.bonds.order[i]), 4))
-            if haskey(mol.bonds.properties[i], "TRIPOS_tag")
-                bond_type = string(" ", build_flush_left_string(mol.bonds.properties[i]["TRIPOS_tag"], 4))
-            end
             # status_bits never set by user, TYPECOL, GROUP, CAP, BACKBONE, DICT and INTERRES 
             # are possible according to Tripos mol2 specification
             bond_section_line = string(bond_id, origin_atom_id, target_atom_id, bond_type, "\n")
@@ -159,7 +157,7 @@ function export_mol2(mol::AbstractMolecule, filelocation::AbstractString)
 end
 
 
-function build_Float32_string(input::AbstractFloat, length::Int, decimals::Int)
+function build_Float32_string(input::AbstractFloat, length::Int64, decimals::Int64)
     col_string = string(input)
     while  (lastindex(col_string)-findfirst('.', col_string)) < decimals
         col_string = string(col_string, "0")
@@ -171,7 +169,7 @@ function build_Float32_string(input::AbstractFloat, length::Int, decimals::Int)
 end
 
 
-function build_flush_right_string(input::Any, length::Int)
+function build_flush_right_string(input::Any, length::Int64)
    col_string = string(input)
    while lastindex(col_string) < length
        col_string = string(" ", col_string)
@@ -180,7 +178,7 @@ function build_flush_right_string(input::Any, length::Int)
 end
 
 
-function build_flush_left_string(input::Any, length::Int)
+function build_flush_left_string(input::Any, length::Int64)
     col_string = string(input)
     while lastindex(col_string) < length
         col_string = string(col_string, " ")
@@ -209,9 +207,9 @@ function mol2_get_element(name::AbstractString)
     if lastindex(name) >= 2 && !isnumeric(name[2]) 
         two_letters = string(name[1], lowercase(name[2])) 
     end
-    if in(common_elements).(two_letters)
+    if in(two_letters, common_elements)
         element = two_letters
-    elseif in(common_elements).(first_letter)
+    elseif in(first_letter, common_elements)
         element = first_letter
     end
     return element
