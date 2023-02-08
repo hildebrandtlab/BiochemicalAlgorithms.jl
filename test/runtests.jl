@@ -4,6 +4,7 @@ using Test
 @testset "BiochemicalAlgorithms.jl" begin
    
     @testset "Fileformats" begin include("test_fileformats.jl") end
+    
     @testset "Core" begin 
         include("test_amino_acid.jl")
         include("test_atom.jl")
@@ -18,5 +19,9 @@ using Test
         include("test_protein.jl")
         include("test_residue.jl")
         include("test_types.jl")
+    end
+
+    @testset "Substructures" begin
+        include("test_substructure.jl")
     end
 end
