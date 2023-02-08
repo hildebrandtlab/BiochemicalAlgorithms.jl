@@ -26,4 +26,8 @@ using DataFrames
     @testset "Preprocessing" begin
         include("preprocessing/test_fragmentdb.jl")
     end
+
+    @testset "Substructures" begin
+        include("test_substructure.jl")
+    end
 end
