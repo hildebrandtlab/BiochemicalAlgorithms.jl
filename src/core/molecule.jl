@@ -1,10 +1,11 @@
+using AutoHashEquals
 using DataFrames
 
 export AbstractMolecule, Molecule, count_atoms, count_bonds
 
 abstract type AbstractMolecule{T} end
 
-mutable struct Molecule{T<:Real} <: AbstractMolecule{T}
+@auto_hash_equals mutable struct Molecule{T<:Real} <: AbstractMolecule{T}
     name::String
 
     atoms::DataFrame

@@ -1,8 +1,9 @@
+using AutoHashEquals
 using DataFrames
 
 export PDBMolecule
 
-mutable struct PDBMolecule{T<:Real} <: AbstractMolecule{T}
+@auto_hash_equals mutable struct PDBMolecule{T<:Real} <: AbstractMolecule{T}
     name::String
 
     atoms::DataFrame

@@ -1,10 +1,11 @@
+using AutoHashEquals
 using DataFrames
 
 export AbstractChain, PDBChain, ProteinChain, HeteroAtomChain, NucleotideChain, fragments
 
 abstract type AbstractChain end
 
-struct PDBChain <: AbstractChain
+@auto_hash_equals struct PDBChain <: AbstractChain
     name::String
     fragments::DataFrame
 
@@ -13,7 +14,7 @@ struct PDBChain <: AbstractChain
     end
 end
 
-struct ProteinChain <: AbstractChain
+@auto_hash_equals struct ProteinChain <: AbstractChain
     name::String
     residues::DataFrame
 
@@ -22,7 +23,7 @@ struct ProteinChain <: AbstractChain
     end
 end
 
-struct HeteroAtomChain <: AbstractChain
+@auto_hash_equals struct HeteroAtomChain <: AbstractChain
     name::String
     fragments::DataFrame
 
@@ -31,7 +32,7 @@ struct HeteroAtomChain <: AbstractChain
     end
 end
 
-struct NucleotideChain <: AbstractChain
+@auto_hash_equals struct NucleotideChain <: AbstractChain
     name::String
     nucleotides::DataFrame
 

@@ -1,8 +1,9 @@
+using AutoHashEquals
 using DataFrames
 
 export Protein
 
-mutable struct Protein{T<:Real} <: AbstractMolecule{T}
+@auto_hash_equals mutable struct Protein{T<:Real} <: AbstractMolecule{T}
     name::String
 
     atoms::DataFrame

@@ -4,6 +4,7 @@ authors = ["Andreas Hildebrandt <andreas.hildebrandt@uni-mainz.de> and contribut
 version = "0.1.0"
 
 [deps]
+AutoHashEquals = "15f4f7f2-30c1-5605-9d31-71845cf9641f"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 BioStructures = "de9282ab-8554-53be-b2d6-f6c222edabfc"
 BioSymbols = "3c28c6f8-a34d-59c4-9654-267d177fcfa9"
@@ -19,6 +20,7 @@ StructTypes = "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
 Tables = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
 
 [compat]
+AutoHashEquals = "0.2"
 BenchmarkTools = "1"
 BioStructures = "1"
 BioSymbols = "4, 5"
