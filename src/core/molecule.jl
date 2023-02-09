@@ -1,3 +1,4 @@
+using AutoHashEquals
 export AbstractMolecule, Molecule, molecules, molecules_df, eachmolecule, nmolecules, parent_molecule
 
 """
@@ -28,7 +29,7 @@ Molecule(sys::System{T}, name::String = "", properties::Properties = Properties(
 ```
 Creates a new `Molecule{T}` in the given system.
 """
-struct Molecule{T} <: AbstractMolecule{T}
+@auto_hash_equals struct Molecule{T} <: AbstractMolecule{T}
     sys::System{T}
     row::DataFrameRow
 end

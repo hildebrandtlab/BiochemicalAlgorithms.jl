@@ -1,3 +1,4 @@
+using AutoHashEquals
 export System, SystemDataFrame, default_system, parent_system
 
 """
@@ -93,7 +94,7 @@ Creates a new and empty `System{Float32}`.
 
 Creates a new and empty `System{T}`.
 """
-mutable struct System{T} <: AbstractAtomContainer{T}
+@auto_hash_equals mutable struct System{T} <: AbstractAtomContainer{T}
     name::String
     atoms::DataFrame
     bonds::DataFrame

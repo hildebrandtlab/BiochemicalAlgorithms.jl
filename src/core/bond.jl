@@ -1,3 +1,4 @@
+using AutoHashEquals
 export Bond, bonds, bonds_df, eachbond, nbonds
 
 """
@@ -34,7 +35,7 @@ Bond(
 ```
 Creates a new `Bond{T}` in the given system.
 """
-struct Bond{T}
+@auto_hash_equals struct Bond{T}
     sys::System{T}
     row::DataFrameRow
 end

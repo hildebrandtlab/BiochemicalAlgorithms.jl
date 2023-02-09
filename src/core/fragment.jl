@@ -1,3 +1,4 @@
+using AutoHashEquals
 export Fragment, fragments, fragments_df, eachfragment, nfragments, parent_fragment
 
 """
@@ -22,7 +23,7 @@ Fragment(
 ```
 Creates a new `Fragment{T}` in the given chain.
 """
-struct Fragment{T}
+@auto_hash_equals struct Fragment{T}
     sys::System{T}
     row::DataFrameRow
 end

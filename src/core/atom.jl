@@ -1,3 +1,4 @@
+using AutoHashEquals
 export Atom, atoms, atoms_df, eachatom, natoms
 
 """
@@ -62,7 +63,7 @@ Creates a new `Atom{T}` in the given system.
 Constructor variants that create a new system atom based on the given `AtomTuple{T}`. The new atom
 is automatically assigned a new `idx`.
 """
-struct Atom{T}
+@auto_hash_equals struct Atom{T}
     sys::System{T}
     row::DataFrameRow
 end
