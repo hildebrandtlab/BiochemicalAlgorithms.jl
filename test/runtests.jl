@@ -1,7 +1,7 @@
 using BiochemicalAlgorithms
 using Test
 
-@testset "BiochemicalAlgorithms.jl" begin
+@testset verbose=true "BiochemicalAlgorithms.jl" begin
    
     @testset "Fileformats" begin include("test_fileformats.jl") end
     
