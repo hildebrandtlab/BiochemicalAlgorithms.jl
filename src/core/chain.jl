@@ -1,3 +1,4 @@
+using AutoHashEquals
 export Chain, chains, chains_df, eachchain, nchains, parent_chain
 
 """
@@ -15,7 +16,7 @@ Mutable representation of an individual chain in a system.
 
 Creates a new `Chain{T}` in the given molecule.
 """
-struct Chain{T}
+@auto_hash_equals struct Chain{T}
     sys::System{T}
     row::DataFrameRow
 end

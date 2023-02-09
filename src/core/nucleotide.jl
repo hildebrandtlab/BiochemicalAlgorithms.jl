@@ -1,3 +1,4 @@
+using AutoHashEquals
 export Nucleotide, nucleotides, nucleotides_df, eachnucleotide, nnucleotides, parent_nucleotide
 
 """
@@ -16,7 +17,7 @@ Mutable representation of an individual nucleotide in a system.
 
 Creates a new `Nucleotide{T}` in the given chain.
 """
-struct Nucleotide{T}
+@auto_hash_equals struct Nucleotide{T}
     sys::System{T}
     row::DataFrameRow
 end

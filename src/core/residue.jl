@@ -1,3 +1,4 @@
+using AutoHashEquals
 export Residue, residues, residues_df, eachresidue, nresidues, parent_residue
 
 """
@@ -16,7 +17,7 @@ Mutable representation of an individual residue in a system.
 
 Creates a new `Residue{T}` in the given chain.
 """
-struct Residue{T}
+@auto_hash_equals struct Residue{T}
     sys::System{T}
     row::DataFrameRow
 end

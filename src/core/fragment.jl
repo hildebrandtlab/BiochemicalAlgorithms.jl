@@ -1,3 +1,4 @@
+using AutoHashEquals
 export Fragment, fragments, fragments_df, eachfragment, nfragments, parent_fragment
 
 """
@@ -16,7 +17,7 @@ Mutable representation of an individual fragment in a system.
 
 Creates a new `Fragment{T}` in the given chain.
 """
-struct Fragment{T}
+@auto_hash_equals struct Fragment{T}
     sys::System{T}
     row::DataFrameRow
 end
