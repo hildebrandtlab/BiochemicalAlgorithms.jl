@@ -2,7 +2,7 @@ using BiochemicalAlgorithms
 using Test
 using DataFrames
 
-@testset "BiochemicalAlgorithms.jl" begin
+@testset verbose=true "BiochemicalAlgorithms.jl" begin
    
     @testset "File formats" begin include("test_fileformats.jl") end
     @testset "Core" begin 
