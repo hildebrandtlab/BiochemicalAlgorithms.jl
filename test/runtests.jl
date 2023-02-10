@@ -22,6 +22,7 @@ using Test
     @testset "Fileformats" begin 
         include("fileformats/test_pdb.jl")
         include("fileformats/test_pubchem_json.jl")
+        include("fileformats/test_sdfile.jl")
     end
 
     @testset "Substructures" begin
