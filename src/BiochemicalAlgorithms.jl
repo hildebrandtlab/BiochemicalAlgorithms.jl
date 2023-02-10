@@ -31,6 +31,7 @@ module PubChem
 include("fileformats/pubchem_json.jl")
 end
 include("fileformats/pdb.jl")
+include("fileformats/sdfile.jl")
 
 include("mappings/atom_bijection.jl")
 include("mappings/rigid_mapping.jl")
