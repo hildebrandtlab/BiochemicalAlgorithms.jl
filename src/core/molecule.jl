@@ -1,7 +1,8 @@
 using AutoHashEquals
 using DataFrames
 
-export AbstractMolecule, Molecule, count_atoms, count_bonds
+export AbstractMolecule, Molecule, count_atoms, count_bonds, 
+    has_property, get_property, set_property
 
 abstract type AbstractMolecule{T} end
 
@@ -45,4 +46,16 @@ end
 
 function count_bonds(m::AbstractMolecule)
     nrow(m.bonds)
+end
+
+function has_property(m::AbstractMolecule, key::String)
+    haskey(m.properties, key)
+end
+
+function get_property(m::AbstractMolecule, key::String)
+    m.properties[key]
+end
+
+function set_property(m::AbstractMolecule, key::String, value)
+    m.properties[key] = value
 end

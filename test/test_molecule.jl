@@ -53,4 +53,11 @@
     @test !mol.properties["molecule computed"]
     @test haskey(mol.properties, "resolution unit")
 
+    @test !has_property(mol, "ABCDEFG")
+
+    @test has_property(mol, "resolution unit")
+    @test get_property(mol, "resolution unit") == "Angstroem"
+
+    set_property(mol, "test property", "test value")
+    @test get_property(mol, "test property") == "test value"
 end
