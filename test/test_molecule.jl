@@ -60,4 +60,11 @@
     @test length(props) == 3
     @test !props["molecule computed"]
     @test haskey(props, "resolution unit")
+    @test !has_property(mol, "ABCDEFG")
+
+    @test has_property(mol, "resolution unit")
+    @test get_property(mol, "resolution unit") == "Angstroem"
+
+    set_property(mol, "test property", "test value")
+    @test get_property(mol, "test property") == "test value"
 end
