@@ -4,7 +4,6 @@ using DataFrames
 
 @testset verbose=true "BiochemicalAlgorithms.jl" begin
    
-    @testset "File formats" begin include("test_fileformats.jl") end
     @testset "Core" begin 
         include("test_amino_acid.jl")
         include("test_bond_order.jl")
@@ -17,5 +16,10 @@ using DataFrames
         include("test_protein.jl")
         include("test_residue.jl")
         include("test_types.jl")
+    end
+
+    @testset "Fileformats" begin 
+        include("fileformats/test_pdb.jl")
+        include("fileformats/test_pubchem_json.jl")
     end
 end
