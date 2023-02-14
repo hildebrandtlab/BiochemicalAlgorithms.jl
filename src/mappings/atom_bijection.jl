@@ -7,11 +7,12 @@ struct TrivialAtomBijection{T<:Real} <: AbstractAtomBijection{T}
     atoms_B::DataFrame
  
     function TrivialAtomBijection{T}(A::AbstractMolecule{T}, B::AbstractMolecule{T}) where {T<:Real}
-        new(A.atoms, B.atoms)
+        new(atoms(A), atoms(B))
     end
 
     function TrivialAtomBijection{T}(atoms_A, B::AbstractMolecule{T}) where {T<:Real}
-        new(atoms_A, B.atoms[B.atoms.number .∈ Ref(atoms_A.number), :])
+        atoms_B = atoms(B)
+        new(atoms_A, atoms_B[atoms_B.number .∈ Ref(atoms_A.number), :])
     end
 end
 

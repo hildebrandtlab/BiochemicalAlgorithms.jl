@@ -4,17 +4,17 @@
     mol = Molecule()
 
     @test mol isa Molecule
-    @test mol.name == ""
-    @test mol.atoms isa DataFrame
-    @test size(mol.atoms) == (0,11)
-    @test mol.bonds isa DataFrame
-    @test size(mol.bonds) == (0,4)
+    @test name(mol) == ""
+    @test atoms(mol) isa DataFrame
+    @test size(atoms(mol)) == (0,11)
+    @test bonds(mol) isa DataFrame
+    @test size(bonds(mol)) == (0,4)
     @test count_atoms(mol) == 0
     @test count_bonds(mol) == 0
-    @test length(mol.properties) == 0
+    @test length(properties(mol)) == 0
     # set name
-    mol.name = "my_fancy_molecule"
-    @test mol.name == "my_fancy_molecule"
+    set_name!(mol, "my_fancy_molecule")
+    @test name(mol) == "my_fancy_molecule"
     
     # add atoms
     for i in 1:6
@@ -45,12 +45,14 @@
     end
 
     # add properties
-    mol.properties = Properties([("molecule computed", false), ("molecule resolution", 2.5)])
-    @test length(mol.properties) == 2
+    props = properties(mol)
+    props["molecule computed"] = false 
+    props["molecule resolution"] = 2.5
+    @test length(props) == 2
+    @test length(properties(mol)) == 2
 
-    mol.properties["resolution unit"] = "Angstroem"
-    @test length(mol.properties) == 3
-    @test !mol.properties["molecule computed"]
-    @test haskey(mol.properties, "resolution unit")
-
+    props["resolution unit"] = "Angstroem"
+    @test length(properties(mol)) == 3
+    @test !properties(mol)["molecule computed"]
+    @test haskey(properties(mol), "resolution unit")
 end

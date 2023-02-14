@@ -1,6 +1,7 @@
 export load_pubchem_json
 
-using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Elements, ElementType, Vector3, Properties
+using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Elements, ElementType, 
+    Vector3, Properties, properties
 
 using StructTypes
 using JSON3
@@ -582,7 +583,7 @@ function parse_props!(mol::Molecule, compound::PCCompound)
     if !isnothing(compound.props)
         for i in eachindex(compound.props)
             d = compound.props[i]
-            mol.properties[d.urn.label] = d
+            properties(mol)[d.urn.label] = d
         end
     end
 
