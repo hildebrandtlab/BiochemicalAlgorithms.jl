@@ -5,12 +5,14 @@
 
     @test mol isa Molecule
     @test mol.name == ""
-    @test mol.atoms isa DataFrame
-    @test size(mol.atoms) == (0,11)
-    @test mol.bonds isa DataFrame
-    @test size(mol.bonds) == (0,4)
-    @test count_atoms(mol) == 0
-    @test count_bonds(mol) == 0
+    @test atoms_df(mol) isa AbstractDataFrame
+    @test size(atoms_df(mol)) == (0,11)
+    @test length(atoms(mol)) == 0
+    @test bonds_df(mol) isa AbstractDataFrame
+    @test size(bonds_df(mol)) == (0,5)
+    @test length(bonds(mol)) == 0
+    @test natoms(mol) == 0
+    @test nbonds(mol) == 0
     @test length(mol.properties) == 0
     # set name
     mol.name = "my_fancy_molecule"
@@ -18,39 +20,45 @@
     
     # add atoms
     for i in 1:6
-        atom = ( number = 1,
-        name = "my fancy atom", 
-        element = Elements.H, 
-        atomtype = "heavy",
-        r = Vector3{Float64}(i*1.0, i*2.0, i*4.0),
-        v = Vector3{Float64}(1.0, 1.0, 1.0),
-        F = Vector3{Float64}(0.0, 0.0, 0.0),
-        has_velocity = true,
-        has_force = false,
-        frame_id = 1,
-        properties = Properties()
-        )
+        atom = ( 
+            idx = 0,
+            number = 1,
+            element = Elements.H,
+            name = "my fancy atom",
+            atomtype = "heavy",
+            r = Vector3{Float32}(i*1.0, i*2.0, i*4.0),
+            v = Vector3{Float32}(1.0, 1.0, 1.0),
+            F = Vector3{Float32}(0.0, 0.0, 0.0),
+            has_velocity = true,
+            has_force = false,
+            properties = Properties()
+        )::AtomTuple{Float32}
         push!(mol, atom)
-        @test count_atoms(mol) == i
+        @test natoms(mol) == i
     end
 
     # add bonds
+    avec = atoms(mol)
     for i in 1:4
-        bond = (a1 = i, 
-                a2 = 3, 
-                order = BondOrder.Single, 
-                properties = Properties())
+        bond = (
+            idx = 0,
+            a1 = avec[i].idx,
+            a2 = avec[i + 1].idx,
+            order = BondOrder.Single, 
+            properties = Properties()
+        )::BondTuple
         push!(mol, bond)
-        @test count_bonds(mol) == i
+        @test nbonds(mol) == i
     end
 
     # add properties
-    mol.properties = Properties([("molecule computed", false), ("molecule resolution", 2.5)])
-    @test length(mol.properties) == 2
+    props = mol.properties
+    props["molecule computed"] = false 
+    props["molecule resolution"] = 2.5
+    @test length(props) == 2
 
-    mol.properties["resolution unit"] = "Angstroem"
-    @test length(mol.properties) == 3
-    @test !mol.properties["molecule computed"]
-    @test haskey(mol.properties, "resolution unit")
-
+    props["resolution unit"] = "Angstroem"
+    @test length(props) == 3
+    @test !props["molecule computed"]
+    @test haskey(props, "resolution unit")
 end

@@ -3,15 +3,16 @@ export AbstractAtomBijection, TrivialAtomBijection
 abstract type AbstractAtomBijection{T} end
 
 struct TrivialAtomBijection{T<:Real} <: AbstractAtomBijection{T}
-    atoms_A::DataFrame
-    atoms_B::DataFrame
+    atoms_A::AbstractDataFrame
+    atoms_B::AbstractDataFrame
  
     function TrivialAtomBijection{T}(A::AbstractMolecule{T}, B::AbstractMolecule{T}) where {T<:Real}
-        new(A.atoms, B.atoms)
+        new(atoms_df(A), atoms_df(B))
     end
 
     function TrivialAtomBijection{T}(atoms_A, B::AbstractMolecule{T}) where {T<:Real}
-        new(atoms_A, B.atoms[B.atoms.number .∈ Ref(atoms_A.number), :])
+        atoms_B = atoms_df(B)
+        new(atoms_A, atoms_B[atoms_B.number .∈ Ref(atoms_A.number), :])
     end
 end
 

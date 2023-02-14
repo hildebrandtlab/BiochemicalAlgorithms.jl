@@ -1,6 +1,7 @@
 export load_pubchem_json
 
-using BiochemicalAlgorithms: Molecule, Atom, BondOrder, BondOrderType, Bond, Elements, ElementType, Vector3, Properties
+using BiochemicalAlgorithms: Molecule, AtomTuple, BondTuple, BondOrder, BondOrderType, Bond,
+    Elements, ElementType, Vector3, Properties, System, eachatom
 
 using StructTypes
 using JSON3
@@ -515,11 +516,12 @@ function parse_atoms!(mol::Molecule, compound::PCCompound, T=Float32)
             for i in eachindex(compound.atoms.aid)
                 for j in eachindex(conformers)
                     # Note: the atom will be assigned an id in add_atom!
-                    atom = (number=compound.atoms.aid[i],
-                            name="",
+                    atom = (idx = 0,
+                            number=compound.atoms.aid[i],
                             element = isnothing(compound.atoms.element) 
                                 ? Elements.Unknown 
                                 : ElementType(Int(compound.atoms.element[i])),
+                            name="",
                             atomtype = isnothing(compound.atoms.label)
                                 ? ""
                                 : compound.atoms.label[i].value, # does the label contain the atom type?
@@ -528,18 +530,17 @@ function parse_atoms!(mol::Molecule, compound::PCCompound, T=Float32)
                             F = Vector3(T(0.), T(0.), T(0.)),
                             has_velocity = false,
                             has_force = false,
-                            frame_id = j,
                             properties = Properties()
-                    )
+                    )::AtomTuple{T}
 
-                push!(mol, atom)
+                push!(mol, atom; frame_id = j)
             end
         end
     end
 end
 
 function parse_bonds!(mol::Molecule, compound::PCCompound, T=Float32)
-    
+    aidx = Dict(a.number => a.idx for a in eachatom(mol.sys))
     if !isnothing(compound.bonds)
         for i in eachindex(compound.bonds.aid1)
             aid1 = compound.bonds.aid1[i] 
@@ -564,11 +565,13 @@ function parse_bonds!(mol::Molecule, compound::PCCompound, T=Float32)
                 properties["PCBondAnnotation_for_conformer"] = annotations
             end
            
-            b = (a1 = aid1, 
-                 a2 = aid2,
-                 order = (order <= 4) ? BondOrderType(order) : BondOrder.Unknown,
-                 properties = properties
-                )
+            b = (
+                idx = 0,
+                a1 = aidx[aid1],
+                a2 = aidx[aid2],
+                order = (order <= 4) ? BondOrderType(order) : BondOrder.Unknown,
+                properties = properties
+            )::BondTuple
 
             push!(mol, b)
         end
@@ -594,17 +597,14 @@ end
 function load_pubchem_json(fname::String, T=Float32)
     pb = JSON3.read(read(fname, String), PCResult)
     # each pubchem file can contain more than one molecule
-    molecules = Vector{Molecule}()
 
+    sys = System{T}()
     for compound in pb.PC_Compounds
         # for now, use the file name as the name for the molecule
-        mol = Molecule(fname * "_" * string(compound.id.id.cid))
+        mol = Molecule(sys, fname * "_" * string(compound.id.id.cid))
         parse_atoms!(mol, compound, T)
         parse_bonds!(mol, compound, T)
         parse_props!(mol, compound)
-        
-        push!(molecules, mol)
     end
-
-    molecules
+    sys
 end
