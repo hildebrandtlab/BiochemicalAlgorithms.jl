@@ -24,8 +24,8 @@ end
 
         mol = mols[1]
         @test mol isa Molecule
-        @test mol.name == "data/aspirin_pug.json_2244"
-        @test length(mol.properties) == 3
+        @test name(mol) == "data/aspirin_pug.json_2244"
+        @test length(properties(mol)) == 3
 
         @test count_atoms(mol) == 21
         @test count_bonds(mol) == 21
@@ -36,7 +36,7 @@ end
 
         @test count_atoms(mol2) == 21
         @test count_bonds(mol2) == 21
-        @test length(mol2.properties) == 0
+        @test length(properties(mol2)) == 0
 
         # used for testing bond annotations as properties of bonds
         values = ["BA_CROSSED", "BA_DASHED","BA_WAVY", "BA_DOTTED",       
@@ -45,8 +45,8 @@ end
                   "BA_UNKNOWN", "BA_CROSSED", "BA_DASHED","BA_WAVY", "BA_DOTTED",
                   "BA_WEDGE_UP", "BA_WEDGE_DOWN", "BA_ARROW", "BA_AROMATIC"]
      
-        for i in eachindex(mol2.bonds.properties) 
-                @test mol2.bonds.properties[i]["PCBondAnnotation_for_conformer"][1] == values[i]
-                @test mol2.bonds.properties[i]["PCBondAnnotation_for_conformer"][2] == values[i]
+        for i in eachindex(bonds(mol2).properties) 
+                @test bonds(mol2).properties[i]["PCBondAnnotation_for_conformer"][1] == values[i]
+                @test bonds(mol2).properties[i]["PCBondAnnotation_for_conformer"][2] == values[i]
         end
 end
