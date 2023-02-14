@@ -1,10 +1,10 @@
 @testset "Nucleotide" begin
     # simple fragment
-    n = ( number = 1, name = "my nucleotide", chain_id = "chain")
+    n = ( number = 1, name = "my nucleotide", chain = "chain")
     @test n isa Nucleotide
     @test n.number == 1
     @test n.name == "my nucleotide"
-    @test n.chain_id == "chain"
+    @test n.chain == "chain"
 
     # incomplete fragment
     n2 = ( number = 1, name = "my nucleotide")

@@ -23,12 +23,12 @@ end
     chain_A = ProteinChain("chain A", 
                             DataFrame(number = [1, 2, 3],
                                       type = fill(AminoAcid('A'), 3),
-                                      chain_id = ["A", "A", "A"] ))
+                                      chain = ["A", "A", "A"] ))
 
     chain_B = ProteinChain("chain B", 
                             DataFrame(number = [1, 2, 3],
                                       type = fill(AminoAcid('D'), 3),
-                                      chain_id = ["B", "B", "B"] ))
+                                      chain = ["B", "B", "B"] ))
                                       
     push!(protein.chains, chain_A)
     push!(protein.chains, chain_B)
