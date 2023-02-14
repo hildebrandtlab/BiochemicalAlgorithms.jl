@@ -1,6 +1,6 @@
-export load_sdfile
+export load_sdfile, write_sdfile
 
-using MolecularGraph: sdfilereader
+using MolecularGraph: sdfilereader, sdfilewriter
 
 function load_sdfile(fname::String, T=Float32)
     mg_mols = [m for m in sdfilereader(fname)]
@@ -12,4 +12,16 @@ function load_sdfile(fname::String, T=Float32)
     end
 
     sys
+end
+
+function write_sdfile(fname::String, mol::AbstractMolecule)
+    mg_mol = convert(GraphMol{SDFileAtom, SDFileBond}, mol)
+
+    sdfilewriter(fname, [mg_mol])
+end
+
+function write_sdfile(fname::String, sys::System)
+    mg_mols = [convert(GraphMol{SDFileAtom, SDFileBond}, m) for m in molecules(sys)]
+
+    sdfilewriter(fname, mg_mols)
 end
