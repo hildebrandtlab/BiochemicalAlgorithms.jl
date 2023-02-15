@@ -80,6 +80,19 @@ function load_pdb(fname::String, T=Float32)
     atoms.has_force .= Ref(false)
     atoms.frame_id = orig_df.modelnumber
 
+    # convert other columns of interest to atom properties
+    atoms.properties = Properties.(
+        collect(
+                zip(
+                    Pair.("tempfactor",            orig_df.tempfactor),
+                    Pair.("occupancy",             orig_df.occupancy),
+                    Pair.("is_hetero_atom",        orig_df.ishetero),
+                    Pair.("insertion_code",        orig_df.inscode),
+                    Pair.("alternate_location_id", orig_df.altlocid)
+                )
+        )
+    )
+
     atoms.residue_id = orig_df.resnumber
     atoms.residue_name= orig_df.resname
     atoms.chain = orig_df.chainid
@@ -87,19 +100,6 @@ function load_pdb(fname::String, T=Float32)
     # note: we will remove this column as soon as we have filtered out alternates
     atoms.altlocid = orig_df.altlocid
 
-    # convert other columns of interest to atom properties
-    atoms.properties = Properties.(
-                    collect(
-                            zip(
-                                Pair.("tempfactor",            orig_df.tempfactor),
-                                Pair.("occupancy",             orig_df.occupancy),
-                                Pair.("is_hetero_atom",        orig_df.ishetero),
-                                Pair.("insertion_code",        orig_df.inscode),
-                                Pair.("alternate_location_id", orig_df.altlocid)
-                            )
-                    )
-                )
-                
     bonds = DataFrame(Bond[])
 
     chains = Vector{PDBChain}()
