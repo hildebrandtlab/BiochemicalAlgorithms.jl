@@ -529,11 +529,10 @@ function parse_atoms!(mol::Molecule, compound::PCCompound, T=Float32)
                             F = Vector3(T(0.), T(0.), T(0.)),
                             has_velocity = false,
                             has_force = false,
-                            frame_id = j,
                             properties = Properties()
-                    )
+                    )::Atom{T}
 
-                push!(mol, atom)
+                push!(mol, atom; frame_id = j)
             end
         end
     end

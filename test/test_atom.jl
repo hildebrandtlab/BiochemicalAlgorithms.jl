@@ -9,9 +9,8 @@
         F = Vector3{Float64}(0.0,0.0,0.0),
         has_velocity = true,
         has_force = false,
-        frame_id = 1,
         properties = Dict{String, Any}()
-        )
+    )
     @test a isa Atom
     @test a.number == 1
     @test a.name == "my fancy atom"
@@ -22,6 +21,4 @@
     @test a.r[3] == 4.0
     @test a.has_velocity
     @test !a.has_force
-    @test a.frame_id == 1
-
 end

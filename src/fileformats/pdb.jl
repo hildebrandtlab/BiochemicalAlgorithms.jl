@@ -78,7 +78,6 @@ function load_pdb(fname::String, T=Float32)
     atoms.F .= Ref(Vector3{T}(0.0, 0.0, 0.0))
     atoms.has_velocity .= Ref(false)
     atoms.has_force .= Ref(false)
-    atoms.frame_id = orig_df.modelnumber
 
     # convert other columns of interest to atom properties
     atoms.properties = Properties.(
@@ -93,6 +92,7 @@ function load_pdb(fname::String, T=Float32)
         )
     )
 
+    atoms.frame_id = orig_df.modelnumber
     atoms.residue_id = orig_df.resnumber
     atoms.residue_name= orig_df.resname
     atoms.chain = orig_df.chainid
