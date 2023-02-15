@@ -11,15 +11,9 @@ mutable struct Molecule{T<:Real} <: AbstractMolecule{T}
     bonds::DataFrame
     properties::Properties
 
-    function Molecule{T}(name = "",
-                         atoms = DataFrame(Atom{T}[]),
-                         bonds = DataFrame(Bond[]),
-                         properties = Properties()) where {T<:Real}
-        new(name, atoms, bonds, properties)
+    function Molecule{T}(name = "") where T
+        new(name, DataFrame(Atom{T}[]), DataFrame(Bond[]), Properties())
     end
 end
 
-Molecule(name = "",
-         atoms = DataFrame(Atom{Float32}[]),
-         bonds = DataFrame(Bond[]), 
-         properties = Properties()) = Molecule{Float32}(name, atoms, bonds, properties)
+Molecule(name = "") = Molecule{Float32}(name)
