@@ -1,6 +1,7 @@
 export PDBAtom
 
 const PDBAtomExtras = @NamedTuple begin
+    frame_id::Int
     residue_id::Int
     residue_name::String
     chain::String

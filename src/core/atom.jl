@@ -10,6 +10,5 @@ const Atom{T} = @NamedTuple begin
     F::Vector3{T}
     has_velocity::Bool
     has_force::Bool
-    frame_id::Int
     properties::Properties
 end

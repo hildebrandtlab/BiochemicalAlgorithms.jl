@@ -9,12 +9,12 @@
         F = Vector3{Float64}(0.0,0.0,0.0),
         has_velocity = true,
         has_force = false,
-        frame_id = 1,
         properties = Dict{String, Any}(),
+        frame_id = 1,
         residue_id = 2, 
         residue_name = "CB",
         chain = "A"
-        )
+    )::PDBAtom{Float64}
     
     @test a isa PDBAtom
     @test !isa(a, Atom)
@@ -30,6 +30,5 @@
     @test a.frame_id == 1
     @test a.residue_id == 2
     @test a.residue_name == "CB"
-    @test a.chain == "A"
-      
+    @test a.chain == "A"   
 end

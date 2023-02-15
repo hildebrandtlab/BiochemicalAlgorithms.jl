@@ -100,12 +100,7 @@ end
 Returns the total number of atoms in the given container.
 """
 function count_atoms(ac::C) where {T, C <: AbstractAtomContainer{T}}
-    # this is slightly complicated, because we need to unify by frame id
-    # note that we assume that all frames have the same number of atoms
-
-    # TODO: find a better way to handle this
-    df = atoms(ac)
-    isempty(df) ? 0 : nrow(groupby(df, :frame_id)[1])
+    nrow(atoms(ac))
 end
 
 """

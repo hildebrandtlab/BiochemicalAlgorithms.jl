@@ -5,8 +5,8 @@
 
     @test mol isa Molecule
     @test name(mol) == ""
-    @test atoms(mol) isa DataFrame
-    @test size(atoms(mol)) == (0,11)
+    @test atoms(mol) isa SubDataFrame
+    @test size(atoms(mol)) == (0,10)
     @test bonds(mol) isa DataFrame
     @test size(bonds(mol)) == (0,4)
     @test count_atoms(mol) == 0
@@ -19,17 +19,16 @@
     # add atoms
     for i in 1:6
         atom = ( number = 1,
-        name = "my fancy atom", 
-        element = Elements.H, 
-        atomtype = "heavy",
-        r = Vector3{Float32}(i*1.0, i*2.0, i*4.0),
-        v = Vector3{Float32}(1.0, 1.0, 1.0),
-        F = Vector3{Float32}(0.0, 0.0, 0.0),
-        has_velocity = true,
-        has_force = false,
-        frame_id = 1,
-        properties = Properties()
-        )
+            name = "my fancy atom", 
+            element = Elements.H, 
+            atomtype = "heavy",
+            r = Vector3{Float32}(i*1.0, i*2.0, i*4.0),
+            v = Vector3{Float32}(1.0, 1.0, 1.0),
+            F = Vector3{Float32}(0.0, 0.0, 0.0),
+            has_velocity = true,
+            has_force = false,
+            properties = Properties()
+        )::Atom{Float32}
         push!(mol, atom)
         @test count_atoms(mol) == i
     end
@@ -37,9 +36,10 @@
     # add bonds
     for i in 1:4
         bond = (a1 = i, 
-                a2 = 3, 
-                order = BondOrder.Single, 
-                properties = Properties())
+            a2 = 3, 
+            order = BondOrder.Single, 
+            properties = Properties()
+        )::Bond
         push!(mol, bond)
         @test count_bonds(mol) == i
     end
