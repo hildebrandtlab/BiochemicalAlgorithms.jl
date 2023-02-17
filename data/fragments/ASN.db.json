@@ -1,0 +1,300 @@
+[
+  {
+    "key": "Names",
+    "value": [
+      {
+        "key": "Asparagine",
+        "value": []
+      },
+      {
+        "key": "Asparagin",
+        "value": []
+      },
+      {
+        "key": "Asn",
+        "value": []
+      },
+      {
+        "key": "N",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Atoms",
+    "value": [
+      {
+        "key": "N",
+        "value": "N -0.01239826 1.297873 -0.0455736"
+      },
+      {
+        "key": "3H",
+        "value": "H 0.8807231 1.768826 0.03701005"
+      },
+      {
+        "key": "CA",
+        "value": "C -0.7474616 1.91653 -1.164926"
+      },
+      {
+        "key": "HA",
+        "value": "H -0.1937652 1.691628 -2.077897"
+      },
+      {
+        "key": "C",
+        "value": "C -0.757567 3.441771 -1.010304"
+      },
+      {
+        "key": "O",
+        "value": "O 0.3769885 3.962902 -0.9276295"
+      },
+      {
+        "key": "CB",
+        "value": "C -2.149851 1.302218 -1.30196"
+      },
+      {
+        "key": "1HB",
+        "value": "H -2.042859 0.2235991 -1.423685"
+      },
+      {
+        "key": "2HB",
+        "value": "H -2.723301 1.490943 -0.3934487"
+      },
+      {
+        "key": "CG",
+        "value": "C -2.91901 1.84635 -2.50453"
+      },
+      {
+        "key": "OD1",
+        "value": "O -2.442698 2.721974 -3.218464"
+      },
+      {
+        "key": "ND2",
+        "value": "N -4.125435 1.339006 -2.736042"
+      },
+      {
+        "key": "1HD2",
+        "value": "H -4.50376 0.6180301 -2.140929"
+      },
+      {
+        "key": "2HD2",
+        "value": "H -4.647904 1.686222 -3.525954"
+      },
+      {
+        "key": "1H",
+        "value": "H -0.5352049 1.417775 0.8102037"
+      },
+      {
+        "key": "2H",
+        "value": "H 0.1272759 0.3139404 -0.2256562"
+      },
+      {
+        "key": "OXT",
+        "value": "O -1.806735 3.963976 -0.572751"
+      }
+    ]
+  },
+  {
+    "key": "Bonds",
+    "value": [
+      {
+        "key": "5",
+        "value": "3H N s"
+      },
+      {
+        "key": "6",
+        "value": "CA N s"
+      },
+      {
+        "key": "10",
+        "value": "HA CA s"
+      },
+      {
+        "key": "11",
+        "value": "C CA s"
+      },
+      {
+        "key": "14",
+        "value": "O C d"
+      },
+      {
+        "key": "15",
+        "value": "CB CA s"
+      },
+      {
+        "key": "19",
+        "value": "1HB CB s"
+      },
+      {
+        "key": "20",
+        "value": "2HB CB s"
+      },
+      {
+        "key": "21",
+        "value": "CG CB s"
+      },
+      {
+        "key": "24",
+        "value": "OD1 CG d"
+      },
+      {
+        "key": "25",
+        "value": "ND2 CG s"
+      },
+      {
+        "key": "28",
+        "value": "1HD2 ND2 s"
+      },
+      {
+        "key": "29",
+        "value": "2HD2 ND2 s"
+      },
+      {
+        "key": "30",
+        "value": "1H N s"
+      },
+      {
+        "key": "31",
+        "value": "2H N s"
+      },
+      {
+        "key": "32",
+        "value": "OXT C s"
+      }
+    ]
+  },
+  {
+    "key": "Connections",
+    "value": [
+      {
+        "key": "N-term",
+        "value": "N C-term s 1.33 0.5"
+      },
+      {
+        "key": "C-term",
+        "value": "C N-term s 1.33 0.5"
+      }
+    ]
+  },
+  {
+    "key": "Properties",
+    "value": [
+      {
+        "key": "AMINO_ACID",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Variants",
+    "value": [
+      {
+        "key": "Default",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": []
+              },
+              {
+                "key": "1H",
+                "value": []
+              },
+              {
+                "key": "2H",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "ASN-M",
+        "value": [
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              },
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "ASN-C",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "1H",
+                "value": []
+              },
+              {
+                "key": "2H",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "ASN-N",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

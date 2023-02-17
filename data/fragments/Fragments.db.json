@@ -1,0 +1,177 @@
+[
+  {
+    "key": "Fragments",
+    "value": [
+      {
+        "key": "#include:ALA",
+        "value": "fragments/ALA.db:/ALA"
+      },
+      {
+        "key": "#include:ARG",
+        "value": "fragments/ARG.db:/ARG"
+      },
+      {
+        "key": "#include:ASP",
+        "value": "fragments/ASP.db:/ASP"
+      },
+      {
+        "key": "#include:ASN",
+        "value": "fragments/ASN.db:/ASN"
+      },
+      {
+        "key": "#include:CYS",
+        "value": "fragments/CYS.db:/CYS"
+      },
+      {
+        "key": "#include:GLN",
+        "value": "fragments/GLN.db:/GLN"
+      },
+      {
+        "key": "#include:GLU",
+        "value": "fragments/GLU.db:/GLU"
+      },
+      {
+        "key": "#include:GLY",
+        "value": "fragments/GLY.db:/GLY"
+      },
+      {
+        "key": "#include:HIS",
+        "value": "fragments/HIS.db:/HIS"
+      },
+      {
+        "key": "#include:ILE",
+        "value": "fragments/ILE.db:/ILE"
+      },
+      {
+        "key": "#include:LEU",
+        "value": "fragments/LEU.db:/LEU"
+      },
+      {
+        "key": "#include:LYS",
+        "value": "fragments/LYS.db:/LYS"
+      },
+      {
+        "key": "#include:MET",
+        "value": "fragments/MET.db:/MET"
+      },
+      {
+        "key": "#include:MSE",
+        "value": "fragments/MSE.db:/MSE"
+      },
+      {
+        "key": "#include:PHE",
+        "value": "fragments/PHE.db:/PHE"
+      },
+      {
+        "key": "#include:PRO",
+        "value": "fragments/PRO.db:/PRO"
+      },
+      {
+        "key": "#include:SER",
+        "value": "fragments/SER.db:/SER"
+      },
+      {
+        "key": "#include:THR",
+        "value": "fragments/THR.db:/THR"
+      },
+      {
+        "key": "#include:TRP",
+        "value": "fragments/TRP.db:/TRP"
+      },
+      {
+        "key": "#include:TYR",
+        "value": "fragments/TYR.db:/TYR"
+      },
+      {
+        "key": "#include:VAL",
+        "value": "fragments/VAL.db:/VAL"
+      },
+      {
+        "key": "#include:PCA",
+        "value": "fragments/PCA.db:/PCA"
+      },
+      {
+        "key": "#include:ACE",
+        "value": "fragments/ACE.db:/ACE"
+      },
+      {
+        "key": "#include:NME",
+        "value": "fragments/NME.db:/NME"
+      },
+      {
+        "key": "#include:CA",
+        "value": "fragments/CA.db:/CA"
+      },
+      {
+        "key": "#include:MG",
+        "value": "fragments/MG.db:/MG"
+      },
+      {
+        "key": "#include:ZN",
+        "value": "fragments/ZN.db:/ZN"
+      },
+      {
+        "key": "#include:HOH",
+        "value": "fragments/HOH.db:/HOH"
+      },
+      {
+        "key": "#include:A",
+        "value": "fragments/A.db:/A"
+      },
+      {
+        "key": "#include:C",
+        "value": "fragments/C.db:/C"
+      },
+      {
+        "key": "#include:G",
+        "value": "fragments/G.db:/G"
+      },
+      {
+        "key": "#include:T",
+        "value": "fragments/T.db:/T"
+      },
+      {
+        "key": "#include:U",
+        "value": "fragments/U.db:/U"
+      }
+    ]
+  },
+  {
+    "key": "Names",
+    "value": [
+      {
+        "key": "#include:Discover",
+        "value": "fragments/Names.Discover.db:/Discover"
+      },
+      {
+        "key": "#include:Amber",
+        "value": "fragments/Names.Amber.db:/Amber"
+      },
+      {
+        "key": "#include:CHARMM",
+        "value": "fragments/Names.CHARMM.db:/CHARMM"
+      },
+      {
+        "key": "#include:XPLOR",
+        "value": "fragments/Names.XPLOR.db:/XPLOR"
+      },
+      {
+        "key": "#include:Star",
+        "value": "fragments/Names.Star.db:/Star"
+      },
+      {
+        "key": "#include:DNA",
+        "value": "fragments/Names.DNA.db:/DNA"
+      }
+    ]
+  },
+  {
+    "key": "Defaults",
+    "value": [
+      {
+        "key": "Naming",
+        "value": "PDB"
+      }
+    ]
+  }
+]

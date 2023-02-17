@@ -30,6 +30,8 @@ include("fileformats/pdb.jl")
 include("mappings/atom_bijection.jl")
 include("mappings/rigid_mapping.jl")
 
+include("preprocessing/fragmentDB.jl")
+
 using .PubChem
 
 export load_pubchem_json, ball_data_path
