@@ -30,6 +30,8 @@ include("mappings/rigid_mapping.jl")
 
 using .PubChem
 
-export load_pubchem_json
+export load_pubchem_json, ball_data_path
+
+ball_data_path(parts...) = normpath(joinpath(@__DIR__, "..", "data", parts...))
 
 end
