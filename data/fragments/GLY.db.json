@@ -1,0 +1,244 @@
+[
+  {
+    "key": "Names",
+    "value": [
+      {
+        "key": "Glycine",
+        "value": []
+      },
+      {
+        "key": "Glycin",
+        "value": []
+      },
+      {
+        "key": "Gly",
+        "value": []
+      },
+      {
+        "key": "G",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Atoms",
+    "value": [
+      {
+        "key": "N",
+        "value": "N 0.09000722 1.216287 -0.1108443"
+      },
+      {
+        "key": "3H",
+        "value": "H 0.8807056 1.803007 0.1270226"
+      },
+      {
+        "key": "CA",
+        "value": "C -0.6332095 1.869306 -1.215941"
+      },
+      {
+        "key": "1HA",
+        "value": "H -0.02850649 1.801736 -2.120623"
+      },
+      {
+        "key": "2HA",
+        "value": "H -1.579168 1.352425 -1.380715"
+      },
+      {
+        "key": "C",
+        "value": "C -0.8818576 3.344497 -0.910938"
+      },
+      {
+        "key": "O",
+        "value": "O 0.06351577 3.962237 -0.3713815"
+      },
+      {
+        "key": "1H",
+        "value": "H -0.5183882 1.138782 0.691625"
+      },
+      {
+        "key": "2H",
+        "value": "H 0.4027565 0.2984461 -0.3934918"
+      },
+      {
+        "key": "OXT",
+        "value": "O -1.901015 3.866009 -1.413833"
+      }
+    ]
+  },
+  {
+    "key": "Bonds",
+    "value": [
+      {
+        "key": "5",
+        "value": "3H N s"
+      },
+      {
+        "key": "6",
+        "value": "CA N s"
+      },
+      {
+        "key": "10",
+        "value": "1HA CA s"
+      },
+      {
+        "key": "11",
+        "value": "2HA CA s"
+      },
+      {
+        "key": "12",
+        "value": "C CA s"
+      },
+      {
+        "key": "15",
+        "value": "O C d"
+      },
+      {
+        "key": "16",
+        "value": "1H N s"
+      },
+      {
+        "key": "17",
+        "value": "2H N s"
+      },
+      {
+        "key": "18",
+        "value": "OXT C s"
+      }
+    ]
+  },
+  {
+    "key": "Connections",
+    "value": [
+      {
+        "key": "N-term",
+        "value": "N C-term s 1.33 0.5"
+      },
+      {
+        "key": "C-term",
+        "value": "C N-term s 1.33 0.5"
+      }
+    ]
+  },
+  {
+    "key": "Properties",
+    "value": [
+      {
+        "key": "AMINO_ACID",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Variants",
+    "value": [
+      {
+        "key": "Default",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": []
+              },
+              {
+                "key": "1H",
+                "value": []
+              },
+              {
+                "key": "2H",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "GLY-M",
+        "value": [
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              },
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "GLY-C",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "1H",
+                "value": []
+              },
+              {
+                "key": "2H",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "GLY-N",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

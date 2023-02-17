@@ -1,0 +1,45 @@
+[
+  {
+    "key": "Names",
+    "value": [
+      {
+        "key": "Calcium ion",
+        "value": []
+      },
+      {
+        "key": "Ca2+",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Atoms",
+    "value": [
+      {
+        "key": "CA",
+        "value": "Ca 0.0 0.0 0.0"
+      }
+    ]
+  },
+  {
+    "key": "Bonds",
+    "value": []
+  },
+  {
+    "key": "Connections",
+    "value": []
+  },
+  {
+    "key": "Properties",
+    "value": []
+  },
+  {
+    "key": "Variants",
+    "value": [
+      {
+        "key": "Default",
+        "value": []
+      }
+    ]
+  }
+]
