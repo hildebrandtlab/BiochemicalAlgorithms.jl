@@ -1,0 +1,136 @@
+[
+  {
+    "key": "Names",
+    "value": [
+      {
+        "key": "ACE",
+        "value": []
+      },
+      {
+        "key": "acetic acid",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Atoms",
+    "value": [
+      {
+        "key": "C",
+        "value": "C -0.710977 -1.12008 0.000774821"
+      },
+      {
+        "key": "CH3",
+        "value": "C 0.0997794 -2.40762 0.00202052"
+      },
+      {
+        "key": "O",
+        "value": "O -1.92224 -1.17518 0.00112378"
+      },
+      {
+        "key": "1HH3",
+        "value": "H -0.167239 -2.98461 0.880642"
+      },
+      {
+        "key": "2HH3",
+        "value": "H 1.1711 -2.24422 -0.00400307"
+      },
+      {
+        "key": "3HH3",
+        "value": "H -0.176322 -2.99236 -0.868617"
+      },
+      {
+        "key": "OXT",
+        "value": "O -0.0809243 0.0851695 -0.000720861"
+      }
+    ]
+  },
+  {
+    "key": "Bonds",
+    "value": [
+      {
+        "key": "1",
+        "value": "C CH3 s"
+      },
+      {
+        "key": "2",
+        "value": "C O d"
+      },
+      {
+        "key": "3",
+        "value": "C OXT s"
+      },
+      {
+        "key": "4",
+        "value": "CH3 1HH3 s"
+      },
+      {
+        "key": "5",
+        "value": "CH3 2HH3 s"
+      },
+      {
+        "key": "6",
+        "value": "CH3 3HH3 s"
+      }
+    ]
+  },
+  {
+    "key": "Connections",
+    "value": [
+      {
+        "key": "C-term",
+        "value": "C N-term s 1.33 0.5"
+      }
+    ]
+  },
+  {
+    "key": "Properties",
+    "value": []
+  },
+  {
+    "key": "Variants",
+    "value": [
+      {
+        "key": "ACE-N",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "ACE-M",
+        "value": [
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              },
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

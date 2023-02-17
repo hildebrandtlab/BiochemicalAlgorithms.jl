@@ -1,0 +1,268 @@
+[
+  {
+    "key": "Names",
+    "value": [
+      {
+        "key": "Alanine",
+        "value": []
+      },
+      {
+        "key": "Alanin",
+        "value": []
+      },
+      {
+        "key": "Ala",
+        "value": []
+      },
+      {
+        "key": "A",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Atoms",
+    "value": [
+      {
+        "key": "N",
+        "value": "N 0.09952427 1.425946 -0.01392276"
+      },
+      {
+        "key": "3H",
+        "value": "H 0.9122966 2.021833 0.09543685"
+      },
+      {
+        "key": "CA",
+        "value": "C -0.6343572 1.904422 -1.199327"
+      },
+      {
+        "key": "HA",
+        "value": "H -0.06613517 1.608824 -2.082189"
+      },
+      {
+        "key": "C",
+        "value": "C -0.7061328 3.434369 -1.195026"
+      },
+      {
+        "key": "O",
+        "value": "O 0.2770563 4.020259 -0.6877273"
+      },
+      {
+        "key": "CB",
+        "value": "C -2.018631 1.250585 -1.273356"
+      },
+      {
+        "key": "1HB",
+        "value": "H -2.525042 1.535779 -2.196084"
+      },
+      {
+        "key": "2HB",
+        "value": "H -1.909473 0.1656088 -1.256012"
+      },
+      {
+        "key": "3HB",
+        "value": "H -2.621985 1.560564 -0.4192078"
+      },
+      {
+        "key": "OXT",
+        "value": "O -1.554726 3.968913 -1.942107"
+      },
+      {
+        "key": "1H",
+        "value": "H -0.4859746 1.514033 0.8043322"
+      },
+      {
+        "key": "2H",
+        "value": "H 0.3756785 0.4622824 -0.137128"
+      }
+    ]
+  },
+  {
+    "key": "Bonds",
+    "value": [
+      {
+        "key": "5",
+        "value": "3H N s"
+      },
+      {
+        "key": "6",
+        "value": "CA N s"
+      },
+      {
+        "key": "10",
+        "value": "HA CA s"
+      },
+      {
+        "key": "11",
+        "value": "C CA s"
+      },
+      {
+        "key": "14",
+        "value": "O C d"
+      },
+      {
+        "key": "15",
+        "value": "CB CA s"
+      },
+      {
+        "key": "19",
+        "value": "1HB CB s"
+      },
+      {
+        "key": "20",
+        "value": "2HB CB s"
+      },
+      {
+        "key": "21",
+        "value": "3HB CB s"
+      },
+      {
+        "key": "22",
+        "value": "OXT C s"
+      },
+      {
+        "key": "23",
+        "value": "1H N s"
+      },
+      {
+        "key": "24",
+        "value": "2H N s"
+      }
+    ]
+  },
+  {
+    "key": "Connections",
+    "value": [
+      {
+        "key": "N-term",
+        "value": "N C-term s 1.33 0.5"
+      },
+      {
+        "key": "C-term",
+        "value": "C N-term s 1.33 0.5"
+      }
+    ]
+  },
+  {
+    "key": "Properties",
+    "value": [
+      {
+        "key": "AMINO_ACID",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Variants",
+    "value": [
+      {
+        "key": "Default",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": ""
+              },
+              {
+                "key": "1H",
+                "value": ""
+              },
+              {
+                "key": "2H",
+                "value": ""
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "ALA-M",
+        "value": [
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              },
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "ALA-C",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "1H",
+                "value": ""
+              },
+              {
+                "key": "2H",
+                "value": ""
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "ALA-N",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": ""
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

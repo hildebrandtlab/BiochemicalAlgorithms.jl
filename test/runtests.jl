@@ -23,4 +23,8 @@ using DataFrames
         include("fileformats/test_pdb.jl")
         include("fileformats/test_pubchem_json.jl")
     end
+    
+    @testset "Preprocessing" begin
+        include("preprocessing/test_fragmentdb.jl")
+    end
 end
