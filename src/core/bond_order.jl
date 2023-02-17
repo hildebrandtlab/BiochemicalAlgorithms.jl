@@ -7,6 +7,7 @@ export BondOrder, BondOrderType
     Double = 2
     Triple = 3
     Quadruple = 4
+    Aromatic = 50
     Unknown = 100
 end
 
