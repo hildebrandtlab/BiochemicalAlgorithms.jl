@@ -1,0 +1,336 @@
+[
+  {
+    "key": "Names",
+    "value": [
+      {
+        "key": "Histidine",
+        "value": []
+      },
+      {
+        "key": "Histidin",
+        "value": []
+      },
+      {
+        "key": "His",
+        "value": []
+      },
+      {
+        "key": "H",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Atoms",
+    "value": [
+      {
+        "key": "N",
+        "value": "N 0.2528806 1.616447 -0.2212145"
+      },
+      {
+        "key": "3H",
+        "value": "H 0.7991534 2.328624 0.245802"
+      },
+      {
+        "key": "CA",
+        "value": "C -0.9251888 2.215651 -0.8776516"
+      },
+      {
+        "key": "HA",
+        "value": "H -0.5465931 2.966134 -1.573552"
+      },
+      {
+        "key": "C",
+        "value": "C -1.833067 2.919479 0.1419996"
+      },
+      {
+        "key": "O",
+        "value": "O -2.654072 3.735267 -0.3389743"
+      },
+      {
+        "key": "CB",
+        "value": "C -1.677425 1.144471 -1.688265"
+      },
+      {
+        "key": "1HB",
+        "value": "H -0.9314069 0.53022 -2.195623"
+      },
+      {
+        "key": "2HB",
+        "value": "H -2.228334 0.4977131 -1.00345"
+      },
+      {
+        "key": "CG",
+        "value": "C -2.625881 1.668474 -2.74672"
+      },
+      {
+        "key": "ND1",
+        "value": "N -3.385668 2.821612 -2.671887"
+      },
+      {
+        "key": "HD1",
+        "value": "H -3.38348 3.467654 -1.88095"
+      },
+      {
+        "key": "CD2",
+        "value": "C -2.893428 1.068907 -3.947961"
+      },
+      {
+        "key": "HD2",
+        "value": "H -2.46763 0.1453506 -4.317409"
+      },
+      {
+        "key": "CE1",
+        "value": "C -4.09971 2.924621 -3.807559"
+      },
+      {
+        "key": "HE1",
+        "value": "H -4.788648 3.724259 -4.045286"
+      },
+      {
+        "key": "NE2",
+        "value": "N -3.815619 1.869323 -4.597533"
+      },
+      {
+        "key": "HE2",
+        "value": "H -4.210977 1.69118 -5.511979"
+      },
+      {
+        "key": "1H",
+        "value": "H -0.05550323 0.9331897 0.4557269"
+      },
+      {
+        "key": "2H",
+        "value": "H 0.827899 1.162407 -0.9164186"
+      },
+      {
+        "key": "OXT",
+        "value": "O -1.921441 2.400639 1.276749"
+      }
+    ]
+  },
+  {
+    "key": "Bonds",
+    "value": [
+      {
+        "key": "5",
+        "value": "3H N s"
+      },
+      {
+        "key": "6",
+        "value": "CA N s"
+      },
+      {
+        "key": "10",
+        "value": "HA CA s"
+      },
+      {
+        "key": "11",
+        "value": "C CA s"
+      },
+      {
+        "key": "14",
+        "value": "O C d"
+      },
+      {
+        "key": "15",
+        "value": "CB CA s"
+      },
+      {
+        "key": "19",
+        "value": "1HB CB s"
+      },
+      {
+        "key": "20",
+        "value": "2HB CB s"
+      },
+      {
+        "key": "21",
+        "value": "CG CB s"
+      },
+      {
+        "key": "24",
+        "value": "ND1 CG a"
+      },
+      {
+        "key": "27",
+        "value": "HD1 ND1 s"
+      },
+      {
+        "key": "28",
+        "value": "CD2 CG a"
+      },
+      {
+        "key": "31",
+        "value": "HD2 CD2 s"
+      },
+      {
+        "key": "32",
+        "value": "CE1 ND1 a"
+      },
+      {
+        "key": "35",
+        "value": "HE1 CE1 s"
+      },
+      {
+        "key": "36",
+        "value": "NE2 CE1 a"
+      },
+      {
+        "key": "37",
+        "value": "NE2 CD2 a"
+      },
+      {
+        "key": "39",
+        "value": "HE2 NE2 s"
+      },
+      {
+        "key": "40",
+        "value": "1H N s"
+      },
+      {
+        "key": "41",
+        "value": "2H N s"
+      },
+      {
+        "key": "42",
+        "value": "OXT C s"
+      }
+    ]
+  },
+  {
+    "key": "Connections",
+    "value": [
+      {
+        "key": "N-term",
+        "value": "N C-term s 1.33 0.5"
+      },
+      {
+        "key": "C-term",
+        "value": "C N-term s 1.33 0.5"
+      }
+    ]
+  },
+  {
+    "key": "Properties",
+    "value": [
+      {
+        "key": "AMINO_ACID",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Variants",
+    "value": [
+      {
+        "key": "Default",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": []
+              },
+              {
+                "key": "1H",
+                "value": []
+              },
+              {
+                "key": "2H",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "HIS-M",
+        "value": [
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              },
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "HIS-C",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "1H",
+                "value": []
+              },
+              {
+                "key": "2H",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "HIS-N",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

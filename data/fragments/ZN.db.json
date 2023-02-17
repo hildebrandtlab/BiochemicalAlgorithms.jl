@@ -1,0 +1,45 @@
+[
+  {
+    "key": "Names",
+    "value": [
+      {
+        "key": "Zinc ion",
+        "value": []
+      },
+      {
+        "key": "Zn2+",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Atoms",
+    "value": [
+      {
+        "key": "ZN",
+        "value": "Zn 0.0 0.0 0.0"
+      }
+    ]
+  },
+  {
+    "key": "Bonds",
+    "value": []
+  },
+  {
+    "key": "Connections",
+    "value": []
+  },
+  {
+    "key": "Properties",
+    "value": []
+  },
+  {
+    "key": "Variants",
+    "value": [
+      {
+        "key": "Default",
+        "value": []
+      }
+    ]
+  }
+]

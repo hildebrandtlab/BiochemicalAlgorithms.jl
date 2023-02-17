@@ -1,0 +1,141 @@
+[
+  {
+    "key": "Names",
+    "value": [
+      {
+        "key": "Methylamine",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Atoms",
+    "value": [
+      {
+        "key": "N",
+        "value": "N  0.724  0.000 -0.079"
+      },
+      {
+        "key": "CH3",
+        "value": "C -0.742  0.000  0.011"
+      },
+      {
+        "key": "1H",
+        "value": "H 1.046  0.810  0.431"
+      },
+      {
+        "key": "2H",
+        "value": "H 1.046 -0.810  0.431"
+      },
+      {
+        "key": "1HH3",
+        "value": "H -1.139 -0.861 -0.527"
+      },
+      {
+        "key": "2HH3",
+        "value": "H -1.042 -0.056  1.057"
+      },
+      {
+        "key": "3HH3",
+        "value": "H -1.133  0.917 -0.431"
+      }
+    ]
+  },
+  {
+    "key": "Bonds",
+    "value": [
+      {
+        "key": "1",
+        "value": "N CH3 s"
+      },
+      {
+        "key": "2",
+        "value": "N 1H s"
+      },
+      {
+        "key": "3",
+        "value": "N 2H s"
+      },
+      {
+        "key": "4",
+        "value": "CH3 1HH3 s"
+      },
+      {
+        "key": "5",
+        "value": "CH3 2HH3 s"
+      },
+      {
+        "key": "6",
+        "value": "CH3 3HH3 s"
+      }
+    ]
+  },
+  {
+    "key": "Connections",
+    "value": [
+      {
+        "key": "N-term",
+        "value": "N C-term s 1.33 0.5"
+      }
+    ]
+  },
+  {
+    "key": "Properties",
+    "value": []
+  },
+  {
+    "key": "Variants",
+    "value": [
+      {
+        "key": "NME-C",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "2H",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "1H",
+                "value": "H"
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "NME-M",
+        "value": [
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              },
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

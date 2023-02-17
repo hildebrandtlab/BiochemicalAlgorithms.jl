@@ -1,0 +1,276 @@
+[
+  {
+    "key": "Names",
+    "value": [
+      {
+        "key": "Serine",
+        "value": []
+      },
+      {
+        "key": "Serin",
+        "value": []
+      },
+      {
+        "key": "Ser",
+        "value": []
+      },
+      {
+        "key": "S",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Atoms",
+    "value": [
+      {
+        "key": "N",
+        "value": "N 0.1130663 1.226434 -0.1468897"
+      },
+      {
+        "key": "3H",
+        "value": "H 0.8968111 1.837972 0.05464922"
+      },
+      {
+        "key": "CA",
+        "value": "C -0.7048293 1.905604 -1.168307"
+      },
+      {
+        "key": "HA",
+        "value": "H -0.2017423 1.780946 -2.128185"
+      },
+      {
+        "key": "C",
+        "value": "C -0.7701361 3.410257 -0.8778276"
+      },
+      {
+        "key": "O",
+        "value": "O 0.1488766 3.858471 -0.1539113"
+      },
+      {
+        "key": "CB",
+        "value": "C -2.088618 1.24965 -1.250489"
+      },
+      {
+        "key": "1HB",
+        "value": "H -1.956628 0.1725609 -1.368818"
+      },
+      {
+        "key": "2HB",
+        "value": "H -2.637483 1.435655 -0.3253672"
+      },
+      {
+        "key": "OG",
+        "value": "O -2.817839 1.744102 -2.356831"
+      },
+      {
+        "key": "HG",
+        "value": "H -3.648096 1.264079 -2.429246"
+      },
+      {
+        "key": "OXT",
+        "value": "O -1.487331 4.10633 -1.629405"
+      },
+      {
+        "key": "1H",
+        "value": "H -0.4311985 1.10388 0.6950446"
+      },
+      {
+        "key": "2H",
+        "value": "H 0.4303224 0.3296314 -0.4862972"
+      }
+    ]
+  },
+  {
+    "key": "Bonds",
+    "value": [
+      {
+        "key": "5",
+        "value": "3H N s"
+      },
+      {
+        "key": "6",
+        "value": "CA N s"
+      },
+      {
+        "key": "10",
+        "value": "HA CA s"
+      },
+      {
+        "key": "11",
+        "value": "C CA s"
+      },
+      {
+        "key": "14",
+        "value": "O C d"
+      },
+      {
+        "key": "15",
+        "value": "CB CA s"
+      },
+      {
+        "key": "19",
+        "value": "1HB CB s"
+      },
+      {
+        "key": "20",
+        "value": "2HB CB s"
+      },
+      {
+        "key": "21",
+        "value": "OG CB s"
+      },
+      {
+        "key": "23",
+        "value": "HG OG s"
+      },
+      {
+        "key": "24",
+        "value": "OXT C s"
+      },
+      {
+        "key": "25",
+        "value": "1H N s"
+      },
+      {
+        "key": "26",
+        "value": "2H N s"
+      }
+    ]
+  },
+  {
+    "key": "Connections",
+    "value": [
+      {
+        "key": "N-term",
+        "value": "N C-term s 1.33 0.5"
+      },
+      {
+        "key": "C-term",
+        "value": "C N-term s 1.33 0.5"
+      }
+    ]
+  },
+  {
+    "key": "Properties",
+    "value": [
+      {
+        "key": "AMINO_ACID",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Variants",
+    "value": [
+      {
+        "key": "Default",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": []
+              },
+              {
+                "key": "1H",
+                "value": []
+              },
+              {
+                "key": "2H",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "SER-M",
+        "value": [
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              },
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "SER-N",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "SER-C",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "1H",
+                "value": []
+              },
+              {
+                "key": "2H",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

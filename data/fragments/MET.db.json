@@ -1,0 +1,324 @@
+[
+  {
+    "key": "Names",
+    "value": [
+      {
+        "key": "Methionine",
+        "value": []
+      },
+      {
+        "key": "Methionin",
+        "value": []
+      },
+      {
+        "key": "Met",
+        "value": []
+      },
+      {
+        "key": "M",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Atoms",
+    "value": [
+      {
+        "key": "N",
+        "value": "N 0.0654056 1.215812 -0.06949145"
+      },
+      {
+        "key": "3H",
+        "value": "H 0.9974914 1.608735 -0.04203663"
+      },
+      {
+        "key": "CA",
+        "value": "C -0.6988745 1.893029 -1.131979"
+      },
+      {
+        "key": "HA",
+        "value": "H -0.1911148 1.68141 -2.074138"
+      },
+      {
+        "key": "C",
+        "value": "C -0.6694928 3.410054 -0.9194202"
+      },
+      {
+        "key": "O",
+        "value": "O 0.4107355 3.973423 -1.201833"
+      },
+      {
+        "key": "CB",
+        "value": "C -2.121216 1.317703 -1.225039"
+      },
+      {
+        "key": "1HB",
+        "value": "H -2.050125 0.2325057 -1.312704"
+      },
+      {
+        "key": "2HB",
+        "value": "H -2.682049 1.549083 -0.318349"
+      },
+      {
+        "key": "CG",
+        "value": "C -2.887041 1.8377 -2.448318"
+      },
+      {
+        "key": "1HG",
+        "value": "H -2.99595 2.919347 -2.383954"
+      },
+      {
+        "key": "2HG",
+        "value": "H -2.322049 1.593525 -3.347709"
+      },
+      {
+        "key": "SD",
+        "value": "S -4.546617 1.137771 -2.634913"
+      },
+      {
+        "key": "CE",
+        "value": "C -5.081393 1.965263 -4.148402"
+      },
+      {
+        "key": "1HE",
+        "value": "H -6.08969 1.634787 -4.393987"
+      },
+      {
+        "key": "2HE",
+        "value": "H -5.078839 3.043304 -3.993342"
+      },
+      {
+        "key": "3HE",
+        "value": "H -4.404794 1.706412 -4.961773"
+      },
+      {
+        "key": "OXT",
+        "value": "O -1.565656 3.902471 -0.1992161"
+      },
+      {
+        "key": "1H",
+        "value": "H -0.3889995 1.363342 0.8203897"
+      },
+      {
+        "key": "2H",
+        "value": "H 0.1172404 0.226119 -0.264187"
+      }
+    ]
+  },
+  {
+    "key": "Bonds",
+    "value": [
+      {
+        "key": "5",
+        "value": "3H N s"
+      },
+      {
+        "key": "6",
+        "value": "CA N s"
+      },
+      {
+        "key": "10",
+        "value": "HA CA s"
+      },
+      {
+        "key": "11",
+        "value": "C CA s"
+      },
+      {
+        "key": "14",
+        "value": "O C d"
+      },
+      {
+        "key": "15",
+        "value": "CB CA s"
+      },
+      {
+        "key": "19",
+        "value": "1HB CB s"
+      },
+      {
+        "key": "20",
+        "value": "2HB CB s"
+      },
+      {
+        "key": "21",
+        "value": "CG CB s"
+      },
+      {
+        "key": "25",
+        "value": "1HG CG s"
+      },
+      {
+        "key": "26",
+        "value": "2HG CG s"
+      },
+      {
+        "key": "27",
+        "value": "SD CG s"
+      },
+      {
+        "key": "33",
+        "value": "CE SD s"
+      },
+      {
+        "key": "37",
+        "value": "1HE CE s"
+      },
+      {
+        "key": "38",
+        "value": "2HE CE s"
+      },
+      {
+        "key": "39",
+        "value": "3HE CE s"
+      },
+      {
+        "key": "40",
+        "value": "OXT C s"
+      },
+      {
+        "key": "41",
+        "value": "1H N s"
+      },
+      {
+        "key": "42",
+        "value": "2H N s"
+      }
+    ]
+  },
+  {
+    "key": "Connections",
+    "value": [
+      {
+        "key": "N-term",
+        "value": "N C-term s 1.33 0.5"
+      },
+      {
+        "key": "C-term",
+        "value": "C N-term s 1.33 0.5"
+      }
+    ]
+  },
+  {
+    "key": "Properties",
+    "value": [
+      {
+        "key": "AMINO_ACID",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Variants",
+    "value": [
+      {
+        "key": "Default",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": []
+              },
+              {
+                "key": "1H",
+                "value": []
+              },
+              {
+                "key": "2H",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "MET-M",
+        "value": [
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              },
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "MET-C",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "1H",
+                "value": []
+              },
+              {
+                "key": "2H",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "MET-N",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,340 @@
+[
+  {
+    "key": "Names",
+    "value": [
+      {
+        "key": "Leucine",
+        "value": []
+      },
+      {
+        "key": "Leucin",
+        "value": []
+      },
+      {
+        "key": "Leu",
+        "value": []
+      },
+      {
+        "key": "L",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Atoms",
+    "value": [
+      {
+        "key": "N",
+        "value": "N -0.003476313 1.235853 0.02699674"
+      },
+      {
+        "key": "3H",
+        "value": "H 0.7720473 1.82942 0.3005252"
+      },
+      {
+        "key": "CA",
+        "value": "C -0.6514053 1.883178 -1.129898"
+      },
+      {
+        "key": "HA",
+        "value": "H -0.07017973 1.598957 -2.006831"
+      },
+      {
+        "key": "C",
+        "value": "C -0.5708863 3.410168 -0.9936234"
+      },
+      {
+        "key": "O",
+        "value": "O 0.1419036 3.827524 -0.05211589"
+      },
+      {
+        "key": "CB",
+        "value": "C -2.091007 1.359104 -1.274005"
+      },
+      {
+        "key": "1HB",
+        "value": "H -2.046227 0.2694775 -1.310338"
+      },
+      {
+        "key": "2HB",
+        "value": "H -2.646399 1.642544 -0.3785246"
+      },
+      {
+        "key": "CG",
+        "value": "C -2.872831 1.847369 -2.507179"
+      },
+      {
+        "key": "HG",
+        "value": "H -3.019899 2.926006 -2.455012"
+      },
+      {
+        "key": "CD1",
+        "value": "C -2.162796 1.498542 -3.821336"
+      },
+      {
+        "key": "1HD1",
+        "value": "H -2.800384 1.766798 -4.664294"
+      },
+      {
+        "key": "2HD1",
+        "value": "H -1.228827 2.051352 -3.913459"
+      },
+      {
+        "key": "3HD1",
+        "value": "H -1.954294 0.4288859 -3.861405"
+      },
+      {
+        "key": "CD2",
+        "value": "C -4.261661 1.198464 -2.502073"
+      },
+      {
+        "key": "1HD2",
+        "value": "H -4.845348 1.564912 -3.347144"
+      },
+      {
+        "key": "2HD2",
+        "value": "H -4.171115 0.1141629 -2.575422"
+      },
+      {
+        "key": "3HD2",
+        "value": "H -4.785489 1.451318 -1.579679"
+      },
+      {
+        "key": "OXT",
+        "value": "O -0.8228753 4.072413 -2.02374"
+      },
+      {
+        "key": "1H",
+        "value": "H -0.6580312 1.186075 0.7945588"
+      },
+      {
+        "key": "2H",
+        "value": "H 0.3136166 0.3082535 -0.2161924"
+      }
+    ]
+  },
+  {
+    "key": "Bonds",
+    "value": [
+      {
+        "key": "5",
+        "value": "3H N s"
+      },
+      {
+        "key": "6",
+        "value": "CA N s"
+      },
+      {
+        "key": "10",
+        "value": "HA CA s"
+      },
+      {
+        "key": "11",
+        "value": "C CA s"
+      },
+      {
+        "key": "14",
+        "value": "O C d"
+      },
+      {
+        "key": "15",
+        "value": "CB CA s"
+      },
+      {
+        "key": "19",
+        "value": "1HB CB s"
+      },
+      {
+        "key": "20",
+        "value": "2HB CB s"
+      },
+      {
+        "key": "21",
+        "value": "CG CB s"
+      },
+      {
+        "key": "25",
+        "value": "HG CG s"
+      },
+      {
+        "key": "26",
+        "value": "CD1 CG s"
+      },
+      {
+        "key": "30",
+        "value": "1HD1 CD1 s"
+      },
+      {
+        "key": "31",
+        "value": "2HD1 CD1 s"
+      },
+      {
+        "key": "32",
+        "value": "3HD1 CD1 s"
+      },
+      {
+        "key": "33",
+        "value": "CD2 CG s"
+      },
+      {
+        "key": "37",
+        "value": "1HD2 CD2 s"
+      },
+      {
+        "key": "38",
+        "value": "2HD2 CD2 s"
+      },
+      {
+        "key": "39",
+        "value": "3HD2 CD2 s"
+      },
+      {
+        "key": "40",
+        "value": "OXT C s"
+      },
+      {
+        "key": "41",
+        "value": "1H N s"
+      },
+      {
+        "key": "42",
+        "value": "2H N s"
+      }
+    ]
+  },
+  {
+    "key": "Connections",
+    "value": [
+      {
+        "key": "N-term",
+        "value": "N C-term s 1.33 0.5"
+      },
+      {
+        "key": "C-term",
+        "value": "C N-term s 1.33 0.5"
+      }
+    ]
+  },
+  {
+    "key": "Properties",
+    "value": [
+      {
+        "key": "AMINO_ACID",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Variants",
+    "value": [
+      {
+        "key": "Default",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": []
+              },
+              {
+                "key": "1H",
+                "value": []
+              },
+              {
+                "key": "2H",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "LEU-M",
+        "value": [
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              },
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "LEU-C",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "1H",
+                "value": []
+              },
+              {
+                "key": "2H",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "LEU-N",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

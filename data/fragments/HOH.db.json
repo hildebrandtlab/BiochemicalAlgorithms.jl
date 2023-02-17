@@ -1,0 +1,58 @@
+[
+  {
+    "key": "Names",
+    "value": [
+      {
+        "key": "Water",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Atoms",
+    "value": [
+      {
+        "key": "O",
+        "value": "O  15.118 9.944 8.582"
+      },
+      {
+        "key": "1H",
+        "value": "H  15.211 9.386 7.809"
+      },
+      {
+        "key": "2H",
+        "value": "H  14.173 9.992 8.730"
+      }
+    ]
+  },
+  {
+    "key": "Bonds",
+    "value": [
+      {
+        "key": "1",
+        "value": "1H O s"
+      },
+      {
+        "key": "2",
+        "value": "2H O s"
+      }
+    ]
+  },
+  {
+    "key": "Connections",
+    "value": []
+  },
+  {
+    "key": "Properties",
+    "value": []
+  },
+  {
+    "key": "Variants",
+    "value": [
+      {
+        "key": "Default",
+        "value": []
+      }
+    ]
+  }
+]

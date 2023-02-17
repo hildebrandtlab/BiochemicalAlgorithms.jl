@@ -1,0 +1,364 @@
+[
+  {
+    "key": "Names",
+    "value": [
+      {
+        "key": "Lysine",
+        "value": []
+      },
+      {
+        "key": "Lysin",
+        "value": []
+      },
+      {
+        "key": "Lys",
+        "value": []
+      },
+      {
+        "key": "K",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Atoms",
+    "value": [
+      {
+        "key": "N",
+        "value": "N 0.03796386 1.172592 -0.009692425"
+      },
+      {
+        "key": "3H",
+        "value": "H 1.016744 1.426445 0.004398665"
+      },
+      {
+        "key": "CA",
+        "value": "C -0.6562778 1.887361 -1.097957"
+      },
+      {
+        "key": "HA",
+        "value": "H -0.1455905 1.623495 -2.025311"
+      },
+      {
+        "key": "C",
+        "value": "C -0.5601511 3.406333 -0.9147748"
+      },
+      {
+        "key": "O",
+        "value": "O -0.5440148 4.087965 -1.963232"
+      },
+      {
+        "key": "CB",
+        "value": "C -2.114089 1.411355 -1.200695"
+      },
+      {
+        "key": "1HB",
+        "value": "H -2.113627 0.3206328 -1.233166"
+      },
+      {
+        "key": "2HB",
+        "value": "H -2.662723 1.730462 -0.3130743"
+      },
+      {
+        "key": "CG",
+        "value": "C -2.816849 1.934443 -2.461919"
+      },
+      {
+        "key": "1HG",
+        "value": "H -2.878444 3.023734 -2.425601"
+      },
+      {
+        "key": "2HG",
+        "value": "H -2.232982 1.645706 -3.338356"
+      },
+      {
+        "key": "CD",
+        "value": "C -4.230651 1.346997 -2.563318"
+      },
+      {
+        "key": "1HD",
+        "value": "H -4.153291 0.2577495 -2.598617"
+      },
+      {
+        "key": "2HD",
+        "value": "H -4.790445 1.632903 -1.669734"
+      },
+      {
+        "key": "CE",
+        "value": "C -4.93697 1.869824 -3.82334"
+      },
+      {
+        "key": "1HE",
+        "value": "H -4.991973 2.959915 -3.77821"
+      },
+      {
+        "key": "2HE",
+        "value": "H -4.353527 1.590667 -4.70365"
+      },
+      {
+        "key": "NZ",
+        "value": "N -6.304516 1.325968 -3.962642"
+      },
+      {
+        "key": "1HZ",
+        "value": "H -6.733165 1.692468 -4.802127"
+      },
+      {
+        "key": "2HZ",
+        "value": "H -6.276195 0.31765 -4.027733"
+      },
+      {
+        "key": "3HZ",
+        "value": "H -6.870414 1.591293 -3.16824"
+      },
+      {
+        "key": "1H",
+        "value": "H -0.3857403 1.416816 0.8740513"
+      },
+      {
+        "key": "2H",
+        "value": "H -0.04427324 0.17682 -0.1571643"
+      },
+      {
+        "key": "OXT",
+        "value": "O -0.7869474 3.85405 0.2308864"
+      }
+    ]
+  },
+  {
+    "key": "Bonds",
+    "value": [
+      {
+        "key": "5",
+        "value": "3H N s"
+      },
+      {
+        "key": "6",
+        "value": "CA N s"
+      },
+      {
+        "key": "10",
+        "value": "HA CA s"
+      },
+      {
+        "key": "11",
+        "value": "C CA s"
+      },
+      {
+        "key": "14",
+        "value": "O C d"
+      },
+      {
+        "key": "15",
+        "value": "CB CA s"
+      },
+      {
+        "key": "19",
+        "value": "1HB CB s"
+      },
+      {
+        "key": "20",
+        "value": "2HB CB s"
+      },
+      {
+        "key": "21",
+        "value": "CG CB s"
+      },
+      {
+        "key": "25",
+        "value": "1HG CG s"
+      },
+      {
+        "key": "26",
+        "value": "2HG CG s"
+      },
+      {
+        "key": "27",
+        "value": "CD CG s"
+      },
+      {
+        "key": "31",
+        "value": "1HD CD s"
+      },
+      {
+        "key": "32",
+        "value": "2HD CD s"
+      },
+      {
+        "key": "33",
+        "value": "CE CD s"
+      },
+      {
+        "key": "37",
+        "value": "1HE CE s"
+      },
+      {
+        "key": "38",
+        "value": "2HE CE s"
+      },
+      {
+        "key": "39",
+        "value": "NZ CE s"
+      },
+      {
+        "key": "43",
+        "value": "1HZ NZ s"
+      },
+      {
+        "key": "44",
+        "value": "2HZ NZ s"
+      },
+      {
+        "key": "45",
+        "value": "3HZ NZ s"
+      },
+      {
+        "key": "46",
+        "value": "1H N s"
+      },
+      {
+        "key": "47",
+        "value": "2H N s"
+      },
+      {
+        "key": "48",
+        "value": "OXT C s"
+      }
+    ]
+  },
+  {
+    "key": "Connections",
+    "value": [
+      {
+        "key": "N-term",
+        "value": "N C-term s 1.33 0.5"
+      },
+      {
+        "key": "C-term",
+        "value": "C N-term s 1.33 0.5"
+      }
+    ]
+  },
+  {
+    "key": "Properties",
+    "value": [
+      {
+        "key": "AMINO_ACID",
+        "value": []
+      }
+    ]
+  },
+  {
+    "key": "Variants",
+    "value": [
+      {
+        "key": "Default",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": []
+              },
+              {
+                "key": "1H",
+                "value": []
+              },
+              {
+                "key": "2H",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "LYS-M",
+        "value": [
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              },
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "LYS-C",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "1H",
+                "value": []
+              },
+              {
+                "key": "2H",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Rename",
+            "value": [
+              {
+                "key": "3H",
+                "value": "H"
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "C_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "LYS-N",
+        "value": [
+          {
+            "key": "Delete",
+            "value": [
+              {
+                "key": "OXT",
+                "value": []
+              }
+            ]
+          },
+          {
+            "key": "Properties",
+            "value": [
+              {
+                "key": "N_TERMINAL",
+                "value": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,1902 @@
+[
+  {
+    "key": "PDB",
+    "value": []
+  },
+  {
+    "key": "*:H1",
+    "value": "*:1H"
+  },
+  {
+    "key": "*:H2",
+    "value": "*:2H"
+  },
+  {
+    "key": "*:H3",
+    "value": "*:3H"
+  },
+  {
+    "key": "*:N",
+    "value": "*:N"
+  },
+  {
+    "key": "*:C",
+    "value": "*:C"
+  },
+  {
+    "key": "*:O",
+    "value": "*:O"
+  },
+  {
+    "key": "*:H",
+    "value": "*:H"
+  },
+  {
+    "key": "ALA:CA",
+    "value": "ALA:CA"
+  },
+  {
+    "key": "ALA:HA",
+    "value": "ALA:HA"
+  },
+  {
+    "key": "ALA:CB",
+    "value": "ALA:CB"
+  },
+  {
+    "key": "ALA:HB1",
+    "value": "ALA:1HB"
+  },
+  {
+    "key": "ALA:HB2",
+    "value": "ALA:2HB"
+  },
+  {
+    "key": "ALA:HB3",
+    "value": "ALA:3HB"
+  },
+  {
+    "key": "ARG:CA",
+    "value": "ARG:CA"
+  },
+  {
+    "key": "ARG:HA",
+    "value": "ARG:HA"
+  },
+  {
+    "key": "ARG:CB",
+    "value": "ARG:CB"
+  },
+  {
+    "key": "ARG:HB2",
+    "value": "ARG:1HB"
+  },
+  {
+    "key": "ARG:HB3",
+    "value": "ARG:2HB"
+  },
+  {
+    "key": "ARG:CG",
+    "value": "ARG:CG"
+  },
+  {
+    "key": "ARG:HG2",
+    "value": "ARG:1HG"
+  },
+  {
+    "key": "ARG:HG3",
+    "value": "ARG:2HG"
+  },
+  {
+    "key": "ARG:CD",
+    "value": "ARG:CD"
+  },
+  {
+    "key": "ARG:HD2",
+    "value": "ARG:1HD"
+  },
+  {
+    "key": "ARG:HD3",
+    "value": "ARG:2HD"
+  },
+  {
+    "key": "ARG:NE",
+    "value": "ARG:NE"
+  },
+  {
+    "key": "ARG:HE",
+    "value": "ARG:HE"
+  },
+  {
+    "key": "ARG:CZ",
+    "value": "ARG:CZ"
+  },
+  {
+    "key": "ARG:NH1",
+    "value": "ARG:NH1"
+  },
+  {
+    "key": "ARG:HH11",
+    "value": "ARG:1HH1"
+  },
+  {
+    "key": "ARG:HH12",
+    "value": "ARG:2HH1"
+  },
+  {
+    "key": "ARG:NH2",
+    "value": "ARG:NH2"
+  },
+  {
+    "key": "ARG:HH21",
+    "value": "ARG:1HH2"
+  },
+  {
+    "key": "ARG:HH22",
+    "value": "ARG:2HH2"
+  },
+  {
+    "key": "ASN:CA",
+    "value": "ASN:CA"
+  },
+  {
+    "key": "ASN:HA",
+    "value": "ASN:HA"
+  },
+  {
+    "key": "ASN:CB",
+    "value": "ASN:CB"
+  },
+  {
+    "key": "ASN:HB2",
+    "value": "ASN:1HB"
+  },
+  {
+    "key": "ASN:HB3",
+    "value": "ASN:2HB"
+  },
+  {
+    "key": "ASN:CG",
+    "value": "ASN:CG"
+  },
+  {
+    "key": "ASN:OD1",
+    "value": "ASN:OD1"
+  },
+  {
+    "key": "ASN:ND2",
+    "value": "ASN:ND2"
+  },
+  {
+    "key": "ASN:HD21",
+    "value": "ASN:1HD2"
+  },
+  {
+    "key": "ASN:HD22",
+    "value": "ASN:2HD2"
+  },
+  {
+    "key": "ASP:CA",
+    "value": "ASP:CA"
+  },
+  {
+    "key": "ASP:HA",
+    "value": "ASP:HA"
+  },
+  {
+    "key": "ASP:CB",
+    "value": "ASP:CB"
+  },
+  {
+    "key": "ASP:HB2",
+    "value": "ASP:1HB"
+  },
+  {
+    "key": "ASP:HB3",
+    "value": "ASP:2HB"
+  },
+  {
+    "key": "ASP:CG",
+    "value": "ASP:CG"
+  },
+  {
+    "key": "ASP:OD1",
+    "value": "ASP:OD1"
+  },
+  {
+    "key": "ASP:OD2",
+    "value": "ASP:OD2"
+  },
+  {
+    "key": "CYS:CA",
+    "value": "CYS:CA"
+  },
+  {
+    "key": "CYS:HA",
+    "value": "CYS:HA"
+  },
+  {
+    "key": "CYS:CB",
+    "value": "CYS:CB"
+  },
+  {
+    "key": "CYS:HB2",
+    "value": "CYS:1HB"
+  },
+  {
+    "key": "CYS:HB3",
+    "value": "CYS:2HB"
+  },
+  {
+    "key": "CYS:SG",
+    "value": "CYS:SG"
+  },
+  {
+    "key": "CYS:HG",
+    "value": "CYS:HG"
+  },
+  {
+    "key": "CYS:HSG",
+    "value": "CYS:HG"
+  },
+  {
+    "key": "GLU:CA",
+    "value": "GLU:CA"
+  },
+  {
+    "key": "GLU:HA",
+    "value": "GLU:HA"
+  },
+  {
+    "key": "GLU:CB",
+    "value": "GLU:CB"
+  },
+  {
+    "key": "GLU:HB2",
+    "value": "GLU:1HB"
+  },
+  {
+    "key": "GLU:HB3",
+    "value": "GLU:2HB"
+  },
+  {
+    "key": "GLU:CG",
+    "value": "GLU:CG"
+  },
+  {
+    "key": "GLU:HG2",
+    "value": "GLU:1HG"
+  },
+  {
+    "key": "GLU:HG3",
+    "value": "GLU:2HG"
+  },
+  {
+    "key": "GLU:CD",
+    "value": "GLU:CD"
+  },
+  {
+    "key": "GLU:OE1",
+    "value": "GLU:OE1"
+  },
+  {
+    "key": "GLU:OE2",
+    "value": "GLU:OE2"
+  },
+  {
+    "key": "GLN:CA",
+    "value": "GLN:CA"
+  },
+  {
+    "key": "GLN:HA",
+    "value": "GLN:HA"
+  },
+  {
+    "key": "GLN:CB",
+    "value": "GLN:CB"
+  },
+  {
+    "key": "GLN:HB2",
+    "value": "GLN:1HB"
+  },
+  {
+    "key": "GLN:HB3",
+    "value": "GLN:2HB"
+  },
+  {
+    "key": "GLN:CG",
+    "value": "GLN:CG"
+  },
+  {
+    "key": "GLN:HG2",
+    "value": "GLN:1HG"
+  },
+  {
+    "key": "GLN:HG3",
+    "value": "GLN:2HG"
+  },
+  {
+    "key": "GLN:CD",
+    "value": "GLN:CD"
+  },
+  {
+    "key": "GLN:OE1",
+    "value": "GLN:OE1"
+  },
+  {
+    "key": "GLN:NE2",
+    "value": "GLN:NE2"
+  },
+  {
+    "key": "GLN:HE21",
+    "value": "GLN:1HE2"
+  },
+  {
+    "key": "GLN:HE22",
+    "value": "GLN:2HE2"
+  },
+  {
+    "key": "GLY:CA",
+    "value": "GLY:CA"
+  },
+  {
+    "key": "GLY:HA2",
+    "value": "GLY:1HA"
+  },
+  {
+    "key": "GLY:HA3",
+    "value": "GLY:2HA"
+  },
+  {
+    "key": "HIS:CA",
+    "value": "HIS:CA"
+  },
+  {
+    "key": "HIS:HA",
+    "value": "HIS:HA"
+  },
+  {
+    "key": "HIS:CB",
+    "value": "HIS:CB"
+  },
+  {
+    "key": "HIS:HB2",
+    "value": "HIS:1HB"
+  },
+  {
+    "key": "HIS:HB3",
+    "value": "HIS:2HB"
+  },
+  {
+    "key": "HIS:CG",
+    "value": "HIS:CG"
+  },
+  {
+    "key": "HIS:ND1",
+    "value": "HIS:ND1"
+  },
+  {
+    "key": "HIS:HD1",
+    "value": "HIS:HD1"
+  },
+  {
+    "key": "HIS:CE1",
+    "value": "HIS:CE1"
+  },
+  {
+    "key": "HIS:HE1",
+    "value": "HIS:HE1"
+  },
+  {
+    "key": "HIS:NE2",
+    "value": "HIS:NE2"
+  },
+  {
+    "key": "HIS:HE2",
+    "value": "HIS:HE2"
+  },
+  {
+    "key": "HIS:CD2",
+    "value": "HIS:CD2"
+  },
+  {
+    "key": "HIS:HD2",
+    "value": "HIS:HD2"
+  },
+  {
+    "key": "ILE:CA",
+    "value": "ILE:CA"
+  },
+  {
+    "key": "ILE:HA",
+    "value": "ILE:HA"
+  },
+  {
+    "key": "ILE:CB",
+    "value": "ILE:CB"
+  },
+  {
+    "key": "ILE:HB",
+    "value": "ILE:HB"
+  },
+  {
+    "key": "ILE:CG2",
+    "value": "ILE:CG2"
+  },
+  {
+    "key": "ILE:HG21",
+    "value": "ILE:1HG2"
+  },
+  {
+    "key": "ILE:HG22",
+    "value": "ILE:2HG2"
+  },
+  {
+    "key": "ILE:HG23",
+    "value": "ILE:3HG2"
+  },
+  {
+    "key": "ILE:CG1",
+    "value": "ILE:CG1"
+  },
+  {
+    "key": "ILE:HG12",
+    "value": "ILE:1HG1"
+  },
+  {
+    "key": "ILE:HG13",
+    "value": "ILE:2HG1"
+  },
+  {
+    "key": "ILE:CD1",
+    "value": "ILE:CD1"
+  },
+  {
+    "key": "ILE:HD11",
+    "value": "ILE:1HD1"
+  },
+  {
+    "key": "ILE:HD12",
+    "value": "ILE:2HD1"
+  },
+  {
+    "key": "ILE:HD13",
+    "value": "ILE:3HD1"
+  },
+  {
+    "key": "LEU:CA",
+    "value": "LEU:CA"
+  },
+  {
+    "key": "LEU:HA",
+    "value": "LEU:HA"
+  },
+  {
+    "key": "LEU:CB",
+    "value": "LEU:CB"
+  },
+  {
+    "key": "LEU:HB2",
+    "value": "LEU:1HB"
+  },
+  {
+    "key": "LEU:HB3",
+    "value": "LEU:2HB"
+  },
+  {
+    "key": "LEU:CG",
+    "value": "LEU:CG"
+  },
+  {
+    "key": "LEU:HG",
+    "value": "LEU:HG"
+  },
+  {
+    "key": "LEU:CD1",
+    "value": "LEU:CD1"
+  },
+  {
+    "key": "LEU:HD11",
+    "value": "LEU:1HD1"
+  },
+  {
+    "key": "LEU:HD12",
+    "value": "LEU:2HD1"
+  },
+  {
+    "key": "LEU:HD13",
+    "value": "LEU:3HD1"
+  },
+  {
+    "key": "LEU:CD2",
+    "value": "LEU:CD2"
+  },
+  {
+    "key": "LEU:HD21",
+    "value": "LEU:1HD2"
+  },
+  {
+    "key": "LEU:HD22",
+    "value": "LEU:2HD2"
+  },
+  {
+    "key": "LEU:HD23",
+    "value": "LEU:3HD2"
+  },
+  {
+    "key": "LYS:CA",
+    "value": "LYS:CA"
+  },
+  {
+    "key": "LYS:HA",
+    "value": "LYS:HA"
+  },
+  {
+    "key": "LYS:CB",
+    "value": "LYS:CB"
+  },
+  {
+    "key": "LYS:HB2",
+    "value": "LYS:1HB"
+  },
+  {
+    "key": "LYS:HB3",
+    "value": "LYS:2HB"
+  },
+  {
+    "key": "LYS:CG",
+    "value": "LYS:CG"
+  },
+  {
+    "key": "LYS:HG2",
+    "value": "LYS:1HG"
+  },
+  {
+    "key": "LYS:HG3",
+    "value": "LYS:2HG"
+  },
+  {
+    "key": "LYS:CD",
+    "value": "LYS:CD"
+  },
+  {
+    "key": "LYS:HD2",
+    "value": "LYS:1HD"
+  },
+  {
+    "key": "LYS:HD3",
+    "value": "LYS:2HD"
+  },
+  {
+    "key": "LYS:CE",
+    "value": "LYS:CE"
+  },
+  {
+    "key": "LYS:HE2",
+    "value": "LYS:1HE"
+  },
+  {
+    "key": "LYS:HE3",
+    "value": "LYS:2HE"
+  },
+  {
+    "key": "LYS:NZ",
+    "value": "LYS:NZ"
+  },
+  {
+    "key": "LYS:HZ1",
+    "value": "LYS:1HZ"
+  },
+  {
+    "key": "LYS:HZ2",
+    "value": "LYS:2HZ"
+  },
+  {
+    "key": "LYS:HZ3",
+    "value": "LYS:3HZ"
+  },
+  {
+    "key": "MET:CA",
+    "value": "MET:CA"
+  },
+  {
+    "key": "MET:HA",
+    "value": "MET:HA"
+  },
+  {
+    "key": "MET:CB",
+    "value": "MET:CB"
+  },
+  {
+    "key": "MET:HB2",
+    "value": "MET:1HB"
+  },
+  {
+    "key": "MET:HB3",
+    "value": "MET:2HB"
+  },
+  {
+    "key": "MET:CG",
+    "value": "MET:CG"
+  },
+  {
+    "key": "MET:HG2",
+    "value": "MET:1HG"
+  },
+  {
+    "key": "MET:HG3",
+    "value": "MET:2HG"
+  },
+  {
+    "key": "MET:SD",
+    "value": "MET:SD"
+  },
+  {
+    "key": "MET:CE",
+    "value": "MET:CE"
+  },
+  {
+    "key": "MET:HE1",
+    "value": "MET:1HE"
+  },
+  {
+    "key": "MET:HE2",
+    "value": "MET:2HE"
+  },
+  {
+    "key": "MET:HE3",
+    "value": "MET:3HE"
+  },
+  {
+    "key": "PHE:CA",
+    "value": "PHE:CA"
+  },
+  {
+    "key": "PHE:HA",
+    "value": "PHE:HA"
+  },
+  {
+    "key": "PHE:CB",
+    "value": "PHE:CB"
+  },
+  {
+    "key": "PHE:HB2",
+    "value": "PHE:1HB"
+  },
+  {
+    "key": "PHE:HB3",
+    "value": "PHE:2HB"
+  },
+  {
+    "key": "PHE:CG",
+    "value": "PHE:CG"
+  },
+  {
+    "key": "PHE:CD1",
+    "value": "PHE:CD1"
+  },
+  {
+    "key": "PHE:HD1",
+    "value": "PHE:HD1"
+  },
+  {
+    "key": "PHE:CE1",
+    "value": "PHE:CE1"
+  },
+  {
+    "key": "PHE:HE1",
+    "value": "PHE:HE1"
+  },
+  {
+    "key": "PHE:CZ",
+    "value": "PHE:CZ"
+  },
+  {
+    "key": "PHE:HZ",
+    "value": "PHE:HZ"
+  },
+  {
+    "key": "PHE:CE2",
+    "value": "PHE:CE2"
+  },
+  {
+    "key": "PHE:HE2",
+    "value": "PHE:HE2"
+  },
+  {
+    "key": "PHE:CD2",
+    "value": "PHE:CD2"
+  },
+  {
+    "key": "PHE:HD2",
+    "value": "PHE:HD2"
+  },
+  {
+    "key": "PRO:CA",
+    "value": "PRO:CA"
+  },
+  {
+    "key": "PRO:HA",
+    "value": "PRO:HA"
+  },
+  {
+    "key": "PRO:CD",
+    "value": "PRO:CD"
+  },
+  {
+    "key": "PRO:HD2",
+    "value": "PRO:1HD"
+  },
+  {
+    "key": "PRO:HD3",
+    "value": "PRO:2HD"
+  },
+  {
+    "key": "PRO:CG",
+    "value": "PRO:CG"
+  },
+  {
+    "key": "PRO:HG2",
+    "value": "PRO:1HG"
+  },
+  {
+    "key": "PRO:HG3",
+    "value": "PRO:2HG"
+  },
+  {
+    "key": "PRO:CB",
+    "value": "PRO:CB"
+  },
+  {
+    "key": "PRO:HB2",
+    "value": "PRO:1HB"
+  },
+  {
+    "key": "PRO:HB3",
+    "value": "PRO:2HB"
+  },
+  {
+    "key": "SER:CA",
+    "value": "SER:CA"
+  },
+  {
+    "key": "SER:HA",
+    "value": "SER:HA"
+  },
+  {
+    "key": "SER:CB",
+    "value": "SER:CB"
+  },
+  {
+    "key": "SER:HB2",
+    "value": "SER:1HB"
+  },
+  {
+    "key": "SER:HB3",
+    "value": "SER:2HB"
+  },
+  {
+    "key": "SER:OG",
+    "value": "SER:OG"
+  },
+  {
+    "key": "SER:HG",
+    "value": "SER:HG"
+  },
+  {
+    "key": "THR:CA",
+    "value": "THR:CA"
+  },
+  {
+    "key": "THR:HA",
+    "value": "THR:HA"
+  },
+  {
+    "key": "THR:CB",
+    "value": "THR:CB"
+  },
+  {
+    "key": "THR:HB",
+    "value": "THR:HB"
+  },
+  {
+    "key": "THR:CG2",
+    "value": "THR:CG2"
+  },
+  {
+    "key": "THR:HG21",
+    "value": "THR:1HG2"
+  },
+  {
+    "key": "THR:HG22",
+    "value": "THR:2HG2"
+  },
+  {
+    "key": "THR:HG23",
+    "value": "THR:3HG2"
+  },
+  {
+    "key": "THR:OG1",
+    "value": "THR:OG1"
+  },
+  {
+    "key": "THR:HG1",
+    "value": "THR:HG1"
+  },
+  {
+    "key": "TRP:CA",
+    "value": "TRP:CA"
+  },
+  {
+    "key": "TRP:HA",
+    "value": "TRP:HA"
+  },
+  {
+    "key": "TRP:CB",
+    "value": "TRP:CB"
+  },
+  {
+    "key": "TRP:HB2",
+    "value": "TRP:1HB"
+  },
+  {
+    "key": "TRP:HB3",
+    "value": "TRP:2HB"
+  },
+  {
+    "key": "TRP:CG",
+    "value": "TRP:CG"
+  },
+  {
+    "key": "TRP:CD1",
+    "value": "TRP:CD1"
+  },
+  {
+    "key": "TRP:HD1",
+    "value": "TRP:HD1"
+  },
+  {
+    "key": "TRP:NE1",
+    "value": "TRP:NE1"
+  },
+  {
+    "key": "TRP:HE1",
+    "value": "TRP:HE1"
+  },
+  {
+    "key": "TRP:CE2",
+    "value": "TRP:CE2"
+  },
+  {
+    "key": "TRP:CZ2",
+    "value": "TRP:CZ2"
+  },
+  {
+    "key": "TRP:HZ2",
+    "value": "TRP:HZ2"
+  },
+  {
+    "key": "TRP:CH2",
+    "value": "TRP:CH2"
+  },
+  {
+    "key": "TRP:HH2",
+    "value": "TRP:HH2"
+  },
+  {
+    "key": "TRP:CZ3",
+    "value": "TRP:CZ3"
+  },
+  {
+    "key": "TRP:HZ3",
+    "value": "TRP:HZ3"
+  },
+  {
+    "key": "TRP:CE3",
+    "value": "TRP:CE3"
+  },
+  {
+    "key": "TRP:HE3",
+    "value": "TRP:HE3"
+  },
+  {
+    "key": "TRP:CD2",
+    "value": "TRP:CD2"
+  },
+  {
+    "key": "TYR:CA",
+    "value": "TYR:CA"
+  },
+  {
+    "key": "TYR:HA",
+    "value": "TYR:HA"
+  },
+  {
+    "key": "TYR:CB",
+    "value": "TYR:CB"
+  },
+  {
+    "key": "TYR:HB2",
+    "value": "TYR:1HB"
+  },
+  {
+    "key": "TYR:HB3",
+    "value": "TYR:2HB"
+  },
+  {
+    "key": "TYR:CG",
+    "value": "TYR:CG"
+  },
+  {
+    "key": "TYR:CD1",
+    "value": "TYR:CD1"
+  },
+  {
+    "key": "TYR:HD1",
+    "value": "TYR:HD1"
+  },
+  {
+    "key": "TYR:CE1",
+    "value": "TYR:CE1"
+  },
+  {
+    "key": "TYR:HE1",
+    "value": "TYR:HE1"
+  },
+  {
+    "key": "TYR:CZ",
+    "value": "TYR:CZ"
+  },
+  {
+    "key": "TYR:OH",
+    "value": "TYR:OH"
+  },
+  {
+    "key": "TYR:HH",
+    "value": "TYR:HH"
+  },
+  {
+    "key": "TYR:CE2",
+    "value": "TYR:CE2"
+  },
+  {
+    "key": "TYR:HE2",
+    "value": "TYR:HE2"
+  },
+  {
+    "key": "TYR:CD2",
+    "value": "TYR:CD2"
+  },
+  {
+    "key": "TYR:HD2",
+    "value": "TYR:HD2"
+  },
+  {
+    "key": "VAL:CA",
+    "value": "VAL:CA"
+  },
+  {
+    "key": "VAL:HA",
+    "value": "VAL:HA"
+  },
+  {
+    "key": "VAL:CB",
+    "value": "VAL:CB"
+  },
+  {
+    "key": "VAL:HB",
+    "value": "VAL:HB"
+  },
+  {
+    "key": "VAL:CG1",
+    "value": "VAL:CG1"
+  },
+  {
+    "key": "VAL:HG11",
+    "value": "VAL:1HG1"
+  },
+  {
+    "key": "VAL:HG12",
+    "value": "VAL:2HG1"
+  },
+  {
+    "key": "VAL:HG13",
+    "value": "VAL:3HG1"
+  },
+  {
+    "key": "VAL:CG2",
+    "value": "VAL:CG2"
+  },
+  {
+    "key": "VAL:HG21",
+    "value": "VAL:1HG2"
+  },
+  {
+    "key": "VAL:HG22",
+    "value": "VAL:2HG2"
+  },
+  {
+    "key": "VAL:HG23",
+    "value": "VAL:3HG2"
+  },
+  {
+    "key": "DC:P",
+    "value": "C:P"
+  },
+  {
+    "key": "DC:O1P",
+    "value": "C:O1P"
+  },
+  {
+    "key": "DC:O2P",
+    "value": "C:O2P"
+  },
+  {
+    "key": "DC:O5'",
+    "value": "C:O5*"
+  },
+  {
+    "key": "DC:C5'",
+    "value": "C:C5*"
+  },
+  {
+    "key": "DC:H5'1",
+    "value": "C:1H5*"
+  },
+  {
+    "key": "DC:H5'2",
+    "value": "C:2H5*"
+  },
+  {
+    "key": "DC:C4'",
+    "value": "C:C4*"
+  },
+  {
+    "key": "DC:H4'",
+    "value": "C:H4*"
+  },
+  {
+    "key": "DC:O4'",
+    "value": "C:O4*"
+  },
+  {
+    "key": "DC:C1'",
+    "value": "C:C1*"
+  },
+  {
+    "key": "DC:H1'",
+    "value": "C:H1*"
+  },
+  {
+    "key": "DC:N1",
+    "value": "C:N1"
+  },
+  {
+    "key": "DC:C6",
+    "value": "C:C6"
+  },
+  {
+    "key": "DC:H6",
+    "value": "C:H6"
+  },
+  {
+    "key": "DC:C5",
+    "value": "C:C5"
+  },
+  {
+    "key": "DC:H5",
+    "value": "C:H5"
+  },
+  {
+    "key": "DC:C4",
+    "value": "C:C4"
+  },
+  {
+    "key": "DC:N4",
+    "value": "C:N4"
+  },
+  {
+    "key": "DC:H41",
+    "value": "C:1H4"
+  },
+  {
+    "key": "DC:H42",
+    "value": "C:2H4"
+  },
+  {
+    "key": "DC:N3",
+    "value": "C:N3"
+  },
+  {
+    "key": "DC:C2",
+    "value": "C:C2"
+  },
+  {
+    "key": "DC:O2",
+    "value": "C:O2"
+  },
+  {
+    "key": "DC:C3'",
+    "value": "C:C3*"
+  },
+  {
+    "key": "DC:H3'",
+    "value": "C:H3*"
+  },
+  {
+    "key": "DC:C2'",
+    "value": "C:C2*"
+  },
+  {
+    "key": "DC:H2'1",
+    "value": "C:1H2*"
+  },
+  {
+    "key": "DC:H2'2",
+    "value": "C:2H2*"
+  },
+  {
+    "key": "DC:O3'",
+    "value": "C:O3*"
+  },
+  {
+    "key": "DA:P",
+    "value": "A:P"
+  },
+  {
+    "key": "DA:O1P",
+    "value": "A:O1P"
+  },
+  {
+    "key": "DA:O2P",
+    "value": "A:O2P"
+  },
+  {
+    "key": "DA:O5'",
+    "value": "A:O5*"
+  },
+  {
+    "key": "DA:C5'",
+    "value": "A:C5*"
+  },
+  {
+    "key": "DA:H5'1",
+    "value": "A:1H5*"
+  },
+  {
+    "key": "DA:H5'2",
+    "value": "A:2H5*"
+  },
+  {
+    "key": "DA:C4'",
+    "value": "A:C4*"
+  },
+  {
+    "key": "DA:H4'",
+    "value": "A:H4*"
+  },
+  {
+    "key": "DA:O4'",
+    "value": "A:O4*"
+  },
+  {
+    "key": "DA:C1'",
+    "value": "A:C1*"
+  },
+  {
+    "key": "DA:H1'",
+    "value": "A:H1*"
+  },
+  {
+    "key": "DA:N9",
+    "value": "A:N9"
+  },
+  {
+    "key": "DA:C8",
+    "value": "A:C8"
+  },
+  {
+    "key": "DA:H8",
+    "value": "A:H8"
+  },
+  {
+    "key": "DA:N7",
+    "value": "A:N7"
+  },
+  {
+    "key": "DA:C5",
+    "value": "A:C5"
+  },
+  {
+    "key": "DA:C6",
+    "value": "A:C6"
+  },
+  {
+    "key": "DA:N6",
+    "value": "A:N6"
+  },
+  {
+    "key": "DA:H61",
+    "value": "A:1H6"
+  },
+  {
+    "key": "DA:H62",
+    "value": "A:2H6"
+  },
+  {
+    "key": "DA:N1",
+    "value": "A:N1"
+  },
+  {
+    "key": "DA:C2",
+    "value": "A:C2"
+  },
+  {
+    "key": "DA:H2",
+    "value": "A:2H"
+  },
+  {
+    "key": "DA:N3",
+    "value": "A:N3"
+  },
+  {
+    "key": "DA:C4",
+    "value": "A:C4"
+  },
+  {
+    "key": "DA:C3'",
+    "value": "A:C3*"
+  },
+  {
+    "key": "DA:H3'",
+    "value": "A:H3*"
+  },
+  {
+    "key": "DA:C2'",
+    "value": "A:C2*"
+  },
+  {
+    "key": "DA:H2'1",
+    "value": "A:1H2*"
+  },
+  {
+    "key": "DA:H2'2",
+    "value": "A:2H2*"
+  },
+  {
+    "key": "DA:O3'",
+    "value": "A:O3*"
+  },
+  {
+    "key": "DT:P",
+    "value": "T:P"
+  },
+  {
+    "key": "DT:O1P",
+    "value": "T:O1P"
+  },
+  {
+    "key": "DT:O2P",
+    "value": "T:O2P"
+  },
+  {
+    "key": "DT:O5'",
+    "value": "T:O5*"
+  },
+  {
+    "key": "DT:C5'",
+    "value": "T:C5*"
+  },
+  {
+    "key": "DT:H5'1",
+    "value": "T:1H5*"
+  },
+  {
+    "key": "DT:H5'2",
+    "value": "T:2H5*"
+  },
+  {
+    "key": "DT:C4'",
+    "value": "T:C4*"
+  },
+  {
+    "key": "DT:H4'",
+    "value": "T:H4*"
+  },
+  {
+    "key": "DT:O4'",
+    "value": "T:O4*"
+  },
+  {
+    "key": "DT:C1'",
+    "value": "T:C1*"
+  },
+  {
+    "key": "DT:H1'",
+    "value": "T:H1*"
+  },
+  {
+    "key": "DT:N1",
+    "value": "T:N1"
+  },
+  {
+    "key": "DT:C6",
+    "value": "T:C6"
+  },
+  {
+    "key": "DT:H6",
+    "value": "T:H6"
+  },
+  {
+    "key": "DT:C5",
+    "value": "T:C5"
+  },
+  {
+    "key": "DT:C7",
+    "value": "T:C5M"
+  },
+  {
+    "key": "DT:H71",
+    "value": "T:1H5M"
+  },
+  {
+    "key": "DT:H72",
+    "value": "T:2H5M"
+  },
+  {
+    "key": "DT:H73",
+    "value": "T:3H5M"
+  },
+  {
+    "key": "DT:C4",
+    "value": "T:C4"
+  },
+  {
+    "key": "DT:O4",
+    "value": "T:O4"
+  },
+  {
+    "key": "DT:N3",
+    "value": "T:N3"
+  },
+  {
+    "key": "DT:H3",
+    "value": "T:3H"
+  },
+  {
+    "key": "DT:C2",
+    "value": "T:C2"
+  },
+  {
+    "key": "DT:O2",
+    "value": "T:O2"
+  },
+  {
+    "key": "DT:C3'",
+    "value": "T:C3*"
+  },
+  {
+    "key": "DT:H3'",
+    "value": "T:H3*"
+  },
+  {
+    "key": "DT:C2'",
+    "value": "T:C2*"
+  },
+  {
+    "key": "DT:H2'1",
+    "value": "T:1H2*"
+  },
+  {
+    "key": "DT:H2'2",
+    "value": "T:2H2*"
+  },
+  {
+    "key": "DT:O3'",
+    "value": "T:O3*"
+  },
+  {
+    "key": "DG:P",
+    "value": "G:P"
+  },
+  {
+    "key": "DG:O1P",
+    "value": "G:O1P"
+  },
+  {
+    "key": "DG:O2P",
+    "value": "G:O2P"
+  },
+  {
+    "key": "DG:O5'",
+    "value": "G:O5*"
+  },
+  {
+    "key": "DG:C5'",
+    "value": "G:C5*"
+  },
+  {
+    "key": "DG:H5'1",
+    "value": "G:1H5*"
+  },
+  {
+    "key": "DG:H5'2",
+    "value": "G:2H5*"
+  },
+  {
+    "key": "DG:C4'",
+    "value": "G:C4*"
+  },
+  {
+    "key": "DG:H4'",
+    "value": "G:H4*"
+  },
+  {
+    "key": "DG:O4'",
+    "value": "G:O4*"
+  },
+  {
+    "key": "DG:C1'",
+    "value": "G:C1*"
+  },
+  {
+    "key": "DG:H1'",
+    "value": "G:H1*"
+  },
+  {
+    "key": "DG:N9",
+    "value": "G:N9"
+  },
+  {
+    "key": "DG:C8",
+    "value": "G:C8"
+  },
+  {
+    "key": "DG:H8",
+    "value": "G:H8"
+  },
+  {
+    "key": "DG:N7",
+    "value": "G:N7"
+  },
+  {
+    "key": "DG:C5",
+    "value": "G:C5"
+  },
+  {
+    "key": "DG:C6",
+    "value": "G:C6"
+  },
+  {
+    "key": "DG:O6",
+    "value": "G:O6"
+  },
+  {
+    "key": "DG:N1",
+    "value": "G:N1"
+  },
+  {
+    "key": "DG:H1",
+    "value": "G:1H"
+  },
+  {
+    "key": "DG:C2",
+    "value": "G:C2"
+  },
+  {
+    "key": "DG:N2",
+    "value": "G:N2"
+  },
+  {
+    "key": "DG:H21",
+    "value": "G:1H2"
+  },
+  {
+    "key": "DG:H22",
+    "value": "G:2H2"
+  },
+  {
+    "key": "DG:N3",
+    "value": "G:N3"
+  },
+  {
+    "key": "DG:C4",
+    "value": "G:C4"
+  },
+  {
+    "key": "DG:C3'",
+    "value": "G:C3*"
+  },
+  {
+    "key": "DG:H3'",
+    "value": "G:H3*"
+  },
+  {
+    "key": "DG:C2'",
+    "value": "G:C2*"
+  },
+  {
+    "key": "DG:H2'1",
+    "value": "G:1H2*"
+  },
+  {
+    "key": "DG:H2'2",
+    "value": "G:2H2*"
+  },
+  {
+    "key": "DG:O3'",
+    "value": "G:O3*"
+  },
+  {
+    "key": "*:OXT",
+    "value": "*:OXT"
+  },
+  {
+    "key": "GLH:CA",
+    "value": "GLH:CA"
+  },
+  {
+    "key": "GLH:HA",
+    "value": "GLH:HA"
+  },
+  {
+    "key": "GLH:CB",
+    "value": "GLH:CB"
+  },
+  {
+    "key": "GLH:HB2",
+    "value": "GLH:1HB"
+  },
+  {
+    "key": "GLH:HB3",
+    "value": "GLH:2HB"
+  },
+  {
+    "key": "GLH:CG",
+    "value": "GLH:CG"
+  },
+  {
+    "key": "GLH:HG2",
+    "value": "GLH:1HG"
+  },
+  {
+    "key": "GLH:HG3",
+    "value": "GLH:2HG"
+  },
+  {
+    "key": "GLH:CD",
+    "value": "GLH:CD"
+  },
+  {
+    "key": "GLH:OE1",
+    "value": "GLH:OE1"
+  },
+  {
+    "key": "GLH:OE2",
+    "value": "GLH:OE2"
+  },
+  {
+    "key": "GLH:HE2",
+    "value": "GLH:2HE"
+  },
+  {
+    "key": "HID:CA",
+    "value": "HID:CA"
+  },
+  {
+    "key": "HID:HA",
+    "value": "HID:HA"
+  },
+  {
+    "key": "HID:CB",
+    "value": "HID:CB"
+  },
+  {
+    "key": "HID:HB2",
+    "value": "HID:1HB"
+  },
+  {
+    "key": "HID:HB3",
+    "value": "HID:2HB"
+  },
+  {
+    "key": "HID:CG",
+    "value": "HID:CG"
+  },
+  {
+    "key": "HID:ND1",
+    "value": "HID:ND1"
+  },
+  {
+    "key": "HID:HD1",
+    "value": "HID:HD1"
+  },
+  {
+    "key": "HID:CE1",
+    "value": "HID:CE1"
+  },
+  {
+    "key": "HID:HE1",
+    "value": "HID:HE1"
+  },
+  {
+    "key": "HID:NE2",
+    "value": "HID:NE2"
+  },
+  {
+    "key": "HID:HE2",
+    "value": "HID:HE2"
+  },
+  {
+    "key": "HID:CD2",
+    "value": "HID:CD2"
+  },
+  {
+    "key": "HID:HD2",
+    "value": "HID:HD2"
+  },
+  {
+    "key": "HIE:CA",
+    "value": "HIE:CA"
+  },
+  {
+    "key": "HIE:HA",
+    "value": "HIE:HA"
+  },
+  {
+    "key": "HIE:CB",
+    "value": "HIE:CB"
+  },
+  {
+    "key": "HIE:HB2",
+    "value": "HIE:1HB"
+  },
+  {
+    "key": "HIE:HB3",
+    "value": "HIE:2HB"
+  },
+  {
+    "key": "HIE:CG",
+    "value": "HIE:CG"
+  },
+  {
+    "key": "HIE:ND1",
+    "value": "HIE:ND1"
+  },
+  {
+    "key": "HIE:HD1",
+    "value": "HIE:HD1"
+  },
+  {
+    "key": "HIE:CE1",
+    "value": "HIE:CE1"
+  },
+  {
+    "key": "HIE:HE1",
+    "value": "HIE:HE1"
+  },
+  {
+    "key": "HIE:NE2",
+    "value": "HIE:NE2"
+  },
+  {
+    "key": "HIE:HE2",
+    "value": "HIE:HE2"
+  },
+  {
+    "key": "HIE:CD2",
+    "value": "HIE:CD2"
+  },
+  {
+    "key": "HIE:HD2",
+    "value": "HIE:HD2"
+  },
+  {
+    "key": "HIP:CA",
+    "value": "HIP:CA"
+  },
+  {
+    "key": "HIP:HA",
+    "value": "HIP:HA"
+  },
+  {
+    "key": "HIP:CB",
+    "value": "HIP:CB"
+  },
+  {
+    "key": "HIP:HB2",
+    "value": "HIP:1HB"
+  },
+  {
+    "key": "HIP:HB3",
+    "value": "HIP:2HB"
+  },
+  {
+    "key": "HIP:CG",
+    "value": "HIP:CG"
+  },
+  {
+    "key": "HIP:ND1",
+    "value": "HIP:ND1"
+  },
+  {
+    "key": "HIP:HD1",
+    "value": "HIP:HD1"
+  },
+  {
+    "key": "HIP:CE1",
+    "value": "HIP:CE1"
+  },
+  {
+    "key": "HIP:HE1",
+    "value": "HIP:HE1"
+  },
+  {
+    "key": "HIP:NE2",
+    "value": "HIP:NE2"
+  },
+  {
+    "key": "HIP:HE2",
+    "value": "HIP:HE2"
+  },
+  {
+    "key": "HIP:CD2",
+    "value": "HIP:CD2"
+  },
+  {
+    "key": "HIP:HD2",
+    "value": "HIP:HD2"
+  },
+  {
+    "key": "CYM:CA",
+    "value": "CYM:CA"
+  },
+  {
+    "key": "CYM:CB",
+    "value": "CYM:CB"
+  },
+  {
+    "key": "CYM:HA",
+    "value": "CYM:HA"
+  },
+  {
+    "key": "CYM:HB2",
+    "value": "CYM:1HB"
+  },
+  {
+    "key": "CYM:HB3",
+    "value": "CYM:2HB"
+  },
+  {
+    "key": "CYM:SG",
+    "value": "CYM:SG"
+  },
+  {
+    "key": "CYM:HN",
+    "value": "CYM:HN"
+  },
+  {
+    "key": "CYX:CA",
+    "value": "CYX:CA"
+  },
+  {
+    "key": "CYX:CB",
+    "value": "CYX:CB"
+  },
+  {
+    "key": "CYX:HA",
+    "value": "CYX:HA"
+  },
+  {
+    "key": "CYX:HB2",
+    "value": "CYX:1HB"
+  },
+  {
+    "key": "CYX:HB3",
+    "value": "CYX:2HB"
+  },
+  {
+    "key": "CYX:SG",
+    "value": "CYX:SG"
+  },
+  {
+    "key": "ACE:CH3",
+    "value": "ACE:CH3"
+  },
+  {
+    "key": "ACE:HH31",
+    "value": "ACE:1HH3"
+  },
+  {
+    "key": "ACE:HH32",
+    "value": "ACE:2HH3"
+  },
+  {
+    "key": "ACE:HH33",
+    "value": "ACE:3HH3"
+  },
+  {
+    "key": "NME:CH3",
+    "value": "NME:CH3"
+  },
+  {
+    "key": "NME:HH31",
+    "value": "NME:1HH3"
+  },
+  {
+    "key": "NME:HH32",
+    "value": "NME:2HH3"
+  },
+  {
+    "key": "NME:HH33",
+    "value": "NME:3HH3"
+  },
+  {
+    "key": "LYN:NZ",
+    "value": "LYN:NZ"
+  },
+  {
+    "key": "LYN:CA",
+    "value": "LYN:CA"
+  },
+  {
+    "key": "LYN:CB",
+    "value": "LYN:CB"
+  },
+  {
+    "key": "LYN:CG",
+    "value": "LYN:CG"
+  },
+  {
+    "key": "LYN:CD",
+    "value": "LYN:CD"
+  },
+  {
+    "key": "LYN:CE",
+    "value": "LYN:CE"
+  },
+  {
+    "key": "LYN:HA",
+    "value": "LYN:HA"
+  },
+  {
+    "key": "LYN:HB2",
+    "value": "LYN:1HB"
+  },
+  {
+    "key": "LYN:HB3",
+    "value": "LYN:2HB"
+  },
+  {
+    "key": "LYN:HD2",
+    "value": "LYN:1HD"
+  },
+  {
+    "key": "LYN:HD3",
+    "value": "LYN:2HD"
+  },
+  {
+    "key": "LYN:HE2",
+    "value": "LYN:1HE"
+  },
+  {
+    "key": "LYN:HE3",
+    "value": "LYN:2HE"
+  },
+  {
+    "key": "LYN:HG2",
+    "value": "LYN:1HG"
+  },
+  {
+    "key": "LYN:HG3",
+    "value": "LYN:2HG"
+  },
+  {
+    "key": "LYN:HZ2",
+    "value": "LYN:2HZ"
+  },
+  {
+    "key": "LYN:HZ3",
+    "value": "LYN:3HZ"
+  }
+]
