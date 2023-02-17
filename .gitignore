@@ -1,6 +1,9 @@
 *.jl.*.cov
 *.jl.cov
 *.jl.mem
+/tmp
+/_data
 /.vscode/
 /docs/build/
 Manifest.toml
+.DS_Store
