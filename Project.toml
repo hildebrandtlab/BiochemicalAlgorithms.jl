@@ -20,7 +20,7 @@ Tables = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
 
 [compat]
 BenchmarkTools = "1"
-BioStructures = "1"
+BioStructures = "1, 2"
 BioSymbols = "4, 5"
 DataFrames = "1"
 DataFramesMeta = "0.12, 0.13"
