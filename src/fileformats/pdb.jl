@@ -93,28 +93,22 @@ function load_pdb(fname::String, T=Float32)
     )
 
     atoms.frame_id = orig_df.modelnumber
-    atoms.residue_id = orig_df.resnumber
-    atoms.residue_name= orig_df.resname
-    atoms.chain = orig_df.chainid
+    atoms.fragment_id = orig_df.resnumber
 
     # note: we will remove this column as soon as we have filtered out alternates
     atoms.altlocid = orig_df.altlocid
 
-    bonds = DataFrame(Bond[])
-
-    chains = Vector{PDBChain}()
-
+    # collect fragment information
+    fragments = DataFrame[]
     orig_chains = collectchains(orig_pdb)
     for chain in orig_chains
         orig_residues = collectresidues(chain)
-
-        fragments = DataFrame(
+        frag = DataFrame(
             number = getproperty.(orig_residues, :number),
             name   = getproperty.(orig_residues, :name),
-            chain_id = repeat([chain.id], length(orig_residues))
+            chain  = repeat([chain.id], length(orig_residues))
         )
-
-        push!(chains, PDBChain(chain.id, fragments))
+        push!(fragments, frag)
     end
 
     # now, handle alternate location ids
@@ -125,7 +119,7 @@ function load_pdb(fname::String, T=Float32)
     #   - for each atom that has alternative locations, find them
     #   - find the smallest alternate location id and use this as the base case
     #   - store all other variants as properties
-    all_altlocs = groupby(filter(:altlocid => !=(' '), atoms, view=true), [:residue_id, :name])
+    all_altlocs = groupby(filter(:altlocid => !=(' '), atoms, view=true), [:fragment_id, :name])
     for altlocs in all_altlocs
         sorted_altlocs = sort(altlocs, :altlocid, view=true)
 
@@ -145,5 +139,9 @@ function load_pdb(fname::String, T=Float32)
     # drop the altlocid-column
     select!(atoms, Not(:altlocid))
     
-    p = PDBMolecule{T}(orig_pdb.name, atoms, bonds, chains)
+    # TODO use AtomContainer interface
+    mol = PDBMolecule{T}(orig_pdb.name)
+    mol.atoms = atoms
+    mol.fragments = vcat(fragments...)
+    mol
 end
