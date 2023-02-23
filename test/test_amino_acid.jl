@@ -1,26 +1,21 @@
-@testset "AminoAcid" begin
-    
+using BioSymbols
 
+@testset "AminoAcid" begin
     # can we break the constructor of BioSymbols:
-    @test_throws InexactError AminoAcid(-1) # call  BioSymbols.AminoAcid(::Integer) 
     @test_throws InexactError AminoAcid(' ') # call BioSymbols.AminoAcid(::Char)
     @test_throws MethodError AminoAcid()
-
+    @test_throws MethodError AminoAcid(0)
 
     # now generate amino acids:
-    ala = AminoAcid(0)  # careful constructor of BioSymbols works zero-based
+    ala = AA_A
     ala2 = AminoAcid('A')  
-    a28 = AminoAcid(28)  # does not throw
     
     @test ala isa AminoAcid
     @test name(ala) == name(ala2) == "Alanine"
     @test one_letter_code(ala) == "A"
     @test three_letter_code(ala) == "ALA"
-    @test_throws KeyError name(a28) == "Selenocysteine" # key Invalid Amino Acid not found
-    @test_throws KeyError three_letter_code(a28) == "Invalid"
     
     # test all possibilities
-    
     n = ["Alanine", "Arginine", "Asparagine", "Aspartate",
         "Cysteine", "Glutamine", "Glutamate", "Glycine", "Histidine",
         "Isoleucine", "Leucine", "Lysine", "Methionine", "Phenylalanine",
@@ -40,9 +35,8 @@
 
 
     for i in eachindex(n)
-        a = AminoAcid(i-1) 
+        a = AminoAcid(o[i][1])
         @test name(a) == n[i]
         @test three_letter_code(a) == t[i]
-        o = one_letter_code(a)
     end
 end

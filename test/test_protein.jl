@@ -22,12 +22,12 @@ end
     # now create PDBChains
     chain_A = ProteinChain("chain A", 
                             DataFrame(number = [1, 2, 3],
-                                      type = fill(AminoAcid(0), 3),
+                                      type = fill(AminoAcid('A'), 3),
                                       chain_id = ["A", "A", "A"] ))
 
     chain_B = ProteinChain("chain B", 
                             DataFrame(number = [1, 2, 3],
-                                      type = fill(AminoAcid(3), 3),
+                                      type = fill(AminoAcid('D'), 3),
                                       chain_id = ["B", "B", "B"] ))
                                       
     push!(protein.chains, chain_A)
