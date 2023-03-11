@@ -529,7 +529,9 @@ function parse_atoms!(mol::Molecule, compound::PCCompound, T=Float32)
                             has_velocity = false,
                             has_force = false,
                             frame_id = j,
-                            properties = Properties()
+                            properties = (!isnothing(compound.atoms.charge) && isInPcAtomAid(i, compound.atoms.charge)) 
+                                        ? Properties("Charge" => getPcAtomCharge(i, compound.atoms.charge))
+                                        : Properties()
                     )
 
                 push!(mol, atom)
@@ -598,7 +600,11 @@ function load_pubchem_json(fname::String, T=Float32)
 
     for compound in pb.PC_Compounds
         # for now, use the file name as the name for the molecule
-        mol = Molecule(fname * "_" * string(compound.id.id.cid))
+        mol = Molecule(contains(fname, string(compound.id.id.cid)) 
+                        ? fname
+                        : (!isnothing(findlast('.', fname)) 
+                        ? string(fname[1:findlast('.', fname)-1], "_CID_", string(compound.id.id.cid), fname[findlast('.', fname):lastindex(fname)])
+                        : string(fname, "_CID_", string(compound.id.id.cid))))
         parse_atoms!(mol, compound, T)
         parse_bonds!(mol, compound, T)
         parse_props!(mol, compound)
@@ -607,4 +613,24 @@ function load_pubchem_json(fname::String, T=Float32)
     end
 
     molecules
+end
+
+
+function isInPcAtomAid(atmNum::Int, PcAtomInt_vec::Vector{PCAtomInt})
+    for pcAtomInt in PcAtomInt_vec
+        if atmNum == pcAtomInt.aid
+            return true
+        end
+    end
+    return false
+end
+
+
+function getPcAtomCharge(atmNum::Int, PcAtomInt_vec::Vector{PCAtomInt})
+    for pcAtomInt in PcAtomInt_vec
+        if atmNum == pcAtomInt.aid
+            return pcAtomInt.value
+        end
+    end
+    return 0
 end

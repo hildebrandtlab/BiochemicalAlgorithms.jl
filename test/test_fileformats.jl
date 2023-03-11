@@ -24,7 +24,7 @@ end
 
         mol = mols[1]
         @test mol isa Molecule
-        @test mol.name == "data/aspirin_pug.json_2244"
+        @test mol.name == "data/aspirin_pug_CID_2244.json"
         @test length(mol.properties) == 3
 
         @test count_atoms(mol) == 21
@@ -48,5 +48,33 @@ end
         for i in eachindex(mol2.bonds.properties) 
                 @test mol2.bonds.properties[i]["PCBondAnnotation_for_conformer"][1] == values[i]
                 @test mol2.bonds.properties[i]["PCBondAnnotation_for_conformer"][2] == values[i]
+        end
+end
+
+
+@testset "mol2_import" begin
+        mol = load_mol2("data/Import_test_sustiva_modified.mol2")
+        
+        @test mol.name == "data/Import_test_sustiva_modified.mol2"
+
+        @test count_atoms(mol) == 21
+        @test mol.atoms.name[21] == "C14"
+        @test mol.bonds.properties[2]["TRIPOS_tag"] == "am"
+        @test count_bonds(mol) == 23
+        @test mol.bonds.order[2] == BondOrder.Single
+        @test mol.bonds.properties[2]["TRIPOS_tag"] == "am"
+        @test mol.bonds.order[12] == BondOrder.Unknown
+        @test mol.bonds.properties[12]["TRIPOS_tag"] == "ar"
+end
+
+@testset "mol2_export" begin
+        for mol in load_pubchem_json("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.json")
+                export_mol2(mol, "data/")
+
+                @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")[1] == "@<TRIPOS>MOLECULE"
+                @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")[8] == "@<TRIPOS>ATOM"
+                @test readlines("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")[39] == "@<TRIPOS>BOND"
+
+                rm("data/Export_test_molecule_Sustiva_Efavirenz_Conformer3D_CID_64139.mol2")
         end
 end
