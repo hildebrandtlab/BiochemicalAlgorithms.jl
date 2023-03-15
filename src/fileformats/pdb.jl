@@ -58,6 +58,8 @@ function load_pdb(fname::String, T=Float32)
     orig_df  = DataFrame(collectatoms(orig_pdb))
 
     # then, convert to our representation
+    sys = System{T}(orig_pdb.name)
+    mol = Molecule(sys, sys.name)
 
     ### convert the atom positions
     r = Vector3{T}.(T.(orig_df.x), T.(orig_df.y), T.(orig_df.z))
@@ -99,16 +101,11 @@ function load_pdb(fname::String, T=Float32)
     atoms.altlocid = orig_df.altlocid
 
     # collect fragment information
-    fragments = DataFrame[]
-    orig_chains = collectchains(orig_pdb)
-    for chain in orig_chains
-        orig_residues = collectresidues(chain)
-        frag = DataFrame(
-            number = getproperty.(orig_residues, :number),
-            name   = getproperty.(orig_residues, :name),
-            chain  = repeat([chain.id], length(orig_residues))
-        )
-        push!(fragments, frag)
+    for orig_chain in collectchains(orig_pdb)
+        chain = Chain(mol, orig_chain.id)
+        for orig_frag in collectresidues(orig_chain)
+            Fragment(chain, orig_frag.number, orig_frag.name)  # TODO push!
+        end
     end
 
     # now, handle alternate location ids
@@ -139,9 +136,24 @@ function load_pdb(fname::String, T=Float32)
     # drop the altlocid-column
     select!(atoms, Not(:altlocid))
     
-    # TODO use AtomContainer interface
-    mol = PDBMolecule{T}(orig_pdb.name)
-    mol.atoms = atoms
-    mol.fragments = vcat(fragments...)
-    mol
+    # add all remaining atoms to the system
+    grp_atoms = groupby(atoms, :fragment_id)
+    for frag in eachfragment(mol)
+        for atom in eachrow(grp_atoms[(fragment_id = frag.number,)])
+            push!(frag, (
+                idx = 0,
+                number = atom.number,
+                element = atom.element,
+                name = atom.name,
+                atomtype = atom.atomtype,
+                r = atom.r,
+                v = atom.v,
+                F = atom.F,
+                has_velocity = atom.has_velocity,
+                has_force = atom.has_force,
+                properties = atom.properties
+            )::AtomTuple{T}, frame_id = atom.frame_id)
+        end
+    end
+    sys
 end

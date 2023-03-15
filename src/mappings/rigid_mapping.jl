@@ -22,14 +22,14 @@ RigidTransform(r::Matrix3, t::Vector3) = RigidTransform{Float32}(r, t)
 ### Functions
 
 function translate!(m::AbstractMolecule{T}, t::Vector3{T}) where {T<:Real}
-    @with atoms(m) begin
+    @with atoms_df(m) begin
        :r .= Ref(t) .+ :r
     end
     m
 end
 
 function rigid_transform!(m::AbstractMolecule{T}, transform::RigidTransform{T}) where {T<:Real}
-    @with atoms(m) begin
+    @with atoms_df(m) begin
         :r .= Ref(transform.rotation) .* :r .+ Ref(transform.translation)
     end
     m
@@ -62,7 +62,7 @@ end
 compute_rmsd_minimizer(f) = compute_rmsd_minimizer{Float32}(f)
 
 function map_rigid!(A::AbstractMolecule{T}, B::AbstractMolecule{T}; heavy_atoms_only::Bool = false) where {T<:Real}
-    atoms_A = atoms(A)
+    atoms_A = atoms_df(A)
     heavy_atoms_only && (atoms_A = atoms_A[atoms_A.element .!== Elements.H, :])
 
     U = compute_rmsd_minimizer(TrivialAtomBijection(atoms_A, B))

@@ -4,18 +4,21 @@
 
     @test mol isa Protein{Float32}
     @test mol isa AbstractMolecule{Float32}
-    @test name(mol) == ""
-    @test atoms(mol) isa SubDataFrame
-    @test size(atoms(mol)) == (0, 10)
-    @test bonds(mol) isa DataFrame
-    @test size(bonds(mol)) == (0, 4)
-    @test residues(mol) isa DataFrame
-    @test size(residues(mol), 1) == 0
-    @test count_atoms(mol) == 0
-    @test count_bonds(mol) == 0
-    @test length(properties(mol)) == 0
-    set_name!(mol, "my_fancy_protein")
-    @test name(mol) == "my_fancy_protein"
+    @test mol.name == ""
+    @test atoms_df(mol) isa AbstractDataFrame
+    @test size(atoms_df(mol)) == (0, 11)
+    @test length(atoms(mol)) == 0
+    @test bonds_df(mol) isa AbstractDataFrame
+    @test size(bonds_df(mol)) == (0, 5)
+    @test length(bonds(mol)) == 0
+    @test residues_df(mol) isa AbstractDataFrame
+    @test size(residues_df(mol), 1) == 0
+    @test length(residues(mol)) == 0
+    @test natoms(mol) == 0
+    @test nbonds(mol) == 0
+    @test length(mol.properties) == 0
+    mol.name = "my_fancy_protein"
+    @test mol.name == "my_fancy_protein"
 end
 
 @testset "Filled Protein" begin
@@ -23,43 +26,54 @@ end
 
     # add atoms
     r_tmp = Vector3{Float32}(1.0, 2.0, 4.0)
-    atoms_df = DataFrame(number = [i for i in 1:6],
-                      name = fill("H", 6),
-                      element = fill(Elements.H, 6),
-                      atomtype = fill("na", 6),
-                      r = [i .* Vector3{Float32}(1.0, 2.0, 4.0) for i in 1:6],
-                      v = fill(Vector3{Float32}(0.0, 0.0, 0.0), 6), 
-                      F = fill(Vector3{Float32}(0.0, 0.0, 0.0), 6),
-                      has_velocity = fill(false, 6),
-                      has_force = fill(false, 6),
-                      properties = Properties()
+    adf = DataFrame(
+        idx = fill(0, 6),
+        number = [i for i in 1:6],
+        element = fill(Elements.H, 6),
+        name = fill("H", 6),
+        atomtype = fill("na", 6),
+        r = [i .* Vector3{Float32}(1.0, 2.0, 4.0) for i in 1:6],
+        v = fill(Vector3{Float32}(0.0, 0.0, 0.0), 6), 
+        F = fill(Vector3{Float32}(0.0, 0.0, 0.0), 6),
+        has_velocity = fill(false, 6),
+        has_force = fill(false, 6),
+        properties = Properties()
     )
-    r1 = (number = 1, type = AminoAcid('A'), chain = "A")::Residue
-    r2 = (number = 2, type = AminoAcid('D'), chain = "B")::Residue
-    for (i, atom) in enumerate(eachrow(atoms_df))
-        push!(mol, i < 4 ? r1 : r2, copy(atom)::Atom{Float32})
+
+    ca = Chain(mol, "A")
+    r1 = Residue(ca, 1, AminoAcid('A'))
+    cb = Chain(mol, "B")
+    r2 = Residue(cb, 2, AminoAcid('D'))
+    for (i, atom) in enumerate(eachrow(adf))
+        push!(i < 4 ? r1 : r2, copy(atom)::AtomTuple{Float32})
     end
 
     # add bonds
+    aidx = Dict(a.number => a.idx for a in eachrow(atoms_df(mol)))
     for i in 1:4
-        push!(mol, (a1 = i, a2 = 5, order = BondOrder.Single, properties = Properties())::Bond)
+        push!(mol, (
+            idx = 0,
+            a1 = aidx[i],
+            a2 = aidx[5],
+            order = BondOrder.Single,
+            properties = Properties()
+        )::BondTuple)
     end
 
-    @test name(mol) == "my_fancy_molecule"
-    @test count_bonds(mol) == 4
-    @test count_atoms(mol) == 6
-    @test nrow(atoms(mol, r1)) == 3
-    @test nrow(atoms(mol, r2)) == 3
+    @test mol.name == "my_fancy_molecule"
+    @test nbonds(mol) == 4
+    @test natoms(mol) == 6
+    @test natoms(r1) == 3
+    @test natoms(r2) == 3
 
     # test properties
-    props = properties(mol)
+    props = mol.properties
     props["molecule computed"] = false
     props["molecule resolution"] = 2.5
     @test length(props) == 2
-    @test length(properties(mol)) == 2
 
     props["resolution unit"] = "Angstroem"
-    @test length(properties(mol)) == 3
-    @test !properties(mol)["molecule computed"]
-    @test haskey(properties(mol), "resolution unit")
+    @test length(props) == 3
+    @test !props["molecule computed"]
+    @test haskey(props, "resolution unit")
 end
