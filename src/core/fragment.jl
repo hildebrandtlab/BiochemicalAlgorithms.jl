@@ -1,5 +1,5 @@
 using AutoHashEquals
-export Fragment, fragments, fragments_df, eachfragment, nfragments, parent_fragment
+export Fragment, fragments, fragments_df, eachfragment, nfragments, parent_fragment, is_c_terminal, is_n_terminal, is_amino_acid
 
 """
     $(TYPEDEF)
@@ -201,4 +201,40 @@ end
 @inline function Base.push!(frag::Fragment, bond::Bond)
     push!(frag.sys, bond)
     frag
+end
+
+@inline function is_amino_acid(frag::Fragment)
+    is_amino_acid(frag.name)
+end
+
+# TODO: these should really be defined in Residue, not Fragment
+
+@inline function is_n_terminal(frag::Fragment)
+    if is_amino_acid(frag)
+        # find the first amino acid in the chain of this fragment
+        c = parent_chain(frag)
+
+        for f in fragments(c)
+            if is_amino_acid(f)
+                return f == frag
+            end
+        end
+    end
+
+    false
+end
+
+@inline function is_c_terminal(frag::Fragment)
+    if is_amino_acid(frag)
+        # find the last amino acid in the chain of this fragment
+        c = parent_chain(frag)
+
+        for f in reverse(fragments(c))
+            if is_amino_acid(f)
+                return f == frag
+            end
+        end
+    end
+
+    false
 end
