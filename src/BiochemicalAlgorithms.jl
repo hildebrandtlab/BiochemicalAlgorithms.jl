@@ -31,6 +31,7 @@ include("mappings/atom_bijection.jl")
 include("mappings/rigid_mapping.jl")
 
 include("preprocessing/fragmentDB.jl")
+include("preprocessing/normalize_names.jl")
 
 using .PubChem
 
