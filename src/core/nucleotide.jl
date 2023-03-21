@@ -199,3 +199,6 @@ end
     push!(nuc.sys, bond)
     nuc
 end
+
+# TODO: we should come up with a better test than just checking the name
+is_nucleotide(name::String) = name ∈ ["A", "C", "G", "T", "U", "I", "DA", "DC", "DG", "DT", "DU", "DI"]
