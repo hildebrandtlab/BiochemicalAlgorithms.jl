@@ -1,5 +1,5 @@
 using AutoHashEquals
-export Bond, bonds, bonds_df, eachbond, nbonds
+export Bond, bonds, bonds_df, eachbond, nbonds, get_partner, is_bound_to
 
 """
     $(TYPEDEF)
@@ -197,4 +197,31 @@ The new bond is automatically assigned a new `idx`.
 function Base.push!(sys::System{T}, bond::BondTuple) where T
     push!(sys.bonds, _with_idx(bond, _next_idx(sys)))
     sys
+end
+
+function get_partner(bond, atom)
+    if bond.a1 == atom.idx
+        return _atom_by_idx(atom.sys, bond.a2)
+    elseif bond.a2 == atom.idx
+        return _atom_by_idx(atom.sys, bond.a1)
+    else
+        return nothing
+    end
+end
+
+function is_bound_to(a1::Atom, a2::Atom)
+    s = a1.sys
+
+    if s != a2.sys
+        return false
+    end
+
+    return !isnothing(
+        findfirst(
+            b -> 
+                ((b.a1 == a1.idx) && (b.a2 == a2.idx)) ||
+                ((b.a1 == a2.idx) && (b.a2 == a1.idx)), 
+            bonds(s)
+        )
+    )
 end
