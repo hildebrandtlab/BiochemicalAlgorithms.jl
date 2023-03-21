@@ -1,7 +1,7 @@
 
 using BioSymbols
 
-export AminoAcid, name, three_letter_code, one_letter_code
+export AminoAcid, name, three_letter_code, one_letter_code, is_amino_acid
 
 const AminoAcid = BioSymbols.AminoAcid
 
@@ -59,3 +59,5 @@ const AminoAcidProperties = Dict{AminoAcid, AminoAcidDetails}(
 name(aa::AminoAcid) = AminoAcidProperties[aa].name
 three_letter_code(aa::AminoAcid) = AminoAcidProperties[aa].three_letter_code
 one_letter_code(aa::AminoAcid) = AminoAcidProperties[aa].one_letter_code
+
+is_amino_acid(name::String) = name ∈ keys(BioSymbols.threeletter_to_aa)
