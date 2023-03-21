@@ -4,7 +4,7 @@ using AutoHashEquals
 
 import DataStructures: OrderedCollections.OrderedDict
 
-export FragmentDB
+export FragmentDB, get_reference_fragment
 
 @auto_hash_equals struct DBNode
     key::String
@@ -16,6 +16,10 @@ StructTypes.StructType(::Type{DBNode}) = StructTypes.Struct()
     name::String
     element::ElementType
     r::Vector3
+
+    function DBAtom{T}(name::String, element::ElementType, r::Vector3) where {T<:Real}
+        new(name, element, r)
+    end
 
     function DBAtom{T}(n::DBNode) where {T<:Real}
         name = n.key
@@ -65,13 +69,17 @@ function to_bond_order(s)
     order
 end
 
-@auto_hash_equals struct DBBond{T<:Real}
+@auto_hash_equals struct DBBond
     number::Int
     a1::String
     a2::String
     order::BondOrderType
 
-    function DBBond{T}(n::DBNode) where {T<:Real}
+    function DBBond(number::Int, a1::String, a2::String, order::BondOrderType)
+        new(number, a1, a2, order)
+    end
+
+    function DBBond(n::DBNode)
         number = parse(Int, n.key)
 
         raw_data = split(n.value)
@@ -84,8 +92,6 @@ end
         new(number, a1, a2, order)
     end
 end
-
-DBBond(n::DBNode) = DBond{Float32}(n)
 
 @auto_hash_equals struct DBConnection{T<:Real}
     name::String
@@ -119,13 +125,13 @@ DBConnection(n::DBNode) = DBConnection{Float32}(n)
 
 @auto_hash_equals struct DBProperty
     name::String
-    invert::Bool
+    value::Bool
 
     function DBProperty(n::DBNode)
         if startswith(n.key, "!")
-            return new(n.key[2:end], true)
+            return new(n.key[2:end], false)
         else
-            return new(n.key, false)
+            return new(n.key, true)
         end
     end
 end
@@ -148,13 +154,16 @@ end
     end
 end
 
-@auto_hash_equals struct DBVariant
+@auto_hash_equals struct DBVariant{T<:Real}
     name::String
+
+    atoms::Array{DBAtom{T}}
+    bonds::Array{DBBond}
 
     actions::Array{DBVariantAction}
     properties::Array{DBProperty}
 
-    function DBVariant(n::DBNode)
+    function DBVariant{T}(n::DBNode, atoms::Array{DBAtom{T}}, bonds::Array{DBBond}) where {T<:Real}
         name = n.key
         actions = []
         properties = []
@@ -164,15 +173,30 @@ end
             if child.key == "Properties"
                 properties = map(DBProperty, child.value)
             elseif child.key == "Delete"
-                push!(actions, DBVariantDelete(child))
+                db_delete = DBVariantDelete(child)
+
+                atoms = filter(a -> a.name ∉ db_delete.atoms, atoms)
+                bonds = filter(b -> b.a1 ∉ db_delete.atoms && b.a2 ∉ db_delete.atoms, bonds)
+                
+                push!(actions, db_delete)
             elseif child.key == "Rename"
-                push!(actions, DBVariantRename(child))
+                db_rename = DBVariantRename(child)
+
+                atoms = map(
+                    a -> DBAtom{T}(get(db_rename.atoms, a.name, a.name), a.element, a.r), atoms)
+                bonds = map(
+                    b -> DBBond(b.number,
+                            get(db_rename.atoms, b.a1, b.a1),
+                            get(db_rename.atoms, b.a2, b.a2),
+                            b.order), bonds)
+                                
+                push!(actions, db_rename)
             else
                 throw(ArgumentError("DBVariant: invalid format!"))
             end
         end
 
-        new(name, actions, properties)
+        new(name, atoms, bonds, actions, properties)
     end
 end
 
@@ -182,10 +206,10 @@ end
 
     names::Array{String}
     atoms::Array{DBAtom{T}}
-    bonds::Array{DBBond{T}}
+    bonds::Array{DBBond}
     connections::Array{DBConnection{T}}
     properties::Array{DBProperty}
-    variants::Array{DBVariant}
+    variants::Array{DBVariant{T}}
     
     function DBFragment{T}(n::DBNode) where {T<:Real}
         if startswith(n.key, "#include:")
@@ -201,7 +225,7 @@ end
             atoms = length(raw_atoms) == 1 ? map(DBAtom{T}, raw_atoms[1].value) : []
 
             raw_bonds = filter(n -> n.key == "Bonds", raw_fragment_data)
-            bonds = length(raw_bonds) == 1 ? map(b -> DBBond{T}(b), raw_bonds[1].value) : []
+            bonds = length(raw_bonds) == 1 ? map(b -> DBBond(b), raw_bonds[1].value) : []
 
             raw_connections = filter(n -> n.key == "Connections", raw_fragment_data)
             connections = length(raw_connections) == 1 ? map(c -> DBConnection{T}(c), raw_connections[1].value) : []
@@ -210,7 +234,7 @@ end
             properties = length(raw_properties) == 1 ? map(DBProperty, raw_properties[1].value) : []
 
             raw_variants = filter(n -> n.key == "Variants", raw_fragment_data)
-            variants = length(raw_variants) == 1 ? map(DBVariant, raw_variants[1].value) : []
+            variants = length(raw_variants) == 1 ? map(v-> DBVariant{T}(v, atoms, bonds), raw_variants[1].value) : []
             
             return new(name, path, names, atoms, bonds, connections, properties, variants)
         end
@@ -295,6 +319,78 @@ StructTypes.lowertype(::Type{FragmentDB{T}}) where {T} = Array{DBNode}
 
 FragmentDB(path::String = ball_data_path("fragments/Fragments.db.json")) = FragmentDB{Float32}(path)
 
+
+function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB) where {T<:Real}
+    # first, try to find the fragment in the database
+    if f.name ∉ keys(fdb.fragments)
+        return nothing
+    end
+
+    db_fragment = fdb.fragments[f.name]
+
+    # does the fragment have variants?
+    if length(db_fragment.variants) == 1
+        return db_fragment.variants[1]
+    end
+
+    # now, find the variant that best matches the fragment
+    # This returns N/C terminal variants for fragments that
+    # have the corresponding properties set or cystein variants
+    # without thiol hydrogen if the disulphide bond property
+    # is set
+
+    # First, check for two special properties of amino acids:
+    # C_TERMINAL and N_TERMINAL
+    # They are usually not set, so set them here
+    if is_c_terminal(f)
+        f.properties["C_TERMINAL"] = true
+    end
+
+    if is_n_terminal(f)
+        f.properties["N_TERMINAL"] = true
+    end
+
+    if is_3_prime(f)
+        f.properties["3_PRIME"] = true
+    end
+
+    if is_5_prime(f)
+        f.properties["5_PRIME"] = true
+    end
+
+    # the number of properties that matched
+    # the fragment with the largest number of matched
+    # properties is returned
+    number_of_properties = -1
+    property_difference = -1
+    best_number_of_properties = -1
+    best_property_difference = 10000
+
+    best_variant = nothing
+
+    # iterate over all variants of the fragment and compare the properties
+    for var in db_fragment.variants
+        var_props = Dict(p.name => p.value for p in var.properties)
+
+        # count the difference in the number of set properties
+        property_difference = abs(length(findall(identity, f.properties)) - length(findall(identity, var_props)))
+
+        # and count the properties fragment and variant have in common
+        number_of_properties = length(f.properties ∩ var_props)
+
+        @debug "Considering variant $(var.name). # properties: $(number_of_properties)"
+
+        if ((number_of_properties > best_number_of_properties)
+            || (   (number_of_properties == best_number_of_properties)
+                && (property_difference < best_property_difference)))
+            best_variant = var
+            best_number_of_properties = number_of_properties
+            best_property_difference  = property_difference
+        end
+    end
+
+    best_variant
+end
 
 Base.show(io::IO, fdb::FragmentDB) = 
     print(io, 

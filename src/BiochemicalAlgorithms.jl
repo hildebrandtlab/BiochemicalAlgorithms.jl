@@ -32,6 +32,7 @@ include("mappings/rigid_mapping.jl")
 
 include("preprocessing/fragmentDB.jl")
 include("preprocessing/normalize_names.jl")
+include("preprocessing/build_bonds.jl")
 
 using .PubChem
 
