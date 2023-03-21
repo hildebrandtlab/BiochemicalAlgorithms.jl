@@ -1,5 +1,6 @@
 using AutoHashEquals
-export Fragment, fragments, fragments_df, eachfragment, nfragments, parent_fragment, is_c_terminal, is_n_terminal, is_amino_acid
+export Fragment, fragments, fragments_df, eachfragment, nfragments, parent_fragment, 
+    is_c_terminal, is_n_terminal, is_amino_acid, is_nucleotide, is_3_prime, is_5_prime
 
 """
     $(TYPEDEF)
@@ -201,8 +202,11 @@ end
     is_amino_acid(frag.name)
 end
 
-# TODO: these should really be defined in Residue, not Fragment
+@inline function is_nucleotide(frag::Fragment)
+    is_nucleotide(frag.name)
+end
 
+# TODO: these should really be defined in Residue, not Fragment
 @inline function is_n_terminal(frag::Fragment)
     if is_amino_acid(frag)
         # find the first amino acid in the chain of this fragment
@@ -225,6 +229,37 @@ end
 
         for f in reverse(fragments(c))
             if is_amino_acid(f)
+                return f == frag
+            end
+        end
+    end
+
+    false
+end
+
+# TODO: these should really be defined in Nucleotide, not Fragment
+@inline function is_3_prime(frag::Fragment)
+    if is_nucleotide(frag)
+        # find the first nucleotide in the chain of this fragment
+        c = parent_chain(frag)
+
+        for f in fragments(c)
+            if is_nucleotide(f)
+                return f == frag
+            end
+        end
+    end
+
+    false
+end
+
+@inline function is_5_prime(frag::Fragment)
+    if is_nucleotide(frag)
+        # find the last amino acid in the chain of this fragment
+        c = parent_chain(frag)
+
+        for f in reverse(fragments(c))
+            if is_nucleotide(f)
                 return f == frag
             end
         end
