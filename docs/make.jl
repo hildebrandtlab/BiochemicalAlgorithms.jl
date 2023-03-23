@@ -13,9 +13,14 @@ makedocs(;
         canonical="https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl",
         assets=String[],
     ),
-    pages=[
+    pages = Any[
         "Home" => "index.md",
-        "Model" => "model.md"
+        "Library" => Any[
+            "System representation" => "public/system.md",
+            "Internals" => Any[
+                "System representation" => "private/system.md"
+            ]
+        ]
     ],
 )
 

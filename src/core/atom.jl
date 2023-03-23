@@ -1,5 +1,67 @@
 export Atom, atoms, atoms_df, eachatom, natoms
 
+"""
+    $(TYPEDEF)
+
+Mutable representation of an individual atom in a system.
+
+# Fields
+ - `idx::Int`
+ - `number::Int`
+ - `element::ElementType`
+ - `name::String`
+ - `atomtype::String`
+ - `r::Vector3{T}`
+ - `v::Vector3{T}`
+ - `F::Vector3{T}`
+ - `has_velocity::Bool`
+ - `has_force::Bool`
+ - `properties::Properties`
+
+# Constructors
+```julia
+Atom(
+    number::Int,
+    element::ElementType,
+    name::String = "",
+    atomtype::String = "",
+    r::Vector3{T} = Vector3{T}(0, 0, 0),
+    v::Vector3{T} = Vector3{T}(0, 0, 0),
+    F::Vector3{T} = Vector3{T}(0, 0, 0),
+    has_velocity::Bool = false,
+    has_force::Bool = false,
+    properties::Properties = Properties();
+    # keyword arguments
+    frame_id::Int = 1
+)
+```
+Creates a new `Atom{Float32}` in the default system.
+
+```julia
+Atom(
+    sys::System{T},
+    number::Int,
+    element::ElementType,
+    name::String = "",
+    atomtype::String = "",
+    r::Vector3{T} = Vector3{T}(0, 0, 0),
+    v::Vector3{T} = Vector3{T}(0, 0, 0),
+    F::Vector3{T} = Vector3{T}(0, 0, 0),
+    has_velocity::Bool = false,
+    has_force::Bool = false,
+    properties::Properties = Properties();
+    # keyword arguments
+    frame_id::Int = 1
+)
+```
+Creates a new `Atom{T}` in the given system.
+
+    Atom(a::AtomTuple{T}; frame_id::Int = 1)
+    Atom(sys::System{T}, a::AtomTuple{T}; frame_id::Int = 1)
+
+Constructor variants that create a new system atom based on the given `AtomTuple{T}`. The new atom
+is automatically assigned a new `idx`.
+"""
 struct Atom{T}
     sys::System{T}
     row::DataFrameRow
@@ -18,6 +80,7 @@ function Atom(
     has_force::Bool = false,
     properties::Properties = Properties();
     frame_id::Int = 1,
+    # private kwargs
     molecule_id::MaybeInt = missing,
     chain_id::MaybeInt = missing,
     fragment_id::MaybeInt = missing,
@@ -92,10 +155,22 @@ end
     ismissing(atom.row.residue_id) ? nothing : _residue_by_idx(atom.sys, atom.row.residue_id)
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Returns the `Atom{T}` associated with the given `idx` in `sys`.
+"""
 @inline function _atom_by_idx(sys::System{T}, idx::Int) where T
     Atom{T}(sys, DataFrameRow(sys.atoms, findfirst(sys.atoms.idx .== idx), :))
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Returns a raw `DataFrame` for all of the given system's atoms matching the given criteria (value or
+`missing`). Fields given as `nothing` are ignored. The returned `DataFrame` contains all public and
+private atom fields.
+"""
 function _atoms(sys::System{T};
     frame_id::Union{Nothing, Int} = 1,
     molecule_id::Union{Nothing, MaybeInt} = nothing,
@@ -119,22 +194,103 @@ function _atoms(sys::System{T};
     )
 end
 
+"""
+    atoms(::Chain)
+    atoms(::Fragment)
+    atoms(::Molecule)
+    atoms(::Nucleotide)
+    atoms(::Protein)
+    atoms(::Residue)
+    atoms(::System)
+
+Returns a `Vector{Atom{T}}` containing all atoms of the given atom container.
+
+# Supported keyword arguments
+ - `frame_id::Union{Nothing, Int} = 1`: \
+Any value other than `nothing` limits the result to atoms matching this frame ID.
+"""
 @inline function atoms(sys::System; kwargs...)
     collect(eachatom(sys; kwargs...))
 end
 
+"""
+    atoms_df(::Chain)
+    atoms_df(::Fragment)
+    atoms_df(::Molecule)
+    atoms_df(::Nucleotide)
+    atoms_df(::Protein)
+    atoms_df(::Residue)
+    atoms_df(::System)
+
+Returns a `SystemDataFrame{T}` containing all atoms of the given atom container.
+
+# Supported keyword arguments
+ - `frame_id::Union{Nothing, Int} = 1`: \
+Any value other than `nothing` limits the result to atoms matching this frame ID.
+"""
 @inline function atoms_df(sys::System{T}; kwargs...) where T
     SystemDataFrame{T}(sys, view(_atoms(sys; kwargs...), :, 1:length(fieldnames(AtomTuple{T}))))
 end
 
+"""
+    eachatom(::Chain)
+    eachatom(::Fragment)
+    eachatom(::Molecule)
+    eachatom(::Nucleotide)
+    eachatom(::Protein)
+    eachatom(::Residue)
+    eachatom(::System)
+
+Returns an `Atom{T}` generator for all atoms of the given atom container.
+
+# Supported keyword arguments
+ - `frame_id::Union{Nothing, Int} = 1`: \
+Any value other than `nothing` limits the result to atoms matching this frame ID.
+
+# Example
+```julia
+for atom in eachatom(sys)
+    println(atom.name)
+end
+```
+"""
 @inline function eachatom(sys::System{T}; kwargs...) where T
     (Atom{T}(sys, row) for row in eachrow(_atoms(sys; kwargs...)))
 end
 
+"""
+    natoms(::Chain)
+    natoms(::Fragment)
+    natoms(::Molecule)
+    natoms(::Nucleotide)
+    natoms(::Protein)
+    natoms(::Residue)
+    natoms(::System)
+
+Returns the number of atoms in the given atom container.
+
+# Supported keyword arguments
+ - `frame_id::Union{Nothing, Int} = 1`: \
+Any value other than `nothing` limits the result to atoms matching this frame ID.
+"""
 @inline function natoms(sys::System; kwargs...)
     nrow(_atoms(sys; kwargs...))
 end
 
+"""
+    push!(::Fragment{T}, atom::AtomTuple{T})
+    push!(::Molecule{T}, atom::AtomTuple{T})
+    push!(::Nucleotide{T}, atom::AtomTuple{T})
+    push!(::Protein{T}, atom::AtomTuple{T})
+    push!(::Residue{T}, atom::AtomTuple{T})
+    push!(::System{T}, atom::AtomTuple{T})
+
+Creates a new atom in the given atom container, based on the given tuple. The new atom is
+automatically assigned a new `idx`.
+
+# Supported keyword arguments
+ - `frame_id::Int = 1`
+"""
 function Base.push!(sys::System{T}, atom::AtomTuple{T};
     frame_id::Int = 1,
     molecule_id::MaybeInt = missing,

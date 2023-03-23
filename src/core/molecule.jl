@@ -1,7 +1,31 @@
 export AbstractMolecule, Molecule, molecules, molecules_df, eachmolecule, nmolecules, parent_molecule
 
+"""
+    $(TYPEDEF)
+
+Abstract base type for all molecules.
+"""
 abstract type AbstractMolecule{T} <: AbstractAtomContainer{T} end
 
+"""
+    $(TYPEDEF)
+
+Mutable representation of an individual molecule in a system.
+
+# Fields
+- `idx::Int`
+- `name::String`
+- `properties::Properties`
+
+# Constructors
+    Molecule(name::String = "", properties::Properties = Properties())
+
+Creates a new `Molecule{Float32}` in the default system.
+
+    Molecule(sys::System{T}, name::String = "", properties::Properties = Properties())
+
+Creates a new `Molecule{T}` in the given system.
+"""
 struct Molecule{T} <: AbstractMolecule{T}
     sys::System{T}
     row::DataFrameRow
@@ -33,32 +57,73 @@ end
 @inline Base.parent(mol::Molecule) = mol.sys
 @inline parent_system(mol::Molecule) = parent(mol)
 
+@doc raw"""
+    parent_molecule(::Atom)
+    parent_molecule(::Chain)
+    parent_molecule(::Fragment)
+    parent_molecule(::Nucleotide)
+    parent_molecule(::Residue)
+
+Returns the `Molecule{T}` containing the given object.
+""" parent_molecule
+
 # TODO this should also add all related entities
 #function Base.push!(sys::System{T}, mol::Molecule{T}) where T
 #    Molecule(sys, mol.name, mol.properties)
 #    sys
 #end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Returns the `Molecule{T}` associated with the given `idx` in `sys`.
+"""
 @inline function _molecule_by_idx(sys::System{T}, idx::Int) where T
     Molecule{T}(sys, DataFrameRow(sys.molecules, findfirst(sys.molecules.idx .== idx), :))
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Returns a raw `DataFrame` for all of the given system's molecules. The returned `DataFrame`
+contains all public and private molecule fields.
+"""
 @inline function _molecules(sys::System)
     sys.molecules
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Returns a `Vector{Molecule{T}}` containing all molecules of the given system.
+"""
 @inline function molecules(sys::System)
     collect(eachmolecule(sys))
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Returns a `SystemDataFrame{T}` containing all molecules of the given system.
+"""
 @inline function molecules_df(sys::System{T}) where T
     SystemDataFrame{T}(sys, view(_molecules(sys), :, :))
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Returns a `Molecule{T}` generator for all molecules of the given system.
+"""
 @inline function eachmolecule(sys::System{T}) where T
     (Molecule{T}(sys, row) for row in eachrow(_molecules(sys)))
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Returns the number of molecules in the given system.
+"""
 function nmolecules(sys::System)
     nrow(_molecules(sys))
 end

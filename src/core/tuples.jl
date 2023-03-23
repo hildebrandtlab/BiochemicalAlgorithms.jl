@@ -1,5 +1,23 @@
 export AtomTuple, BondTuple, MoleculeTuple, ChainTuple, FragmentTuple, NucleotideTuple, ResidueTuple
 
+"""
+    const AtomTuple{T} = NamedTuple{...}
+
+Tuple-based atom representation for `DataFrame` usage.
+
+# Fields
+ - `idx::Int`
+ - `number::Int`
+ - `element::ElementType`
+ - `name::String`
+ - `atomtype::String`
+ - `r::Vector3{T}`
+ - `v::Vector3{T}`
+ - `F::Vector3{T}`
+ - `has_velocity::Bool`
+ - `has_force::Bool`
+ - `properties::Properties`
+"""
 const AtomTuple{T} = @NamedTuple begin
     idx::Int
     number::Int
@@ -14,10 +32,34 @@ const AtomTuple{T} = @NamedTuple begin
     properties::Properties
 end
 
+"""
+    _with_idx(::AtomTuple{T}, idx::Int)
+    _with_idx(::BondTuple{T}, idx::Int)
+    _with_idx(::ChainTuple{T}, idx::Int)
+    _with_idx(::FragmentTuple{T}, idx::Int)
+    _with_idx(::MoleculeTuple{T}, idx::Int)
+    _with_idx(::NucleotideTuple{T}, idx::Int)
+    _with_idx(::ProteinTuple{T}, idx::Int)
+    _with_idx(::ResidueTuple{T}, idx::Int)
+
+Returns a copy of the given tuple with replaced `idx`.
+"""
 @inline function _with_idx(atom::AtomTuple{T}, idx::Int) where T
     ntuple(i -> i == 1 ? idx : atom[i], length(atom))
 end
 
+"""
+    const BondTuple{T} = NamedTuple{...}
+
+Tuple-based bond representation for `DataFrame` usage.
+
+# Fields
+ - `idx::Int`
+ - `a1::Int`
+ - `a2::Int`
+ - `order::BondOrderType`
+ - `properties::Properties`
+"""
 const BondTuple = @NamedTuple begin
     idx::Int
     a1::Int
@@ -30,6 +72,16 @@ end
     ntuple(i -> i == 1 ? idx : bond[i], length(bond))
 end
 
+"""
+    const MoleculeTuple{T} = NamedTuple{...}
+
+Tuple-based molecule representation for `DataFrame` usage.
+
+# Fields
+ - `idx::Int`
+ - `name::String`
+ - `properties::Properties`
+"""
 const MoleculeTuple = @NamedTuple begin
     idx::Int
     name::String
