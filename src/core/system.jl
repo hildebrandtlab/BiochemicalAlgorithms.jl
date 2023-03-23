@@ -1,4 +1,4 @@
-export System, default_system, parent_system
+export System, SystemDataFrame, default_system, parent_system
 
 const _SystemAtomTuple{T} = NamedTuple{
     (fieldnames(AtomTuple{T})...,
