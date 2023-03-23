@@ -40,7 +40,7 @@ mutable struct System{T} <: AbstractAtomContainer{T}
 
     _curr_idx::Int
 
-    function System{T}(name::String = "") where T
+    function System{T}(name::String = "", properties::Properties = Properties()) where T
         new(
             name,
             DataFrame(_SystemAtomTuple{T}[]),
@@ -50,13 +50,13 @@ mutable struct System{T} <: AbstractAtomContainer{T}
             DataFrame(_SystemFragmentTuple[]),
             DataFrame(_SystemNucleotideTuple[]),
             DataFrame(_SystemResidueTuple[]),
-            Properties(), 
+            properties,
             0
         )
     end
 end
 
-System(name::String = "") = System{Float32}(name)
+System(name::String = "", properties::Properties = Properties()) = System{Float32}(name, properties)
 
 const _default_system = System("default")
 
