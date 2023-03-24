@@ -64,7 +64,7 @@ end
     parent_molecule(::Nucleotide)
     parent_molecule(::Residue)
 
-Returns the `Molecule{T}` containing the given object.
+Returns the `Molecule{T}` containing the given object. Returns `nothing` if no such molecule exists.
 """ parent_molecule
 
 # TODO this should also add all related entities

@@ -1,5 +1,21 @@
 export Residue, residues, residues_df, eachresidue, nresidues, parent_residue
 
+"""
+    $(TYPEDEF)
+
+Mutable representation of an individual residue in a system.
+
+# Fields
+- `idx::Int`
+- `number::Int`
+- `type::AminoAcid`
+- `properties::Properties`
+
+# Constructors
+    Residue(chain::Chain{T}, number::Int, type::AminoAcid, properties::Properties = Properties())
+
+Creates a new `Residue{T}` in the given chain.
+"""
 struct Residue{T}
     sys::System{T}
     row::DataFrameRow
@@ -36,10 +52,27 @@ end
 @inline parent_molecule(res::Residue) = _molecule_by_idx(res.sys, res.row.molecule_id)
 @inline parent_chain(res::Residue) = _chain_by_idx(res.sys, res.row.chain_id)
 
+@doc raw"""
+    parent_residue(::Atom)
+
+Returns the `Residue{T}` containing the given atom. Returns `nothing` if no such residue exists.
+""" parent_residue
+
+"""
+    $(TYPEDSIGNATURES)
+
+Returns the `Residue{T}` associated with the given `idx` in `sys`.
+"""
 @inline function _residue_by_idx(sys::System{T}, idx::Int) where T
     Residue{T}(sys, DataFrameRow(sys.residues, findfirst(sys.residues.idx .== idx), :))
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Returns a raw `DataFrame` for all of the given system's residues matching the given criteria. Fields given
+as `nothing` are ignored. The returned `DataFrame` contains all public and private residue fields.
+"""
 function _residues(sys::System{T};
     molecule_id::Union{Nothing, Int} = nothing,
     chain_id::Union{Nothing, Int} = nothing
@@ -57,18 +90,50 @@ function _residues(sys::System{T};
     )
 end
 
+"""
+    residues(::Chain)
+    residues(::Molecule)
+    residues(::Protein)
+    residues(::System)
+
+Returns a `Vector{Residue{T}}` containing all residues of the given atom container.
+"""
 @inline function residues(sys::System; kwargs...)
     collect(eachresidue(sys; kwargs...))
 end
 
+"""
+    residues_df(::Chain)
+    residues_df(::Molecule)
+    residues_df(::Protein)
+    residues_df(::System)
+
+Returns a `SystemDataFrame{T}` containing all residues of the given atom container.
+"""
 @inline function residues_df(sys::System; kwargs...)
     SystemDataFrame(sys, view(_residues(sys; kwargs...), :, 1:length(fieldnames(ResidueTuple))))
 end
 
+"""
+    eachresidue(::Chain)
+    eachresidue(::Molecule)
+    eachresidue(::Protein)
+    eachresidue(::System)
+
+Returns a `Residue{T}` generator for all residues of the given atom container.
+"""
 @inline function eachresidue(sys::System{T}; kwargs...) where T
     (Residue{T}(sys, row) for row in eachrow(_residues(sys; kwargs...)))
 end
 
+"""
+    nresidues(::Chain)
+    nresidues(::Molecule)
+    nresidues(::Protein)
+    nresidues(::System)
+
+Returns the number of residues in the given atom container.
+"""
 @inline function nresidues(sys::System; kwargs...)
     nrow(_residues(sys; kwargs...))
 end
@@ -91,6 +156,12 @@ end
 @inline eachresidue(chain::Chain; kwargs...) = eachresidue(chain.sys; chain_id = chain.idx, kwargs...)
 @inline nresidues(chain::Chain; kwargs...) = nresidues(chain.sys; chain_id = chain.idx, kwargs...)
 
+"""
+    push!(::Chain, frag::FragmentTuple)
+
+Creates a new fragment in the given chain, based on the given tuple. The new residue is automatically
+assigned a new `idx`.
+"""
 @inline function Base.push!(chain::Chain, res::ResidueTuple)
     push!(chain.sys.residues, (_with_idx(res, _next_idx(chain.sys))..., chain.idx))
     chain

@@ -49,7 +49,7 @@ Returns a copy of the given tuple with replaced `idx`.
 end
 
 """
-    const BondTuple{T} = NamedTuple{...}
+    const BondTuple = NamedTuple{...}
 
 Tuple-based bond representation for `DataFrame` usage.
 
@@ -73,7 +73,7 @@ end
 end
 
 """
-    const MoleculeTuple{T} = NamedTuple{...}
+    const MoleculeTuple = NamedTuple{...}
 
 Tuple-based molecule representation for `DataFrame` usage.
 
@@ -92,8 +92,29 @@ end
     ntuple(i -> i == 1 ? idx : mol[i], length(mol))
 end
 
+"""
+    const ChainTuple = NamedTuple{...}
+
+Tuple-based chain representation for `DataFrame` usage.
+
+# Fields
+ - `idx::Int`
+ - `name::String`
+ - `properties::Properties`
+"""
 const ChainTuple = MoleculeTuple
 
+"""
+    const FragmentTuple = NamedTuple{...}
+
+Tuple-based fragment representation for `DataFrame` usage.
+
+# Fields
+ - `idx::Int`
+ - `number::Int`
+ - `name::String`
+ - `properties::Properties`
+"""
 const FragmentTuple = @NamedTuple begin
     idx::Int
     number::Int
@@ -105,8 +126,30 @@ end
     ntuple(i -> i == 1 ? idx : frag[i], length(frag))
 end
 
+"""
+    const NucleotideTuple = NamedTuple{...}
+
+Tuple-based nucleotide representation for `DataFrame` usage.
+
+# Fields
+ - `idx::Int`
+ - `number::Int`
+ - `name::String`
+ - `properties::Properties`
+"""
 const NucleotideTuple = FragmentTuple
 
+"""
+    const ResidueTuple = NamedTuple{...}
+
+Tuple-based residue representation for `DataFrame` usage.
+
+# Fields
+ - `idx::Int`
+ - `number::Int`
+ - `type::AminoAcid`
+ - `properties::Properties`
+"""
 const ResidueTuple = @NamedTuple begin
     idx::Int
     number::Int

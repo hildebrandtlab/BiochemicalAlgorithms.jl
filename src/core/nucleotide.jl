@@ -1,5 +1,21 @@
 export Nucleotide, nucleotides, nucleotides_df, eachnucleotide, nnucleotides, parent_nucleotide
 
+"""
+    $(TYPEDEF)
+
+Mutable representation of an individual nucleotide in a system.
+
+# Fields
+ - `idx::Int`
+ - `number::Int`
+ - `name::String`
+ - `properties::Properties`
+
+# Constructors
+   Nucleotide(chain::Chain{T}, number::Int, name::String = "", properties::Properties = Properties())
+
+Creates a new `Nucleotide{T}` in the given chain.
+"""
 struct Nucleotide{T}
     sys::System{T}
     row::DataFrameRow
@@ -36,10 +52,27 @@ end
 @inline parent_molecule(nuc::Nucleotide) = _molecule_by_idx(nuc.sys, nuc.row.molecule_id)
 @inline parent_chain(nuc::Nucleotide) = _chain_by_idx(nuc.sys, nuc.row.chain_id)
 
+@doc raw"""
+    parent_nucleotide(::Atom)
+
+Returns the `Nucleotide{T}` containing the given atom. Returns `nothing` if no such nucleotide exists.
+""" parent_nucleotide
+
+"""
+    $(TYPEDSIGNATURES)
+
+Returns the `Nucleotide{T}` associated with the given `idx` in `sys`.
+"""
 @inline function _nucleotide_by_idx(sys::System{T}, idx::Int) where T
     Nucleotide{T}(sys, DataFrameRow(sys.nucleotides, findfirst(sys.nucleotides.idx .== idx), :))
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Returns a raw `DataFrame` for all of the given system's nucleotides matching the given criteria. Fields
+given as `nothing` are ignored. The returned `DataFrame` contains all public and private nucleotide fields.
+"""
 function _nucleotides(sys::System{T};
     molecule_id::Union{Nothing, Int} = nothing,
     chain_id::Union{Nothing, Int} = nothing
@@ -57,18 +90,50 @@ function _nucleotides(sys::System{T};
     )
 end
 
+"""
+    nucleotides(::Chain)
+    nucleotides(::Molecule)
+    nucleotides(::Protein)
+    nucleotides(::System)
+
+Returns a `Vector{Nucleotide{T}}` containing all nucleotides of the given atom container.
+"""
 @inline function nucleotides(sys::System; kwargs...)
     collect(eachnucleotide(sys; kwargs...))
 end
 
+"""
+    nucleotides_df(::Chain)
+    nucleotides_df(::Molecule)
+    nucleotides_df(::Protein)
+    nucleotides_df(::System)
+
+Returns a `SystemDataFrame{T}` containing all nucleotides of the given atom container.
+"""
 @inline function nucleotides_df(sys::System; kwargs...)
     SystemDataFrame(sys, view(_nucleotides(sys; kwargs...), :, 1:length(fieldnames(NucleotideTuple))))
 end
 
+"""
+    eachnucleotide(::Chain)
+    eachnucleotide(::Molecule)
+    eachnucleotide(::Protein)
+    eachnucleotide(::System)
+
+Returns a `Nucleotide{T}` generator for all nucleotides of the given atom container.
+"""
 @inline function eachnucleotide(sys::System{T}; kwargs...) where T
     (Nucleotide{T}(sys, row) for row in eachrow(_nucleotides(sys; kwargs...)))
 end
 
+"""
+    nnucleotides(::Chain)
+    nnucleotides(::Molecule)
+    nnucleotides(::Protein)
+    nnucleotides(::System)
+
+Returns the number of nucleotides in the given atom container.
+"""
 @inline function nnucleotides(sys::System; kwargs...)
     nrow(_nucleotides(sys; kwargs...))
 end

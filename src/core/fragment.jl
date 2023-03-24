@@ -1,5 +1,21 @@
 export Fragment, fragments, fragments_df, eachfragment, nfragments, parent_fragment
 
+"""
+    $(TYPEDEF)
+
+Mutable representation of an individual fragment in a system.
+
+# Fields
+ - `idx::Int`
+ - `number::Int`
+ - `name::String`
+ - `properties::Properties`
+
+# Constructors
+    Fragment(chain::Chain{T}, number::Int, name::String = "", properties::Properties = Properties())
+
+Creates a new `Fragment{T}` in the given chain.
+"""
 struct Fragment{T}
     sys::System{T}
     row::DataFrameRow
@@ -36,10 +52,27 @@ end
 @inline parent_molecule(frag::Fragment) = _molecule_by_idx(frag.sys, frag.row.molecule_id)
 @inline parent_chain(frag::Fragment) = _chain_by_idx(frag.sys, frag.row.chain_id)
 
+@doc raw"""
+    parent_fragment(::Atom)
+
+Returns the `Fragment{T}` containing the given atom. Returns `nothing` if no such fragment exists.
+""" parent_fragment
+
+"""
+    $(TYPEDSIGNATURES)
+
+Returns the `Fragment{T}` associated with the given `idx` in `sys`.
+"""
 @inline function _fragment_by_idx(sys::System{T}, idx::Int) where T
     Fragment{T}(sys, DataFrameRow(sys.fragments, findfirst(sys.fragments.idx .== idx), :))
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Returns a raw `DataFrame` for all of the given system's fragments matching the given criteria. Fields
+given as `nothing` are ignored. The returned `DataFrame` contains all public and private fragment fields.
+"""
 function _fragments(sys::System{T};
         molecule_id::Union{Nothing, Int} = nothing,
         chain_id::Union{Nothing, Int} = nothing
@@ -57,18 +90,50 @@ function _fragments(sys::System{T};
     )
 end
 
+"""
+    fragments(::Chain)
+    fragments(::Molecule)
+    fragments(::Protein)
+    fragments(::System)
+
+Returns a `Vector{Fragment{T}}` containing all fragments of the given atom container.
+"""
 @inline function fragments(sys::System; kwargs...)
     collect(eachfragment(sys; kwargs...))
 end
 
+"""
+    fragments_df(::Chain)
+    fragments_df(::Molecule)
+    fragments_df(::Protein)
+    fragments_df(::System)
+
+Returns a `SystemDataFrame{T}` containing all fragments of the given atom container.
+"""
 @inline function fragments_df(sys::System; kwargs...)
     SystemDataFrame(sys, view(_fragments(sys; kwargs...), :, 1:length(fieldnames(FragmentTuple))))
 end
 
+"""
+    eachfragment(::Chain)
+    eachfragment(::Molecule)
+    eachfragment(::Protein)
+    eachfragment(::System)
+
+Returns a `Fragment{T}` generator for all fragments of the given atom container.
+"""
 @inline function eachfragment(sys::System{T}; kwargs...) where T
     (Fragment{T}(sys, row) for row in eachrow(_fragments(sys; kwargs...)))
 end
 
+"""
+    nfragments(::Chain)
+    nfragments(::Molecule)
+    nfragments(::Protein)
+    nfragments(::System)
+
+Returns the number of fragments in the given atom container.
+"""
 @inline function nfragments(sys::System; kwargs...)
     nrow(_fragments(sys; kwargs...))
 end
@@ -91,6 +156,12 @@ end
 @inline eachfragment(chain::Chain; kwargs...) = eachfragment(chain.sys; chain_id = chain.idx, kwargs...)
 @inline nfragments(chain::Chain; kwargs...) = nfragments(chain.sys; chain_id = chain.idx, kwargs...)
 
+"""
+    push!(::Chain, frag::FragmentTuple)
+
+Creates a new fragment in the given chain, based on the given tuple. The new fragment is automatically
+assigned a new `idx`.
+"""
 @inline function Base.push!(chain::Chain, frag::FragmentTuple)
     push!(chain.sys.fragments, (_with_idx(frag, _next_idx(chain.sys))..., chain.idx))
     chain
