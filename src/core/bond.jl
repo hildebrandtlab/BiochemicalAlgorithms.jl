@@ -78,7 +78,9 @@ end
 Returns the `Bond{T}` associated with the given `idx` in `sys`.
 """
 @inline function _bond_by_idx(sys::System{T}, idx::Int) where T
-    Bond{T}(sys, DataFrameRow(sys.bonds, findfirst(sys.bonds.idx .== idx), :))
+    @with sys.bonds begin
+        Bond{T}(sys, DataFrameRow(sys.bonds, findfirst(:idx .== idx), :))
+    end
 end
 
 """
@@ -90,7 +92,9 @@ matching the given criteria (value or `missing`). Fields given as `nothing` are 
 """
 function _bonds(sys::System; kwargs...)
     aidx = _atoms(sys; kwargs...).idx
-    filter(row -> (row.a1 in aidx || row.a2 in aidx), sys.bonds, view = true)
+    @rsubset(
+        sys.bonds, :a1 in aidx || :a2 in aidx; view = true
+    )::SubDataFrame{DataFrame, DataFrames.Index, UnitRange{Int}}
 end
 
 """

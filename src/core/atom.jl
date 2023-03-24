@@ -161,7 +161,9 @@ end
 Returns the `Atom{T}` associated with the given `idx` in `sys`.
 """
 @inline function _atom_by_idx(sys::System{T}, idx::Int) where T
-    Atom{T}(sys, DataFrameRow(sys.atoms, findfirst(sys.atoms.idx .== idx), :))
+    @with sys.atoms begin
+        Atom{T}(sys, DataFrameRow(sys.atoms, findfirst(:idx .== idx), :))
+    end
 end
 
 """
@@ -190,8 +192,8 @@ function _atoms(sys::System{T};
     get(
         groupby(sys.atoms, getindex.(cols, 1)),
         ntuple(i -> cols[i][2], length(cols)),
-        DataFrame(_SystemAtomTuple{T}[])
-    )
+        view(sys.atoms, Int[], :)
+    )::SubDataFrame{DataFrame, DataFrames.Index, Vector{Int}}
 end
 
 """

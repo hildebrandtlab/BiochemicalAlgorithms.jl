@@ -1,6 +1,5 @@
 using Statistics: mean
 using LinearAlgebra: Hermitian, eigen
-using DataFramesMeta
 
 export AbstractRMSDMinimizer, RigidTransform, rigid_transform!, compute_rmsd_minimizer, compute_rmsd, translate!, map_rigid!
 

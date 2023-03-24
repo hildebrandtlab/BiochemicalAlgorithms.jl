@@ -1,6 +1,7 @@
 module BiochemicalAlgorithms
 
 using DataFrames
+using DataFramesMeta
 using DocStringExtensions
 
 include("core/types.jl")
