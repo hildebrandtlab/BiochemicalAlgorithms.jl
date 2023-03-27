@@ -1,5 +1,5 @@
 using AutoHashEquals
-export Bond, bonds, bonds_df, eachbond, nbonds, get_partner, is_bound_to
+export Bond, bond_by_idx, bonds, bonds_df, eachbond, nbonds, get_partner, is_bound_to
 
 """
     $(TYPEDEF)
@@ -49,7 +49,7 @@ function Bond(
 ) where T
     idx = _next_idx(sys)
     push!(sys._bonds, (idx, a1, a2, order, properties))
-    _bond_by_idx(sys, idx)
+    bond_by_idx(sys, idx)
 end
 
 @inline function Bond(a1::Int, a2::Int, order::BondOrderType, properties::Properties = Properties())
@@ -76,12 +76,12 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Returns the `Bond{T}` associated with the given `idx` in `sys`.
+Returns the `Bond{T}` associated with the given `idx` in `sys`. Returns `nothing` if no such bond
+exists.
 """
-@inline function _bond_by_idx(sys::System{T}, idx::Int) where T
-    @with sys._bonds begin
-        Bond{T}(sys, DataFrameRow(sys._bonds, findfirst(:idx .== idx), :))
-    end
+@inline function bond_by_idx(sys::System{T}, idx::Int) where T
+    rn = _row_by_idx(sys._bonds, idx)
+    isnothing(rn) ? nothing : Bond{T}(sys, DataFrameRow(sys._bonds, rn, :))
 end
 
 """
@@ -200,9 +200,9 @@ end
 
 function get_partner(bond, atom)
     if bond.a1 == atom.idx
-        return _atom_by_idx(atom._sys, bond.a2)
+        return atom_by_idx(atom._sys, bond.a2)
     elseif bond.a2 == atom.idx
-        return _atom_by_idx(atom._sys, bond.a1)
+        return atom_by_idx(atom._sys, bond.a1)
     else
         return nothing
     end

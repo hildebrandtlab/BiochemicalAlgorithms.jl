@@ -1,4 +1,5 @@
-export Nucleotide, nucleotides, nucleotides_df, eachnucleotide, nnucleotides, parent_nucleotide
+export Nucleotide, nucleotide_by_idx, nucleotides, nucleotides_df, eachnucleotide, nnucleotides,
+    parent_nucleotide
 
 """
     $(TYPEDEF)
@@ -30,7 +31,7 @@ function Nucleotide(
     sys = parent(chain)
     idx = _next_idx(sys)
     push!(sys._nucleotides), (idx, number, name, properties, chain._row.molecule_id, chain.idx)
-    _nucleotide_by_idx(sys, idx)
+    nucleotide_by_idx(sys, idx)
 end
 
 function Base.getproperty(nuc::Nucleotide, name::Symbol)
@@ -61,10 +62,12 @@ Returns the `Nucleotide{T}` containing the given atom. Returns `nothing` if no s
 """
     $(TYPEDSIGNATURES)
 
-Returns the `Nucleotide{T}` associated with the given `idx` in `sys`.
+Returns the `Nucleotide{T}` associated with the given `idx` in `sys`. Returns `nothing` if no such
+nucleotide exists.
 """
-@inline function _nucleotide_by_idx(sys::System{T}, idx::Int) where T
-    Nucleotide{T}(sys, DataFrameRow(sys._nucleotides, findfirst(sys._nucleotides.idx .== idx), :))
+@inline function nucleotide_by_idx(sys::System{T}, idx::Int) where T
+    rn = _row_by_idx(sys._nucleotides, idx)
+    isnothing(rn) ? nothing : Nucleotide{T}(sys, DataFrameRow(sys._nucleotides, rn, :))
 end
 
 """

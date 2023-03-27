@@ -26,6 +26,7 @@ parent_system
 ```@docs
 Atom
 AtomTuple
+atom_by_idx
 atoms
 atoms_df
 eachatom
@@ -37,6 +38,7 @@ Base.push!(::System{T}, ::AtomTuple{T}) where T
 ```@docs
 Bond
 BondTuple
+bond_by_idx
 bonds
 bonds_df
 eachbond
@@ -49,6 +51,7 @@ Base.push!(::System{T}, ::BondTuple) where T
 Molecule
 MoleculeTuple
 eachmolecule
+molecule_by_idx
 molecules
 molecules_df
 nmolecules
@@ -59,6 +62,7 @@ parent_molecule
 ```@docs
 Chain
 ChainTuple
+chain_by_idx
 chains
 chains_df
 eachchain
@@ -72,6 +76,7 @@ Base.push!(::Molecule, ::ChainTuple)
 Fragment
 FragmentTuple
 eachfragment
+fragment_by_idx
 fragments
 fragments_df
 nfragments
@@ -85,6 +90,7 @@ Nucleotide
 NucleotideTuple
 eachnucleotide
 nnucleotides
+nucleotide_by_idx
 nucleotides
 nucleotides_df
 parent_nucleotide
@@ -97,6 +103,7 @@ ResidueTuple
 eachresidue
 nresidues
 parent_residue
+residue_by_idx
 residues
 residues_df
 Base.push!(::Chain, ::ResidueTuple)

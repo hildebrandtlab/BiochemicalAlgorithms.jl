@@ -1,4 +1,4 @@
-export Residue, residues, residues_df, eachresidue, nresidues, parent_residue
+export Residue, residue_by_idx, residues, residues_df, eachresidue, nresidues, parent_residue
 
 """
     $(TYPEDEF)
@@ -30,7 +30,7 @@ function Residue(
     sys = parent(chain)
     idx = _next_idx(sys)
     push!(sys._residues, (idx, number, type, properties, chain._row.molecule_id, chain.idx))
-    _residue_by_idx(sys, idx)
+    residue_by_idx(sys, idx)
 end
 
 function Base.getproperty(res::Residue, name::Symbol)
@@ -61,10 +61,12 @@ Returns the `Residue{T}` containing the given atom. Returns `nothing` if no such
 """
     $(TYPEDSIGNATURES)
 
-Returns the `Residue{T}` associated with the given `idx` in `sys`.
+Returns the `Residue{T}` associated with the given `idx` in `sys`. Returns `nothing` if no such residue
+exists.
 """
-@inline function _residue_by_idx(sys::System{T}, idx::Int) where T
-    Residue{T}(sys, DataFrameRow(sys._residues, findfirst(sys._residues.idx .== idx), :))
+@inline function residue_by_idx(sys::System{T}, idx::Int) where T
+    rn = _row_by_idx(sys._residues, idx)
+    isnothing(rn) ? nothing : Residue{T}(sys, DataFrameRow(sys._residues, rn, :))
 end
 
 """

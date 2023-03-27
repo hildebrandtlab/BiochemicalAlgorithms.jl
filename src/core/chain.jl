@@ -1,5 +1,5 @@
 using AutoHashEquals
-export Chain, chains, chains_df, eachchain, nchains, parent_chain
+export Chain, chain_by_idx, chains, chains_df, eachchain, nchains, parent_chain
 
 """
     $(TYPEDEF)
@@ -29,7 +29,7 @@ function Chain(
     sys = parent(mol)
     idx = _next_idx(sys)
     push!(sys._chains, (idx, name, properties, mol.idx))
-    _chain_by_idx(sys, idx)
+    chain_by_idx(sys, idx)
 end
 
 function Base.getproperty(chain::Chain, name::Symbol)
@@ -61,10 +61,12 @@ Returns the `Chain{T}` containing the given object. Returns `nothing` if no such
 """
     $(TYPEDSIGNATURES)
 
-Returns the `Chain{T}` associated with the given `idx` in `sys`.
+Returns the `Chain{T}` associated with the given `idx` in `sys`. Returns `nothing` if no such chain
+exists.
 """
-@inline function _chain_by_idx(sys::System{T}, idx::Int) where T
-    Chain{T}(sys, DataFrameRow(sys._chains, findfirst(sys._chains.idx .== idx), :))
+@inline function chain_by_idx(sys::System{T}, idx::Int) where T
+    rn = _row_by_idx(sys._chains, idx)
+    isnothing(rn) ? nothing : Chain{T}(sys, DataFrameRow(sys._chains, rn, :))
 end
 
 """

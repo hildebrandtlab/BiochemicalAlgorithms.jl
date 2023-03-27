@@ -1,5 +1,6 @@
 using AutoHashEquals
-export Atom, atoms, atoms_df, eachatom, natoms, atom_by_name, has_property, get_property, set_property
+export Atom, atom_by_idx, atom_by_name, atoms, atoms_df, eachatom, natoms, has_property,
+    get_property, set_property
 
 """
     $(TYPEDEF)
@@ -104,7 +105,7 @@ function Atom(
     push!(sys._atoms, (idx, number, element, name, atomtype, r, v, F, formal_charge, charge, radius,
         has_velocity, has_force, properties, frame_id, molecule_id, chain_id, fragment_id, nucleotide_id, 
         residue_id))
-    _atom_by_idx(sys, idx)
+    atom_by_idx(sys, idx)
 end
 
 function Atom(
@@ -130,7 +131,7 @@ function Atom(
           charge=charge, radius=radius, has_velocity=has_velocity, 
           has_force=has_force, properties=properties)::AtomTuple;
           frame_id=frame_id)
-    _atom_by_idx(ac._sys, ac._sys._curr_idx)
+    atom_by_idx(ac._sys, ac._sys._curr_idx)
 end
 
 function Atom(
@@ -211,12 +212,12 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Returns the `Atom{T}` associated with the given `idx` in `sys`.
+Returns the `Atom{T}` associated with the given `idx` in `sys`. Returns `nothing` if no such atom
+exists.
 """
-@inline function _atom_by_idx(sys::System{T}, idx::Int) where T
-    @with sys._atoms begin
-        Atom{T}(sys, DataFrameRow(sys._atoms, findfirst(:idx .== idx), :))
-    end
+@inline function atom_by_idx(sys::System{T}, idx::Int) where T
+    rn = _row_by_idx(sys._atoms, idx)
+    isnothing(rn) ? nothing : Atom{T}(sys, DataFrameRow(sys._atoms, rn, :))
 end
 
 @inline function atom_by_name(ac::AbstractAtomContainer{T}, name::String) where T

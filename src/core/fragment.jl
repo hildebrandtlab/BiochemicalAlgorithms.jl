@@ -1,5 +1,5 @@
 using AutoHashEquals
-export Fragment, fragments, fragments_df, eachfragment, nfragments, parent_fragment, 
+export Fragment, fragment_by_idx, fragments, fragments_df, eachfragment, nfragments, parent_fragment, 
     is_c_terminal, is_n_terminal, is_amino_acid, is_nucleotide, is_3_prime, is_5_prime,
     get_previous, get_next
 
@@ -33,7 +33,7 @@ function Fragment(
     sys = parent(chain)
     idx = _next_idx(sys)
     push!(sys._fragments, (idx, number, name, properties, chain._row.molecule_id, chain.idx))
-    _fragment_by_idx(sys, idx)
+    fragment_by_idx(sys, idx)
 end
 
 function Base.getproperty(frag::Fragment, name::Symbol)
@@ -64,10 +64,12 @@ Returns the `Fragment{T}` containing the given atom. Returns `nothing` if no suc
 """
     $(TYPEDSIGNATURES)
 
-Returns the `Fragment{T}` associated with the given `idx` in `sys`.
+Returns the `Fragment{T}` associated with the given `idx` in `sys`. Returns `nothing` if no such
+fragment exists.
 """
-@inline function _fragment_by_idx(sys::System{T}, idx::Int) where T
-    Fragment{T}(sys, DataFrameRow(sys._fragments, findfirst(sys._fragments.idx .== idx), :))
+@inline function fragment_by_idx(sys::System{T}, idx::Int) where T
+    rn = _row_by_idx(sys._fragments, idx)
+    isnothing(rn) ? nothing : Fragment{T}(sys, DataFrameRow(sys._fragments, rn, :))
 end
 
 """
@@ -271,7 +273,7 @@ end
 
 @inline function get_previous(frag::Fragment{T}) where {T<:Real}
     try
-        prev_candidate = _fragment_by_idx(parent(frag), frag.idx - 1)
+        prev_candidate = fragment_by_idx(parent(frag), frag.idx - 1)
 
         if !isnothing(prev_candidate) && parent_chain(prev_candidate) == parent_chain(frag)
             return prev_candidate
@@ -284,7 +286,7 @@ end
 
 @inline function get_next(frag::Fragment{T}) where {T<:Real}
     try
-        prev_candidate = _fragment_by_idx(parent(frag), frag.idx + 1)
+        prev_candidate = fragment_by_idx(parent(frag), frag.idx + 1)
 
         if !isnothing(prev_candidate) && parent_chain(prev_candidate) == parent_chain(frag)
             return prev_candidate
