@@ -27,6 +27,9 @@ const AtomTuple{T} = @NamedTuple begin
     r::Vector3{T}
     v::Vector3{T}
     F::Vector3{T}
+    formal_charge::Int
+    charge::T
+    radius::T
     has_velocity::Bool
     has_force::Bool
     properties::Properties

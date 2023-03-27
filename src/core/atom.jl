@@ -15,6 +15,9 @@ Mutable representation of an individual atom in a system.
  - `r::Vector3{T}`
  - `v::Vector3{T}`
  - `F::Vector3{T}`
+ - `formal_charge::Int`
+ - `charge::T`
+ - `radius::T`
  - `has_velocity::Bool`
  - `has_force::Bool`
  - `properties::Properties`
@@ -29,6 +32,9 @@ Atom(
     r::Vector3{T} = Vector3{T}(0, 0, 0),
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
+    formal_charge::Int = 0,
+    charge::T = zero(T),
+    radius::T = zero(T),
     has_velocity::Bool = false,
     has_force::Bool = false,
     properties::Properties = Properties();
@@ -48,6 +54,9 @@ Atom(
     r::Vector3{T} = Vector3{T}(0, 0, 0),
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
+    formal_charge::Int = 0,
+    charge::T = zero(T),
+    radius::T = zero(T),
     has_velocity::Bool = false,
     has_force::Bool = false,
     properties::Properties = Properties();
@@ -77,6 +86,9 @@ function Atom(
     r::Vector3{T} = Vector3{T}(0, 0, 0),
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
+    formal_charge::Int = 0,
+    charge::T = 0.0,
+    radius::T = 0.0,
     has_velocity::Bool = false,
     has_force::Bool = false,
     properties::Properties = Properties();
@@ -89,8 +101,9 @@ function Atom(
     residue_id::MaybeInt = missing
 ) where T
     idx = _next_idx(sys)
-    push!(sys.atoms, (idx, number, element, name, atomtype, r, v, F, has_velocity, has_force,
-        properties, frame_id, molecule_id, chain_id, fragment_id, nucleotide_id, residue_id))
+    push!(sys.atoms, (idx, number, element, name, atomtype, r, v, F, formal_charge, charge, radius,
+        has_velocity, has_force, properties, frame_id, molecule_id, chain_id, fragment_id, nucleotide_id, 
+        residue_id))
     _atom_by_idx(sys, idx)
 end
 
@@ -102,13 +115,16 @@ function Atom(
     r::Vector3{Float32} = Vector3{Float32}(0, 0, 0),
     v::Vector3{Float32} = Vector3{Float32}(0, 0, 0),
     F::Vector3{Float32} = Vector3{Float32}(0, 0, 0),
+    formal_charge::Int = 0,
+    charge::Float32 = 0.0f32,
+    radius::Float32 = 0.0f32,
     has_velocity::Bool = false,
     has_force::Bool = false,
     properties::Properties = Properties();
     kwargs...
 )
-    Atom(default_system(), number, element, name, atomtype, r, v, F, has_velocity, has_force,
-        properties; kwargs...)
+    Atom(default_system(), number, element, name, atomtype, r, v, F, formal_charge, charge, radius,
+        has_velocity, has_force, properties; kwargs...)
 end
 
 @inline function Atom(sys::System{T}, atom::AtomTuple{T}; kwargs...) where T

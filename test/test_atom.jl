@@ -9,6 +9,9 @@
             r = Vector3{T}(1, 2, 4),
             v = Vector3{T}(1, 1, 1),
             F = Vector3{T}(0, 0, 0),
+            formal_charge = 1,
+            charge = T(0.2),
+            radius = T(1.01),
             has_velocity = true,
             has_force = false,
             properties = Dict{String, Any}()
@@ -28,7 +31,7 @@
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(atom, :row)) == 17
+        @test length(getfield(atom, :row)) == 20
 
         # getproperty (public)
         @test atom.idx isa Int
@@ -46,6 +49,12 @@
         @test atom.v == at.v
         @test atom.F isa Vector3{T}
         @test atom.F == at.F
+        @test atom.formal_charge isa Int
+        @test atom.formal_charge == at.formal_charge
+        @test atom.charge isa T
+        @test atom.charge == at.charge
+        @test atom.radius isa T
+        @test atom.radius == at.radius
         @test atom.has_velocity isa Bool
         @test atom.has_velocity == at.has_velocity
         @test atom.has_force isa Bool
