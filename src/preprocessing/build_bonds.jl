@@ -38,7 +38,8 @@ function build_fragment_bonds!(
         tpl_bonds = filter(b -> b.a1 == tpl_atom.name || b.a2 == tpl_atom.name, template.bonds)
 
         for tpl_bond in tpl_bonds
-            tpl_partner = get_partner(tpl_bond, tpl_atom.name)
+            tpl_partner = 
+                (tpl_bond.a1 == tpl_atom.name) ? tpl_bond.a2 : ((tpl_bond.a2 == tpl_atom.name) ? tpl_bond.a1 : nothing)
 
             if isnothing(tpl_partner)
                 continue
@@ -123,7 +124,13 @@ function try_build_connection!(a1::Atom, con_1::DBConnection, a2::Atom, con_2::D
         @warn "build_bonds!(): inconsistent bond orders"
     end
 
-    Bond(a1.sys, a1.idx, a2.idx, con_1.order)
+    # mark disulfide bridges
+    props = Properties()
+    if a1.name == "SG" && a2.name == "SG"
+        props["DISULPHIDE_BOND"] = true
+    end
+
+    Bond(a1.sys, a1.idx, a2.idx, con_1.order, props)
 
     return true
 end
