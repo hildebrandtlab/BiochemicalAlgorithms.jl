@@ -96,20 +96,21 @@ Creates a new and empty `System{T}`.
 """
 @auto_hash_equals mutable struct System{T} <: AbstractAtomContainer{T}
     name::String
-    atoms::DataFrame
-    bonds::DataFrame
-    molecules::DataFrame
-    chains::DataFrame
-    fragments::DataFrame
-    nucleotides::DataFrame
-    residues::DataFrame
     properties::Properties
 
+    _atoms::DataFrame
+    _bonds::DataFrame
+    _molecules::DataFrame
+    _chains::DataFrame
+    _fragments::DataFrame
+    _nucleotides::DataFrame
+    _residues::DataFrame
     _curr_idx::Int
 
     function System{T}(name::String = "", properties::Properties = Properties()) where T
         new(
             name,
+            properties,
             DataFrame(_SystemAtomTuple{T}[]),
             DataFrame(BondTuple[]),
             DataFrame(MoleculeTuple[]),
@@ -117,7 +118,6 @@ Creates a new and empty `System{T}`.
             DataFrame(_SystemFragmentTuple[]),
             DataFrame(_SystemNucleotideTuple[]),
             DataFrame(_SystemResidueTuple[]),
-            properties,
             0
         )
     end

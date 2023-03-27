@@ -1,4 +1,3 @@
-using AutoHashEquals
 export Residue, residues, residues_df, eachresidue, nresidues, parent_residue
 
 """
@@ -18,8 +17,8 @@ Mutable representation of an individual residue in a system.
 Creates a new `Residue{T}` in the given chain.
 """
 @auto_hash_equals struct Residue{T}
-    sys::System{T}
-    row::DataFrameRow
+    _sys::System{T}
+    _row::DataFrameRow
 end
 
 function Residue(
@@ -28,30 +27,30 @@ function Residue(
     type::AminoAcid,
     properties::Properties = Properties()
 ) where T
-    sys = chain.sys
+    sys = parent(chain)
     idx = _next_idx(sys)
-    push!(sys.residues, (idx, number, type, properties, chain.row.molecule_id, chain.idx))
+    push!(sys._residues, (idx, number, type, properties, chain._row.molecule_id, chain.idx))
     _residue_by_idx(sys, idx)
 end
 
 function Base.getproperty(res::Residue, name::Symbol)
-    in(name, fieldnames(ResidueTuple)) && return getproperty(getfield(res, :row), name)
+    in(name, fieldnames(ResidueTuple)) && return getproperty(getfield(res, :_row), name)
     getfield(res, name)
 end
 
 function Base.setproperty!(res::Residue, name::Symbol, val)
-    in(name, fieldnames(ResidueTuple)) && return setproperty!(getfield(res, :row), name, val)
+    in(name, fieldnames(ResidueTuple)) && return setproperty!(getfield(res, :_row), name, val)
     setfield!(res, name, val)
 end
 
 # TODO hide internals
-@inline Base.show(io::IO, ::MIME"text/plain", res::Residue) = show(io, getfield(res, :row))
-@inline Base.show(io::IO, res::Residue) = show(io, getfield(res, :row))
+@inline Base.show(io::IO, ::MIME"text/plain", res::Residue) = show(io, getfield(res, :_row))
+@inline Base.show(io::IO, res::Residue) = show(io, getfield(res, :_row))
 
-@inline Base.parent(res::Residue) = res.sys
+@inline Base.parent(res::Residue) = res._sys
 @inline parent_system(res::Residue) = parent(res)
-@inline parent_molecule(res::Residue) = _molecule_by_idx(res.sys, res.row.molecule_id)
-@inline parent_chain(res::Residue) = _chain_by_idx(res.sys, res.row.chain_id)
+@inline parent_molecule(res::Residue) = _molecule_by_idx(parent(res), res._row.molecule_id)
+@inline parent_chain(res::Residue) = _chain_by_idx(parent(res), res._row.chain_id)
 
 @doc raw"""
     parent_residue(::Atom)
@@ -65,7 +64,7 @@ Returns the `Residue{T}` containing the given atom. Returns `nothing` if no such
 Returns the `Residue{T}` associated with the given `idx` in `sys`.
 """
 @inline function _residue_by_idx(sys::System{T}, idx::Int) where T
-    Residue{T}(sys, DataFrameRow(sys.residues, findfirst(sys.residues.idx .== idx), :))
+    Residue{T}(sys, DataFrameRow(sys._residues, findfirst(sys._residues.idx .== idx), :))
 end
 
 """
@@ -78,14 +77,14 @@ function _residues(sys::System{T};
     molecule_id::Union{Nothing, Int} = nothing,
     chain_id::Union{Nothing, Int} = nothing
 ) where T
-    isnothing(molecule_id) && isnothing(chain_id) && return sys.residues
+    isnothing(molecule_id) && isnothing(chain_id) && return sys._residues
 
     cols = Tuple{Symbol, Int}[]
     isnothing(molecule_id) || push!(cols, (:molecule_id, molecule_id))
     isnothing(chain_id)    || push!(cols, (:chain_id, chain_id))
 
     get(
-        groupby(sys.residues, getindex.(cols, 1)),
+        groupby(sys._residues, getindex.(cols, 1)),
         ntuple(i -> cols[i][2], length(cols)),
         DataFrame(_SystemResidueTuple[])
     )
@@ -142,20 +141,20 @@ end
 #=
     Molecule residues
 =#
-@inline _residues(mol::Molecule; kwargs...) = _residues(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline residues(mol::Molecule; kwargs...) = residues(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline residues_df(mol::Molecule; kwargs...) = residues_df(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline eachresidue(mol::Molecule; kwargs...) = eachresidue(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline nresidues(mol::Molecule; kwargs...) = nresidues(mol.sys; molecule_id = mol.idx, kwargs...)
+@inline _residues(mol::Molecule; kwargs...) = _residues(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline residues(mol::Molecule; kwargs...) = residues(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline residues_df(mol::Molecule; kwargs...) = residues_df(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline eachresidue(mol::Molecule; kwargs...) = eachresidue(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline nresidues(mol::Molecule; kwargs...) = nresidues(parent(mol); molecule_id = mol.idx, kwargs...)
 
 #=
     Chain residues
 =#
-@inline _residues(chain::Chain; kwargs...) = _residues(chain.sys; chain_id = chain.idx, kwargs...)
-@inline residues(chain::Chain; kwargs...) = residues(chain.sys; chain_id = chain.idx, kwargs...)
-@inline residues_df(chain::Chain; kwargs...) = residues_df(chain.sys; chain_id = chain.idx, kwargs...)
-@inline eachresidue(chain::Chain; kwargs...) = eachresidue(chain.sys; chain_id = chain.idx, kwargs...)
-@inline nresidues(chain::Chain; kwargs...) = nresidues(chain.sys; chain_id = chain.idx, kwargs...)
+@inline _residues(chain::Chain; kwargs...) = _residues(parent(chain); chain_id = chain.idx, kwargs...)
+@inline residues(chain::Chain; kwargs...) = residues(parent(chain); chain_id = chain.idx, kwargs...)
+@inline residues_df(chain::Chain; kwargs...) = residues_df(parent(chain); chain_id = chain.idx, kwargs...)
+@inline eachresidue(chain::Chain; kwargs...) = eachresidue(parent(chain); chain_id = chain.idx, kwargs...)
+@inline nresidues(chain::Chain; kwargs...) = nresidues(parent(chain); chain_id = chain.idx, kwargs...)
 
 """
     push!(::Chain, frag::FragmentTuple)
@@ -164,21 +163,21 @@ Creates a new fragment in the given chain, based on the given tuple. The new res
 assigned a new `idx`.
 """
 @inline function Base.push!(chain::Chain, res::ResidueTuple)
-    push!(chain.sys.residues, (_with_idx(res, _next_idx(chain.sys))..., chain.idx))
+    push!(parent(chain)._residues, (_with_idx(res, _next_idx(parent(chain)))..., chain.idx))
     chain
 end
 
 #=
     Residue atoms
 =#
-@inline _atoms(res::Residue; kwargs...) = _atoms(res.sys; residue_id = res.idx, kwargs...)
-@inline atoms(res::Residue; kwargs...) = atoms(res.sys; residue_id = res.idx, kwargs...)
-@inline atoms_df(res::Residue; kwargs...) = atoms_df(res.sys; residue_id = res.idx, kwargs...)
-@inline eachatom(res::Residue; kwargs...) = eachatom(res.sys; residue_id = res.idx, kwargs...)
-@inline natoms(res::Residue; kwargs...) = natoms(res.sys; residue_id = res.idx, kwargs...)
+@inline _atoms(res::Residue; kwargs...) = _atoms(parent(res); residue_id = res.idx, kwargs...)
+@inline atoms(res::Residue; kwargs...) = atoms(parent(res); residue_id = res.idx, kwargs...)
+@inline atoms_df(res::Residue; kwargs...) = atoms_df(parent(res); residue_id = res.idx, kwargs...)
+@inline eachatom(res::Residue; kwargs...) = eachatom(parent(res); residue_id = res.idx, kwargs...)
+@inline natoms(res::Residue; kwargs...) = natoms(parent(res); residue_id = res.idx, kwargs...)
 
 @inline function Base.push!(res::Residue{T}, atom::AtomTuple{T}; kwargs...) where T
-    push!(res.sys, atom; molecule_id = res.row.molecule_id, chain_id = res.row.chain_id,
+    push!(parent(res), atom; molecule_id = res._row.molecule_id, chain_id = res._row.chain_id,
         residue_id = res.idx, kwargs...)
     res
 end
@@ -186,13 +185,13 @@ end
 #=
     Residue bonds
 =#
-@inline _bonds(res::Residue; kwargs...) = _bonds(res.sys; residue_id = res.idx, kwargs...)
-@inline bonds(res::Residue; kwargs...) = bonds(res.sys; residue_id = res.idx, kwargs...)
-@inline bonds_df(res::Residue; kwargs...) = bonds_df(res.sys; residue_id = res.idx, kwargs...)
-@inline eachbond(res::Residue; kwargs...) = eachbond(res.sys; residue_id = res.idx, kwargs...)
-@inline nbonds(res::Residue; kwargs...) = nbonds(res.sys; residue_id = res.idx, kwargs...)
+@inline _bonds(res::Residue; kwargs...) = _bonds(parent(res); residue_id = res.idx, kwargs...)
+@inline bonds(res::Residue; kwargs...) = bonds(parent(res); residue_id = res.idx, kwargs...)
+@inline bonds_df(res::Residue; kwargs...) = bonds_df(parent(res); residue_id = res.idx, kwargs...)
+@inline eachbond(res::Residue; kwargs...) = eachbond(parent(res); residue_id = res.idx, kwargs...)
+@inline nbonds(res::Residue; kwargs...) = nbonds(parent(res); residue_id = res.idx, kwargs...)
 
 @inline function Base.push!(res::Residue, bond::Bond)
-    push!(res.sys, bond)
+    push!(parent(res), bond)
     res
 end
