@@ -108,6 +108,32 @@ function Atom(
 end
 
 function Atom(
+    ac::AbstractAtomContainer{T},
+    number::Int,
+    element::ElementType,
+    name::String = "",
+    atomtype::String = "",
+    r::Vector3{T} = Vector3{T}(0, 0, 0),
+    v::Vector3{T} = Vector3{T}(0, 0, 0),
+    F::Vector3{T} = Vector3{T}(0, 0, 0),
+    formal_charge::Int = 0,
+    charge::T = 0.0,
+    radius::T = 0.0,
+    has_velocity::Bool = false,
+    has_force::Bool = false,
+    properties::Properties = Properties();
+    frame_id::Int = 1
+) where T
+    push!(ac, 
+         (idx=0, number=number, element=element, name=name, 
+          atomtype=atomtype, r=r, v=v, F=F, formal_charge=formal_charge, 
+          charge=charge, radius=radius, has_velocity=has_velocity, 
+          has_force=has_force, properties=properties)::AtomTuple;
+          frame_id=frame_id)
+    _atom_by_idx(ac.sys, ac.sys._curr_idx)
+end
+
+function Atom(
     number::Int,
     element::ElementType,
     name::String = "",
