@@ -31,7 +31,7 @@
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(atom, :row)) == 20
+        @test length(getfield(atom, :_row)) == 20
 
         # getproperty (public)
         @test atom.idx isa Int
@@ -62,8 +62,8 @@
         @test atom.properties isa Properties
         @test atom.properties == at.properties
 
-        @test atom.sys isa System{T}
-        @test atom.row isa DataFrameRow
+        @test atom._sys isa System{T}
+        @test atom._row isa DataFrameRow
 
         @test_throws ErrorException atom.frame_id
         @test_throws ErrorException atom.molecule_id
@@ -72,26 +72,26 @@
         @test_throws ErrorException atom.nucleotide_id
         @test_throws ErrorException atom.residue_id
 
-        @test atom.row.frame_id isa Int
-        @test atom.row.frame_id == 1
-        @test ismissing(atom.row.molecule_id)
-        @test ismissing(atom.row.chain_id)
-        @test ismissing(atom.row.fragment_id)
-        @test ismissing(atom.row.nucleotide_id)
-        @test ismissing(atom.row.residue_id)
+        @test atom._row.frame_id isa Int
+        @test atom._row.frame_id == 1
+        @test ismissing(atom._row.molecule_id)
+        @test ismissing(atom._row.chain_id)
+        @test ismissing(atom._row.fragment_id)
+        @test ismissing(atom._row.nucleotide_id)
+        @test ismissing(atom._row.residue_id)
 
-        @test atom2.row.frame_id isa Int
-        @test atom2.row.frame_id == 10
-        @test atom2.row.molecule_id isa Int
-        @test atom2.row.molecule_id == 11
-        @test atom2.row.chain_id isa Int
-        @test atom2.row.chain_id == 12
-        @test atom2.row.fragment_id isa Int
-        @test atom2.row.fragment_id == 13
-        @test atom2.row.nucleotide_id isa Int
-        @test atom2.row.nucleotide_id == 14
-        @test atom2.row.residue_id isa Int
-        @test atom2.row.residue_id == 15
+        @test atom2._row.frame_id isa Int
+        @test atom2._row.frame_id == 10
+        @test atom2._row.molecule_id isa Int
+        @test atom2._row.molecule_id == 11
+        @test atom2._row.chain_id isa Int
+        @test atom2._row.chain_id == 12
+        @test atom2._row.fragment_id isa Int
+        @test atom2._row.fragment_id == 13
+        @test atom2._row.nucleotide_id isa Int
+        @test atom2._row.nucleotide_id == 14
+        @test atom2._row.residue_id isa Int
+        @test atom2._row.residue_id == 15
 
         # setproperty!
         atom.number = 42

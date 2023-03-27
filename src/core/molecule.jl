@@ -31,13 +31,13 @@ Molecule(sys::System{T}, name::String = "", properties::Properties = Properties(
 Creates a new `Molecule{T}` in the given system.
 """
 @auto_hash_equals struct Molecule{T} <: AbstractMolecule{T}
-    sys::System{T}
-    row::DataFrameRow
+    _sys::System{T}
+    _row::DataFrameRow
 end
 
 function Molecule(sys::System{T}, name::String = "", properties::Properties = Properties()) where T
     idx = _next_idx(sys)
-    push!(sys.molecules, (idx = idx, name = name, properties = properties))
+    push!(sys._molecules, (idx = idx, name = name, properties = properties))
     _molecule_by_idx(sys, idx)
 end
 
@@ -46,19 +46,19 @@ function Molecule(name::String = "", properties::Properties = Properties())
 end
 
 function Base.getproperty(mol::Molecule, name::Symbol)
-    in(name, fieldnames(MoleculeTuple)) && return getproperty(getfield(mol, :row), name)
+    in(name, fieldnames(MoleculeTuple)) && return getproperty(getfield(mol, :_row), name)
     getfield(mol, name)
 end
 
 function Base.setproperty!(mol::Molecule, name::Symbol, val)
-    in(name, fieldnames(MoleculeTuple)) && return setproperty!(getfield(mol, :row), name, val)
+    in(name, fieldnames(MoleculeTuple)) && return setproperty!(getfield(mol, :_row), name, val)
     setfield!(mol, name, val)
 end
 
-@inline Base.show(io::IO, ::MIME"text/plain", mol::Molecule) = show(io, getfield(mol, :row))
-@inline Base.show(io::IO, mol::Molecule) = show(io, getfield(mol, :row))
+@inline Base.show(io::IO, ::MIME"text/plain", mol::Molecule) = show(io, getfield(mol, :_row))
+@inline Base.show(io::IO, mol::Molecule) = show(io, getfield(mol, :_row))
 
-@inline Base.parent(mol::Molecule) = mol.sys
+@inline Base.parent(mol::Molecule) = mol._sys
 @inline parent_system(mol::Molecule) = parent(mol)
 
 @doc raw"""
@@ -83,7 +83,7 @@ Returns the `Molecule{T}` containing the given object. Returns `nothing` if no s
 Returns the `Molecule{T}` associated with the given `idx` in `sys`.
 """
 @inline function _molecule_by_idx(sys::System{T}, idx::Int) where T
-    Molecule{T}(sys, DataFrameRow(sys.molecules, findfirst(sys.molecules.idx .== idx), :))
+    Molecule{T}(sys, DataFrameRow(sys._molecules, findfirst(sys._molecules.idx .== idx), :))
 end
 
 """
@@ -93,7 +93,7 @@ Returns a raw `DataFrame` for all of the given system's molecules. The returned 
 contains all public and private molecule fields.
 """
 @inline function _molecules(sys::System)
-    sys.molecules
+    sys._molecules
 end
 
 """
@@ -135,28 +135,28 @@ end
 #=
     Molecule atoms
 =#
-@inline _atoms(mol::Molecule; kwargs...) = _atoms(mol.sys, molecule_id = mol.idx, kwargs...)
-@inline atoms(mol::Molecule; kwargs...) = atoms(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline atoms_df(mol::Molecule; kwargs...) = atoms_df(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline eachatom(mol::Molecule; kwargs...) = eachatom(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline natoms(mol::Molecule; kwargs...) = natoms(mol.sys; molecule_id = mol.idx, kwargs...)
+@inline _atoms(mol::Molecule; kwargs...) = _atoms(parent(mol), molecule_id = mol.idx, kwargs...)
+@inline atoms(mol::Molecule; kwargs...) = atoms(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline atoms_df(mol::Molecule; kwargs...) = atoms_df(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline eachatom(mol::Molecule; kwargs...) = eachatom(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline natoms(mol::Molecule; kwargs...) = natoms(parent(mol); molecule_id = mol.idx, kwargs...)
 
 @inline function Base.push!(mol::Molecule{T}, atom::AtomTuple{T}; kwargs...) where T
-    push!(mol.sys, atom; molecule_id = mol.idx, kwargs...)
+    push!(parent(mol), atom; molecule_id = mol.idx, kwargs...)
     mol
 end
 
 #=
     Molecule bonds
 =#
-@inline _bonds(mol::Molecule; kwargs...) = _bonds(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline bonds(mol::Molecule; kwargs...) = bonds(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline bonds_df(mol::Molecule; kwargs...) = bonds_df(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline eachbond(mol::Molecule; kwargs...) = eachbond(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline nbonds(mol::Molecule; kwargs...) = nbonds(mol.sys; molecule_id = mol.idx, kwargs...)
+@inline _bonds(mol::Molecule; kwargs...) = _bonds(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline bonds(mol::Molecule; kwargs...) = bonds(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline bonds_df(mol::Molecule; kwargs...) = bonds_df(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline eachbond(mol::Molecule; kwargs...) = eachbond(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline nbonds(mol::Molecule; kwargs...) = nbonds(parent(mol); molecule_id = mol.idx, kwargs...)
 
 @inline function Base.push!(mol::Molecule, bond::BondTuple)
-    push!(mol.sys, bond)
+    push!(parent(mol), bond)
     mol
 end
 

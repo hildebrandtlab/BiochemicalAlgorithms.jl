@@ -26,8 +26,8 @@ Fragment(
 Creates a new `Fragment{T}` in the given chain.
 """
 @auto_hash_equals struct Fragment{T} <: AbstractAtomContainer{T}
-    sys::System{T}
-    row::DataFrameRow
+    _sys::System{T}
+    _row::DataFrameRow
 end
 
 function Fragment(
@@ -36,30 +36,30 @@ function Fragment(
     name::String = "", 
     properties::Properties = Properties()
 ) where T
-    sys = chain.sys
+    sys = parent(chain)
     idx = _next_idx(sys)
-    push!(sys.fragments, (idx, number, name, properties, chain.row.molecule_id, chain.idx))
+    push!(sys._fragments, (idx, number, name, properties, chain._row.molecule_id, chain.idx))
     _fragment_by_idx(sys, idx)
 end
 
 function Base.getproperty(frag::Fragment, name::Symbol)
-    in(name, fieldnames(FragmentTuple)) && return getproperty(getfield(frag, :row), name)
+    in(name, fieldnames(FragmentTuple)) && return getproperty(getfield(frag, :_row), name)
     getfield(frag, name)
 end
 
 function Base.setproperty!(frag::Fragment, name::Symbol, val)
-    in(name, fieldnames(FragmentTuple)) && return setproperty!(getfield(frag, :row), name, val)
+    in(name, fieldnames(FragmentTuple)) && return setproperty!(getfield(frag, :_row), name, val)
     setfield!(frag, name, val)
 end
 
 # TODO hide internals
-@inline Base.show(io::IO, ::MIME"text/plain", frag::Fragment) = show(io, getfield(frag, :row))
-@inline Base.show(io::IO, frag::Fragment) = show(io, getfield(frag, :row))
+@inline Base.show(io::IO, ::MIME"text/plain", frag::Fragment) = show(io, getfield(frag, :_row))
+@inline Base.show(io::IO, frag::Fragment) = show(io, getfield(frag, :_row))
 
-@inline Base.parent(frag::Fragment) = frag.sys
+@inline Base.parent(frag::Fragment) = frag._sys
 @inline parent_system(frag::Fragment) = parent(frag)
-@inline parent_molecule(frag::Fragment) = _molecule_by_idx(frag.sys, frag.row.molecule_id)
-@inline parent_chain(frag::Fragment) = _chain_by_idx(frag.sys, frag.row.chain_id)
+@inline parent_molecule(frag::Fragment) = _molecule_by_idx(parent(frag), frag._row.molecule_id)
+@inline parent_chain(frag::Fragment) = _chain_by_idx(parent(frag), frag._row.chain_id)
 
 @doc raw"""
     parent_fragment(::Atom)
@@ -73,7 +73,7 @@ Returns the `Fragment{T}` containing the given atom. Returns `nothing` if no suc
 Returns the `Fragment{T}` associated with the given `idx` in `sys`.
 """
 @inline function _fragment_by_idx(sys::System{T}, idx::Int) where T
-    Fragment{T}(sys, DataFrameRow(sys.fragments, findfirst(sys.fragments.idx .== idx), :))
+    Fragment{T}(sys, DataFrameRow(sys._fragments, findfirst(sys._fragments.idx .== idx), :))
 end
 
 """
@@ -86,14 +86,14 @@ function _fragments(sys::System{T};
         molecule_id::Union{Nothing, Int} = nothing,
         chain_id::Union{Nothing, Int} = nothing
 ) where T
-    isnothing(molecule_id) && isnothing(chain_id) && return sys.fragments
+    isnothing(molecule_id) && isnothing(chain_id) && return sys._fragments
 
     cols = Tuple{Symbol, Int}[]
     isnothing(molecule_id) || push!(cols, (:molecule_id, molecule_id))
     isnothing(chain_id)    || push!(cols, (:chain_id, chain_id))
 
     get(
-        groupby(sys.fragments, getindex.(cols, 1)),
+        groupby(sys._fragments, getindex.(cols, 1)),
         ntuple(i -> cols[i][2], length(cols)),
         DataFrame(_SystemFragmentTuple[])
     )
@@ -150,20 +150,20 @@ end
 #=
     Molecule fragments
 =#
-@inline _fragments(mol::Molecule; kwargs...) = _fragments(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline fragments(mol::Molecule; kwargs...) = fragments(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline fragments_df(mol::Molecule; kwargs...) = fragments_df(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline eachfragment(mol::Molecule; kwargs...) = eachfragment(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline nfragments(mol::Molecule; kwargs...) = nfragments(mol.sys; molecule_id = mol.idx, kwargs...)
+@inline _fragments(mol::Molecule; kwargs...) = _fragments(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline fragments(mol::Molecule; kwargs...) = fragments(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline fragments_df(mol::Molecule; kwargs...) = fragments_df(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline eachfragment(mol::Molecule; kwargs...) = eachfragment(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline nfragments(mol::Molecule; kwargs...) = nfragments(parent(mol); molecule_id = mol.idx, kwargs...)
 
 #=
     Chain fragments
 =#
-@inline _fragments(chain::Chain; kwargs...) = _fragments(chain.sys; chain_id = chain.idx, kwargs...)
-@inline fragments(chain::Chain; kwargs...) = fragments(chain.sys; chain_id = chain.idx, kwargs...)
-@inline fragments_df(chain::Chain; kwargs...) = fragments_df(chain.sys; chain_id = chain.idx, kwargs...)
-@inline eachfragment(chain::Chain; kwargs...) = eachfragment(chain.sys; chain_id = chain.idx, kwargs...)
-@inline nfragments(chain::Chain; kwargs...) = nfragments(chain.sys; chain_id = chain.idx, kwargs...)
+@inline _fragments(chain::Chain; kwargs...) = _fragments(parent(chain); chain_id = chain.idx, kwargs...)
+@inline fragments(chain::Chain; kwargs...) = fragments(parent(chain); chain_id = chain.idx, kwargs...)
+@inline fragments_df(chain::Chain; kwargs...) = fragments_df(parent(chain); chain_id = chain.idx, kwargs...)
+@inline eachfragment(chain::Chain; kwargs...) = eachfragment(parent(chain); chain_id = chain.idx, kwargs...)
+@inline nfragments(chain::Chain; kwargs...) = nfragments(parent(chain); chain_id = chain.idx, kwargs...)
 
 """
     push!(::Chain, frag::FragmentTuple)
@@ -172,21 +172,21 @@ Creates a new fragment in the given chain, based on the given tuple. The new fra
 assigned a new `idx`.
 """
 @inline function Base.push!(chain::Chain, frag::FragmentTuple)
-    push!(chain.sys.fragments, (_with_idx(frag, _next_idx(chain.sys))..., chain.idx))
+    push!(parent(chain)._fragments, (_with_idx(frag, _next_idx(parent(chain)))..., chain.idx))
     chain
 end
 
 #=
     Fragment atoms
 =#
-@inline _atoms(frag::Fragment; kwargs...) = _atoms(frag.sys; fragment_id = frag.idx, kwargs...)
-@inline atoms(frag::Fragment; kwargs...) = atoms(frag.sys; fragment_id = frag.idx, kwargs...)
-@inline atoms_df(frag::Fragment; kwargs...) = atoms_df(frag.sys; fragment_id = frag.idx, kwargs...)
-@inline eachatom(frag::Fragment; kwargs...) = eachatom(frag.sys; fragment_id = frag.idx, kwargs...)
-@inline natoms(frag::Fragment; kwargs...) = natoms(frag.sys; fragment_id = frag.idx, kwargs...)
+@inline _atoms(frag::Fragment; kwargs...) = _atoms(parent(frag); fragment_id = frag.idx, kwargs...)
+@inline atoms(frag::Fragment; kwargs...) = atoms(parent(frag); fragment_id = frag.idx, kwargs...)
+@inline atoms_df(frag::Fragment; kwargs...) = atoms_df(parent(frag); fragment_id = frag.idx, kwargs...)
+@inline eachatom(frag::Fragment; kwargs...) = eachatom(parent(frag); fragment_id = frag.idx, kwargs...)
+@inline natoms(frag::Fragment; kwargs...) = natoms(parent(frag); fragment_id = frag.idx, kwargs...)
 
 @inline function Base.push!(frag::Fragment{T}, atom::AtomTuple{T}; kwargs...) where T
-    push!(frag.sys, atom; molecule_id = frag.row.molecule_id, chain_id = frag.row.chain_id,
+    push!(parent(frag), atom; molecule_id = frag._row.molecule_id, chain_id = frag._row.chain_id,
         fragment_id = frag.idx, kwargs...)
     frag
 end
@@ -194,14 +194,14 @@ end
 #=
     Fragment bonds
 =#
-@inline _bonds(frag::Fragment; kwargs...) = _bonds(frag.sys; fragment_id = frag.idx, kwargs...)
-@inline bonds(frag::Fragment; kwargs...) = bonds(frag.sys; fragment_id = frag.idx, kwargs...)
-@inline bonds_df(frag::Fragment; kwargs...) = bonds_df(frag.sys; fragment_id = frag.idx, kwargs...)
-@inline eachbond(frag::Fragment; kwargs...) = eachbond(frag.sys; fragment_id = frag.idx, kwargs...)
-@inline nbonds(frag::Fragment; kwargs...) = nbonds(frag.sys; fragment_id = frag.idx, kwargs...)
+@inline _bonds(frag::Fragment; kwargs...) = _bonds(parent(frag); fragment_id = frag.idx, kwargs...)
+@inline bonds(frag::Fragment; kwargs...) = bonds(parent(frag); fragment_id = frag.idx, kwargs...)
+@inline bonds_df(frag::Fragment; kwargs...) = bonds_df(parent(frag); fragment_id = frag.idx, kwargs...)
+@inline eachbond(frag::Fragment; kwargs...) = eachbond(parent(frag); fragment_id = frag.idx, kwargs...)
+@inline nbonds(frag::Fragment; kwargs...) = nbonds(parent(frag); fragment_id = frag.idx, kwargs...)
 
-@inline function Base.push!(frag::Fragment, bond::Bond)
-    push!(frag.sys, bond)
+@inline function Base.push!(frag::Fragment, bond::BondTuple)
+    push!(parent(frag), bond)
     frag
 end
 
@@ -277,7 +277,7 @@ end
 
 @inline function get_previous(frag::Fragment{T}) where {T<:Real}
     try
-        prev_candidate = _fragment_by_idx(frag.sys, frag.idx - 1)
+        prev_candidate = _fragment_by_idx(parent(frag), frag.idx - 1)
 
         if !isnothing(prev_candidate) && parent_chain(prev_candidate) == parent_chain(frag)
             return prev_candidate
@@ -290,7 +290,7 @@ end
 
 @inline function get_next(frag::Fragment{T}) where {T<:Real}
     try
-        prev_candidate = _fragment_by_idx(frag.sys, frag.idx + 1)
+        prev_candidate = _fragment_by_idx(parent(frag), frag.idx + 1)
 
         if !isnothing(prev_candidate) && parent_chain(prev_candidate) == parent_chain(frag)
             return prev_candidate

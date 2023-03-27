@@ -73,8 +73,8 @@ Constructor variants that create a new system atom based on the given `AtomTuple
 is automatically assigned a new `idx`.
 """
 @auto_hash_equals struct Atom{T}
-    sys::System{T}
-    row::DataFrameRow
+    _sys::System{T}
+    _row::DataFrameRow
 end
 
 function Atom(
@@ -101,7 +101,7 @@ function Atom(
     residue_id::MaybeInt = missing
 ) where T
     idx = _next_idx(sys)
-    push!(sys.atoms, (idx, number, element, name, atomtype, r, v, F, formal_charge, charge, radius,
+    push!(sys._atoms, (idx, number, element, name, atomtype, r, v, F, formal_charge, charge, radius,
         has_velocity, has_force, properties, frame_id, molecule_id, chain_id, fragment_id, nucleotide_id, 
         residue_id))
     _atom_by_idx(sys, idx)
@@ -130,7 +130,7 @@ function Atom(
           charge=charge, radius=radius, has_velocity=has_velocity, 
           has_force=has_force, properties=properties)::AtomTuple;
           frame_id=frame_id)
-    _atom_by_idx(ac.sys, ac.sys._curr_idx)
+    _atom_by_idx(ac._sys, ac._sys._curr_idx)
 end
 
 function Atom(
@@ -162,40 +162,50 @@ end
 end
 
 function Base.getproperty(atom::Atom, name::Symbol)
-    in(name, fieldnames(AtomTuple)) && return getproperty(getfield(atom, :row), name)
+    in(name, fieldnames(AtomTuple)) && return getproperty(getfield(atom, :_row), name)
     getfield(atom, name)
 end
 
 function Base.setproperty!(atom::Atom, name::Symbol, val)
-    in(name, fieldnames(AtomTuple)) && return setproperty!(getfield(atom, :row), name, val)
+    in(name, fieldnames(AtomTuple)) && return setproperty!(getfield(atom, :_row), name, val)
     setfield!(atom, name, val)
 end
 
 # TODO hide internals
-@inline Base.show(io::IO, ::MIME"text/plain", atom::Atom) = show(io, getfield(atom, :row))
-@inline Base.show(io::IO, atom::Atom) = show(io, getfield(atom, :row))
+@inline Base.show(io::IO, ::MIME"text/plain", atom::Atom) = show(io, getfield(atom, :_row))
+@inline Base.show(io::IO, atom::Atom) = show(io, getfield(atom, :_row))
 
-@inline Base.parent(atom::Atom) = atom.sys
+@inline Base.parent(atom::Atom) = atom._sys
 @inline parent_system(atom::Atom) = parent(atom)
 
 @inline function parent_molecule(atom::Atom) 
-    ismissing(atom.row.molecule_id) ? nothing : _molecule_by_idx(atom.sys, atom.row.molecule_id)
+    ismissing(atom._row.molecule_id) ?
+        nothing :
+        _molecule_by_idx(parent(atom), atom._row.molecule_id)
 end
 
 @inline function parent_chain(atom::Atom)
-    ismissing(atom.row.chain_id) ? nothing : _chain_by_idx(atom.sys, atom.row.chain_id)
+    ismissing(atom._row.chain_id) ?
+        nothing :
+        _chain_by_idx(atom.sys, atom._row.chain_id)
 end
 
 @inline function parent_fragment(atom::Atom)
-    ismissing(atom.row.fragment_id) ? nothing : _fragment_by_idx(atom.sys, atom.row.fragment_id)
+    ismissing(atom._row.fragment_id) ?
+        nothing :
+        _fragment_by_idx(parent(atom), atom._row.fragment_id)
 end
 
 @inline function parent_nucleotide(atom::Atom)
-    ismissing(atom.row.nucleotide_id) ? nothing : _nucleotide_by_idx(atom.sys, atom.row.nucleotide_id)
+    ismissing(atom._row.nucleotide_id) ?
+        nothing :
+        _nucleotide_by_idx(parent(atom), atom._row.nucleotide_id)
 end
 
 @inline function parent_residue(atom::Atom)
-    ismissing(atom.row.residue_id) ? nothing : _residue_by_idx(atom.sys, atom.row.residue_id)
+    ismissing(atom._row.residue_id) ?
+        nothing :
+        _residue_by_idx(parent(atom), atom._row.residue_id)
 end
 
 """
@@ -204,15 +214,15 @@ end
 Returns the `Atom{T}` associated with the given `idx` in `sys`.
 """
 @inline function _atom_by_idx(sys::System{T}, idx::Int) where T
-    @with sys.atoms begin
-        Atom{T}(sys, DataFrameRow(sys.atoms, findfirst(:idx .== idx), :))
+    @with sys._atoms begin
+        Atom{T}(sys, DataFrameRow(sys._atoms, findfirst(:idx .== idx), :))
     end
 end
 
 @inline function atom_by_name(ac::AbstractAtomContainer{T}, name::String) where T
-    sys = ac isa System{T} ? ac : ac.sys
-    at = findfirst(sys.atoms.name .== name)
-    isnothing(at) ? nothing : Atom{T}(sys, DataFrameRow(sys.atoms, at, :))
+    sys = ac isa System{T} ? ac : ac._sys
+    at = findfirst(sys._atoms.name .== name)
+    isnothing(at) ? nothing : Atom{T}(sys, DataFrameRow(sys._atoms, at, :))
 end
 
 """
@@ -239,9 +249,9 @@ function _atoms(sys::System{T};
     isnothing(residue_id)    || push!(cols, (:residue_id, residue_id))
 
     get(
-        groupby(sys.atoms, getindex.(cols, 1)),
+        groupby(sys._atoms, getindex.(cols, 1)),
         ntuple(i -> cols[i][2], length(cols)),
-        view(sys.atoms, Int[], :)
+        view(sys._atoms, Int[], :)
     )::SubDataFrame{DataFrame, DataFrames.Index, Vector{Int}}
 end
 
@@ -329,7 +339,7 @@ Any value other than `nothing` limits the result to atoms matching this frame ID
 end
 
 @inline function bonds(a::Atom{T}; kwargs...) where T
-    bonds(a.sys)[findall(a.sys.bonds.a1 .== a.idx .|| a.sys.bonds.a2 .== a.idx)]
+    bonds(a._sys)[findall(a._sys._bonds.a1 .== a.idx .|| a._sys._bonds.a2 .== a.idx)]
 end
 
 @inline function nbonds(a::Atom{T}; kwargs...) where T
@@ -358,7 +368,7 @@ function Base.push!(sys::System{T}, atom::AtomTuple{T};
     nucleotide_id::MaybeInt = missing,
     residue_id::MaybeInt = missing
 ) where T
-    push!(sys.atoms, 
+    push!(sys._atoms, 
         (_with_idx(atom, _next_idx(sys))...,
             frame_id, molecule_id, chain_id, fragment_id, nucleotide_id, residue_id)
     )

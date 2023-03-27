@@ -36,8 +36,8 @@ Bond(
 Creates a new `Bond{T}` in the given system.
 """
 @auto_hash_equals struct Bond{T}
-    sys::System{T}
-    row::DataFrameRow
+    _sys::System{T}
+    _row::DataFrameRow
 end
 
 function Bond(
@@ -48,7 +48,7 @@ function Bond(
     properties::Properties = Properties()
 ) where T
     idx = _next_idx(sys)
-    push!(sys.bonds, (idx, a1, a2, order, properties))
+    push!(sys._bonds, (idx, a1, a2, order, properties))
     _bond_by_idx(sys, idx)
 end
 
@@ -57,19 +57,19 @@ end
 end
 
 function Base.getproperty(bond::Bond, name::Symbol)
-    in(name, fieldnames(BondTuple)) && return getproperty(getfield(bond, :row), name)
+    in(name, fieldnames(BondTuple)) && return getproperty(getfield(bond, :_row), name)
     getfield(bond, name)
 end
 
 function Base.setproperty!(bond::Bond, name::Symbol, val)
-    in(name, fieldnames(BondTuple)) && return setproperty!(getfield(bond, :row), name, val)
+    in(name, fieldnames(BondTuple)) && return setproperty!(getfield(bond, :_row), name, val)
     setproperty!(bond, name, val)
 end
 
-@inline Base.show(io::IO, ::MIME"text/plain", bond::Bond) = show(io, getfield(bond, :row))
-@inline Base.show(io::IO, bond::Bond) = show(io, getfield(bond, :row))
+@inline Base.show(io::IO, ::MIME"text/plain", bond::Bond) = show(io, getfield(bond, :_row))
+@inline Base.show(io::IO, bond::Bond) = show(io, getfield(bond, :_row))
 
-@inline Base.parent(bond::Bond) = bond.sys
+@inline Base.parent(bond::Bond) = bond._sys
 @inline parent_system(bond::Bond) = parent(bond)
 # TODO other parent_ functions
 
@@ -79,8 +79,8 @@ end
 Returns the `Bond{T}` associated with the given `idx` in `sys`.
 """
 @inline function _bond_by_idx(sys::System{T}, idx::Int) where T
-    @with sys.bonds begin
-        Bond{T}(sys, DataFrameRow(sys.bonds, findfirst(:idx .== idx), :))
+    @with sys._bonds begin
+        Bond{T}(sys, DataFrameRow(sys._bonds, findfirst(:idx .== idx), :))
     end
 end
 
@@ -95,7 +95,7 @@ function _bonds(sys::System; kwargs...)
     # FIXME this implementation currently ignores bonds with _two_ invalid atom IDs
     aidx = _atoms(sys; kwargs...).idx
     @rsubset(
-        sys.bonds, :a1 in aidx || :a2 in aidx; view = true
+        sys._bonds, :a1 in aidx || :a2 in aidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
@@ -195,24 +195,24 @@ Creates a new bond in the system associated with the given atom container, based
 The new bond is automatically assigned a new `idx`.
 """
 function Base.push!(sys::System{T}, bond::BondTuple) where T
-    push!(sys.bonds, _with_idx(bond, _next_idx(sys)))
+    push!(sys._bonds, _with_idx(bond, _next_idx(sys)))
     sys
 end
 
 function get_partner(bond, atom)
     if bond.a1 == atom.idx
-        return _atom_by_idx(atom.sys, bond.a2)
+        return _atom_by_idx(atom._sys, bond.a2)
     elseif bond.a2 == atom.idx
-        return _atom_by_idx(atom.sys, bond.a1)
+        return _atom_by_idx(atom._sys, bond.a1)
     else
         return nothing
     end
 end
 
 function is_bound_to(a1::Atom, a2::Atom)
-    s = a1.sys
+    s = a1._sys
 
-    if s != a2.sys
+    if s != a2._sys
         return false
     end
 

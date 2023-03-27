@@ -1,4 +1,3 @@
-using AutoHashEquals
 export Nucleotide, nucleotides, nucleotides_df, eachnucleotide, nnucleotides, parent_nucleotide
 
 """
@@ -24,8 +23,8 @@ Nucleotide(
 Creates a new `Nucleotide{T}` in the given chain.
 """
 @auto_hash_equals struct Nucleotide{T}
-    sys::System{T}
-    row::DataFrameRow
+    _sys::System{T}
+    _row::DataFrameRow
 end
 
 function Nucleotide(
@@ -34,30 +33,30 @@ function Nucleotide(
     name::String = "",
     properties::Properties = Properties()
 ) where T
-    sys = chain.sys
+    sys = parent(chain)
     idx = _next_idx(sys)
-    push!(sys.nucleotides), (idx, number, name, properties, chain.row.molecule_id, chain.idx)
+    push!(sys._nucleotides), (idx, number, name, properties, chain._row.molecule_id, chain.idx)
     _nucleotide_by_idx(sys, idx)
 end
 
 function Base.getproperty(nuc::Nucleotide, name::Symbol)
-    in(name, fieldnames(NucleotideTuple)) && return getproperty(getfield(nuc, :row), name)
+    in(name, fieldnames(NucleotideTuple)) && return getproperty(getfield(nuc, :_row), name)
     getfield(nuc, name)
 end
 
 function Base.setproperty!(nuc::Nucleotide, name::Symbol, val)
-    in(name, fieldnames(NucleotideTuple)) && return setproperty!(getfield(nuc, :row), name, val)
+    in(name, fieldnames(NucleotideTuple)) && return setproperty!(getfield(nuc, :_row), name, val)
     setfield!(nuc, name, val)
 end
 
 # TODO hide internals
-@inline Base.show(io::IO, ::MIME"text/plain", nuc::Nucleotide) = show(io, getfield(nuc, :row))
-@inline Base.show(io::IO, nuc::Nucleotide) = show(io, getfield(nuc, :row))
+@inline Base.show(io::IO, ::MIME"text/plain", nuc::Nucleotide) = show(io, getfield(nuc, :_row))
+@inline Base.show(io::IO, nuc::Nucleotide) = show(io, getfield(nuc, :_row))
 
-@inline Base.parent(nuc::Nucleotide) = nuc.sys
+@inline Base.parent(nuc::Nucleotide) = nuc._sys
 @inline parent_system(nuc::Nucleotide) = parent(nuc)
-@inline parent_molecule(nuc::Nucleotide) = _molecule_by_idx(nuc.sys, nuc.row.molecule_id)
-@inline parent_chain(nuc::Nucleotide) = _chain_by_idx(nuc.sys, nuc.row.chain_id)
+@inline parent_molecule(nuc::Nucleotide) = _molecule_by_idx(parent(nuc), nuc._row.molecule_id)
+@inline parent_chain(nuc::Nucleotide) = _chain_by_idx(parent(nuc), nuc._row.chain_id)
 
 @doc raw"""
     parent_nucleotide(::Atom)
@@ -71,7 +70,7 @@ Returns the `Nucleotide{T}` containing the given atom. Returns `nothing` if no s
 Returns the `Nucleotide{T}` associated with the given `idx` in `sys`.
 """
 @inline function _nucleotide_by_idx(sys::System{T}, idx::Int) where T
-    Nucleotide{T}(sys, DataFrameRow(sys.nucleotides, findfirst(sys.nucleotides.idx .== idx), :))
+    Nucleotide{T}(sys, DataFrameRow(sys._nucleotides, findfirst(sys._nucleotides.idx .== idx), :))
 end
 
 """
@@ -84,14 +83,14 @@ function _nucleotides(sys::System{T};
     molecule_id::Union{Nothing, Int} = nothing,
     chain_id::Union{Nothing, Int} = nothing
 ) where T
-    isnothing(molecule_id) && isnothing(chain_id) && return sys.nucleotides
+    isnothing(molecule_id) && isnothing(chain_id) && return sys._nucleotides
 
     cols = Tuple{Symbol, Int}[]
     isnothing(molecule_id) || push!(cols, (:molecule_id, molecule_id))
     isnothing(chain_id)    || push!(cols, (:chain_id, chain_id))
 
     get(
-        groupby(sys.nucleotides, getindex.(cols, 1)),
+        groupby(sys._nucleotides, getindex.(cols, 1)),
         ntuple(i -> cols[i][2], length(cols)),
         DataFrame(_SystemNucleotideTuple[])
     )
@@ -148,40 +147,40 @@ end
 #=
     Nucleotides
 =#
-@inline _nucleotides(mol::Molecule; kwargs...) = _nucleotides(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline nucleotides(mol::Molecule; kwargs...) = nucleotides(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline nucleotides_df(mol::Molecule; kwargs...) = nucleotides_df(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline eachnucleotide(mol::Molecule; kwargs...) = eachnucleotide(mol.sys; molecule_id = mol.idx, kwargs...)
-@inline nnucleotides(mol::Molecule; kwargs...) = nnucleotides(mol.sys; molecule_id = mol.idx, kwargs...)
+@inline _nucleotides(mol::Molecule; kwargs...) = _nucleotides(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline nucleotides(mol::Molecule; kwargs...) = nucleotides(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline nucleotides_df(mol::Molecule; kwargs...) = nucleotides_df(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline eachnucleotide(mol::Molecule; kwargs...) = eachnucleotide(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline nnucleotides(mol::Molecule; kwargs...) = nnucleotides(parent(mol); molecule_id = mol.idx, kwargs...)
 
 #=
     Chain nucleotides
 =#
-@inline _nucleotides(chain::Chain; kwargs...) = _nucleotides(chainl.sys; chain_id = chain.idx, kwargs...)
-@inline nucleotides(chain::Chain; kwargs...) = nucleotides(chain.sys; chain_id = chain.idx, kwargs...)
-@inline nucleotides_df(chain::Chain; kwargs...) = nucleotides_df(chain.sys; chain_id = chain.idx, kwargs...)
-@inline eachnucleotide(chain::Chain; kwargs...) = eachnucleotide(chain.sys; chain_id = chain.idx, kwargs...)
-@inline nnucleotides(chain::Chain; kwargs...) = nnucleotides(chain.sys; chain_id = chain.idx, kwargs...)
+@inline _nucleotides(chain::Chain; kwargs...) = _nucleotides(parent(chain); chain_id = chain.idx, kwargs...)
+@inline nucleotides(chain::Chain; kwargs...) = nucleotides(parent(chain); chain_id = chain.idx, kwargs...)
+@inline nucleotides_df(chain::Chain; kwargs...) = nucleotides_df(parent(chain); chain_id = chain.idx, kwargs...)
+@inline eachnucleotide(chain::Chain; kwargs...) = eachnucleotide(parent(chain); chain_id = chain.idx, kwargs...)
+@inline nnucleotides(chain::Chain; kwargs...) = nnucleotides(parent(chain); chain_id = chain.idx, kwargs...)
 
 # FIXME currently not possible due to
 # <https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/issues/26>
 #
 #@inline function Base.push!(chain::Chain{T}, nuc::NucleotideTuple) where T
-#    push!(chain.sys.nucleotides, (_with_idx(nuc, _next_idx(chain.sys))..., chain.idx))
+#    push!(parent(chain)._nucleotides, (_with_idx(nuc, _next_idx(chain._sys))..., chain.idx))
 #    chain
 #end
 
 #=
     Nucleotide atoms
 =#
-@inline _atoms(nuc::Nucleotide; kwargs...) = _atoms(nuc.sys; nucleotide_id = nuc.idx, kwargs...)
-@inline atoms(nuc::Nucleotide; kwargs...) = atoms(nuc.sys; nucleotide_id = nuc.idx, kwargs...)
-@inline atoms_df(nuc::Nucleotide; kwargs...) = atoms_df(nuc.sys; nucleotide_id = nuc.idx, kwargs...)
-@inline eachatom(nuc::Nucleotide; kwargs...) = eachatom(nuc.sys; nucleotide_id = nuc.idx, kwargs...)
-@inline natoms(nuc::Nucleotide; kwargs...) = natoms(nuc.sys; nucleotide_id = nuc.idx, kwargs...)
+@inline _atoms(nuc::Nucleotide; kwargs...) = _atoms(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
+@inline atoms(nuc::Nucleotide; kwargs...) = atoms(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
+@inline atoms_df(nuc::Nucleotide; kwargs...) = atoms_df(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
+@inline eachatom(nuc::Nucleotide; kwargs...) = eachatom(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
+@inline natoms(nuc::Nucleotide; kwargs...) = natoms(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 
 @inline function Base.push!(nuc::Nucleotide{T}, atom::AtomTuple{T}; kwargs...) where T
-    push!(nuc.sys, atom; molecule_id = nuc.row.molecule_id, chain_id = nuc.row.chain_id,
+    push!(parent(nuc), atom; molecule_id = nuc._row.molecule_id, chain_id = nuc._row.chain_id,
         nucleotide_id = nuc.idx, kwargs...)
     nuc
 end
@@ -189,14 +188,14 @@ end
 #=
     Nucleotide bonds
 =#
-@inline _bonds(nuc::Nucleotide; kwargs...) = _bonds(nuc.sys; nucleotide_id = nuc.idx, kwargs...)
-@inline bonds(nuc::Nucleotide; kwargs...) = bonds(nuc.sys; nucleotide_id = nuc.idx, kwargs...)
-@inline bonds_df(nuc::Nucleotide; kwargs...) = bonds_df(nuc.sys; nucleotide_id = nuc.idx, kwargs...)
-@inline eachbond(nuc::Nucleotide; kwargs...) = eachbond(nuc.sys; nucleotide_id = nuc.idx, kwargs...)
-@inline nbonds(nuc::Nucleotide; kwargs...) = nbonds(nuc.sys; nucleotide_id = nuc.idx, kwargs...)
+@inline _bonds(nuc::Nucleotide; kwargs...) = _bonds(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
+@inline bonds(nuc::Nucleotide; kwargs...) = bonds(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
+@inline bonds_df(nuc::Nucleotide; kwargs...) = bonds_df(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
+@inline eachbond(nuc::Nucleotide; kwargs...) = eachbond(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
+@inline nbonds(nuc::Nucleotide; kwargs...) = nbonds(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 
-@inline function Base.push!(nuc::Nucleotide, bond::Bond)
-    push!(nuc.sys, bond)
+@inline function Base.push!(nuc::Nucleotide, bond::BondTuple)
+    push!(parent(nuc), bond)
     nuc
 end
 
