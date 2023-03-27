@@ -18,7 +18,7 @@ Mutable representation of an individual fragment in a system.
 
 Creates a new `Fragment{T}` in the given chain.
 """
-@auto_hash_equals struct Fragment{T}
+@auto_hash_equals struct Fragment{T} <: AbstractAtomContainer{T}
     sys::System{T}
     row::DataFrameRow
 end
