@@ -528,6 +528,11 @@ function parse_atoms!(mol::Molecule, compound::PCCompound, T=Float32)
                             r = T.(conformers[j][i]),
                             v = Vector3(T(0.), T(0.), T(0.)),
                             F = Vector3(T(0.), T(0.), T(0.)),
+                            formal_charge = isnothing(compound.atoms.charge)
+                                ? 0
+                                : Int(compound.atoms.charge[i]),
+                            charge = zero(T),
+                            radius = zero(T),
                             has_velocity = false,
                             has_force = false,
                             properties = Properties()

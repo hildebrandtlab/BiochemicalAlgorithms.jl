@@ -6,7 +6,7 @@
     @test mol isa AbstractMolecule{Float32}
     @test mol.name == ""
     @test atoms_df(mol) isa AbstractDataFrame
-    @test size(atoms_df(mol)) == (0, 11)
+    @test size(atoms_df(mol)) == (0, 14)
     @test length(atoms(mol)) == 0
     @test bonds_df(mol) isa AbstractDataFrame
     @test size(bonds_df(mol)) == (0, 5)
@@ -35,6 +35,9 @@ end
         r = [i .* Vector3{Float32}(1.0, 2.0, 4.0) for i in 1:6],
         v = fill(Vector3{Float32}(0.0, 0.0, 0.0), 6), 
         F = fill(Vector3{Float32}(0.0, 0.0, 0.0), 6),
+        formal_charge = 1,
+        charge = 2.0f32,
+        radius = 1.02f32,
         has_velocity = fill(false, 6),
         has_force = fill(false, 6),
         properties = Properties()
