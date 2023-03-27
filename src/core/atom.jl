@@ -1,5 +1,5 @@
 using AutoHashEquals
-export Atom, atoms, atoms_df, eachatom, natoms
+export Atom, atoms, atoms_df, eachatom, natoms, atom_by_name, has_property, get_property, set_property
 
 """
     $(TYPEDEF)
@@ -183,6 +183,12 @@ Returns the `Atom{T}` associated with the given `idx` in `sys`.
     end
 end
 
+@inline function atom_by_name(ac::AbstractAtomContainer{T}, name::String) where T
+    sys = ac isa System{T} ? ac : ac.sys
+    at = findfirst(sys.atoms.name .== name)
+    isnothing(at) ? nothing : Atom{T}(sys, DataFrameRow(sys.atoms, at, :))
+end
+
 """
     $(TYPEDSIGNATURES)
 
@@ -296,6 +302,14 @@ Any value other than `nothing` limits the result to atoms matching this frame ID
     nrow(_atoms(sys; kwargs...))
 end
 
+@inline function bonds(a::Atom{T}; kwargs...) where T
+    bonds(a.sys)[findall(a.sys.bonds.a1 .== a.idx .|| a.sys.bonds.a2 .== a.idx)]
+end
+
+@inline function nbonds(a::Atom{T}; kwargs...) where T
+    length(bonds(a); kwargs...)
+end
+
 """
     push!(::Fragment{T}, atom::AtomTuple{T})
     push!(::Molecule{T}, atom::AtomTuple{T})
@@ -323,4 +337,20 @@ function Base.push!(sys::System{T}, atom::AtomTuple{T};
             frame_id, molecule_id, chain_id, fragment_id, nucleotide_id, residue_id)
     )
     sys
+end
+
+function has_property(a::Atom{T}, key::String) where {T<:Real}
+    haskey(a.properties, key)
+end
+
+function get_property(a::Atom{T}, key::String) where {T<:Real}
+    a.properties[key]
+end
+
+function get_property(a::Atom{T}, key::String, default) where {T<:Real}
+    has_property(a, key) ? a.properties[key] : default
+end
+
+function set_property(a::Atom{T}, key::String, value) where {T<:Real}
+    a.properties[key] = value
 end
