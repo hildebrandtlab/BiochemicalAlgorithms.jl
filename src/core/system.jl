@@ -150,6 +150,15 @@ Returns the next available `idx` for the given system.
     sys._curr_idx += 1
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Returns the row number corresponding to the given `idx` in `df`.
+"""
+@inline function _row_by_idx(df::DataFrame, idx::Int)
+    @with df findfirst(:idx .== idx)::Union{Nothing, Int}
+end
+
 Base.show(io::IO, ::MIME"text/plain", sys::System) = show(io, sys)
 Base.show(io::IO, sys::System) = print(io, 
     "System with ", natoms(sys), " atoms", isempty(sys.name) ? "" : " ($(sys.name))")

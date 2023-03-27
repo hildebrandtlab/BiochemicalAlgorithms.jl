@@ -1,5 +1,5 @@
 using AutoHashEquals
-export AbstractMolecule, Molecule, molecules, molecules_df, eachmolecule, nmolecules, 
+export AbstractMolecule, Molecule, molecule_by_idx, molecules, molecules_df, eachmolecule, nmolecules,
     parent_molecule, has_property, get_property, set_property
 
 """
@@ -38,7 +38,7 @@ end
 function Molecule(sys::System{T}, name::String = "", properties::Properties = Properties()) where T
     idx = _next_idx(sys)
     push!(sys._molecules, (idx = idx, name = name, properties = properties))
-    _molecule_by_idx(sys, idx)
+    molecule_by_idx(sys, idx)
 end
 
 function Molecule(name::String = "", properties::Properties = Properties())
@@ -80,10 +80,12 @@ Returns the `Molecule{T}` containing the given object. Returns `nothing` if no s
 """
     $(TYPEDSIGNATURES)
 
-Returns the `Molecule{T}` associated with the given `idx` in `sys`.
+Returns the `Molecule{T}` associated with the given `idx` in `sys`. Returns `nothing` if no such
+molecule exists.
 """
-@inline function _molecule_by_idx(sys::System{T}, idx::Int) where T
-    Molecule{T}(sys, DataFrameRow(sys._molecules, findfirst(sys._molecules.idx .== idx), :))
+@inline function molecule_by_idx(sys::System{T}, idx::Int) where T
+    rn = _row_by_idx(sys._molecules, idx)
+    isnothing(rn) ? nothing : Molecule{T}(sys, DataFrameRow(sys._molecules, rn, :))
 end
 
 """

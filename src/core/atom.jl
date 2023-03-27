@@ -1,5 +1,6 @@
 using AutoHashEquals
-export Atom, atoms, atoms_df, eachatom, natoms, atom_by_name, has_property, get_property, set_property
+export Atom, atom_by_idx, atom_by_name, atoms, atoms_df, eachatom, natoms, has_property,
+    get_property, set_property
 
 """
     $(TYPEDEF)
@@ -104,7 +105,7 @@ function Atom(
     push!(sys._atoms, (idx, number, element, name, atomtype, r, v, F, formal_charge, charge, radius,
         has_velocity, has_force, properties, frame_id, molecule_id, chain_id, fragment_id, nucleotide_id, 
         residue_id))
-    _atom_by_idx(sys, idx)
+    atom_by_idx(sys, idx)
 end
 
 function Atom(
@@ -130,7 +131,7 @@ function Atom(
           charge=charge, radius=radius, has_velocity=has_velocity, 
           has_force=has_force, properties=properties)::AtomTuple;
           frame_id=frame_id)
-    _atom_by_idx(ac._sys, ac._sys._curr_idx)
+    atom_by_idx(ac._sys, ac._sys._curr_idx)
 end
 
 function Atom(
@@ -181,42 +182,42 @@ end
 @inline function parent_molecule(atom::Atom) 
     ismissing(atom._row.molecule_id) ?
         nothing :
-        _molecule_by_idx(parent(atom), atom._row.molecule_id)
+        molecule_by_idx(parent(atom), atom._row.molecule_id)
 end
 
 @inline function parent_chain(atom::Atom)
     ismissing(atom._row.chain_id) ?
         nothing :
-        _chain_by_idx(atom.sys, atom._row.chain_id)
+        chain_by_idx(atom._sys, atom._row.chain_id)
 end
 
 @inline function parent_fragment(atom::Atom)
     ismissing(atom._row.fragment_id) ?
         nothing :
-        _fragment_by_idx(parent(atom), atom._row.fragment_id)
+        fragment_by_idx(parent(atom), atom._row.fragment_id)
 end
 
 @inline function parent_nucleotide(atom::Atom)
     ismissing(atom._row.nucleotide_id) ?
         nothing :
-        _nucleotide_by_idx(parent(atom), atom._row.nucleotide_id)
+        nucleotide_by_idx(parent(atom), atom._row.nucleotide_id)
 end
 
 @inline function parent_residue(atom::Atom)
     ismissing(atom._row.residue_id) ?
         nothing :
-        _residue_by_idx(parent(atom), atom._row.residue_id)
+        residue_by_idx(parent(atom), atom._row.residue_id)
 end
 
 """
     $(TYPEDSIGNATURES)
 
-Returns the `Atom{T}` associated with the given `idx` in `sys`.
+Returns the `Atom{T}` associated with the given `idx` in `sys`. Returns `nothing` if no such atom
+exists.
 """
-@inline function _atom_by_idx(sys::System{T}, idx::Int) where T
-    @with sys._atoms begin
-        Atom{T}(sys, DataFrameRow(sys._atoms, findfirst(:idx .== idx), :))
-    end
+@inline function atom_by_idx(sys::System{T}, idx::Int) where T
+    rn = _row_by_idx(sys._atoms, idx)
+    isnothing(rn) ? nothing : Atom{T}(sys, DataFrameRow(sys._atoms, rn, :))
 end
 
 @inline function atom_by_name(ac::AbstractAtomContainer{T}, name::String) where T
