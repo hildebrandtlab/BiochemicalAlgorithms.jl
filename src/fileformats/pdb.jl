@@ -78,9 +78,7 @@ function load_pdb(fname::String, T=Float32)
     atoms.r = r
     atoms.v .= Ref(Vector3{T}(0.0, 0.0, 0.0))
     atoms.F .= Ref(Vector3{T}(0.0, 0.0, 0.0))
-    # FIXME read charge from PDB file. BioStructures reads this as a string
-    # atoms.formal_charge .= orig_df.charge,
-    atoms.formal_charge .= Ref(zero(Int))
+    atoms.formal_charge = something.(tryparse.(Ref(Int), orig_df.charge), Ref(0))
     atoms.charge .= Ref(zero(T))
     atoms.radius .= Ref(zero(T))
     atoms.has_velocity .= Ref(false)
