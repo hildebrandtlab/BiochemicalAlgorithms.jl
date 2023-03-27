@@ -17,10 +17,10 @@ Chain(mol::Molecule{T}, name::String = "", properties::Properties = Properties()
 ```
 Creates a new `Chain{T}` in the given molecule.
 """
-@auto_hash_equals struct Chain{T}
+@auto_hash_equals struct Chain{T} <: AbstractAtomContainer{T}
     sys::System{T}
     row::DataFrameRow
-end
+end 
 
 function Chain(
     mol::Molecule{T},
