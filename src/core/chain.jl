@@ -16,10 +16,10 @@ Mutable representation of an individual chain in a system.
 
 Creates a new `Chain{T}` in the given molecule.
 """
-@auto_hash_equals struct Chain{T}
+@auto_hash_equals struct Chain{T} <: AbstractAtomContainer{T}
     sys::System{T}
     row::DataFrameRow
-end
+end 
 
 function Chain(
     mol::Molecule{T},
