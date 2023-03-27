@@ -32,6 +32,8 @@ include("fileformats/pdb.jl")
 include("mappings/atom_bijection.jl")
 include("mappings/rigid_mapping.jl")
 
+include("forcefields/MMFF94/mmff94_parameters.jl")
+
 include("preprocessing/fragmentDB.jl")
 include("preprocessing/normalize_names.jl")
 include("preprocessing/build_bonds.jl")
