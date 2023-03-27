@@ -199,10 +199,10 @@ function Base.push!(sys::System{T}, bond::BondTuple) where T
 end
 
 function get_partner(bond, atom)
-    if bond.a1 == atom
-        return bond.a2
-    elseif bond.a2 == atom
-        return bond.a1
+    if bond.a1 == atom.idx
+        return _atom_by_idx(atom.sys, bond.a2)
+    elseif bond.a2 == atom.idx
+        return _atom_by_idx(atom.sys, bond.a1)
     else
         return nothing
     end
