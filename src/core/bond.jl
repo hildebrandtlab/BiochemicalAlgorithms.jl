@@ -95,7 +95,7 @@ function _bonds(sys::System; kwargs...)
     aidx = _atoms(sys; kwargs...).idx
     @rsubset(
         sys.bonds, :a1 in aidx || :a2 in aidx; view = true
-    )::SubDataFrame{DataFrame, DataFrames.Index, UnitRange{Int}}
+    )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
 """
