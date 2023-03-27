@@ -1,6 +1,7 @@
 using AutoHashEquals
 export Fragment, fragments, fragments_df, eachfragment, nfragments, parent_fragment, 
-    is_c_terminal, is_n_terminal, is_amino_acid, is_nucleotide, is_3_prime, is_5_prime
+    is_c_terminal, is_n_terminal, is_amino_acid, is_nucleotide, is_3_prime, is_5_prime,
+    get_previous, get_next
 
 """
     $(TYPEDEF)
@@ -266,4 +267,30 @@ end
     end
 
     false
+end
+
+@inline function get_previous(frag::Fragment{T}) where {T<:Real}
+    try
+        prev_candidate = _fragment_by_idx(frag.sys, frag.idx - 1)
+
+        if !isnothing(prev_candidate) && parent_chain(prev_candidate) == parent_chain(frag)
+            return prev_candidate
+        end
+    catch
+    end
+
+    nothing
+end
+
+@inline function get_next(frag::Fragment{T}) where {T<:Real}
+    try
+        prev_candidate = _fragment_by_idx(frag.sys, frag.idx + 1)
+
+        if !isnothing(prev_candidate) && parent_chain(prev_candidate) == parent_chain(frag)
+            return prev_candidate
+        end
+    catch
+    end
+
+    nothing
 end
