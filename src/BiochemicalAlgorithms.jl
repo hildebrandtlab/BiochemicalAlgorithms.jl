@@ -25,6 +25,7 @@ include("core/moleculargraph_wrapper.jl")
 
 include("substructures/substructure.jl")
 include("substructures/smarts.jl")
+include("substructures/sssr.jl")
 
 module PubChem
 include("fileformats/pubchem_json.jl")
