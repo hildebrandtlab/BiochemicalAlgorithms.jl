@@ -41,11 +41,12 @@
     end
 
     # add bonds
+    avec = atoms(mol)
     for i in 1:4
         bond = (
             idx = 0,
-            a1 = i, 
-            a2 = 3, 
+            a1 = avec[i].idx,
+            a2 = avec[i + 1].idx,
             order = BondOrder.Single, 
             properties = Properties()
         )::BondTuple
