@@ -97,9 +97,13 @@ function atoms_df(ac::Substructure{T}; kwargs...) where {T<:Real}
 end
 
 function bonds_df(ac::Substructure{T}; kwargs...) where {T<:Real}
-    view(_bonds(ac; kwargs...), :, 1:length(fieldnames(BondTuple{T})))
+    _bonds(ac; kwargs...)
 end
 
 @inline function natoms(substruct::Substructure; kwargs...)
     nrow(_atoms(substruct; kwargs...))
+end
+
+@inline function nbonds(substruct::Substructure; kwargs...)
+    nrow(_bonds(substruct; kwargs...))
 end
