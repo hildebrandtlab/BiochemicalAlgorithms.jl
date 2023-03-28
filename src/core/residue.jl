@@ -116,10 +116,10 @@ end
     residues_df(::Protein)
     residues_df(::System)
 
-Returns a `SystemDataFrame{T}` containing all residues of the given atom container.
+Returns a `SubDataFrame{T}` containing all residues of the given atom container.
 """
 @inline function residues_df(sys::System; kwargs...)
-    SystemDataFrame(sys, view(_residues(sys; kwargs...), :, 1:length(fieldnames(ResidueTuple))))
+    view(_residues(sys; kwargs...), :, 1:length(fieldnames(ResidueTuple)))
 end
 
 """

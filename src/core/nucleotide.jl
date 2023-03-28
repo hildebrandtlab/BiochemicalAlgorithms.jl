@@ -117,10 +117,10 @@ end
     nucleotides_df(::Protein)
     nucleotides_df(::System)
 
-Returns a `SystemDataFrame{T}` containing all nucleotides of the given atom container.
+Returns a `SubDataFrame` containing all nucleotides of the given atom container.
 """
 @inline function nucleotides_df(sys::System; kwargs...)
-    SystemDataFrame(sys, view(_nucleotides(sys; kwargs...), :, 1:length(fieldnames(NucleotideTuple))))
+    view(_nucleotides(sys; kwargs...), :, 1:length(fieldnames(NucleotideTuple)))
 end
 
 """

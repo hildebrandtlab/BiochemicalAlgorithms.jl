@@ -284,14 +284,14 @@ end
     atoms_df(::Residue)
     atoms_df(::System)
 
-Returns a `SystemDataFrame{T}` containing all atoms of the given atom container.
+Returns a `SubDataFrame` containing all atoms of the given atom container.
 
 # Supported keyword arguments
  - `frame_id::Union{Nothing, Int} = 1`: \
 Any value other than `nothing` limits the result to atoms matching this frame ID.
 """
 @inline function atoms_df(sys::System{T}; kwargs...) where T
-    SystemDataFrame{T}(sys, view(_atoms(sys; kwargs...), :, 1:length(fieldnames(AtomTuple{T}))))
+    view(_atoms(sys; kwargs...), :, 1:length(fieldnames(AtomTuple{T})))
 end
 
 """

@@ -128,7 +128,7 @@ end
     bonds_df(::Residue)
     bonds_df(::System)
 
-Returns a `SystemDataFrame{T}` containing all bonds of the given atom container where at least one
+Returns a `SubDataFrame` containing all bonds of the given atom container where at least one
 associated atom is contained in the same container.
 
 # Supported keyword arguments
@@ -137,7 +137,7 @@ Any value other than `nothing` also limits the result to bonds where at least on
 this frame ID.
 """
 @inline function bonds_df(sys::System; kwargs...)
-    SystemDataFrame(sys, _bonds(sys; kwargs...))
+    _bonds(sys; kwargs...)
 end
 
 """
