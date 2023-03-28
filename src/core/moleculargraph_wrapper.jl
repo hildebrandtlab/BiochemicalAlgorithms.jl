@@ -143,7 +143,7 @@ function Base.convert(
     end
 
     for b in _molgraph_to_bond.(enumerate(zip(mg.edges, mg.edgeattrs)), Ref(mol))
-        Bond(mol.sys, b.a1, b.a2, BondOrderType(b.order), b.properties)
+        Bond(parent_system(mol), b.a1, b.a2, BondOrderType(b.order), b.properties)
     end
     
     mol
