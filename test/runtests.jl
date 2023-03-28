@@ -16,6 +16,7 @@ using DataFrames
         include("core/test_protein.jl")
         include("core/test_residue.jl")
         include("core/test_types.jl")
+        include("core/test_tuples.jl")
     end
 
     @testset "Fileformats" begin 
