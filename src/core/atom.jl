@@ -1,4 +1,5 @@
-export Atom, atom_by_idx, atom_by_name, atoms, atoms_df, eachatom, natoms
+export Atom, atom_by_idx, atom_by_name, atoms, atoms_df, eachatom, natoms, 
+    has_property, get_property, set_property, get_full_name
 
 """
     $(TYPEDEF)
@@ -371,4 +372,45 @@ function Base.push!(sys::System{T}, atom::AtomTuple{T};
         )
     )
     sys
+end
+
+@enumx FullNameType begin
+    # Do not add extensions
+    NO_VARIANT_EXTENSIONS = 1
+    # Add the residue extensions
+    ADD_VARIANT_EXTENSIONS = 2
+    # Add the residue ID
+    ADD_RESIDUE_ID = 3
+    # Add the residue ID and the residue extension
+    ADD_VARIANT_EXTENSIONS_AND_ID = 4
+end
+
+function get_full_name(
+        a::Atom{T}, 
+        type::FullNameType.T = FullNameType.ADD_VARIANT_EXTENSIONS) where {T<:Real}
+
+    # determine the parent`s name
+    f = parent_fragment(a)
+
+    parent_name = ""
+
+    if isnothing(f)
+        # look for a molecule containing the atom
+        m = parent_molecule(a)
+        parent_name = strip(m.name)
+        parent_name *= ":"
+    else
+        # retrieve the fragment name
+        parent_name = get_full_name(f, type) * ":";
+    end
+
+	# retrieve the atom name
+	name = strip(a.name)
+
+	# add the parent name only if non-empty
+    if (parent_name != ":")
+        name = parent_name * name;
+	end
+
+	name
 end
