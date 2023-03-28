@@ -1,74 +1,129 @@
+using BiochemicalAlgorithms: _molecules
+
 @testset "Molecule" begin
+    for T in [Float32, Float64]
+        sys = System{T}()
 
-    # base construction
-    mol = Molecule()
+        # constructors + parent
+        mol = Molecule(sys)
+        @test mol isa Molecule{T}
+        @test parent(mol) === sys
+        @test parent_system(mol) === sys
 
-    @test mol isa Molecule
-    @test mol.name == ""
-    @test atoms_df(mol) isa AbstractDataFrame
-    @test size(atoms_df(mol)) == (0,14)
-    @test length(atoms(mol)) == 0
-    @test bonds_df(mol) isa AbstractDataFrame
-    @test size(bonds_df(mol)) == (0,5)
-    @test length(bonds(mol)) == 0
-    @test natoms(mol) == 0
-    @test nbonds(mol) == 0
-    @test length(mol.properties) == 0
-    # set name
-    mol.name = "my_fancy_molecule"
-    @test mol.name == "my_fancy_molecule"
-    
-    # add atoms
-    for i in 1:6
-        atom = ( 
-            idx = 0,
-            number = 1,
-            element = Elements.H,
-            name = "my fancy atom",
-            atomtype = "heavy",
-            r = Vector3{Float32}(i*1.0, i*2.0, i*4.0),
-            v = Vector3{Float32}(1.0, 1.0, 1.0),
-            F = Vector3{Float32}(0.0, 0.0, 0.0),
-            formal_charge = 1,
-            charge = 2.0f32,
-            radius = 1.02f32,
-            has_velocity = true,
-            has_force = false,
-            properties = Properties()
-        )::AtomTuple{Float32}
-        push!(mol, atom)
-        @test natoms(mol) == i
+        if T == Float32
+            mol_ds = Molecule()
+            @test parent(mol_ds) === default_system()
+            @test parent_system(mol_ds) === default_system()
+
+            Molecule("something", Properties("a" => "b"))
+        end
+
+        mol2 = Molecule(sys, "something", Properties("a" => 1))
+
+        #=
+            Make sure we test for the correct number of fields.
+            Add missing tests if the following test fails!
+        =#
+        @test length(getfield(mol, :_row)) == 3
+
+        # getproperty
+        @test mol.idx isa Int
+        @test mol.name isa String
+        @test mol.name == ""
+        @test mol.properties isa Properties
+        @test mol.properties == Properties()
+
+        @test mol._sys isa System{T}
+        @test mol._row isa DataFrameRow
+
+        @test mol2.name == "something"
+        @test mol2.properties == Properties("a" => 1)
+
+        # setproperty!
+        mol.name = "something else"
+        @test mol.name == "something else"
+        mol.properties = Properties("first" => "v1", "second" => 99)
+        @test length(mol.properties) == 2
+        @test mol.properties["first"] == "v1"
+        @test mol.properties["second"] == 99
+
+        # molecule_by_idx
+        @test isnothing(molecule_by_idx(sys, -1))
+        @test molecule_by_idx(sys, mol.idx) isa Molecule{T}
+        @test molecule_by_idx(sys, mol.idx) == mol
+
+        # _molecules
+        df = _molecules(sys)
+        @test df isa AbstractDataFrame
+        @test size(df) == (2, length(fieldnames(MoleculeTuple)))
+        @test copy(df[1, :]) isa MoleculeTuple
+
+        # molecules_df
+        df = molecules_df(sys)
+        @test df isa AbstractDataFrame
+        @test size(df) == (2, length(fieldnames(MoleculeTuple)))
+        @test copy(df[1, :]) isa MoleculeTuple
+
+        # molecules
+        mv = molecules(sys)
+        @test mv isa Vector{Molecule{T}}
+        @test length(mv) == 2
+
+        # eachmolecule
+        @test first(eachmolecule(sys)) isa Molecule{T}
+        @test length(eachmolecule(sys)) == 2
+
+        # nmolecules
+        @test nmolecules(sys) isa Int
+        @test nmolecules(sys) == 2
+
+        # molecule atoms
+        @test size(_atoms(mol), 1) == 0
+        @test _atoms(mol) == _atoms(sys, molecule_id = mol.idx)
+        @test size(atoms_df(mol), 1) == 0
+        @test atoms_df(mol) == atoms_df(sys, molecule_id = mol.idx)
+        @test length(atoms(mol)) == 0
+        @test atoms(mol) == atoms(sys, molecule_id = mol.idx)
+        @test natoms(mol) == 0
+        @test natoms(mol) == natoms(sys, molecule_id = mol.idx)
+
+        @test push!(mol, AtomTuple{T}(1, Elements.H)) === mol
+        @test size(_atoms(mol), 1) == 1
+        @test size(_atoms(mol)) == size(_atoms(sys, molecule_id = mol.idx))
+        @test size(atoms_df(mol), 1) == 1
+        @test size(atoms_df(mol)) == size(atoms_df(sys, molecule_id = mol.idx))
+        @test length(atoms(mol)) == 1
+        @test atoms(mol) == atoms(sys, molecule_id = mol.idx)
+        @test natoms(mol) == 1
+        @test natoms(mol) == natoms(sys, molecule_id = mol.idx)
+
+        for atom in eachatom(mol)
+            @test parent_molecule(atom) === mol
+        end
+        @test parent_molecule(Atom(mol, 2, Elements.C)) === mol
+
+        # molecule bonds
+        @test size(_bonds(mol), 1) == 0
+        @test _bonds(mol) == _bonds(sys, molecule_id = mol.idx)
+        @test size(bonds_df(mol), 1) == 0
+        @test bonds_df(mol) == bonds_df(sys, molecule_id = mol.idx)
+        @test length(bonds(mol)) == 0
+        @test bonds(mol) == bonds(sys, molecule_id = mol.idx)
+        @test nbonds(mol) == 0
+        @test nbonds(mol) == nbonds(sys, molecule_id = mol.idx)
+
+        @test push!(mol, BondTuple(
+            Atom(mol, 1, Elements.H).idx,
+            Atom(mol, 2, Elements.C).idx,
+            BondOrder.Single)
+        ) === mol
+        @test size(_bonds(mol), 1) == 1
+        @test size(_bonds(mol)) == size(_bonds(sys, molecule_id = mol.idx))
+        @test size(bonds_df(mol), 1) == 1
+        @test size(bonds_df(mol)) == size(bonds_df(sys, molecule_id = mol.idx))
+        @test length(bonds(mol)) == 1
+        @test bonds(mol) == bonds(sys, molecule_id = mol.idx)
+        @test nbonds(mol) == 1
+        @test nbonds(mol) == nbonds(sys, molecule_id = mol.idx)
     end
-
-    # add bonds
-    avec = atoms(mol)
-    for i in 1:4
-        bond = (
-            idx = 0,
-            a1 = avec[i].idx,
-            a2 = avec[i + 1].idx,
-            order = BondOrder.Single, 
-            properties = Properties()
-        )::BondTuple
-        push!(mol, bond)
-        @test nbonds(mol) == i
-    end
-
-    # add properties
-    props = mol.properties
-    props["molecule computed"] = false 
-    props["molecule resolution"] = 2.5
-    @test length(props) == 2
-
-    props["resolution unit"] = "Angstroem"
-    @test length(props) == 3
-    @test !props["molecule computed"]
-    @test haskey(props, "resolution unit")
-    @test !has_property(mol, "ABCDEFG")
-
-    @test has_property(mol, "resolution unit")
-    @test get_property(mol, "resolution unit") == "Angstroem"
-
-    set_property(mol, "test property", "test value")
-    @test get_property(mol, "test property") == "test value"
 end
