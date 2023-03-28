@@ -128,7 +128,8 @@ end
 
 function Base.convert(
     ::Type{Molecule{T}},
-    mg::GraphMol{GMAtom, GMBond}) where {T<:Real, GMAtom, GMBond}
+    mg::GraphMol{GMAtom, GMBond};
+    system=default_system()) where {T<:Real, GMAtom, GMBond}
     
     d = todict(mg)
     
