@@ -88,8 +88,8 @@ function Atom(
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
     formal_charge::Int = 0,
-    charge::T = 0.0,
-    radius::T = 0.0,
+    charge::T = zero(T),
+    radius::T = zero(T),
     has_velocity::Bool = false,
     has_force::Bool = false,
     properties::Properties = Properties();
@@ -118,8 +118,8 @@ function Atom(
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
     formal_charge::Int = 0,
-    charge::T = 0.0,
-    radius::T = 0.0,
+    charge::T = zero(T),
+    radius::T = zero(T),
     has_velocity::Bool = false,
     has_force::Bool = false,
     properties::Properties = Properties();
