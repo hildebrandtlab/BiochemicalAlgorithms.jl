@@ -9,9 +9,9 @@ export find_sssr, is_ring_atom
 
 function _filter_bonds(ac::AbstractAtomContainer{T}) where {T<:Real}
      # filter out cystein bridges and h bridges (TODO!)
-     new_atoms = filter(x -> true, getfield(atoms_df(ac), :df), view=true)
+     new_atoms = filter(x -> true, ac._atoms, view=true)
      new_bonds = filter(b -> !get(b.properties, "DISULPHIDE_BOND", false), 
-                         getfield(bonds_df(ac), :df), view=true)
+                        ac._bonds, view=true)
 
     convert(GraphMol{SDFileAtom, SDFileBond}, Substructure(ac.name, ac, new_atoms, new_bonds, ac.properties))
 end
