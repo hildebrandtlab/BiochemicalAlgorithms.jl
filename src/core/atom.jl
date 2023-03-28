@@ -370,8 +370,15 @@ function Base.push!(sys::System{T}, atom::AtomTuple{T};
     residue_id::MaybeInt = missing
 ) where T
     push!(sys._atoms, 
-        (_with_idx(atom, _next_idx(sys))...,
-            frame_id, molecule_id, chain_id, fragment_id, nucleotide_id, residue_id)
+        (; atom..., 
+            idx = _next_idx(sys),
+            frame_id = frame_id,
+            molecule_id = molecule_id,
+            chain_id = chain_id,
+            fragment_id = fragment_id,
+            nucleotide_id = nucleotide_id,
+            residue_id = residue_id
+        )
     )
     sys
 end

@@ -195,7 +195,7 @@ Creates a new bond in the system associated with the given atom container, based
 The new bond is automatically assigned a new `idx`.
 """
 function Base.push!(sys::System{T}, bond::BondTuple) where T
-    push!(sys._bonds, _with_idx(bond, _next_idx(sys)))
+    push!(sys._bonds, (; bond..., idx = _next_idx(sys)))
     sys
 end
 

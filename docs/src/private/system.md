@@ -23,5 +23,4 @@ _nucleotides
 _next_idx
 _residues
 _row_by_idx
-_with_idx
 ```

@@ -171,7 +171,11 @@ Creates a new fragment in the given chain, based on the given tuple. The new res
 assigned a new `idx`.
 """
 @inline function Base.push!(chain::Chain, res::ResidueTuple)
-    push!(parent(chain)._residues, (_with_idx(res, _next_idx(parent(chain)))..., chain.idx))
+    sys = parent(chain)
+    push!(sys._residues, (; res...,
+        idx = _next_idx(sys),
+        chain_id = chain.idx
+    ))
     chain
 end
 
