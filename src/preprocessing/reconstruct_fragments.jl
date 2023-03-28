@@ -64,7 +64,7 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
             # later on.
 			new_atom = Atom(
                 f,
-                maximum(atoms_df(f.sys).number)+1, # does this make sense?
+                maximum(atoms_df(parent_system(f)).number)+1, # does this make sense?
                 tpl_atom.element,
                 tpl_atom.name,
                 "",
@@ -181,5 +181,7 @@ function reconstruct_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB) w
         num_inserted_atoms += reconstruct_fragment_!(f, template)
     end
 
+    @info "reconstruct_fragments!(): added $(num_inserted_atoms) atoms."
+    
     num_inserted_atoms
 end
