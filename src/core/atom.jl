@@ -188,7 +188,7 @@ end
 @inline function parent_chain(atom::Atom)
     ismissing(atom._row.chain_id) ?
         nothing :
-        chain_by_idx(atom.sys, atom._row.chain_id)
+        chain_by_idx(parent_system(atom), atom._row.chain_id)
 end
 
 @inline function parent_fragment(atom::Atom)
