@@ -1,7 +1,7 @@
 using AutoHashEquals
 export Fragment, fragment_by_idx, fragments, fragments_df, eachfragment, nfragments, parent_fragment, 
     is_c_terminal, is_n_terminal, is_amino_acid, is_nucleotide, is_3_prime, is_5_prime,
-    get_previous, get_next
+    get_previous, get_next, get_full_name
 
 """
     $(TYPEDEF)
@@ -305,4 +305,45 @@ end
     end
 
     nothing
+end
+
+function get_full_name(
+        f::Fragment{T},
+        type::FullNameType.T = FullNameType.ADD_VARIANT_EXTENSIONS) where {T<:Real}
+    # retrieve the residue name and remove blanks
+    full_name = strip(f.name)
+
+    # if the variant extension should be added, do so
+    if (   type == FullNameType.ADD_VARIANT_EXTENSIONS 
+        || type == ADD_VARIANT_EXTENSIONS_AND_ID)
+        suffix = "-"
+
+        if is_n_terminal(f)
+            suffix = "-N"
+        end
+
+        if is_c_terminal(f)
+            suffix = "-C"
+        end
+
+        if (is_c_terminal(f) && is_n_terminal(f)) 
+            suffix = "-M"
+		end
+
+        if (has_property(f, "PROPERTY__HAS_SSBOND"))
+            suffix *= "S"
+        end
+			
+        if (suffix != "-")
+            full_name *= suffix;
+		end
+    end
+
+    if (   type == FullNameType.ADD_RESIDUE_ID 
+        || type == FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID)
+  
+        full_name *= string(f.number);
+	end
+
+    full_name
 end
