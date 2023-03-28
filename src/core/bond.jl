@@ -99,13 +99,13 @@ function _bonds(sys::System; kwargs...)
 end
 
 """
-bonds(::Chain)
-bonds(::Fragment)
-bonds(::Molecule)
-bonds(::Nucleotide)
-bonds(::Protein)
-bonds(::Residue)
-bonds(::System)
+    bonds(::Chain)
+    bonds(::Fragment)
+    bonds(::Molecule)
+    bonds(::Nucleotide)
+    bonds(::Protein)
+    bonds(::Residue)
+    bonds(::System)
 
 Returns a `Vector{Bond{T}}` containing all bonds of the given atom container where at least one
 associated atom is contained in the same container.
@@ -120,13 +120,13 @@ this frame ID.
 end
 
 """
-bonds_df(::Chain)
-bonds_df(::Fragment)
-bonds_df(::Molecule)
-bonds_df(::Nucleotide)
-bonds_df(::Protein)
-bonds_df(::Residue)
-bonds_df(::System)
+    bonds_df(::Chain)
+    bonds_df(::Fragment)
+    bonds_df(::Molecule)
+    bonds_df(::Nucleotide)
+    bonds_df(::Protein)
+    bonds_df(::Residue)
+    bonds_df(::System)
 
 Returns a `SystemDataFrame{T}` containing all bonds of the given atom container where at least one
 associated atom is contained in the same container.
@@ -141,13 +141,13 @@ this frame ID.
 end
 
 """
-eachbond(::Chain)
-eachbond(::Fragment)
-eachbond(::Molecule)
-eachbond(::Nucleotide)
-eachbond(::Protein)
-eachbond(::Residue)
-eachbond(::System)
+    eachbond(::Chain)
+    eachbond(::Fragment)
+    eachbond(::Molecule)
+    eachbond(::Nucleotide)
+    eachbond(::Protein)
+    eachbond(::Residue)
+    eachbond(::System)
 
 Returns a `Bond{T}` generator for all bonds of the given atom container where at least one
 associated atom is contained in the same container.
@@ -162,13 +162,13 @@ function eachbond(sys::System{T}; kwargs...) where T
 end
 
 """
-nbonds(::Chain)
-nbonds(::Fragment)
-nbonds(::Molecule)
-nbonds(::Nucleotide)
-nbonds(::Protein)
-nbonds(::Residue)
-nbonds(::System)
+    nbonds(::Chain)
+    nbonds(::Fragment)
+    nbonds(::Molecule)
+    nbonds(::Nucleotide)
+    nbonds(::Protein)
+    nbonds(::Residue)
+    nbonds(::System)
 
 Returns the number of bonds in the given atom container where at least one associated atom
 is contained in the same container.
