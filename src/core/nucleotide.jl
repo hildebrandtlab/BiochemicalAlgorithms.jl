@@ -56,8 +56,8 @@ end
 
 @inline Base.parent(nuc::Nucleotide) = nuc._sys
 @inline parent_system(nuc::Nucleotide) = parent(nuc)
-@inline parent_molecule(nuc::Nucleotide) = _molecule_by_idx(parent(nuc), nuc._row.molecule_id)
-@inline parent_chain(nuc::Nucleotide) = _chain_by_idx(parent(nuc), nuc._row.chain_id)
+@inline parent_molecule(nuc::Nucleotide) = molecule_by_idx(parent(nuc), nuc._row.molecule_id)
+@inline parent_chain(nuc::Nucleotide) = chain_by_idx(parent(nuc), nuc._row.chain_id)
 
 @doc raw"""
     parent_nucleotide(::Atom)

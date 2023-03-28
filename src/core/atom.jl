@@ -182,31 +182,31 @@ end
 @inline function parent_molecule(atom::Atom) 
     ismissing(atom._row.molecule_id) ?
         nothing :
-        _molecule_by_idx(parent(atom), atom._row.molecule_id)
+        molecule_by_idx(parent(atom), atom._row.molecule_id)
 end
 
 @inline function parent_chain(atom::Atom)
     ismissing(atom._row.chain_id) ?
         nothing :
-        _chain_by_idx(atom.sys, atom._row.chain_id)
+        chain_by_idx(atom.sys, atom._row.chain_id)
 end
 
 @inline function parent_fragment(atom::Atom)
     ismissing(atom._row.fragment_id) ?
         nothing :
-        _fragment_by_idx(parent(atom), atom._row.fragment_id)
+        fragment_by_idx(parent(atom), atom._row.fragment_id)
 end
 
 @inline function parent_nucleotide(atom::Atom)
     ismissing(atom._row.nucleotide_id) ?
         nothing :
-        _nucleotide_by_idx(parent(atom), atom._row.nucleotide_id)
+        nucleotide_by_idx(parent(atom), atom._row.nucleotide_id)
 end
 
 @inline function parent_residue(atom::Atom)
     ismissing(atom._row.residue_id) ?
         nothing :
-        _residue_by_idx(parent(atom), atom._row.residue_id)
+        residue_by_idx(parent(atom), atom._row.residue_id)
 end
 
 """
