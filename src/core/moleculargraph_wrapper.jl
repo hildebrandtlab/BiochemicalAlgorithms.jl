@@ -132,11 +132,12 @@ end
 
 function Base.convert(
     ::Type{Molecule{T}},
-    mg::GraphMol{GMAtom, GMBond}) where {T<:Real, GMAtom, GMBond}
+    mg::GraphMol{GMAtom, GMBond};
+    system=default_system()) where {T<:Real, GMAtom, GMBond}
     
     d = todict(mg)
     
-    mol = Molecule("", Dict{String, Any}(string(k) => v for (k, v) in mg.attributes))
+    mol = Molecule(system, "", Dict{String, Any}(string(k) => v for (k, v) in mg.attributes))
 
     for a in (t -> _molgraph_to_atom(t, T)).(enumerate(mg.nodeattrs))
         Atom(mol, a...)
