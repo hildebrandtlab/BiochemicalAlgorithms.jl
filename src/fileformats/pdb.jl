@@ -1,6 +1,29 @@
-using BioStructures: read, collectatoms, collectchains, collectresidues, PDB
+using BioStructures: 
+    read,
+    writepdb,
+    collectatoms, 
+    collectchains, 
+    collectresidues, 
+    PDB,
+    ProteinStructure,
+    Model,
+    unsafe_addatomtomodel!,
+    AtomRecord,
+    fixlists!
 
-export load_pdb
+using Printf
+
+export load_pdb, write_pdb, is_hetero_atom
+
+function is_hetero_atom(a::Atom{T}) where {T<:Real}
+    f = parent_fragment(a)
+
+    if !isnothing(f) && is_amino_acid(f)
+        return false
+    end
+
+    true
+end 
 
 function parse_element_string(es::String)
     result = Elements.Unknown
@@ -50,11 +73,7 @@ function extract_element(pdb_element::String, atom_name::String)
     return element
 end
 
-# Note: models are stored as frames
-# TODO: how to handle disordered atoms properly?
-function load_pdb(fname::String, T=Float32)
-    # first, read the structure using BioStructures.jl
-    orig_pdb = read(fname, PDB)
+function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:Real}
     orig_df  = DataFrame(collectatoms(orig_pdb))
 
     # then, convert to our representation
@@ -150,5 +169,70 @@ function load_pdb(fname::String, T=Float32)
             ), frame_id = atom.frame_id)
         end
     end
+
     sys
+end
+
+# Note: models are stored as frames
+# TODO: how to handle disordered atoms properly?
+function load_pdb(fname::String, T=Float32)
+    # first, read the structure using BioStructures.jl
+    orig_pdb = read(fname, PDB)
+    convert(System{T}, orig_pdb)
+end
+
+function _to_atom_record(a::Atom{T}) where {T<:Real}
+    # TODO: handle alternative location identifiers!
+    f = parent_fragment(a)
+
+    AtomRecord(
+        is_hetero_atom(a),
+        a.number,
+        @sprintf("%4s", a.name),
+        ' ',
+        f.name,
+        parent_chain(a).name,
+        f.number,
+        get_property(a, "insertion_code", ' '),
+        Vector{Float64}(a.r),
+        get_property(a, "occupancy", 1.0),
+        get_property(a, "tempfactor", 0.0),
+        string(a.element),
+        string(a.formal_charge)
+    )
+end
+
+function Base.convert(::Type{ProteinStructure}, ac::AbstractAtomContainer{T}) where {T<:Real}
+    # Build a ProteinStructure and add to it incrementally
+    struc = ProteinStructure(ac.name)
+
+    # figure out if all molecules in the atom container have the same frames
+    sys_frame_ids = frame_ids(ac)
+
+    if ac isa System{T}
+        for m in molecules(ac)
+            if frame_ids(m) != sys_frame_ids
+                error("pdb.jl: cannot convert System containing molecules with different numbers of frames")
+            end
+        end
+    end
+
+    for (i, frame_id) in enumerate(sys_frame_ids)
+        struc[i] = Model(i, struc)
+       
+        for a in atoms(ac; frame_id=frame_id)
+            unsafe_addatomtomodel!(
+                struc[i],
+                _to_atom_record(a)
+            )
+        end
+    end
+
+    fixlists!(struc)
+    struc
+end
+
+function write_pdb(fname::String, ac::AbstractAtomContainer{T}) where {T<:Real}
+    ps = convert(ProteinStructure, ac)
+    writepdb(fname, ps)
 end
