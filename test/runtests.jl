@@ -5,17 +5,17 @@ using DataFrames
 @testset verbose=true "BiochemicalAlgorithms.jl" begin
    
     @testset "Core" begin 
-        include("test_amino_acid.jl")
-        include("test_bond_order.jl")
-        include("test_atom.jl")
-        include("test_bond.jl")
-        include("test_element.jl")
-        include("test_fragment.jl")
-        include("test_molecule.jl")
-        include("test_nucleotide.jl")
-        include("test_protein.jl")
-        include("test_residue.jl")
-        include("test_types.jl")
+        include("core/test_amino_acid.jl")
+        include("core/test_bond_order.jl")
+        include("core/test_atom.jl")
+        include("core/test_bond.jl")
+        include("core/test_element.jl")
+        include("core/test_fragment.jl")
+        include("core/test_molecule.jl")
+        include("core/test_nucleotide.jl")
+        include("core/test_protein.jl")
+        include("core/test_residue.jl")
+        include("core/test_types.jl")
     end
 
     @testset "Fileformats" begin 
