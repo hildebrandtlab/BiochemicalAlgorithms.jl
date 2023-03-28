@@ -107,13 +107,13 @@ function normalize_fragments_!(frags::Vector{Fragment{T}}, mapping::Dict{String,
         res_name_suffix = get_suffix_(frag)
 
         for atom in atoms(frag)
-            hit, res_name, atom_name = do_match_(res_name, res_name_suffix, atom.name, mapping)
+            hit, new_res_name, atom_name = do_match_(res_name, res_name_suffix, atom.name, mapping)
 
             if hit
                 atom.name = atom_name
 
-                if !startswith(res_name, "*")
-                    frag.name = res_name
+                if !startswith(new_res_name, "*")
+                    frag.name = new_res_name
                 end
             end
         end
