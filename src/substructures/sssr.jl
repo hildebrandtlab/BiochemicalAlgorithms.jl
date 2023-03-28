@@ -21,7 +21,7 @@ function find_sssr(ac::AbstractAtomContainer{T}) where {T<:Real}
 
     mg_sssr = sssr(mg)
 
-    map(r->map(a->_atom_by_idx(ac isa System ? ac : ac.sys, mg.attributes[:atom_idx][a]), r), mg_sssr)
+    map(r->map(a->atom_by_idx(ac isa System ? ac : ac.sys, mg.attributes[:atom_idx][a]), r), mg_sssr)
 end
 
 function is_ring_atom(ac::AbstractAtomContainer{T}) where {T<:Real}
