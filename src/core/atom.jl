@@ -223,7 +223,7 @@ end
 @inline function atom_by_name(ac::AbstractAtomContainer{T}, name::String) where T
     sys = ac isa System{T} ? ac : ac._sys
     at = findfirst(sys._atoms.name .== name)
-    isnothing(at) ? nothing : Atom{T}(sys, DataFrameRow(sys.atoms, at, :))
+    isnothing(at) ? nothing : Atom{T}(sys, DataFrameRow(sys._atoms, at, :))
 end
 
 """
