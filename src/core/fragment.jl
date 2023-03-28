@@ -52,8 +52,8 @@ end
 
 @inline Base.parent(frag::Fragment) = frag._sys
 @inline parent_system(frag::Fragment) = parent(frag)
-@inline parent_molecule(frag::Fragment) = _molecule_by_idx(parent(frag), frag._row.molecule_id)
-@inline parent_chain(frag::Fragment) = _chain_by_idx(parent(frag), frag._row.chain_id)
+@inline parent_molecule(frag::Fragment) = molecule_by_idx(parent(frag), frag._row.molecule_id)
+@inline parent_chain(frag::Fragment) = chain_by_idx(parent(frag), frag._row.chain_id)
 
 @doc raw"""
     parent_fragment(::Atom)

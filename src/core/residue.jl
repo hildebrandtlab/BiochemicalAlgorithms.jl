@@ -49,8 +49,8 @@ end
 
 @inline Base.parent(res::Residue) = res._sys
 @inline parent_system(res::Residue) = parent(res)
-@inline parent_molecule(res::Residue) = _molecule_by_idx(parent(res), res._row.molecule_id)
-@inline parent_chain(res::Residue) = _chain_by_idx(parent(res), res._row.chain_id)
+@inline parent_molecule(res::Residue) = molecule_by_idx(parent(res), res._row.molecule_id)
+@inline parent_chain(res::Residue) = chain_by_idx(parent(res), res._row.chain_id)
 
 @doc raw"""
     parent_residue(::Atom)

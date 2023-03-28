@@ -47,7 +47,7 @@ end
 
 @inline Base.parent(chain::Chain) = chain._sys
 @inline parent_system(chain::Chain) = parent(chain)
-@inline parent_molecule(chain::Chain) = _molecule_by_idx(parent(chain), chain._row.molecule_id)
+@inline parent_molecule(chain::Chain) = molecule_by_idx(parent(chain), chain._row.molecule_id)
 
 @doc raw"""
     parent_chain(::Atom)
