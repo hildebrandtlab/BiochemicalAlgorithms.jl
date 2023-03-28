@@ -16,7 +16,6 @@ AbstractMolecule
 ## Systems
 ```@docs
 System
-SystemDataFrame
 default_system
 Base.parent(::System)
 parent_system

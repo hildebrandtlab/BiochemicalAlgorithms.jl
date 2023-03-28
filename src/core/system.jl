@@ -1,5 +1,5 @@
 using AutoHashEquals
-export System, SystemDataFrame, default_system, parent_system
+export System, default_system, parent_system
 
 """
     const _SystemAtomTuple{T} = NamedTuple{...}
@@ -189,27 +189,3 @@ Returns the `System{T}` containing the given object.
 Returns the `System{T}` containing the given object. Alias for 
 [`Base.parent`](@ref Base.parent(::System)).
 """ parent_system
-
-"""
-    $(TYPEDEF)
-
-System-aware `DataFrame` wrapper.
-"""
-struct SystemDataFrame{T} <: AbstractDataFrame
-    sytem::System{T}
-    df::SubDataFrame
-end
-
-DataFrames.describe(sys::SystemDataFrame) = describe(getfield(sys, :df))
-DataFrames.index(sys::SystemDataFrame) = DataFrames.index(getfield(sys, :df))
-DataFrames.nrow(sys::SystemDataFrame) = nrow(getfield(sys, :df))
-DataFrames._check_consistency(sys::SystemDataFrame) = DataFrames._check_consistency(getfield(sys, :df))
-Base.getindex(sys::SystemDataFrame, row, col) = getindex(getfield(sys, :df), row, col)
-Base.getindex(sys::SystemDataFrame, row::Integer, col::Colon) = getindex(getfield(sys, :df), row, col)
-Base.setindex!(sys::SystemDataFrame, val, idx) = setindex!(getfield(sys, :df), val, idx)
-Base.setindex!(sys::SystemDataFrame, val, row, col) = setindex!(getfield(sys, :df), val, row, col)
-Base.getproperty(sys::SystemDataFrame, name::Symbol) = getproperty(getfield(sys, :df), name)
-Base.getproperty(sys::SystemDataFrame, name::Symbol, order::Symbol) = getproperty(getfield(sys, :df), name, order)
-Base.setproperty!(sys::SystemDataFrame, col, v) = setproperty!(getfield(sys, :df), col, v)
-Base.show(io::IO, ::MIME"text/plain", sys::SystemDataFrame) = show(io, getfield(sys, :df))
-Base.show(io::IO, sys::SystemDataFrame) = show(io, getfield(sys, :df))

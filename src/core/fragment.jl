@@ -119,10 +119,10 @@ end
     fragments_df(::Protein)
     fragments_df(::System)
 
-Returns a `SystemDataFrame{T}` containing all fragments of the given atom container.
+Returns a `SubDataFrame` containing all fragments of the given atom container.
 """
 @inline function fragments_df(sys::System; kwargs...)
-    SystemDataFrame(sys, view(_fragments(sys; kwargs...), :, 1:length(fieldnames(FragmentTuple))))
+    view(_fragments(sys; kwargs...), :, 1:length(fieldnames(FragmentTuple)))
 end
 
 """

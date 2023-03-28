@@ -110,10 +110,10 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Returns a `SystemDataFrame{T}` containing all molecules of the given system.
+Returns a `SubDataFrame` containing all molecules of the given system.
 """
 @inline function molecules_df(sys::System{T}) where T
-    SystemDataFrame{T}(sys, view(_molecules(sys), :, :))
+    view(_molecules(sys), :, :)
 end
 
 """

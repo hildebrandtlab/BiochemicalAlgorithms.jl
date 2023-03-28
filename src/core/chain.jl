@@ -102,10 +102,10 @@ end
     chains_df(::Protein)
     chains_df(::System)
 
-Returns a `SystemDataFrame{T}` containing all chains of the given atom container.
+Returns a `SubDataFrame` containing all chains of the given atom container.
 """
 @inline function chains_df(sys::System; kwargs...)
-    SystemDataFrame(sys, view(_chains(sys; kwargs...), :, 1:length(fieldnames(ChainTuple))))
+    view(_chains(sys; kwargs...), :, 1:length(fieldnames(ChainTuple)))
 end
 
 """
