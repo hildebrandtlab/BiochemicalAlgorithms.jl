@@ -46,7 +46,8 @@ function place_peptide_bond_h_!(frag::Fragment{T}) where T
             zero(T),
             zero(T),
             false,
-            false)
+            false
+        )
 
         Bond(frag.sys, n_atom.idx, h_atom.idx, BondOrder.Single, Properties())
 
