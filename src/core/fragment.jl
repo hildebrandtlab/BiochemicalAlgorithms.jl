@@ -174,7 +174,12 @@ Creates a new fragment in the given chain, based on the given tuple. The new fra
 assigned a new `idx`.
 """
 @inline function Base.push!(chain::Chain, frag::FragmentTuple)
-    push!(parent(chain)._fragments, (_with_idx(frag, _next_idx(parent(chain)))..., chain.idx))
+    sys = parent(chain)
+    push!(sys._fragments, (; frag..., 
+        idx = _next_idx(sys),
+        molecule_id = chain._row.molecule_id,
+        chain_id = chain.idx
+    ))
     chain
 end
 

@@ -117,22 +117,6 @@ end
 ) = AtomTuple{Float32}(number, element; kwargs...)
 
 """
-    _with_idx(::AtomTuple{T}, idx::Int)
-    _with_idx(::BondTuple{T}, idx::Int)
-    _with_idx(::ChainTuple{T}, idx::Int)
-    _with_idx(::FragmentTuple{T}, idx::Int)
-    _with_idx(::MoleculeTuple{T}, idx::Int)
-    _with_idx(::NucleotideTuple{T}, idx::Int)
-    _with_idx(::ProteinTuple{T}, idx::Int)
-    _with_idx(::ResidueTuple{T}, idx::Int)
-
-Returns a copy of the given tuple with replaced `idx`.
-"""
-@inline function _with_idx(atom::AtomTuple{T}, idx::Int) where T
-    ntuple(i -> i == 1 ? idx : atom[i], length(atom))
-end
-
-"""
     const BondTuple = NamedTuple{...}
 
 Tuple-based bond representation for `DataFrame` usage.
@@ -179,10 +163,6 @@ end
     properties = properties
 )::BondTuple
 
-@inline function _with_idx(bond::BondTuple, idx::Int)
-    ntuple(i -> i == 1 ? idx : bond[i], length(bond))
-end
-
 """
     const MoleculeTuple = NamedTuple{...}
 
@@ -219,10 +199,6 @@ end
     name = name,
     properties = properties
 )::MoleculeTuple
-
-@inline function _with_idx(mol::MoleculeTuple, idx::Int)
-    ntuple(i -> i == 1 ? idx : mol[i], length(mol))
-end
 
 """
     const ChainTuple = NamedTuple{...}
@@ -289,10 +265,6 @@ end
     properties = properties
 )::FragmentTuple
 
-@inline function _with_idx(frag::FragmentTuple, idx::Int)
-    ntuple(i -> i == 1 ? idx : frag[i], length(frag))
-end
-
 """
     const NucleotideTuple = NamedTuple{...}
 
@@ -358,7 +330,3 @@ end
     type = type,
     properties = properties
 )::ResidueTuple
-
-@inline function _with_idx(frag::ResidueTuple, idx::Int)
-    ntuple(i -> i == 1 ? idx : frag[i], length(frag))
-end

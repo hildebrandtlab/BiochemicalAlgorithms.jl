@@ -169,8 +169,7 @@ end
 # <https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/issues/26>
 #
 #@inline function Base.push!(chain::Chain{T}, nuc::NucleotideTuple) where T
-#    push!(parent(chain)._nucleotides, (_with_idx(nuc, _next_idx(chain._sys))..., chain.idx))
-#    chain
+#   ...
 #end
 
 #=

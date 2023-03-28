@@ -147,7 +147,11 @@ Creates a new chain in the given molecule, based on the given tuple. The new cha
 assigned a new `idx`.
 """
 @inline function Base.push!(mol::Molecule, chain::ChainTuple)
-    push!(sys._chains, (_with_idx(chain, _next_idx(sys))..., mol.idx))
+    sys = parent(mol)
+    push!(sys._chains, (; chain...,
+        idx = _next_idx(sys),
+        molecule_id = mol.idx
+    ))
     mol
 end
 
