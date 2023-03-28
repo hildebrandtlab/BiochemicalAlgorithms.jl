@@ -1,3 +1,5 @@
+using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
+
 @testset "Atom" begin
     for T in [Float32, Float64]
         at = (
@@ -22,7 +24,9 @@
         atom = Atom(sys, at)
         @test atom isa Atom{T}
         @test parent(atom) === sys
+        @test parent_system(atom) === sys
         T == Float32 && @test parent(Atom(at)) === default_system()
+        T == Float32 && @test parent_system(Atom(at)) === default_system()
 
         atom2 = Atom(sys, at, frame_id = 10, molecule_id = 11, chain_id = 12, fragment_id = 13, 
             nucleotide_id = 14, residue_id = 15)
@@ -33,7 +37,7 @@
         =#
         @test length(getfield(atom, :_row)) == 20
 
-        # getproperty (public)
+        # getproperty
         @test atom.idx isa Int
         @test atom.number isa Int
         @test atom.number == at.number
@@ -108,6 +112,12 @@
         @test atom.v == Vector3{T}(100, 200, 300)
         atom.F = Vector3{T}(1000, 2000, 3000)
         @test atom.F == Vector3{T}(1000, 2000, 3000)
+        atom.formal_charge = 2
+        @test atom.formal_charge == 2
+        atom.charge = -one(T)
+        @test atom.charge == -one(T)
+        atom.radius = one(T) / 2
+        @test atom.radius == one(T) / 2
         atom.has_velocity = false
         @test !atom.has_velocity
         atom.has_force = true
@@ -123,16 +133,49 @@
         @test_throws ErrorException atom.nucleotide_id = 0
         @test_throws ErrorException atom.residue_id = 0
 
+        # atom_by_idx
+        @test isnothing(atom_by_idx(sys, -1))
+        @test atom_by_idx(sys, atom.idx) isa Atom{T}
+        @test atom_by_idx(sys, atom.idx) == atom
+
+        # atom_by_name
+        @test isnothing(atom_by_name(sys, "invalid"))
+        @test atom_by_name(sys, atom.name) isa Atom{T}
+        @test atom_by_name(sys, atom.name) == atom
+
+        # _atoms
+        df = _atoms(sys)
+        @test df isa AbstractDataFrame
+        @test size(df) == (1, length(fieldnames(_SystemAtomTuple{T})))
+        @test copy(df[1, 1:length(fieldnames(AtomTuple{T}))]) isa AtomTuple{T}
+        @test size(_atoms(sys, frame_id = 1), 1) == 1
+        @test size(_atoms(sys, frame_id = 2), 1) == 0
+        @test size(_atoms(sys, frame_id = 10), 1) == 1
+        @test size(_atoms(sys, frame_id = nothing), 1) == 2
+        @test size(_atoms(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
+            nucleotide_id = 14, residue_id = 15), 1) == 1
+
+        # atoms
+        avec = atoms(sys)
+        @test avec isa Vector{Atom{T}}
+        @test length(avec) == 1
+        @test length(atoms(sys, frame_id = 1)) == 1
+        @test length(atoms(sys, frame_id = 2)) == 0
+        @test length(atoms(sys, frame_id = 10)) == 1
+        @test length(atoms(sys, frame_id = nothing)) == 2
+        @test length(atoms(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
+            nucleotide_id = 14, residue_id = 15)) == 1
+
         # atoms_df
         df = atoms_df(sys)
         @test df isa AbstractDataFrame
         @test size(df) == (1, length(fieldnames(AtomTuple{T})))
         @test copy(df[1, :]) isa AtomTuple{T}
-        @test size(atoms(sys, frame_id = 1), 1) == 1
-        @test size(atoms(sys, frame_id = 2), 1) == 0
-        @test size(atoms(sys, frame_id = 10), 1) == 1
-        @test size(atoms(sys, frame_id = nothing), 1) == 2
-        @test size(atoms(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
+        @test size(atoms_df(sys, frame_id = 1), 1) == 1
+        @test size(atoms_df(sys, frame_id = 2), 1) == 0
+        @test size(atoms_df(sys, frame_id = 10), 1) == 1
+        @test size(atoms_df(sys, frame_id = nothing), 1) == 2
+        @test size(atoms_df(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
             nucleotide_id = 14, residue_id = 15), 1) == 1
 
         # eachatom
@@ -143,15 +186,6 @@
         @test length(eachatom(sys, frame_id = 10)) == 1
         @test length(eachatom(sys, frame_id = nothing)) == 2
         @test length(eachatom(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
-            nucleotide_id = 14, residue_id = 15)) == 1
-
-        @test length(atoms(sys)) == 1
-        @test first(atoms(sys)) isa Atom{T}
-        @test length(atoms(sys, frame_id = 1)) == 1
-        @test length(atoms(sys, frame_id = 2)) == 0
-        @test length(atoms(sys, frame_id = 10)) == 1
-        @test length(atoms(sys, frame_id = nothing)) == 2
-        @test length(atoms(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
             nucleotide_id = 14, residue_id = 15)) == 1
 
         # natoms + push!
