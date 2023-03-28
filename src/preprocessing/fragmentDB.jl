@@ -200,6 +200,20 @@ end
     end
 end
 
+function bonds(a::DBAtom, var::DBVariant)
+    filter(b -> a.name ∈ [b.a1, b.a2], var.bonds)
+end
+
+function get_partner(bond::DBBond, atom::DBAtom, var::DBVariant)
+    if bond.a1 == atom.name
+        return var.atoms[findfirst(a -> a.name == bond.a2, var.atoms)]
+    elseif bond.a2 == atom.name
+        return var.atoms[findfirst(a -> a.name == bond.a1, var.atoms)]
+    else
+        return nothing
+    end
+end
+
 @auto_hash_equals struct DBFragment{T<:Real}
     name::String
     path::String
