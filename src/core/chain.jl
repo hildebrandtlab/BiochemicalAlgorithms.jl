@@ -12,8 +12,9 @@ Mutable representation of an individual chain in a system.
 - `properties::Properties`
 
 # Constructors
-    Chain(mol::Molecule{T}, name::String = "", properties::Properties = Properties())
-
+```julia
+Chain(mol::Molecule{T}, name::String = "", properties::Properties = Properties())
+```
 Creates a new `Chain{T}` in the given molecule.
 """
 @auto_hash_equals struct Chain{T} <: AbstractAtomContainer{T}

@@ -15,8 +15,14 @@ Mutable representation of an individual fragment in a system.
  - `properties::Properties`
 
 # Constructors
-    Fragment(chain::Chain{T}, number::Int, name::String = "", properties::Properties = Properties())
-
+```julia
+Fragment(
+    chain::Chain{T},
+    number::Int,
+    name::String = "",
+    properties::Properties = Properties()
+)
+```
 Creates a new `Fragment{T}` in the given chain.
 """
 @auto_hash_equals struct Fragment{T} <: AbstractAtomContainer{T}

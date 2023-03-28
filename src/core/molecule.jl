@@ -20,12 +20,14 @@ Mutable representation of an individual molecule in a system.
 - `properties::Properties`
 
 # Constructors
-    Molecule(name::String = "", properties::Properties = Properties())
-
+```julia
+Molecule(name::String = "", properties::Properties = Properties())
+```
 Creates a new `Molecule{Float32}` in the default system.
 
-    Molecule(sys::System{T}, name::String = "", properties::Properties = Properties())
-
+```julia
+Molecule(sys::System{T}, name::String = "", properties::Properties = Properties())
+```
 Creates a new `Molecule{T}` in the given system.
 """
 @auto_hash_equals struct Molecule{T} <: AbstractMolecule{T}

@@ -13,8 +13,14 @@ Mutable representation of an individual nucleotide in a system.
  - `properties::Properties`
 
 # Constructors
-   Nucleotide(chain::Chain{T}, number::Int, name::String = "", properties::Properties = Properties())
-
+```julia
+Nucleotide(
+    chain::Chain{T},
+    number::Int,
+    name::String = "",
+    properties::Properties = Properties()
+)
+```
 Creates a new `Nucleotide{T}` in the given chain.
 """
 @auto_hash_equals struct Nucleotide{T}

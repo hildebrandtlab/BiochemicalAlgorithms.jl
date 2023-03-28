@@ -12,8 +12,14 @@ Mutable representation of an individual residue in a system.
 - `properties::Properties`
 
 # Constructors
-    Residue(chain::Chain{T}, number::Int, type::AminoAcid, properties::Properties = Properties())
-
+```julia
+Residue(
+    chain::Chain{T},
+    number::Int,
+    type::AminoAcid,
+    properties::Properties = Properties()
+)
+```
 Creates a new `Residue{T}` in the given chain.
 """
 @auto_hash_equals struct Residue{T}
