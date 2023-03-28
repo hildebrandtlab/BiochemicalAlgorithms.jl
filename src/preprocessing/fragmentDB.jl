@@ -322,7 +322,7 @@ end
         throw(ArgumentError("FragmentDB: invalid format!"))
     end
 
-    function FragmentDB(path::String = ball_data_path("fragments/fragments.db.json"))
+    function FragmentDB(path::String = ball_data_path("fragments/Fragments.db.json"))
         jstring = read(path, String)
         
         JSON3.read(jstring, FragmentDB)
