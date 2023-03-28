@@ -60,7 +60,7 @@ function build_fragment_bonds!(
                     bonds(f))
 
                 if isnothing(bond_index)
-                    Bond(f.sys, atom.idx, partner_atom.idx, tpl_bond.order, Properties())
+                    Bond(parent_system(f), atom.idx, partner_atom.idx, tpl_bond.order, Properties())
                 
                     num_bonds_built += 1
                 else
@@ -128,7 +128,7 @@ function try_build_connection!(a1::Atom, con_1::DBConnection, a2::Atom, con_2::D
         props["DISULPHIDE_BOND"] = true
     end
 
-    Bond(a1.sys, a1.idx, a2.idx, con_1.order, props)
+    Bond(parent_system(a1), a1.idx, a2.idx, con_1.order, props)
 
     return true
 end
