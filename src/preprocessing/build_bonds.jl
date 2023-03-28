@@ -1,7 +1,5 @@
 using LinearAlgebra
 
-import BiochemicalAlgorithms:_atom_by_idx
-
 export build_bonds!
 
 function build_fragment_bonds!(
@@ -158,7 +156,7 @@ function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB) where {T<:Re
                 con_i = connections[con_keys[i]]
                 con_j = connections[con_keys[j]]
 
-                if try_build_connection!(_atom_by_idx(m, con_keys[i]), con_i, _atom_by_idx(m, con_keys[j]), con_j)
+                if try_build_connection!(atom_by_idx(m, con_keys[i]), con_i, atom_by_idx(m, con_keys[j]), con_j)
                     num_bonds_built += 1
                     break
                 end
