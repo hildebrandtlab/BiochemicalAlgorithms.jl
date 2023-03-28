@@ -597,4 +597,6 @@ function add_hydrogens!(ac::AbstractAtomContainer{T}) where {T<:Real}
     end
 
     @info "Added $(num_added_hydrogens) atoms."
+
+    num_added_hydrogens
 end
