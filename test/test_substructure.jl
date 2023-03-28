@@ -1,29 +1,32 @@
 @testset "Substructure" begin
 
     # read a simple molecule
-    mol = load_pubchem_json("data/aspirin_pug.json")[1]
+    mol = molecules(load_pubchem_json("data/aspirin_pug.json"))[1]
 
     filter_fn = :element => e -> e == Elements.C
 
     # and create a substructure
-    atoms = filter(filter_fn, mol.atoms, view = true)
-    bonds = filter([:a1, :a2] => (a1, a2) -> a1 ∈ atoms.number && a2 ∈ atoms.number, mol.bonds, view = true)
+    filtered_atoms = filter(filter_fn, BiochemicalAlgorithms._atoms(mol), view = true)
+    filtered_bonds = filter(
+        [:a1, :a2] => 
+            (a1, a2) -> a1 ∈ filtered_atoms.idx && 
+                        a2 ∈ filtered_atoms.idx, BiochemicalAlgorithms._bonds(mol), view = true)
 
     s = Substructure(
         "aspirin substructure",
         mol,
-        atoms,
-        bonds
+        filtered_atoms,
+        filtered_bonds
     )
 
     @test s isa Substructure
     @test s.name == "aspirin substructure"
-    @test s.atoms isa SubDataFrame
-    @test size(s.atoms) == (9,11)
-    @test s.bonds isa SubDataFrame
-    @test size(s.bonds) == (8,4)
-    @test count_atoms(s) == 9
-    @test count_bonds(s) == 8
+    @test atoms_df(s) isa SubDataFrame
+    @test size(atoms_df(s)) == (9,14)
+    @test bonds_df(s) isa SubDataFrame
+    @test size(bonds_df(s)) == (8,5)
+    @test natoms(s) == 9
+    @test nbonds(s) == 8
     @test length(s.properties) == 0
 
     # generate the same substructure by filtering
