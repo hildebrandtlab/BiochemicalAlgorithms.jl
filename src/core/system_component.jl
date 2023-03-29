@@ -1,4 +1,4 @@
-export AbstractSystemComponent, has_property, get_property, set_property
+export AbstractSystemComponent, has_property, get_property, set_property!
 
 """
     $(TYPEDEF)
@@ -37,4 +37,4 @@ Returns the property associated with the given key in `ac`. If no such property 
 
 Sets the property associated with the given key in `ac` to the given `value`.
 """
-@inline set_property(ac::AbstractSystemComponent, key::Symbol, value) = ac.properties[key] = value
+@inline set_property!(ac::AbstractSystemComponent, key::Symbol, value) = ac.properties[key] = value

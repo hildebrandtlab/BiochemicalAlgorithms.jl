@@ -18,7 +18,7 @@ AbstractMolecule
 ```@docs
 has_property
 get_property
-set_property
+set_property!
 ```
 
 ## Systems
