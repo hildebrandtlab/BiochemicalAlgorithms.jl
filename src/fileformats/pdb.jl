@@ -71,20 +71,12 @@ function load_pdb(fname::String, T=Float32)
     atoms = DataFrame(
         number=orig_df.serial, 
         name=orig_df.atomname,
-        element=elements
+        element=elements,
+        r = r
     )
 
-    insertcols!(atoms, :atom_type => "")
-    atoms.r = r
-    atoms.v .= Ref(Vector3{T}(0.0, 0.0, 0.0))
-    atoms.F .= Ref(Vector3{T}(0.0, 0.0, 0.0))
     # FIXME read charge from PDB file. BioStructures reads this as a string
     # atoms.formal_charge .= orig_df.charge,
-    atoms.formal_charge .= Ref(zero(Int))
-    atoms.charge .= Ref(zero(T))
-    atoms.radius .= Ref(zero(T))
-    atoms.has_velocity .= Ref(false)
-    atoms.has_force .= Ref(false)
 
     # convert other columns of interest to atom properties
     atoms.properties = Properties.(
@@ -138,24 +130,13 @@ function load_pdb(fname::String, T=Float32)
     # drop all alternates
     atoms = filter(:altlocid => ==(' '), atoms)
 
-    # drop the altlocid-column
-    select!(atoms, Not(:altlocid))
-    
     # add all remaining atoms to the system
     grp_atoms = groupby(atoms, :fragment_id)
     for frag in eachfragment(mol)
         for atom in eachrow(grp_atoms[(fragment_id = frag.number,)])
             push!(frag, AtomTuple{T}(atom.number, atom.element;
                 name = atom.name,
-                atom_type = atom.atom_type,
                 r = atom.r,
-                v = atom.v,
-                F = atom.F,
-                formal_charge = atom.formal_charge,
-                charge = atom.charge,
-                radius = atom.radius,
-                has_velocity = atom.has_velocity,
-                has_force = atom.has_force,
                 properties = atom.properties,
             ), frame_id = atom.frame_id)
         end

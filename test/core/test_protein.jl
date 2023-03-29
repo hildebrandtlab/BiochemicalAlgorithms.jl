@@ -6,7 +6,7 @@
     @test mol isa AbstractMolecule{Float32}
     @test mol.name == ""
     @test atoms_df(mol) isa AbstractDataFrame
-    @test size(atoms_df(mol)) == (0, 15)
+    @test size(atoms_df(mol)) == (0, 13)
     @test length(atoms(mol)) == 0
     @test bonds_df(mol) isa AbstractDataFrame
     @test size(bonds_df(mol)) == (0, 6)
@@ -38,8 +38,6 @@ end
         formal_charge = 1,
         charge = 2.0f32,
         radius = 1.02f32,
-        has_velocity = fill(false, 6),
-        has_force = fill(false, 6),
         properties = Properties(),
         flags = Flags()
     )

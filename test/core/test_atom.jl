@@ -2,23 +2,15 @@ using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
 
 @testset "Atom" begin
     for T in [Float32, Float64]
-        at = (
-            idx = 0,
-            number = 1,
-            element = Elements.H,
+        at = AtomTuple{T}(1, Elements.H;
             name = "my fancy atom",
             atom_type = "heavy",
             r = Vector3{T}(1, 2, 4),
             v = Vector3{T}(1, 1, 1),
-            F = Vector3{T}(0, 0, 0),
             formal_charge = 1,
             charge = T(0.2),
-            radius = T(1.01),
-            has_velocity = true,
-            has_force = false,
-            properties = Properties(),
-            flags = Flags()
-        )::AtomTuple{T}
+            radius = T(1.01)
+        )
         sys = System{T}()
 
         # constructors + parent
@@ -36,7 +28,7 @@ using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(atom, :_row)) == 21
+        @test length(getfield(atom, :_row)) == 19
 
         # getproperty
         @test atom.idx isa Int
@@ -60,10 +52,6 @@ using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
         @test atom.charge == at.charge
         @test atom.radius isa T
         @test atom.radius == at.radius
-        @test atom.has_velocity isa Bool
-        @test atom.has_velocity == at.has_velocity
-        @test atom.has_force isa Bool
-        @test atom.has_force == at.has_force
         @test atom.properties isa Properties
         @test atom.properties == at.properties
         @test atom.flags isa Flags
@@ -121,10 +109,6 @@ using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
         @test atom.charge == -one(T)
         atom.radius = one(T) / 2
         @test atom.radius == one(T) / 2
-        atom.has_velocity = false
-        @test !atom.has_velocity
-        atom.has_force = true
-        @test atom.has_force
         atom.properties = Properties(:first => "v1", :second => 99)
         @test length(atom.properties) == 2
         @test atom.properties[:first] == "v1"

@@ -13,8 +13,6 @@
     @test at.formal_charge == 0
     @test at.charge == zero(Float32)
     @test at.radius == zero(Float32)
-    @test !at.has_velocity
-    @test !at.has_force
     @test at.properties == Properties()
     @test at.flags == Flags()
 
@@ -29,8 +27,6 @@
         formal_charge = 11,
         charge = Float32(12),
         radius = Float32(13),
-        has_velocity = true,
-        has_force = true,
         properties = Properties(:a => 14),
         flags = Flags([:A])
     )
@@ -46,8 +42,6 @@
     @test at.formal_charge == 11
     @test at.charge == Float32(12)
     @test at.radius == Float32(13)
-    @test at.has_velocity
-    @test at.has_force
     @test at.properties == Properties(:a => 14)
     @test at.flags == Flags([:A])
 
@@ -66,8 +60,6 @@
         @test at.formal_charge == 0
         @test at.charge == zero(T)
         @test at.radius == zero(T)
-        @test !at.has_velocity
-        @test !at.has_force
         @test at.properties == Properties()
         @test at.flags == Flags()
 
@@ -82,8 +74,6 @@
             formal_charge = 11,
             charge = T(12),
             radius = T(13),
-            has_velocity = true,
-            has_force = true,
             properties = Properties(:a => 14),
             flags = Flags([:A])
         )
@@ -99,8 +89,6 @@
         @test at.formal_charge == 11
         @test at.charge == T(12)
         @test at.radius == T(13)
-        @test at.has_velocity
-        @test at.has_force
         @test at.properties == Properties(:a => 14)
         @test at.flags == Flags([:A])
     end

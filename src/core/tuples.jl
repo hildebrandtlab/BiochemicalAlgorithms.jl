@@ -14,8 +14,6 @@ Tuple-based atom representation for `DataFrame` usage.
  - `r::Vector3{T}`
  - `v::Vector3{T}`
  - `F::Vector3{T}`
- - `has_velocity::Bool`
- - `has_force::Bool`
  - `properties::Properties`
  - `flags::Flags`
 
@@ -34,8 +32,6 @@ AtomTuple(
     formal_charge::Int = 0,
     charge::T = zero(T),
     radius::T = zero(T),
-    has_velocity::Bool = false,
-    has_force::Bool = false,
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )
@@ -56,8 +52,6 @@ AtomTuple{T}(
     formal_charge::Int = 0,
     charge::T = zero(T),
     radius::T = zero(T),
-    has_velocity::Bool = false,
-    has_force::Bool = false,
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )
@@ -76,8 +70,6 @@ const AtomTuple{T} = @NamedTuple begin
     formal_charge::Int
     charge::T
     radius::T
-    has_velocity::Bool
-    has_force::Bool
     properties::Properties
     flags::Flags
 end
@@ -94,8 +86,6 @@ end
     formal_charge::Int = 0,
     charge::T = zero(T),
     radius::T = zero(T),
-    has_velocity::Bool = false,
-    has_force::Bool = false,
     properties::Properties = Properties(),
     flags::Flags = Flags()
 ) where T = (
@@ -110,8 +100,6 @@ end
     formal_charge = formal_charge,
     charge = charge,
     radius = radius,
-    has_velocity = has_velocity,
-    has_force = has_force,
     properties = properties,
     flags = flags
 )::AtomTuple{T}

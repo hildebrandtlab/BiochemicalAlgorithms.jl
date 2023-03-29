@@ -19,8 +19,6 @@ Mutable representation of an individual atom in a system.
  - `formal_charge::Int`
  - `charge::T`
  - `radius::T`
- - `has_velocity::Bool`
- - `has_force::Bool`
  - `properties::Properties`
  - `flags::Flags`
 
@@ -37,8 +35,6 @@ Atom(
     formal_charge::Int = 0,
     charge::T = zero(T),
     radius::T = zero(T),
-    has_velocity::Bool = false,
-    has_force::Bool = false,
     properties::Properties = Properties(),
     flags::Flags = Flags();
     # keyword arguments
@@ -60,8 +56,6 @@ Atom(
     formal_charge::Int = 0,
     charge::T = zero(T),
     radius::T = zero(T),
-    has_velocity::Bool = false,
-    has_force::Bool = false,
     properties::Properties = Properties(),
     flags::Flags = Flags();
     # keyword arguments
@@ -93,8 +87,6 @@ function Atom(
     formal_charge::Int = 0,
     charge::T = zero(T),
     radius::T = zero(T),
-    has_velocity::Bool = false,
-    has_force::Bool = false,
     properties::Properties = Properties(),
     flags::Flags = Flags();
     frame_id::Int = 1,
@@ -107,8 +99,7 @@ function Atom(
 ) where T
     idx = _next_idx(sys)
     push!(sys._atoms, (idx, number, element, name, atom_type, r, v, F, formal_charge, charge, radius,
-        has_velocity, has_force, properties, flags, frame_id, molecule_id, chain_id, fragment_id,
-        nucleotide_id, residue_id))
+        properties, flags, frame_id, molecule_id, chain_id, fragment_id, nucleotide_id, residue_id))
     atom_by_idx(sys, idx)
 end
 
@@ -124,8 +115,6 @@ function Atom(
     formal_charge::Int = 0,
     charge::T = zero(T),
     radius::T = zero(T),
-    has_velocity::Bool = false,
-    has_force::Bool = false,
     properties::Properties = Properties(),
     flags::Flags = Flags();
     frame_id::Int = 1
@@ -133,8 +122,7 @@ function Atom(
     push!(ac, 
          (idx=0, number=number, element=element, name=name, 
           atom_type=atom_type, r=r, v=v, F=F, formal_charge=formal_charge, 
-          charge=charge, radius=radius, has_velocity=has_velocity, 
-          has_force=has_force, properties=properties, flags=flags)::AtomTuple{T};
+          charge=charge, radius=radius, properties=properties, flags=flags)::AtomTuple{T};
           frame_id=frame_id)
     atom_by_idx(ac._sys, ac._sys._curr_idx)
 end
@@ -150,14 +138,12 @@ function Atom(
     formal_charge::Int = 0,
     charge::Float32 = 0.0f32,
     radius::Float32 = 0.0f32,
-    has_velocity::Bool = false,
-    has_force::Bool = false,
     properties::Properties = Properties(),
     flags::Flags = Flags();
     kwargs...
 )
     Atom(default_system(), number, element, name, atom_type, r, v, F, formal_charge, charge, radius,
-        has_velocity, has_force, properties, flags; kwargs...)
+        properties, flags; kwargs...)
 end
 
 @inline function Atom(sys::System{T}, atom::AtomTuple{T}; kwargs...) where T
