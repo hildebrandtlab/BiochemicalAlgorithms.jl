@@ -27,6 +27,7 @@ include("substructures/substructure.jl")
 include("substructures/smarts.jl")
 include("substructures/sssr.jl")
 
+include("fileformats/ball_ini_file.jl")
 module PubChem
 include("fileformats/pubchem_json.jl")
 end
