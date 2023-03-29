@@ -70,7 +70,7 @@ Creates a new `Atom{T}` in the given system.
 Constructor variants that create a new system atom based on the given `AtomTuple{T}`. The new atom
 is automatically assigned a new `idx`.
 """
-@auto_hash_equals struct Atom{T}
+@auto_hash_equals struct Atom{T} <: AbstractSystemComponent{T}
     _sys::System{T}
     _row::DataFrameRow
 end
