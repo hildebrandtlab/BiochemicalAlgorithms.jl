@@ -24,7 +24,7 @@ Residue(
 ```
 Creates a new `Residue{T}` in the given chain.
 """
-@auto_hash_equals struct Residue{T}
+@auto_hash_equals struct Residue{T} <: AbstractAtomContainer{T}
     _sys::System{T}
     _row::DataFrameRow
 end

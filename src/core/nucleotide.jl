@@ -25,7 +25,7 @@ Nucleotide(
 ```
 Creates a new `Nucleotide{T}` in the given chain.
 """
-@auto_hash_equals struct Nucleotide{T}
+@auto_hash_equals struct Nucleotide{T} <: AbstractAtomContainer{T}
     _sys::System{T}
     _row::DataFrameRow
 end
