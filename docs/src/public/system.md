@@ -9,6 +9,7 @@ Pages = ["system.md"]
 
 ## Abstract types
 ```@docs
+AbstractSystemComponent
 AbstractAtomContainer
 AbstractMolecule
 ```

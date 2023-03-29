@@ -6,7 +6,7 @@ export AbstractAtomContainer, frame_ids, nframes,
 
 Abstract base type for all atom containers.
 """
-abstract type AbstractAtomContainer{T <: Real} end
+abstract type AbstractAtomContainer{T} <: AbstractSystemComponent{T} end
 
 frame_ids(ac::AbstractAtomContainer{T}) where {T<:Real} = unique(_atoms(ac).frame_id)
 nframes(ac::AbstractAtomContainer{T}) where {T<:Real} = length(frame_ids(ac))
