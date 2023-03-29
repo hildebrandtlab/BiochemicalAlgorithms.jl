@@ -1,4 +1,4 @@
-export AbstractSystemComponent, has_property, get_property, set_property!
+export AbstractSystemComponent, has_property, get_property, set_property!, has_flag, set_flag!, unset_flag!
 
 """
     $(TYPEDEF)
@@ -38,3 +38,28 @@ Returns the property associated with the given key in `ac`. If no such property 
 Sets the property associated with the given key in `ac` to the given `value`.
 """
 @inline set_property!(ac::AbstractSystemComponent, key::Symbol, value) = ac.properties[key] = value
+
+#=
+    Flags
+=#
+
+"""
+    $(TYPEDSIGNATURES)
+
+Returns a `Bool` indicating whether the given system component has the given flag.
+"""
+@inline has_flag(ac::AbstractSystemComponent, flag::Symbol) = flag in ac.flags
+
+"""
+    $(TYPEDSIGNATURES)
+
+Adds the given flag to `ac`.
+"""
+@inline set_flag!(ac::AbstractSystemComponent, flag::Symbol) = push!(ac.flags, flag)
+
+"""
+    $(TYPEDSIGNATURES)
+
+Removes the given flag from `ac`.
+"""
+@inline unset_flag!(ac::AbstractSystemComponent, flag::Symbol) = delete!(ac.flags, flag)

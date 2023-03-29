@@ -19,6 +19,9 @@ AbstractMolecule
 has_property
 get_property
 set_property!
+has_flag
+set_flag!
+unset_flag!
 ```
 
 ## Systems
