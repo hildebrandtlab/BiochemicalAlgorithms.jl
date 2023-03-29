@@ -1,4 +1,4 @@
-@testset "Nucleotide" begin
+@testitem "Nucleotide" begin
     # simple fragment
     n = (idx = 0, number = 1, name = "my nucleotide", properties = Properties())
     @test n isa NucleotideTuple

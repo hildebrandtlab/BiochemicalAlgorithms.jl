@@ -1,4 +1,4 @@
-@testset "FragmentDB" begin
+@testitem "FragmentDB" begin
     default_fdb = FragmentDB()
 
     @test length(default_fdb.fragments) == 33

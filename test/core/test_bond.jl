@@ -1,6 +1,7 @@
-using BiochemicalAlgorithms: _bonds
+@testitem "Bond" begin
+    using DataFrames
+    using BiochemicalAlgorithms: _bonds
 
-@testset "Bond" begin
     for T in [Float32, Float64]
         sys = System{T}()
         atom1 = Atom(sys, 1, Elements.H)

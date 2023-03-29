@@ -1,4 +1,5 @@
-@testset "Residue" begin
+@testitem "Residue" begin
+    using BioSymbols
     
     r = (
         idx = 0,

@@ -1,12 +1,12 @@
-@testset "PDB" begin
-    bpti = load_pdb("data/bpti.pdb")
+@testitem "PDB" begin
+    bpti = load_pdb(ball_data_path("../test/data/bpti.pdb"))
 
     @test bpti.name == "bpti.pdb"
 
     @test natoms(bpti) == 454
     @test nbonds(bpti) == 0
 
-    pdb_5pti = load_pdb("data/5PTI.pdb")
+    pdb_5pti = load_pdb(ball_data_path("../test/data/5PTI.pdb"))
 
     @test pdb_5pti.name == "5PTI.pdb"
 

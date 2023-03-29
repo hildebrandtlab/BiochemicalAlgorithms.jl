@@ -1,4 +1,5 @@
-@testset "Simple Protein" begin
+@testitem "Simple Protein" begin
+    using DataFrames
 
     mol = Protein()
 
@@ -21,7 +22,9 @@
     @test mol.name == "my_fancy_protein"
 end
 
-@testset "Filled Protein" begin
+@testitem "Filled Protein" begin
+    using DataFrames
+    
     mol = Protein("my_fancy_molecule")
 
     # add atoms

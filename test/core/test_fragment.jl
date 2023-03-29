@@ -1,4 +1,4 @@
-@testset "Fragment" begin
+@testitem "Fragment" begin
     # simple fragment
     f = (idx = 0, number = 1, name = "my fragment", properties = Properties())
 

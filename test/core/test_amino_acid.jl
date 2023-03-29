@@ -1,6 +1,7 @@
-using BioSymbols
 
-@testset "AminoAcid" begin
+@testitem "AminoAcid" begin
+    using BioSymbols
+
     # can we break the constructor of BioSymbols:
     @test_throws InexactError AminoAcid(' ') # call BioSymbols.AminoAcid(::Char)
     @test_throws MethodError AminoAcid()
