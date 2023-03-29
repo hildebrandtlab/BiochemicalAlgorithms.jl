@@ -562,13 +562,12 @@ function parse_bonds!(mol::Molecule, compound::PCCompound, T=Float32)
                 properties["PCBondAnnotation_for_conformer"] = annotations
             end
            
-            b = (
-                idx = 0,
-                a1 = aidx[aid1],
-                a2 = aidx[aid2],
-                order = (order <= 4) ? BondOrderType(order) : BondOrder.Unknown,
+            b = BondTuple(
+                aidx[aid1],
+                aidx[aid2],
+                (order <= 4) ? BondOrderType(order) : BondOrder.Unknown;
                 properties = properties
-            )::BondTuple
+            )
 
             push!(mol, b)
         end
