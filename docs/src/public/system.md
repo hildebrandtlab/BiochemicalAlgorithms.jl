@@ -14,6 +14,13 @@ AbstractAtomContainer
 AbstractMolecule
 ```
 
+## Common functions
+```@docs
+has_property
+get_property
+set_property
+```
+
 ## Systems
 ```@docs
 System

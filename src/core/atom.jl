@@ -1,6 +1,5 @@
 using AutoHashEquals
-export Atom, atom_by_idx, atom_by_name, atoms, atoms_df, eachatom, natoms, has_property,
-    get_property, set_property
+export Atom, atom_by_idx, atom_by_name, atoms, atoms_df, eachatom, natoms
 
 """
     $(TYPEDEF)
@@ -373,20 +372,4 @@ function Base.push!(sys::System{T}, atom::AtomTuple{T};
         )
     )
     sys
-end
-
-function has_property(a::Atom{T}, key::Symbol) where {T<:Real}
-    haskey(a.properties, key)
-end
-
-function get_property(a::Atom{T}, key::Symbol) where {T<:Real}
-    a.properties[key]
-end
-
-function get_property(a::Atom{T}, key::Symbol, default) where {T<:Real}
-    has_property(a, key) ? a.properties[key] : default
-end
-
-function set_property(a::Atom{T}, key::Symbol, value) where {T<:Real}
-    a.properties[key] = value
 end

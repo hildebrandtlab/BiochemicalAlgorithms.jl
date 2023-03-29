@@ -1,6 +1,6 @@
 using AutoHashEquals
 export AbstractMolecule, Molecule, molecule_by_idx, molecules, molecules_df, eachmolecule, nmolecules,
-    parent_molecule, has_property, get_property, set_property
+    parent_molecule
 
 """
     $(TYPEDEF)
@@ -175,16 +175,4 @@ end
 @inline function Base.push!(mol::Molecule, bond::BondTuple)
     push!(parent(mol), bond)
     mol
-end
-
-function has_property(m::AbstractMolecule, key::Symbol)
-    haskey(m.properties, key)
-end
-
-function get_property(m::AbstractMolecule, key::Symbol)
-    m.properties[key]
-end
-
-function set_property(m::AbstractMolecule, key::Symbol, value)
-    m.properties[key] = value
 end
