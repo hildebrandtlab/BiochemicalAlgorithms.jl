@@ -1,5 +1,6 @@
 module BiochemicalAlgorithms
 
+using AutoHashEquals
 using DataFrames
 using DataFramesMeta
 using DocStringExtensions

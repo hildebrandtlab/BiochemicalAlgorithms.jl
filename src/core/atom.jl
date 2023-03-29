@@ -1,4 +1,3 @@
-using AutoHashEquals
 export Atom, atom_by_idx, atom_by_name, atoms, atoms_df, eachatom, natoms
 
 """

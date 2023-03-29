@@ -1,4 +1,3 @@
-using AutoHashEquals
 export Fragment, fragment_by_idx, fragments, fragments_df, eachfragment, nfragments, parent_fragment, 
     is_c_terminal, is_n_terminal, is_amino_acid, is_nucleotide, is_3_prime, is_5_prime,
     get_previous, get_next

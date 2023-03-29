@@ -1,4 +1,3 @@
-using AutoHashEquals
 export Bond, bond_by_idx, bonds, bonds_df, eachbond, nbonds, get_partner, is_bound_to
 
 """

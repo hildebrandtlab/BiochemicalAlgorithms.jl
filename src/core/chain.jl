@@ -1,4 +1,3 @@
-using AutoHashEquals
 export Chain, chain_by_idx, chains, chains_df, eachchain, nchains, parent_chain
 
 """

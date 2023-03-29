@@ -1,4 +1,3 @@
-using AutoHashEquals
 export AbstractMolecule, Molecule, molecule_by_idx, molecules, molecules_df, eachmolecule, nmolecules,
     parent_molecule
 
