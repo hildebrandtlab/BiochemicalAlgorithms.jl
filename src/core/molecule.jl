@@ -177,14 +177,14 @@ end
     mol
 end
 
-function has_property(m::AbstractMolecule, key::String)
+function has_property(m::AbstractMolecule, key::Symbol)
     haskey(m.properties, key)
 end
 
-function get_property(m::AbstractMolecule, key::String)
+function get_property(m::AbstractMolecule, key::Symbol)
     m.properties[key]
 end
 
-function set_property(m::AbstractMolecule, key::String, value)
+function set_property(m::AbstractMolecule, key::Symbol, value)
     m.properties[key] = value
 end

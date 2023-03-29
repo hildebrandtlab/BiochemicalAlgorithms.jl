@@ -559,7 +559,7 @@ function parse_bonds!(mol::Molecule, compound::PCCompound, T=Float32)
                 end
             end
             if length(annotations) != 0
-                properties["PCBondAnnotation_for_conformer"] = annotations
+                properties[:PCBondAnnotation_for_conformer] = annotations
             end
            
             b = BondTuple(
@@ -581,7 +581,7 @@ function parse_props!(mol::Molecule, compound::PCCompound)
     if !isnothing(compound.props)
         for i in eachindex(compound.props)
             d = compound.props[i]
-            mol.properties[d.urn.label] = d
+            mol.properties[Symbol(d.urn.label)] = d
         end
     end
 

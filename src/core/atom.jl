@@ -389,18 +389,18 @@ function Base.push!(sys::System{T}, atom::AtomTuple{T};
     sys
 end
 
-function has_property(a::Atom{T}, key::String) where {T<:Real}
+function has_property(a::Atom{T}, key::Symbol) where {T<:Real}
     haskey(a.properties, key)
 end
 
-function get_property(a::Atom{T}, key::String) where {T<:Real}
+function get_property(a::Atom{T}, key::Symbol) where {T<:Real}
     a.properties[key]
 end
 
-function get_property(a::Atom{T}, key::String, default) where {T<:Real}
+function get_property(a::Atom{T}, key::Symbol, default) where {T<:Real}
     has_property(a, key) ? a.properties[key] : default
 end
 
-function set_property(a::Atom{T}, key::String, value) where {T<:Real}
+function set_property(a::Atom{T}, key::Symbol, value) where {T<:Real}
     a.properties[key] = value
 end

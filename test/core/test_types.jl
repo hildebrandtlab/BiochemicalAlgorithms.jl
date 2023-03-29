@@ -29,9 +29,6 @@ end
     p = Properties()
     @test p isa Properties
 
-    p2 = Properties([("A", 23), ("B", 12), ("C", 12)])
+    p2 = Properties(:A => 23, :B => 12, :C => 12)
     @test p2 isa Properties
-
-    p3 = Dict([("A", 23), ("B", (1,2)), ("C", "foo")])
-    @test p3 isa Properties
 end

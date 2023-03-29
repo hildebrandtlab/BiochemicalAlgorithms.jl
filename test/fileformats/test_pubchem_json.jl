@@ -28,7 +28,7 @@
                   "BA_WEDGE_UP", "BA_WEDGE_DOWN", "BA_ARROW", "BA_AROMATIC"]
      
         for (i, bond) in enumerate(eachbond(sys2))
-                @test bond.properties["PCBondAnnotation_for_conformer"][1] == values[i]
-                @test bond.properties["PCBondAnnotation_for_conformer"][2] == values[i]
+                @test bond.properties[:PCBondAnnotation_for_conformer][1] == values[i]
+                @test bond.properties[:PCBondAnnotation_for_conformer][2] == values[i]
         end
 end

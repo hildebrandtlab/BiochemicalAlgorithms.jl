@@ -90,11 +90,11 @@ function load_pdb(fname::String, T=Float32)
     atoms.properties = Properties.(
         collect(
                 zip(
-                    Pair.("tempfactor",            orig_df.tempfactor),
-                    Pair.("occupancy",             orig_df.occupancy),
-                    Pair.("is_hetero_atom",        orig_df.ishetero),
-                    Pair.("insertion_code",        orig_df.inscode),
-                    Pair.("alternate_location_id", orig_df.altlocid)
+                    Pair.(:tempfactor,            orig_df.tempfactor),
+                    Pair.(:occupancy,             orig_df.occupancy),
+                    Pair.(:is_hetero_atom,        orig_df.ishetero),
+                    Pair.(:insertion_code,        orig_df.inscode),
+                    Pair.(:alternate_location_id, orig_df.altlocid)
                 )
         )
     )
@@ -130,7 +130,7 @@ function load_pdb(fname::String, T=Float32)
 
         if nrow(sorted_altlocs) > 1
             for altloc in eachrow(sorted_altlocs[2:end, :])
-                atoms.properties[base_case.number]["alternate_location_$(altloc.altlocid)"] = altloc
+                atoms.properties[base_case.number][Symbol("alternate_location_$(altloc.altlocid)")] = altloc
             end
         end
     end

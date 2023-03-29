@@ -31,7 +31,7 @@
         radius = Float32(13),
         has_velocity = true,
         has_force = true,
-        properties = Properties("a" => 14),
+        properties = Properties(:a => 14),
         flags = Flags([:A])
     )
     @test at isa AtomTuple{Float32}
@@ -48,7 +48,7 @@
     @test at.radius == Float32(13)
     @test at.has_velocity
     @test at.has_force
-    @test at.properties == Properties("a" => 14)
+    @test at.properties == Properties(:a => 14)
     @test at.flags == Flags([:A])
 
     for T in [Float32, Float64]
@@ -84,7 +84,7 @@
             radius = T(13),
             has_velocity = true,
             has_force = true,
-            properties = Properties("a" => 14),
+            properties = Properties(:a => 14),
             flags = Flags([:A])
         )
         @test at isa AtomTuple{T}
@@ -101,7 +101,7 @@
         @test at.radius == T(13)
         @test at.has_velocity
         @test at.has_force
-        @test at.properties == Properties("a" => 14)
+        @test at.properties == Properties(:a => 14)
         @test at.flags == Flags([:A])
     end
 end
@@ -120,7 +120,7 @@ end
     # full ctor
     bt = BondTuple(10, 100, BondOrder.Double;
         idx = 9,
-        properties = Properties("a" => 1000),
+        properties = Properties(:a => 1000),
         flags = Flags([:A])
     )
     @test bt isa BondTuple
@@ -128,7 +128,7 @@ end
     @test bt.a1 == 10
     @test bt.a2 == 100
     @test bt.order == BondOrder.Double
-    @test bt.properties == Properties("a" => 1000)
+    @test bt.properties == Properties(:a => 1000)
     @test bt.flags == Flags([:A])
 end
 
@@ -145,13 +145,13 @@ end
     mt = MoleculeTuple(;
         idx = 9,
         name = "something",
-        properties = Properties("a" => 10),
+        properties = Properties(:a => 10),
         flags = Flags([:A])
     )
     @test mt isa MoleculeTuple
     @test mt.idx == 9
     @test mt.name == "something"
-    @test mt.properties == Properties("a" => 10)
+    @test mt.properties == Properties(:a => 10)
     @test mt.flags == Flags([:A])
 end
 
@@ -168,13 +168,13 @@ end
     ct = ChainTuple(;
         idx = 9,
         name = "something",
-        properties = Properties("a" => 10),
+        properties = Properties(:a => 10),
         flags = Flags([:A])
     )
     @test ct isa ChainTuple
     @test ct.idx == 9
     @test ct.name == "something"
-    @test ct.properties == Properties("a" => 10)
+    @test ct.properties == Properties(:a => 10)
     @test ct.flags == Flags([:A])
 end
 
@@ -193,14 +193,14 @@ end
     ft = FragmentTuple(10;
         idx = 9,
         name = "something",
-        properties = Properties("a" => 11),
+        properties = Properties(:a => 11),
         flags = Flags([:A])
     )
     @test ft isa FragmentTuple
     @test ft.idx == 9
     @test ft.number == 10
     @test ft.name == "something"
-    @test ft.properties == Properties("a" => 11)
+    @test ft.properties == Properties(:a => 11)
     @test ft.flags == Flags([:A])
 end
 
@@ -218,14 +218,14 @@ end
     nt = NucleotideTuple(10;
         idx = 9,
         name = "something",
-        properties = Properties("a" => 11),
+        properties = Properties(:a => 11),
         flags = Flags([:A])
     )
     @test nt isa NucleotideTuple
     @test nt.idx == 9
     @test nt.number == 10
     @test nt.name == "something"
-    @test nt.properties == Properties("a" => 11)
+    @test nt.properties == Properties(:a => 11)
     @test nt.flags == Flags([:A])
 end
 
@@ -242,13 +242,13 @@ end
     # full ctor
     rt = ResidueTuple(10, AminoAcid('D');
         idx = 9,
-        properties = Properties("a" => 11),
+        properties = Properties(:a => 11),
         flags = Flags([:A])
     )
     @test rt isa ResidueTuple
     @test rt.idx == 9
     @test rt.number == 10
     @test rt.type == AminoAcid('D')
-    @test rt.properties == Properties("a" => 11)
+    @test rt.properties == Properties(:a => 11)
     @test rt.flags == Flags([:A])
 end

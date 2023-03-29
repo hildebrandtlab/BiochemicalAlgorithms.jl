@@ -73,12 +73,12 @@ end
 
     # test properties
     props = mol.properties
-    props["molecule computed"] = false
-    props["molecule resolution"] = 2.5
+    props[:molecule_computed] = false
+    props[:molecule_resolution] = 2.5
     @test length(props) == 2
 
-    props["resolution unit"] = "Angstroem"
+    props[:resolution_unit] = "Angstroem"
     @test length(props) == 3
-    @test !props["molecule computed"]
-    @test haskey(props, "resolution unit")
+    @test !props[:molecule_computed]
+    @test haskey(props, :resolution_unit)
 end

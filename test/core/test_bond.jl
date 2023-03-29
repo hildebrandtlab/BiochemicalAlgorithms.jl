@@ -18,10 +18,10 @@ using BiochemicalAlgorithms: _bonds
             @test parent(bond_ds) === default_system()
             @test parent_system(bond_ds) === default_system()
 
-            Bond(atom2.idx, atom3.idx, BondOrder.Double, Properties("a" => "b"), Flags([:A]))
+            Bond(atom2.idx, atom3.idx, BondOrder.Double, Properties(:a => "b"), Flags([:A]))
         end
 
-        bond2 = Bond(sys, atom2.idx, atom3.idx, BondOrder.Double, Properties("a" => 1), Flags([:A, :B]))
+        bond2 = Bond(sys, atom2.idx, atom3.idx, BondOrder.Double, Properties(:a => 1), Flags([:A, :B]))
         Bond(
             sys,
             Atom(sys, 1, Elements.H; frame_id = 2).idx,
@@ -59,7 +59,7 @@ using BiochemicalAlgorithms: _bonds
         @test bond2.order isa BondOrderType
         @test bond2.order == BondOrder.Double
         @test bond2.properties isa Properties
-        @test bond2.properties == Properties("a" => 1)
+        @test bond2.properties == Properties(:a => 1)
         @test bond2.flags isa Flags
         @test bond2.flags == Flags([:A, :B])
 
@@ -70,10 +70,10 @@ using BiochemicalAlgorithms: _bonds
         @test bond.a2 == atom1.idx
         bond.order = BondOrder.Triple
         @test bond.order == BondOrder.Triple
-        bond.properties = Properties("first" => "v1", "second" => 99)
+        bond.properties = Properties(:first => "v1", :second => 99)
         @test length(bond.properties) == 2
-        @test bond.properties["first"] == "v1"
-        @test bond.properties["second"] == 99
+        @test bond.properties[:first] == "v1"
+        @test bond.properties[:second] == 99
         bond.flags = Flags([:C])
         @test length(bond.flags) == 1
         @test :C in bond.flags

@@ -15,10 +15,10 @@ using BiochemicalAlgorithms: _molecules
             @test parent(mol_ds) === default_system()
             @test parent_system(mol_ds) === default_system()
 
-            Molecule("something", Properties("a" => "b"), Flags([:A]))
+            Molecule("something", Properties(:a => "b"), Flags([:A]))
         end
 
-        mol2 = Molecule(sys, "something", Properties("a" => 1), Flags([:A, :B]))
+        mol2 = Molecule(sys, "something", Properties(:a => 1), Flags([:A, :B]))
 
         #=
             Make sure we test for the correct number of fields.
@@ -39,16 +39,16 @@ using BiochemicalAlgorithms: _molecules
         @test mol._row isa DataFrameRow
 
         @test mol2.name == "something"
-        @test mol2.properties == Properties("a" => 1)
+        @test mol2.properties == Properties(:a => 1)
         @test mol2.flags == Flags([:A, :B])
 
         # setproperty!
         mol.name = "something else"
         @test mol.name == "something else"
-        mol.properties = Properties("first" => "v1", "second" => 99)
+        mol.properties = Properties(:first => "v1", :second => 99)
         @test length(mol.properties) == 2
-        @test mol.properties["first"] == "v1"
-        @test mol.properties["second"] == 99
+        @test mol.properties[:first] == "v1"
+        @test mol.properties[:second] == 99
         mol.flags = Flags([:C])
         @test length(mol.flags) == 1
         @test :C in mol.flags

@@ -125,10 +125,10 @@ using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
         @test !atom.has_velocity
         atom.has_force = true
         @test atom.has_force
-        atom.properties = Properties("first" => "v1", "second" => 99)
+        atom.properties = Properties(:first => "v1", :second => 99)
         @test length(atom.properties) == 2
-        @test atom.properties["first"] == "v1"
-        @test atom.properties["second"] == 99
+        @test atom.properties[:first] == "v1"
+        @test atom.properties[:second] == 99
         atom.flags = Flags([:A, :B])
         @test length(atom.flags) == 2
         @test :A in atom.flags
