@@ -2,54 +2,18 @@ using AutoHashEquals
 using CSV
 export MMFF94Parameters
 
-@auto_hash_equals struct MMFF94Parameters{T<:Real}
-    sections::Dict{String, DataFrame}
+@auto_hash_equals struct MMFF94Parameters{T<:Real} <: AbstractForceFieldParameters
+    sections::OrderedDict{String, BALLIniFileSection}
     radii::Vector{T}
     electronegativities::Vector{T}
 
     function MMFF94Parameters{T}(
             path::String = ball_data_path("forcefields/MMFF94/mmff94.ini")) where {T<:Real}
-        sections = Dict{String, DataFrame}()
-        open(path) do paramfile
-            params_string = read(paramfile, String)
 
-            # find each section
-            for s_match in eachmatch(r"^\[(.*)\]"m, params_string)
-                s_name = s_match.captures[1]
+        ini_file = read_ball_ini_file(path, T)
 
-                # start at the next line
-                from = match(r"\n", params_string, s_match.offset)
-
-                # and read until the next empty line
-                to = match(r"^\s*$"m, params_string, from.offset+1)
-
-                data = params_string[from.offset+1:to.offset-1]
-
-                s_df = CSV.read(
-                    IOBuffer(data), DataFrame; 
-                    header=true, 
-                    comment="#", 
-                    ignoreemptyrows=true, 
-                    delim=" ", 
-                    ignorerepeated=true, 
-                    silencewarnings=true
-                )
-
-                # now, change all Float64? columns to T? columns;
-                # CSV's typemap argument should do that for us, but
-                # right now, this has a bad performance regression
-                if T != Float64
-                    for (i,t) in enumerate(eltype.(eachcol(s_df)))
-                        if (t == Float64) || (t == Union{Missing, Float64})
-                            s_df[!, i] = map(d -> ismissing(d) ? d : T(d), s_df[:, i])
-                        end
-                    end
-                end
-
-                sections[s_name] = s_df
-            end
-        end
-
+        sections = ini_file.sections
+        
         # see http://www.ccl.net/cca/data/MMFF94/
         radii = T.([
              0.33, 0.0,
