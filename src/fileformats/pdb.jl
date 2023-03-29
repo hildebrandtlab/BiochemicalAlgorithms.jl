@@ -74,7 +74,7 @@ function load_pdb(fname::String, T=Float32)
         element=elements
     )
 
-    insertcols!(atoms, :atomtype => "")
+    insertcols!(atoms, :atom_type => "")
     atoms.r = r
     atoms.v .= Ref(Vector3{T}(0.0, 0.0, 0.0))
     atoms.F .= Ref(Vector3{T}(0.0, 0.0, 0.0))
@@ -147,7 +147,7 @@ function load_pdb(fname::String, T=Float32)
         for atom in eachrow(grp_atoms[(fragment_id = frag.number,)])
             push!(frag, AtomTuple{T}(atom.number, atom.element;
                 name = atom.name,
-                atomtype = atom.atomtype,
+                atom_type = atom.atom_type,
                 r = atom.r,
                 v = atom.v,
                 F = atom.F,

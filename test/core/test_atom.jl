@@ -7,7 +7,7 @@ using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
             number = 1,
             element = Elements.H,
             name = "my fancy atom",
-            atomtype = "heavy",
+            atom_type = "heavy",
             r = Vector3{T}(1, 2, 4),
             v = Vector3{T}(1, 1, 1),
             F = Vector3{T}(0, 0, 0),
@@ -46,8 +46,8 @@ using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
         @test atom.element == at.element
         @test atom.name isa String
         @test atom.name == at.name
-        @test atom.atomtype isa String
-        @test atom.atomtype == at.atomtype
+        @test atom.atom_type isa String
+        @test atom.atom_type == at.atom_type
         @test atom.r isa Vector3{T}
         @test atom.r == at.r
         @test atom.v isa Vector3{T}
@@ -107,8 +107,8 @@ using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
         @test atom.element == Elements.C
         atom.name = "another name"
         @test atom.name == "another name"
-        atom.atomtype = "none"
-        @test atom.atomtype == "none"
+        atom.atom_type = "none"
+        @test atom.atom_type == "none"
         atom.r = Vector3{T}(10, 20, 30)
         @test atom.r == Vector3{T}(10, 20, 30)
         atom.v = Vector3{T}(100, 200, 300)

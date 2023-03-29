@@ -31,7 +31,7 @@ end
         number = [i for i in 1:6],
         element = fill(Elements.H, 6),
         name = fill("H", 6),
-        atomtype = fill("na", 6),
+        atom_type = fill("na", 6),
         r = [i .* Vector3{Float32}(1.0, 2.0, 4.0) for i in 1:6],
         v = fill(Vector3{Float32}(0.0, 0.0, 0.0), 6), 
         F = fill(Vector3{Float32}(0.0, 0.0, 0.0), 6),

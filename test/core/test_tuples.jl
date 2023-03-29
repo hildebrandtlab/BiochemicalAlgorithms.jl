@@ -6,7 +6,7 @@
     @test at.number == 1
     @test at.element == Elements.H
     @test at.name == ""
-    @test at.atomtype == ""
+    @test at.atom_type == ""
     @test at.r == zeros(Vector3{Float32})
     @test at.v == zeros(Vector3{Float32})
     @test at.F == zeros(Vector3{Float32})
@@ -22,7 +22,7 @@
     at = AtomTuple(10, Elements.C;
         idx = 9,
         name = "something",
-        atomtype = "heavy atom",
+        atom_type = "heavy atom",
         r = ones(Vector3{Float32}),
         v = 2 .* ones(Vector3{Float32}),
         F = 3 .* ones(Vector3{Float32}),
@@ -39,7 +39,7 @@
     @test at.number == 10
     @test at.element == Elements.C
     @test at.name == "something"
-    @test at.atomtype == "heavy atom"
+    @test at.atom_type == "heavy atom"
     @test at.r == ones(Vector3{Float32})
     @test at.v == 2 .* ones(Vector3{Float32})
     @test at.F == 3 .* ones(Vector3{Float32})
@@ -59,7 +59,7 @@
         @test at.number == 1
         @test at.element == Elements.H
         @test at.name == ""
-        @test at.atomtype == ""
+        @test at.atom_type == ""
         @test at.r == zeros(Vector3{T})
         @test at.v == zeros(Vector3{T})
         @test at.F == zeros(Vector3{T})
@@ -75,7 +75,7 @@
         at = AtomTuple{T}(10, Elements.C;
             idx = 9,
             name = "something",
-            atomtype = "heavy atom",
+            atom_type = "heavy atom",
             r = ones(Vector3{T}),
             v = 2 .* ones(Vector3{T}),
             F = 3 .* ones(Vector3{T}),
@@ -92,7 +92,7 @@
         @test at.number == 10
         @test at.element == Elements.C
         @test at.name == "something"
-        @test at.atomtype == "heavy atom"
+        @test at.atom_type == "heavy atom"
         @test at.r == ones(Vector3{T})
         @test at.v == 2 .* ones(Vector3{T})
         @test at.F == 3 .* ones(Vector3{T})

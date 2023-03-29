@@ -10,7 +10,7 @@ Tuple-based atom representation for `DataFrame` usage.
  - `number::Int`
  - `element::ElementType`
  - `name::String`
- - `atomtype::String`
+ - `atom_type::String`
  - `r::Vector3{T}`
  - `v::Vector3{T}`
  - `F::Vector3{T}`
@@ -27,7 +27,7 @@ AtomTuple(
     # keyword arguments
     idx::Int = 0,
     name::String = "",
-    atomtype::String = "",
+    atom_type::String = "",
     r::Vector3{T} = Vector3{T}(0, 0, 0),
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
@@ -49,7 +49,7 @@ AtomTuple{T}(
     # keyword arguments
     idx::Int = 0,
     name::String = "",
-    atomtype::String = "",
+    atom_type::String = "",
     r::Vector3{T} = Vector3{T}(0, 0, 0),
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
@@ -69,7 +69,7 @@ const AtomTuple{T} = @NamedTuple begin
     number::Int
     element::ElementType
     name::String
-    atomtype::String
+    atom_type::String
     r::Vector3{T}
     v::Vector3{T}
     F::Vector3{T}
@@ -87,7 +87,7 @@ end
     element::ElementType;
     idx::Int = 0,
     name::String = "",
-    atomtype::String = "",
+    atom_type::String = "",
     r::Vector3{T} = Vector3{T}(0, 0, 0),
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
@@ -103,7 +103,7 @@ end
     number = number,
     element = element,
     name = name,
-    atomtype = atomtype,
+    atom_type = atom_type,
     r = r,
     v = v,
     F = F,

@@ -12,7 +12,7 @@ Mutable representation of an individual atom in a system.
  - `number::Int`
  - `element::ElementType`
  - `name::String`
- - `atomtype::String`
+ - `atom_type::String`
  - `r::Vector3{T}`
  - `v::Vector3{T}`
  - `F::Vector3{T}`
@@ -30,7 +30,7 @@ Atom(
     number::Int,
     element::ElementType,
     name::String = "",
-    atomtype::String = "",
+    atom_type::String = "",
     r::Vector3{T} = Vector3{T}(0, 0, 0),
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
@@ -53,7 +53,7 @@ Atom(
     number::Int,
     element::ElementType,
     name::String = "",
-    atomtype::String = "",
+    atom_type::String = "",
     r::Vector3{T} = Vector3{T}(0, 0, 0),
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
@@ -86,7 +86,7 @@ function Atom(
     number::Int,
     element::ElementType,
     name::String = "",
-    atomtype::String = "",
+    atom_type::String = "",
     r::Vector3{T} = Vector3{T}(0, 0, 0),
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
@@ -106,7 +106,7 @@ function Atom(
     residue_id::MaybeInt = missing
 ) where T
     idx = _next_idx(sys)
-    push!(sys._atoms, (idx, number, element, name, atomtype, r, v, F, formal_charge, charge, radius,
+    push!(sys._atoms, (idx, number, element, name, atom_type, r, v, F, formal_charge, charge, radius,
         has_velocity, has_force, properties, flags, frame_id, molecule_id, chain_id, fragment_id,
         nucleotide_id, residue_id))
     atom_by_idx(sys, idx)
@@ -117,7 +117,7 @@ function Atom(
     number::Int,
     element::ElementType,
     name::String = "",
-    atomtype::String = "",
+    atom_type::String = "",
     r::Vector3{T} = Vector3{T}(0, 0, 0),
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
@@ -132,7 +132,7 @@ function Atom(
 ) where T
     push!(ac, 
          (idx=0, number=number, element=element, name=name, 
-          atomtype=atomtype, r=r, v=v, F=F, formal_charge=formal_charge, 
+          atom_type=atom_type, r=r, v=v, F=F, formal_charge=formal_charge, 
           charge=charge, radius=radius, has_velocity=has_velocity, 
           has_force=has_force, properties=properties, flags=flags)::AtomTuple{T};
           frame_id=frame_id)
@@ -143,7 +143,7 @@ function Atom(
     number::Int,
     element::ElementType,
     name::String = "",
-    atomtype::String = "",
+    atom_type::String = "",
     r::Vector3{Float32} = Vector3{Float32}(0, 0, 0),
     v::Vector3{Float32} = Vector3{Float32}(0, 0, 0),
     F::Vector3{Float32} = Vector3{Float32}(0, 0, 0),
@@ -156,7 +156,7 @@ function Atom(
     flags::Flags = Flags();
     kwargs...
 )
-    Atom(default_system(), number, element, name, atomtype, r, v, F, formal_charge, charge, radius,
+    Atom(default_system(), number, element, name, atom_type, r, v, F, formal_charge, charge, radius,
         has_velocity, has_force, properties, flags; kwargs...)
 end
 

@@ -521,7 +521,7 @@ function parse_atoms!(mol::Molecule, compound::PCCompound, T=Float32)
                         isnothing(compound.atoms.element)
                             ? Elements.Unknown
                             : ElementType(Int(compound.atoms.element[i]));
-                        atomtype = isnothing(compound.atoms.label)
+                        atom_type = isnothing(compound.atoms.label)
                             ? ""
                             : compound.atoms.label[i].value, # does the label contain the atom type?
                         r = T.(conformers[j][i]),
