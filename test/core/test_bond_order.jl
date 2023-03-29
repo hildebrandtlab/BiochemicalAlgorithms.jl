@@ -1,4 +1,4 @@
-@testset "Bond Order" begin
+@testitem "Bond Order" begin
     @test BondOrderType(1) == BondOrder.Single
     @test BondOrderType(2) == BondOrder.Double
     @test BondOrderType(3) == BondOrder.Triple

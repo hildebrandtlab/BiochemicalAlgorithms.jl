@@ -1,7 +1,8 @@
-@testset "Substructure" begin
+@testitem "Substructure" begin
+    using DataFrames
 
     # read a simple molecule
-    mol = molecules(load_pubchem_json("data/aspirin_pug.json"))[1]
+    mol = molecules(load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json")))[1]
 
     filter_fn = :element => e -> e == Elements.C
 

@@ -1,6 +1,8 @@
-using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
+@testitem "Atom" begin
+    using DataFrames
 
-@testset "Atom" begin
+    using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
+
     for T in [Float32, Float64]
         at = AtomTuple{T}(1, Elements.H;
             name = "my fancy atom",

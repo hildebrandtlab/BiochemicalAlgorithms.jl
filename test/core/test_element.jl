@@ -1,4 +1,4 @@
-@testset "Element" begin
+@testitem "Element" begin
 
 @test ElementType(1) == Elements.H
 @test ElementType(2) == Elements.He
