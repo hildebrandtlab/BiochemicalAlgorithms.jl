@@ -1,6 +1,7 @@
-using BiochemicalAlgorithms: _SystemNucleotideTuple, _nucleotides
+@testitem "Nucleotide" begin
+    using BiochemicalAlgorithms: _SystemNucleotideTuple, _nucleotides, _atoms, _bonds
+    using DataFrames
 
-@testset "Nucleotide" begin
     for T in [Float32, Float64]
         sys = System{T}()
         mol = Molecule(sys)

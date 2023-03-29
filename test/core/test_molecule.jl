@@ -1,6 +1,7 @@
-using BiochemicalAlgorithms: _molecules
+@testitem "Molecule" begin
+    using BiochemicalAlgorithms: _molecules, _atoms, _bonds
+    using DataFrames
 
-@testset "Molecule" begin
     for T in [Float32, Float64]
         sys = System{T}()
 

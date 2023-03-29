@@ -1,6 +1,7 @@
-using BiochemicalAlgorithms: _SystemResidueTuple, _residues
+@testitem "Residue" begin
+    using BiochemicalAlgorithms: _SystemResidueTuple, _residues, _atoms, _bonds
+    using DataFrames
 
-@testset "Residue" begin
     for T in [Float32, Float64]
         sys = System{T}()
         mol = Molecule(sys)

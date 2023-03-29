@@ -1,6 +1,7 @@
-using BiochemicalAlgorithms: _SystemFragmentTuple, _fragments
+@testitem "Fragment" begin
+    using BiochemicalAlgorithms: _SystemFragmentTuple, _fragments, _atoms, _bonds
+    using DataFrames
 
-@testset "Fragment" begin
     for T in [Float32, Float64]
         sys = System{T}()
         mol = Molecule(sys)

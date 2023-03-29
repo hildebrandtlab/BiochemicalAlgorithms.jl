@@ -1,4 +1,4 @@
-@testset "Simple Vector3" begin
+@testitem "Simple Vector3" begin
     v = Vector3{Int}(1, 2, 3)
 
     @test v isa Vector3{Int}
@@ -11,7 +11,7 @@
 end
 
 
-@testset "Matrix3" begin
+@testitem "Matrix3" begin
     m = Matrix3{Int}((1, 2, 3, 4, 5, 6, 7, 8, 9))
     @test m isa Matrix3{Int}
     @test size(m) == (3, 3)
@@ -19,13 +19,13 @@ end
     j = 1
     for i in m
         @test i == t[j]
-        j += 1
+        global j += 1
     end
     @test_throws BoundsError m[10]
     @test_throws DimensionMismatch Matrix3{Int}()
 end
 
-@testset "Properties" begin
+@testitem "Properties" begin
     p = Properties()
     @test p isa Properties
 

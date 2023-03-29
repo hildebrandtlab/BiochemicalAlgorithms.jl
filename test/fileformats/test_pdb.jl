@@ -1,12 +1,12 @@
-using BioStructures:
+@testitem "PDB" begin
+    using BioStructures:
     PDB,
     countatoms,
     countchains,
     countresidues,
     read
 
-@testset "PDB" begin
-    sys = load_pdb("data/bpti.pdb")
+    sys = load_pdb(ball_data_path("../test/data/bpti.pdb"))
     @test sys.name == "bpti.pdb"
     @test natoms(sys) == 454
     @test nbonds(sys) == 0
@@ -16,7 +16,7 @@ using BioStructures:
     @test nresidues(sys) == 0
     @test nnucleotides(sys) == 0
 
-    sys = load_pdb("data/5PTI.pdb")
+    sys = load_pdb(ball_data_path("../test/data/5PTI.pdb"))
     @test sys.name == "5PTI.pdb"
     @test natoms(sys) == 1087
     @test nbonds(sys) == 0
