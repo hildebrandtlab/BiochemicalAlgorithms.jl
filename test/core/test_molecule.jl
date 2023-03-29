@@ -15,16 +15,16 @@ using BiochemicalAlgorithms: _molecules
             @test parent(mol_ds) === default_system()
             @test parent_system(mol_ds) === default_system()
 
-            Molecule("something", Properties("a" => "b"))
+            Molecule("something", Properties("a" => "b"), Flags([:A]))
         end
 
-        mol2 = Molecule(sys, "something", Properties("a" => 1))
+        mol2 = Molecule(sys, "something", Properties("a" => 1), Flags([:A, :B]))
 
         #=
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(mol, :_row)) == 3
+        @test length(getfield(mol, :_row)) == 4
 
         # getproperty
         @test mol.idx isa Int
@@ -32,12 +32,15 @@ using BiochemicalAlgorithms: _molecules
         @test mol.name == ""
         @test mol.properties isa Properties
         @test mol.properties == Properties()
+        @test mol.flags isa Flags
+        @test mol.flags == Flags()
 
         @test mol._sys isa System{T}
         @test mol._row isa DataFrameRow
 
         @test mol2.name == "something"
         @test mol2.properties == Properties("a" => 1)
+        @test mol2.flags == Flags([:A, :B])
 
         # setproperty!
         mol.name = "something else"
@@ -46,6 +49,9 @@ using BiochemicalAlgorithms: _molecules
         @test length(mol.properties) == 2
         @test mol.properties["first"] == "v1"
         @test mol.properties["second"] == 99
+        mol.flags = Flags([:C])
+        @test length(mol.flags) == 1
+        @test :C in mol.flags
 
         # molecule_by_idx
         @test isnothing(molecule_by_idx(sys, -1))

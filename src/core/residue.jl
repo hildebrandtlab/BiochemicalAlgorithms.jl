@@ -6,10 +6,11 @@ export Residue, residue_by_idx, residues, residues_df, eachresidue, nresidues, p
 Mutable representation of an individual residue in a system.
 
 # Fields
-- `idx::Int`
-- `number::Int`
-- `type::AminoAcid`
-- `properties::Properties`
+ - `idx::Int`
+ - `number::Int`
+ - `type::AminoAcid`
+ - `properties::Properties`
+ - `flags::Flags`
 
 # Constructors
 ```julia
@@ -17,7 +18,8 @@ Residue(
     chain::Chain{T},
     number::Int,
     type::AminoAcid,
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 )
 ```
 Creates a new `Residue{T}` in the given chain.
@@ -31,11 +33,12 @@ function Residue(
     chain::Chain{T},
     number::Int,
     type::AminoAcid,
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 ) where T
     sys = parent(chain)
     idx = _next_idx(sys)
-    push!(sys._residues, (idx, number, type, properties, chain._row.molecule_id, chain.idx))
+    push!(sys._residues, (idx, number, type, properties, flags, chain._row.molecule_id, chain.idx))
     residue_by_idx(sys, idx)
 end
 

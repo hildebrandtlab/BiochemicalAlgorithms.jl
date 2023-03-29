@@ -11,6 +11,7 @@ Mutable representation of an individual nucleotide in a system.
  - `number::Int`
  - `name::String`
  - `properties::Properties`
+ - `flags::Flags`
 
 # Constructors
 ```julia
@@ -18,7 +19,8 @@ Nucleotide(
     chain::Chain{T},
     number::Int,
     name::String = "",
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 )
 ```
 Creates a new `Nucleotide{T}` in the given chain.
@@ -32,11 +34,12 @@ function Nucleotide(
     chain::Chain{T},
     number::Int,
     name::String = "",
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 ) where T
     sys = parent(chain)
     idx = _next_idx(sys)
-    push!(sys._nucleotides), (idx, number, name, properties, chain._row.molecule_id, chain.idx)
+    push!(sys._nucleotides, (idx, number, name, properties, flags, chain._row.molecule_id, chain.idx))
     nucleotide_by_idx(sys, idx)
 end
 

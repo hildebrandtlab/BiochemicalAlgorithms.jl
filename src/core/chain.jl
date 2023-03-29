@@ -7,13 +7,19 @@ export Chain, chain_by_idx, chains, chains_df, eachchain, nchains, parent_chain
 Mutable representation of an individual chain in a system.
 
 # Fields
-- `idx::Int`
-- `name::String`
-- `properties::Properties`
+ - `idx::Int`
+ - `name::String`
+ - `properties::Properties`
+ - `flags::Flags`
 
 # Constructors
 ```julia
-Chain(mol::Molecule{T}, name::String = "", properties::Properties = Properties())
+Chain(
+    mol::Molecule{T},
+    name::String = "",
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+)
 ```
 Creates a new `Chain{T}` in the given molecule.
 """
@@ -25,11 +31,12 @@ end
 function Chain(
     mol::Molecule{T},
     name::String = "",
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 ) where T
     sys = parent(mol)
     idx = _next_idx(sys)
-    push!(sys._chains, (idx, name, properties, mol.idx))
+    push!(sys._chains, (idx, name, properties, flags, mol.idx))
     chain_by_idx(sys, idx)
 end
 

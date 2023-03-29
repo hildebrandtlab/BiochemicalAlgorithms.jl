@@ -145,10 +145,7 @@ function load_pdb(fname::String, T=Float32)
     grp_atoms = groupby(atoms, :fragment_id)
     for frag in eachfragment(mol)
         for atom in eachrow(grp_atoms[(fragment_id = frag.number,)])
-            push!(frag, (
-                idx = 0,
-                number = atom.number,
-                element = atom.element,
+            push!(frag, AtomTuple{T}(atom.number, atom.element;
                 name = atom.name,
                 atomtype = atom.atomtype,
                 r = atom.r,
@@ -159,8 +156,8 @@ function load_pdb(fname::String, T=Float32)
                 radius = atom.radius,
                 has_velocity = atom.has_velocity,
                 has_force = atom.has_force,
-                properties = atom.properties
-            )::AtomTuple{T}, frame_id = atom.frame_id)
+                properties = atom.properties,
+            ), frame_id = atom.frame_id)
         end
     end
     sys

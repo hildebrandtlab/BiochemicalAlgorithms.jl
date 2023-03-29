@@ -4,7 +4,8 @@
         idx = 0,
         number = 1, 
         type = AminoAcid('A'),
-        properties = Properties()
+        properties = Properties(),
+        flags = Flags()
     )
     @test r isa ResidueTuple
     @test r.number == 1

@@ -17,6 +17,7 @@ Tuple-based atom representation for `DataFrame` usage.
  - `has_velocity::Bool`
  - `has_force::Bool`
  - `properties::Properties`
+ - `flags::Flags`
 
 # Constructors
 ```julia
@@ -35,7 +36,8 @@ AtomTuple(
     radius::T = zero(T),
     has_velocity::Bool = false,
     has_force::Bool = false,
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 )
 ```
 Creates a new `AtomTuple{Float32}` with default values for all omitted fields.
@@ -56,7 +58,8 @@ AtomTuple{T}(
     radius::T = zero(T),
     has_velocity::Bool = false,
     has_force::Bool = false,
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 )
 ```
 Creates a new `AtomTuple{T}` with default values for all omitted fields.
@@ -76,6 +79,7 @@ const AtomTuple{T} = @NamedTuple begin
     has_velocity::Bool
     has_force::Bool
     properties::Properties
+    flags::Flags
 end
 
 @inline AtomTuple{T}(
@@ -92,7 +96,8 @@ end
     radius::T = zero(T),
     has_velocity::Bool = false,
     has_force::Bool = false,
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 ) where T = (
     idx = idx,
     number = number,
@@ -107,7 +112,8 @@ end
     radius = radius,
     has_velocity = has_velocity,
     has_force = has_force,
-    properties = properties
+    properties = properties,
+    flags = flags
 )::AtomTuple{T}
 
 @inline AtomTuple(
@@ -127,6 +133,7 @@ Tuple-based bond representation for `DataFrame` usage.
  - `a2::Int`
  - `order::BondOrderType`
  - `properties::Properties`
+ - `flags::Flags`
 
 # Constructors
 ```julia
@@ -136,7 +143,8 @@ BondTuple(
     order::BondOrderType;
     # keyword arguments
     idx::Int = 0,
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 )
 ```
 Creates a new `BondTuple` with default values for all omitted fields.
@@ -147,6 +155,7 @@ const BondTuple = @NamedTuple begin
     a2::Int
     order::BondOrderType
     properties::Properties
+    flags::Flags
 end
 
 @inline BondTuple(
@@ -154,13 +163,15 @@ end
     a2::Int,
     order::BondOrderType;
     idx::Int = 0,
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 ) = (
     idx = idx,
     a1 = a1,
     a2 = a2,
     order = order,
-    properties = properties
+    properties = properties,
+    flags = flags
 )::BondTuple
 
 """
@@ -172,6 +183,7 @@ Tuple-based molecule representation for `DataFrame` usage.
  - `idx::Int`
  - `name::String`
  - `properties::Properties`
+ - `flags::Flags`
 
 # Constructors
 ```julia
@@ -179,7 +191,8 @@ MoleculeTuple(;
     # keyword arguments
     idx::Int = 0,
     name::String = "",
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 )
 ```
 Creates a new `MoleculeTuple` with default values for all omitted fields.
@@ -188,16 +201,19 @@ const MoleculeTuple = @NamedTuple begin
     idx::Int
     name::String
     properties::Properties
+    flags::Flags
 end
 
 @inline MoleculeTuple(;
     idx::Int = 0,
     name::String = "",
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 ) = (
     idx = idx,
     name = name,
-    properties = properties
+    properties = properties,
+    flags = flags
 )::MoleculeTuple
 
 """
@@ -209,6 +225,7 @@ Tuple-based chain representation for `DataFrame` usage.
  - `idx::Int`
  - `name::String`
  - `properties::Properties`
+ - `flags::Flags`
 
 # Constructors
 ```julia
@@ -216,7 +233,8 @@ ChainTuple(;
     # keyword arguments
     idx::Int = 0,
     name::String = "",
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 )
 ```
 Creates a new `ChainTuple` with default values for all omitted fields.
@@ -233,6 +251,7 @@ Tuple-based fragment representation for `DataFrame` usage.
  - `number::Int`
  - `name::String`
  - `properties::Properties`
+ - `flags::Flags`
 
 # Constructors
 ```julia
@@ -241,7 +260,8 @@ FragmentTuple(
     # keyword arguments
     idx::Int = 0,
     name::String = "",
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 )
 ```
 Creates a new `FragmentTuple` with default values for all omitted fields.
@@ -251,18 +271,21 @@ const FragmentTuple = @NamedTuple begin
     number::Int
     name::String
     properties::Properties
+    flags::Flags
 end
 
 @inline FragmentTuple(
     number::Int;
     idx::Int = 0,
     name::String = "",
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 ) = (
     idx = idx,
     number = number,
     name = name,
-    properties = properties
+    properties = properties,
+    flags = flags
 )::FragmentTuple
 
 """
@@ -275,6 +298,7 @@ Tuple-based nucleotide representation for `DataFrame` usage.
  - `number::Int`
  - `name::String`
  - `properties::Properties`
+ - `flags::Flags`
 
 # Constructors
 ```julia
@@ -283,7 +307,8 @@ NucleotideTuple(
     # keyword arguments
     idx::Int = 0,
     name::String = "",
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 )
 ```
 Creates a new `NucleotideTuple` with default values for all omitted fields.
@@ -300,6 +325,7 @@ Tuple-based residue representation for `DataFrame` usage.
  - `number::Int`
  - `type::AminoAcid`
  - `properties::Properties`
+ - `flags::Flags`
 
 # Constructors
 ```julia
@@ -308,7 +334,8 @@ ResidueTuple(
     type::AminoAcid;
     # keyword arguments
     idx::Int = 0,
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 )
 ```
 """
@@ -317,16 +344,19 @@ const ResidueTuple = @NamedTuple begin
     number::Int
     type::AminoAcid
     properties::Properties
+    flags::Flags
 end
 
 @inline ResidueTuple(
     number::Int,
     type::AminoAcid;
     idx::Int = 0,
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 ) = (
     idx = idx,
     number = number,
     type = type,
-    properties = properties
+    properties = properties,
+    flags = flags
 )::ResidueTuple

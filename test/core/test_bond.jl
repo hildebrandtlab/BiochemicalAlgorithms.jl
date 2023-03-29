@@ -18,10 +18,10 @@ using BiochemicalAlgorithms: _bonds
             @test parent(bond_ds) === default_system()
             @test parent_system(bond_ds) === default_system()
 
-            Bond(atom2.idx, atom3.idx, BondOrder.Double, Properties("a" => "b"))
+            Bond(atom2.idx, atom3.idx, BondOrder.Double, Properties("a" => "b"), Flags([:A]))
         end
 
-        bond2 = Bond(sys, atom2.idx, atom3.idx, BondOrder.Double, Properties("a" => 1))
+        bond2 = Bond(sys, atom2.idx, atom3.idx, BondOrder.Double, Properties("a" => 1), Flags([:A, :B]))
         Bond(
             sys,
             Atom(sys, 1, Elements.H; frame_id = 2).idx,
@@ -33,7 +33,7 @@ using BiochemicalAlgorithms: _bonds
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(bond, :_row)) == 5
+        @test length(getfield(bond, :_row)) == 6
 
         # getproperty
         @test bond.idx isa Int
@@ -45,6 +45,8 @@ using BiochemicalAlgorithms: _bonds
         @test bond.order == BondOrder.Single
         @test bond.properties isa Properties
         @test bond.properties == Properties()
+        @test bond.flags isa Flags
+        @test bond.flags == Flags()
 
         @test bond._sys isa System{T}
         @test bond._row isa DataFrameRow
@@ -58,6 +60,8 @@ using BiochemicalAlgorithms: _bonds
         @test bond2.order == BondOrder.Double
         @test bond2.properties isa Properties
         @test bond2.properties == Properties("a" => 1)
+        @test bond2.flags isa Flags
+        @test bond2.flags == Flags([:A, :B])
 
         # setproperty!
         bond.a1 = atom2.idx
@@ -70,6 +74,9 @@ using BiochemicalAlgorithms: _bonds
         @test length(bond.properties) == 2
         @test bond.properties["first"] == "v1"
         @test bond.properties["second"] == 99
+        bond.flags = Flags([:C])
+        @test length(bond.flags) == 1
+        @test :C in bond.flags
 
         # bond_by_idx
         @test isnothing(bond_by_idx(sys, -1))

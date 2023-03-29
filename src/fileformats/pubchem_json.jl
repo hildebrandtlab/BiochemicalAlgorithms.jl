@@ -516,27 +516,19 @@ function parse_atoms!(mol::Molecule, compound::PCCompound, T=Float32)
             for i in eachindex(compound.atoms.aid)
                 for j in eachindex(conformers)
                     # Note: the atom will be assigned an id in add_atom!
-                    atom = (idx = 0,
-                            number=compound.atoms.aid[i],
-                            element = isnothing(compound.atoms.element) 
-                                ? Elements.Unknown 
-                                : ElementType(Int(compound.atoms.element[i])),
-                            name="",
-                            atomtype = isnothing(compound.atoms.label)
-                                ? ""
-                                : compound.atoms.label[i].value, # does the label contain the atom type?
-                            r = T.(conformers[j][i]),
-                            v = Vector3(T(0.), T(0.), T(0.)),
-                            F = Vector3(T(0.), T(0.), T(0.)),
-                            formal_charge = isnothing(compound.atoms.charge)
-                                ? 0
-                                : Int(compound.atoms.charge[i]),
-                            charge = zero(T),
-                            radius = zero(T),
-                            has_velocity = false,
-                            has_force = false,
-                            properties = Properties()
-                    )::AtomTuple{T}
+                    atom = AtomTuple{T}(
+                        compound.atoms.aid[i],
+                        isnothing(compound.atoms.element)
+                            ? Elements.Unknown
+                            : ElementType(Int(compound.atoms.element[i]));
+                        atomtype = isnothing(compound.atoms.label)
+                            ? ""
+                            : compound.atoms.label[i].value, # does the label contain the atom type?
+                        r = T.(conformers[j][i]),
+                        formal_charge = isnothing(compound.atoms.charge)
+                            ? 0
+                            : Int(compound.atoms.charge[i]),
+                    )
 
                 push!(mol, atom; frame_id = j)
             end

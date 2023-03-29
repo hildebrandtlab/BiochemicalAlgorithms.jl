@@ -84,19 +84,21 @@ Mutable representation of a biomolecular system.
 # Fields
  - `name::String`
  - `properties::Properties`
+ - `flags::Flags`
 
 # Constructors
-    System(name::String = "", properties::Properties = Properties())
+    System(name::String = "", properties::Properties = Properties(), flags::Flags = Flags())
 
 Creates a new and empty `System{Float32}`.
 
-    System{T}(name::String = "", properties::Properties = Properties())
+    System{T}(name::String = "", properties::Properties = Properties(), flags::Flags = Flags())
 
 Creates a new and empty `System{T}`.
 """
 @auto_hash_equals mutable struct System{T} <: AbstractAtomContainer{T}
     name::String
     properties::Properties
+    flags::Flags
 
     _atoms::DataFrame
     _bonds::DataFrame
@@ -107,10 +109,15 @@ Creates a new and empty `System{T}`.
     _residues::DataFrame
     _curr_idx::Int
 
-    function System{T}(name::String = "", properties::Properties = Properties()) where T
+    function System{T}(
+        name::String = "",
+        properties::Properties = Properties(),
+        flags::Flags = Flags()
+    ) where T
         new(
             name,
             properties,
+            flags,
             DataFrame(_SystemAtomTuple{T}[]),
             DataFrame(BondTuple[]),
             DataFrame(MoleculeTuple[]),
@@ -123,7 +130,11 @@ Creates a new and empty `System{T}`.
     end
 end
 
-System(name::String = "", properties::Properties = Properties()) = System{Float32}(name, properties)
+System(
+    name::String = "",
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+) = System{Float32}(name, properties, flags)
 
 """
     const _default_system

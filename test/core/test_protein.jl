@@ -6,10 +6,10 @@
     @test mol isa AbstractMolecule{Float32}
     @test mol.name == ""
     @test atoms_df(mol) isa AbstractDataFrame
-    @test size(atoms_df(mol)) == (0, 14)
+    @test size(atoms_df(mol)) == (0, 15)
     @test length(atoms(mol)) == 0
     @test bonds_df(mol) isa AbstractDataFrame
-    @test size(bonds_df(mol)) == (0, 5)
+    @test size(bonds_df(mol)) == (0, 6)
     @test length(bonds(mol)) == 0
     @test residues_df(mol) isa AbstractDataFrame
     @test size(residues_df(mol), 1) == 0
@@ -40,7 +40,8 @@ end
         radius = 1.02f32,
         has_velocity = fill(false, 6),
         has_force = fill(false, 6),
-        properties = Properties()
+        properties = Properties(),
+        flags = Flags()
     )
 
     ca = Chain(mol, "A")
@@ -59,7 +60,8 @@ end
             a1 = aidx[i],
             a2 = aidx[5],
             order = BondOrder.Single,
-            properties = Properties()
+            properties = Properties(),
+            flags = Flags()
         )::BondTuple)
     end
 

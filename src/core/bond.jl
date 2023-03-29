@@ -12,6 +12,7 @@ Mutable representation of an individual bond in a system.
  - `a2::Int`
  - `order::BondOrderType`
  - `properties::Properties`
+ - `flags::Flags`
 
 # Constructors
 ```julia
@@ -19,7 +20,8 @@ Bond(
     a1::Int, 
     a2::Int, 
     order::BondOrderType, 
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 )
 ```
 Creates a new `Bond{Float32}` in the default system.
@@ -30,7 +32,8 @@ Bond(
     a1::Int, 
     a2::Int, 
     order::BondOrderType, 
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 )
 ```
 Creates a new `Bond{T}` in the given system.
@@ -45,15 +48,22 @@ function Bond(
     a1::Int, 
     a2::Int, 
     order::BondOrderType, 
-    properties::Properties = Properties()
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
 ) where T
     idx = _next_idx(sys)
-    push!(sys._bonds, (idx, a1, a2, order, properties))
+    push!(sys._bonds, (idx, a1, a2, order, properties, flags))
     bond_by_idx(sys, idx)
 end
 
-@inline function Bond(a1::Int, a2::Int, order::BondOrderType, properties::Properties = Properties())
-    Bond(default_system(), a1, a2, order, properties)
+@inline function Bond(
+    a1::Int,
+    a2::Int,
+    order::BondOrderType,
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+)
+    Bond(default_system(), a1, a2, order, properties, flags)
 end
 
 function Base.getproperty(bond::Bond, name::Symbol)

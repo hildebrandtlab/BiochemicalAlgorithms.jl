@@ -15,18 +15,28 @@ abstract type AbstractMolecule{T} <: AbstractAtomContainer{T} end
 Mutable representation of an individual molecule in a system.
 
 # Fields
-- `idx::Int`
-- `name::String`
-- `properties::Properties`
+ - `idx::Int`
+ - `name::String`
+ - `properties::Properties`
+ - `flags::Flags`
 
 # Constructors
 ```julia
-Molecule(name::String = "", properties::Properties = Properties())
+Molecule(
+    name::String = "",
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+)
 ```
 Creates a new `Molecule{Float32}` in the default system.
 
 ```julia
-Molecule(sys::System{T}, name::String = "", properties::Properties = Properties())
+Molecule(
+    sys::System{T},
+    name::String = "",
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+)
 ```
 Creates a new `Molecule{T}` in the given system.
 """
@@ -35,14 +45,19 @@ Creates a new `Molecule{T}` in the given system.
     _row::DataFrameRow
 end
 
-function Molecule(sys::System{T}, name::String = "", properties::Properties = Properties()) where T
+function Molecule(
+    sys::System{T},
+    name::String = "",
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+) where T
     idx = _next_idx(sys)
-    push!(sys._molecules, (idx = idx, name = name, properties = properties))
+    push!(sys._molecules, (idx = idx, name = name, properties = properties, flags = flags))
     molecule_by_idx(sys, idx)
 end
 
-function Molecule(name::String = "", properties::Properties = Properties())
-    Molecule(default_system(), name, properties)
+function Molecule(name::String = "", properties::Properties = Properties(), flags::Flags = Flags())
+    Molecule(default_system(), name, properties, flags)
 end
 
 function Base.getproperty(mol::Molecule, name::Symbol)
@@ -73,7 +88,7 @@ Returns the `Molecule{T}` containing the given object. Returns `nothing` if no s
 
 # TODO this should also add all related entities
 #function Base.push!(sys::System{T}, mol::Molecule{T}) where T
-#    Molecule(sys, mol.name, mol.properties)
+#    ...
 #    sys
 #end
 

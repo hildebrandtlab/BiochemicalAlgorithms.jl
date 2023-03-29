@@ -22,6 +22,7 @@ Mutable representation of an individual atom in a system.
  - `has_velocity::Bool`
  - `has_force::Bool`
  - `properties::Properties`
+ - `flags::Flags`
 
 # Constructors
 ```julia
@@ -38,7 +39,8 @@ Atom(
     radius::T = zero(T),
     has_velocity::Bool = false,
     has_force::Bool = false,
-    properties::Properties = Properties();
+    properties::Properties = Properties(),
+    flags::Flags = Flags();
     # keyword arguments
     frame_id::Int = 1
 )
@@ -60,7 +62,8 @@ Atom(
     radius::T = zero(T),
     has_velocity::Bool = false,
     has_force::Bool = false,
-    properties::Properties = Properties();
+    properties::Properties = Properties(),
+    flags::Flags = Flags();
     # keyword arguments
     frame_id::Int = 1
 )
@@ -92,7 +95,8 @@ function Atom(
     radius::T = zero(T),
     has_velocity::Bool = false,
     has_force::Bool = false,
-    properties::Properties = Properties();
+    properties::Properties = Properties(),
+    flags::Flags = Flags();
     frame_id::Int = 1,
     # private kwargs
     molecule_id::MaybeInt = missing,
@@ -103,8 +107,8 @@ function Atom(
 ) where T
     idx = _next_idx(sys)
     push!(sys._atoms, (idx, number, element, name, atomtype, r, v, F, formal_charge, charge, radius,
-        has_velocity, has_force, properties, frame_id, molecule_id, chain_id, fragment_id, nucleotide_id, 
-        residue_id))
+        has_velocity, has_force, properties, flags, frame_id, molecule_id, chain_id, fragment_id,
+        nucleotide_id, residue_id))
     atom_by_idx(sys, idx)
 end
 
@@ -122,14 +126,15 @@ function Atom(
     radius::T = zero(T),
     has_velocity::Bool = false,
     has_force::Bool = false,
-    properties::Properties = Properties();
+    properties::Properties = Properties(),
+    flags::Flags = Flags();
     frame_id::Int = 1
 ) where T
     push!(ac, 
          (idx=0, number=number, element=element, name=name, 
           atomtype=atomtype, r=r, v=v, F=F, formal_charge=formal_charge, 
           charge=charge, radius=radius, has_velocity=has_velocity, 
-          has_force=has_force, properties=properties)::AtomTuple;
+          has_force=has_force, properties=properties, flags=flags)::AtomTuple{T};
           frame_id=frame_id)
     atom_by_idx(ac._sys, ac._sys._curr_idx)
 end
@@ -147,11 +152,12 @@ function Atom(
     radius::Float32 = 0.0f32,
     has_velocity::Bool = false,
     has_force::Bool = false,
-    properties::Properties = Properties();
+    properties::Properties = Properties(),
+    flags::Flags = Flags();
     kwargs...
 )
     Atom(default_system(), number, element, name, atomtype, r, v, F, formal_charge, charge, radius,
-        has_velocity, has_force, properties; kwargs...)
+        has_velocity, has_force, properties, flags; kwargs...)
 end
 
 @inline function Atom(sys::System{T}, atom::AtomTuple{T}; kwargs...) where T

@@ -16,7 +16,8 @@ using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
             radius = T(1.01),
             has_velocity = true,
             has_force = false,
-            properties = Dict{String, Any}()
+            properties = Properties(),
+            flags = Flags()
         )::AtomTuple{T}
         sys = System{T}()
 
@@ -35,7 +36,7 @@ using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(atom, :_row)) == 20
+        @test length(getfield(atom, :_row)) == 21
 
         # getproperty
         @test atom.idx isa Int
@@ -65,6 +66,8 @@ using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
         @test atom.has_force == at.has_force
         @test atom.properties isa Properties
         @test atom.properties == at.properties
+        @test atom.flags isa Flags
+        @test atom.flags == at.flags
 
         @test atom._sys isa System{T}
         @test atom._row isa DataFrameRow
@@ -123,8 +126,13 @@ using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
         atom.has_force = true
         @test atom.has_force
         atom.properties = Properties("first" => "v1", "second" => 99)
+        @test length(atom.properties) == 2
         @test atom.properties["first"] == "v1"
         @test atom.properties["second"] == 99
+        atom.flags = Flags([:A, :B])
+        @test length(atom.flags) == 2
+        @test :A in atom.flags
+        @test :B in atom.flags
 
         @test_throws ErrorException atom.frame_id = 0
         @test_throws ErrorException atom.molecule_id = 0
