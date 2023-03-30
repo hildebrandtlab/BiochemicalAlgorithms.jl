@@ -12,6 +12,7 @@ using DataFrames
         include("core/test_element.jl")
         include("core/test_fragment.jl")
         include("core/test_molecule.jl")
+        include("core/test_chain.jl")
         include("core/test_nucleotide.jl")
         include("core/test_protein.jl")
         include("core/test_residue.jl")
