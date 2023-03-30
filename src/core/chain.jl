@@ -178,3 +178,8 @@ end
 @inline bonds_df(chain::Chain; kwargs...) = bonds_df(parent(chain); chain_id = chain.idx, kwargs...)
 @inline eachbond(chain::Chain; kwargs...) = eachbond(parent(chain); chain_id = chain.idx, kwargs...)
 @inline nbonds(chain::Chain; kwargs...) = nbonds(parent(chain); chain_id = chain.idx, kwargs...)
+
+@inline function Base.push!(chain::Chain, bond::BondTuple)
+    push!(parent(chain), bond)
+    chain
+end
