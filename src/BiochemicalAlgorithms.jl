@@ -5,6 +5,7 @@ using DataFrames
 using DataFramesMeta
 using DocStringExtensions
 
+include("core/exceptions.jl")
 include("core/types.jl")
 include("core/element.jl")
 include("core/amino_acid.jl")
