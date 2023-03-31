@@ -13,7 +13,7 @@ end
     stretches::AbstractVector{QuadraticBondStretch{T}}
 
     function QuadraticStretchComponent{T}(ff::ForceField{T}) where {T<:Real}
-        # exctract the parameter section for quadratic bond stretches
+        # extract the parameter section for quadratic bond stretches
         stretch_section = extract_section(ff.parameters, "QuadraticBondStretch")
         stretch_df = stretch_section.data
 
@@ -95,3 +95,4 @@ function compute_energy(qsc::QuadraticStretchComponent{T}) where {T<:Real}
 
     mapreduce(compute_energy, +, qsc.stretches; init=zero(T))
 end
+

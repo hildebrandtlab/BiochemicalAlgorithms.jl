@@ -137,7 +137,7 @@ function compute_energy(ff::ForceField{T}; verbose=false) where {T<:Real}
         f_string = Printf.Format("%-$(max_length)s: %.9g kJ/mol")
         
         for i in 1:length(ff.energies)
-            @info Printf.format(f_string, String(ff.components[i].name), ff.energies[i])
+            @info Printf.format(f_string, ff.components[i].name, ff.energies[i])
         end
 
         @info repeat("-", max_length + 19)
