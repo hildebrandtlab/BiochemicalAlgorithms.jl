@@ -91,11 +91,9 @@ function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:R
         number=orig_df.serial, 
         name=orig_df.atomname,
         element=elements,
-        r = r
+        r = r,
+        formal_charge = orig_df.charge
     )
-
-    # FIXME read charge from PDB file. BioStructures reads this as a string
-    # atoms.formal_charge .= orig_df.charge,
 
     # convert other columns of interest to atom properties
     atoms.properties = Properties.(
@@ -193,10 +191,10 @@ function _to_atom_record(a::Atom{T}) where {T<:Real}
         f.name,
         parent_chain(a).name,
         f.number,
-        get_property(a, "insertion_code", ' '),
+        get_property(a, :insertion_code, ' '),
         Vector{Float64}(a.r),
-        get_property(a, "occupancy", 1.0),
-        get_property(a, "tempfactor", 0.0),
+        get_property(a, :occupancy, 1.0),
+        get_property(a, :tempfactor, 0.0),
         string(a.element),
         string(a.formal_charge)
     )
