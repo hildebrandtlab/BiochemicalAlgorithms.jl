@@ -414,3 +414,5 @@ function get_full_name(
 
 	name
 end
+
+@inline distance(a1::Atom, a2::Atom) = distance(a1.r, a2.r)
