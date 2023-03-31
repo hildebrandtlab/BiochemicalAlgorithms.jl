@@ -357,19 +357,19 @@ function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB) where {T<:Real}
     # C_TERMINAL and N_TERMINAL
     # They are usually not set, so set them here
     if is_c_terminal(f)
-        f.properties["C_TERMINAL"] = true
+        set_flag!(f, :C_TERMINAL)
     end
 
     if is_n_terminal(f)
-        f.properties["N_TERMINAL"] = true
+        set_flag!(f, :N_TERMINAL)
     end
 
     if is_3_prime(f)
-        f.properties["3_PRIME"] = true
+        set_flag!(f, Symbol("3_PRIME"))
     end
 
     if is_5_prime(f)
-        f.properties["5_PRIME"] = true
+        set_flag!(f, Symbol("5_PRIME"))
     end
 
     # the number of properties that matched
@@ -382,15 +382,19 @@ function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB) where {T<:Real}
 
     best_variant = nothing
 
+    # DBFragments don't know anything about flags, they only know properties
+    # so we mix them together here
+    f_props = merge(f.properties, Dict{Symbol, Any}(flag => true for flag in f.flags))
+
     # iterate over all variants of the fragment and compare the properties
     for var in db_fragment.variants
-        var_props = Dict(p.name => p.value for p in var.properties)
+        var_props = Dict(Symbol(p.name) => p.value for p in var.properties)
 
         # count the difference in the number of set properties
-        property_difference = abs(length(findall(identity, f.properties)) - length(findall(identity, var_props)))
+        property_difference = abs(length(findall(identity, f_props)) - length(findall(identity, var_props)))
 
         # and count the properties fragment and variant have in common
-        number_of_properties = length(f.properties ∩ var_props)
+        number_of_properties = length(f_props ∩ var_props)
 
         @debug "Considering variant $(var.name). # properties: $(number_of_properties)"
 
