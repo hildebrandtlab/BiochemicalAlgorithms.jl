@@ -4,6 +4,7 @@ using AutoHashEquals
 using DataFrames
 using DataFramesMeta
 using DocStringExtensions
+using Unitful, UnitfulAtomic
 
 include("core/exceptions.jl")
 include("core/types.jl")
@@ -38,6 +39,10 @@ include("fileformats/sdfile.jl")
 include("mappings/atom_bijection.jl")
 include("mappings/rigid_mapping.jl")
 
+include("forcefields/common/forcefield_parameters.jl")
+include("forcefields/common/atomtype_template.jl")
+include("forcefields/common/forcefield.jl")
+include("forcefields/common/stretch_component.jl")
 include("forcefields/MMFF94/mmff94_parameters.jl")
 
 include("preprocessing/fragmentDB.jl")
