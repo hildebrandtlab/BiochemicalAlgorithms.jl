@@ -183,9 +183,11 @@ Base.show(io::IO, sys::System) = print(io,
     parent(::Nucleotide)
     parent(::Protein)
     parent(::Residue)
+    parent(::System)
 
 Returns the `System{T}` containing the given object.
 """ Base.parent(::System)
+Base.parent(s::System) = s
 
 @doc raw"""
     parent_system(::Atom)
@@ -196,7 +198,9 @@ Returns the `System{T}` containing the given object.
     parent_system(::Nucleotide)
     parent_system(::Protein)
     parent_system(::Residue)
+    parent_system(::System)
 
 Returns the `System{T}` containing the given object. Alias for 
 [`Base.parent`](@ref Base.parent(::System)).
 """ parent_system
+parent_system(s::System) = s
