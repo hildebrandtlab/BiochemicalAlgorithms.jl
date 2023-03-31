@@ -43,6 +43,7 @@ include("forcefields/common/forcefield_parameters.jl")
 include("forcefields/common/atomtype_template.jl")
 include("forcefields/common/forcefield.jl")
 include("forcefields/common/stretch_component.jl")
+include("forcefields/common/bend_component.jl")
 
 include("forcefields/AMBER/amberff_parameters.jl")
 include("forcefields/AMBER/amberff.jl")

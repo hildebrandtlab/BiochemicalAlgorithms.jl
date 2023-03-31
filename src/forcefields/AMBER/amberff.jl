@@ -35,14 +35,20 @@ function AmberFF(
 
     assign_typenames_and_charges!(amber_ff)
 
-    push!(
+    append!(
         amber_ff.components,
-        QuadraticStretchComponent{T}(amber_ff)
+        [
+            QuadraticStretchComponent{T}(amber_ff),
+            QuadraticBendComponent{T}(amber_ff)
+        ]
     )
 
-    push!(
+    append!(
         amber_ff.energies,
-        zero(T)
+        [
+            zero(T),
+            zero(T)
+        ]
     )
 
     amber_ff
