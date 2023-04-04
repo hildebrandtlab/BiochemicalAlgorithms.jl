@@ -39,13 +39,15 @@ function AmberFF(
         amber_ff.components,
         [
             QuadraticStretchComponent{T}(amber_ff),
-            QuadraticBendComponent{T}(amber_ff)
+            QuadraticBendComponent{T}(amber_ff),
+            TorsionComponent{T}(amber_ff)
         ]
     )
 
     append!(
         amber_ff.energies,
         [
+            zero(T),
             zero(T),
             zero(T)
         ]
