@@ -98,7 +98,6 @@ end
     end
 end
 
-
 @inline function compute_energy(qab::QuadraticAngleBend{T}) where {T<:Real}
     v1 = qab.a1.r - qab.a2.r
     v2 = qab.a3.r - qab.a2.r

@@ -10,7 +10,9 @@ using BiochemicalAlgorithms
 
     a_ff = AmberFF(p)
 
-    @test compute_energy(a_ff) ≈ 6.77072954f0
+    @test compute_energy(a_ff) ≈ 17.5688648f0
+    
     @test a_ff.energies[1] ≈ 1.3630637f0
     @test a_ff.energies[2] ≈ 5.40766573f0
+    @test a_ff.energies[3] ≈ 10.798132f0
 end
