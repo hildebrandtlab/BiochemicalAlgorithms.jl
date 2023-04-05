@@ -1,5 +1,18 @@
-export Atom, atom_by_idx, atom_by_name, atoms, atoms_df, eachatom, natoms, 
-    has_property, get_property, set_property, get_full_name
+export 
+    Atom, 
+    atom_by_idx, 
+    atom_by_name, 
+    atoms, 
+    atoms_df, 
+    eachatom, 
+    natoms, 
+    has_property, 
+    get_property, 
+    set_property, 
+    get_full_name, 
+    is_bound_to, 
+    is_geminal, 
+    is_vicinal
 
 """
     $(TYPEDEF)
@@ -416,3 +429,83 @@ function get_full_name(
 end
 
 @inline distance(a1::Atom, a2::Atom) = distance(a1.r, a2.r)
+
+"""
+    $(TYPEDSIGNATURES)
+
+	Decides if two atoms are bound to each other.
+    Hydrogen bonds (has_flag(bond, :TYPE__HYDROGEN)) are ignored.
+"""
+function is_bound_to(a1::Atom, a2::Atom)
+    s = a1._sys
+
+    if s != a2._sys
+        return false
+    end
+
+    return !isnothing(
+        findfirst(
+            b -> 
+                ((b.a1 == a1.idx) && (b.a2 == a2.idx)) ||
+                ((b.a1 == a2.idx) && (b.a2 == a1.idx)), 
+            non_hydrogen_bonds(s)
+        )
+    )
+end
+
+"""
+    $(TYPEDSIGNATURES)
+
+	Decides if two atoms are geminal.
+    
+    Two atoms are geminal if they do not share a common bond but both have a
+    bond to a third atom. For example the two hydrogen atoms in water are geminal. 
+    Hydrogen bonds (has_flag(bond, :TYPE__HYDROGEN)) are ignored.
+"""
+function is_geminal(a1::Atom, a2::Atom)
+    if a1 == a2
+        return false
+    end
+
+    # an atom is geminal to another, if it is not directly bonded to it...
+    is_geminal = !is_bound_to(a1, a2)
+
+    # ...and is bonded to an atom that is bonded to the other atom
+    is_geminal && any(map(b -> is_bound_to(get_partner(b, a1), a2), non_hydrogen_bonds(a1)))
+end
+
+"""
+    $(TYPEDSIGNATURES)
+
+Decides if two atoms are vicinal.
+
+Two atoms are vicinal if they are separated by three bonds (1-4 position).
+Hydrogen bonds (has_flag(bond, :TYPE__HYDROGEN)) are ignored.
+"""
+function is_vicinal(a1::Atom, a2::Atom)
+    if a1 == a2
+        return false
+    end
+
+    # an atom is vicinal to another, if it is not directly bonded to it...
+    is_vicinal = !is_bound_to(a1, a2)
+
+    # ...and is bonded to an atom that is bonded to an atom that is bonded to this atom
+    if is_vicinal
+        is_vicinal = false
+
+        for b_1 in non_hydrogen_bonds(a1)
+            partner_1 = get_partner(b_1, a1)
+
+            for b_2 in non_hydrogen_bonds(partner_1)
+                partner_2 = get_partner(b_2, partner_1)
+
+                if is_bound_to(partner_2, a2)
+                    return true
+                end
+            end
+        end
+    end
+
+    return false
+end

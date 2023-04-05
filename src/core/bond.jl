@@ -1,4 +1,13 @@
-export Bond, bond_by_idx, bonds, bonds_df, eachbond, nbonds, get_partner, is_bound_to
+export 
+    Bond, 
+    bond_by_idx, 
+    bonds, 
+    bonds_df, 
+    eachbond, 
+    nbonds, 
+    get_partner, 
+    non_hydrogen_bonds, 
+    hydrogen_bonds
 
 """
     $(TYPEDEF)
@@ -213,19 +222,5 @@ function get_partner(bond, atom)
     end
 end
 
-function is_bound_to(a1::Atom, a2::Atom)
-    s = a1._sys
-
-    if s != a2._sys
-        return false
-    end
-
-    return !isnothing(
-        findfirst(
-            b -> 
-                ((b.a1 == a1.idx) && (b.a2 == a2.idx)) ||
-                ((b.a1 == a2.idx) && (b.a2 == a1.idx)), 
-            bonds(s)
-        )
-    )
-end
+@inline non_hydrogen_bonds(ac) = filter(b -> !has_property(b, :TYPE__HYDROGEN), bonds(ac))
+@inline hydrogen_bonds(ac) = filter(b -> has_property(b, :TYPE__HYDROGEN), bonds(ac))

@@ -198,5 +198,37 @@
             nucleotide_id = 104, residue_id = 105) === sys
         @test natoms(sys) == 2
         @test natoms(sys, frame_id = 100) == 1
+
+        # test is_geminal, is_vicinal
+        a = Atom(sys, at)
+        b = Atom(sys, at)
+        c = Atom(sys, at)
+
+        @test !is_geminal(a, a)
+        @test !is_geminal(a, b)
+
+        Bond(sys, a.idx, b.idx, BondOrder.Single)
+        Bond(sys, b.idx, c.idx, BondOrder.Single)
+        
+        @test !is_geminal(a, b)
+        @test is_geminal(a, c)
+        @test is_geminal(c, a)
+
+        a = Atom(sys, at)
+        b = Atom(sys, at)
+        c = Atom(sys, at)
+        d = Atom(sys, at)
+
+        @test !is_vicinal(a, a)
+        @test !is_vicinal(a, b)
+
+        Bond(sys, a.idx, b.idx, BondOrder.Single)
+        Bond(sys, b.idx, c.idx, BondOrder.Single)
+        Bond(sys, c.idx, d.idx, BondOrder.Single)
+
+        @test !is_vicinal(a, a)
+        @test !is_vicinal(a, c)
+        @test is_vicinal(a, d)
+        @test is_vicinal(d, a)
     end
 end
