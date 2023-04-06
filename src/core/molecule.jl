@@ -170,8 +170,3 @@ end
 @inline bonds_df(mol::Molecule; kwargs...) = bonds_df(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline eachbond(mol::Molecule; kwargs...) = eachbond(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline nbonds(mol::Molecule; kwargs...) = nbonds(parent(mol); molecule_id = mol.idx, kwargs...)
-
-@inline function Base.push!(mol::Molecule, bond::BondTuple)
-    push!(parent(mol), bond)
-    mol
-end

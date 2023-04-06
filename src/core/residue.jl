@@ -206,8 +206,3 @@ end
 @inline bonds_df(res::Residue; kwargs...) = bonds_df(parent(res); residue_id = res.idx, kwargs...)
 @inline eachbond(res::Residue; kwargs...) = eachbond(parent(res); residue_id = res.idx, kwargs...)
 @inline nbonds(res::Residue; kwargs...) = nbonds(parent(res); residue_id = res.idx, kwargs...)
-
-@inline function Base.push!(res::Residue, bond::BondTuple)
-    push!(parent(res), bond)
-    res
-end

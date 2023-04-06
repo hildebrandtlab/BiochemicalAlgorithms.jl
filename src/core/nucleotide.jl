@@ -199,10 +199,5 @@ end
 @inline eachbond(nuc::Nucleotide; kwargs...) = eachbond(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 @inline nbonds(nuc::Nucleotide; kwargs...) = nbonds(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 
-@inline function Base.push!(nuc::Nucleotide, bond::BondTuple)
-    push!(parent(nuc), bond)
-    nuc
-end
-
 # TODO: we should come up with a better test than just checking the name
 is_nucleotide(name::String) = name ∈ ["A", "C", "G", "T", "U", "I", "DA", "DC", "DG", "DT", "DU", "DI"]

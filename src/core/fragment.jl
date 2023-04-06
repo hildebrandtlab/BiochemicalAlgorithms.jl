@@ -209,11 +209,6 @@ end
 @inline eachbond(frag::Fragment; kwargs...) = eachbond(parent(frag); fragment_id = frag.idx, kwargs...)
 @inline nbonds(frag::Fragment; kwargs...) = nbonds(parent(frag); fragment_id = frag.idx, kwargs...)
 
-@inline function Base.push!(frag::Fragment, bond::BondTuple)
-    push!(parent(frag), bond)
-    frag
-end
-
 @inline function is_amino_acid(frag::Fragment)
     is_amino_acid(frag.name)
 end

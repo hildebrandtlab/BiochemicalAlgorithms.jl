@@ -8,5 +8,10 @@ Abstract base type for all atom containers.
 """
 abstract type AbstractAtomContainer{T} <: AbstractSystemComponent{T} end
 
+function Base.push!(ac::AbstractAtomContainer, bond::BondTuple)
+    push!(parent(ac), bond)
+    ac
+end
+
 frame_ids(ac::AbstractAtomContainer{T}) where {T<:Real} = unique(_atoms(ac).frame_id)
 nframes(ac::AbstractAtomContainer{T}) where {T<:Real} = length(frame_ids(ac))

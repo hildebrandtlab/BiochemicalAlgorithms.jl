@@ -193,13 +193,7 @@ function nbonds(sys::System{T}; kwargs...) where T
 end
 
 """
-    push!(::Chain{T}, bond::BondTuple)
-    push!(::Fragment{T}, bond::BondTuple)
-    push!(::Molecule{T}, bond::BondTuple)
-    push!(::Nucleotide{T}, bond::BondTuple)
-    push!(::Protein{T}, bond::BondTuple)
-    push!(::Residue{T}, bond::BondTuple)
-    push!(::System{T}, bond::BondTuple)
+    push!(ac::AbstractAtomContainer, bond::BondTuple)
 
 Creates a new bond in the system associated with the given atom container, based on the given tuple.
 The new bond is automatically assigned a new `idx`.
