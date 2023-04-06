@@ -5,8 +5,10 @@ using DataFrames
 using DataFramesMeta
 using DocStringExtensions
 using Unitful, UnitfulAtomic
+using PhysicalConstants
 
 include("core/exceptions.jl")
+include("core/constants.jl")
 include("core/types.jl")
 include("core/element.jl")
 include("core/amino_acid.jl")
@@ -50,6 +52,8 @@ include("forcefields/AMBER/amberff_parameters.jl")
 include("forcefields/AMBER/amberff.jl")
 
 include("forcefields/MMFF94/mmff94_parameters.jl")
+
+include("optimization/optimize_structure.jl")
 
 include("preprocessing/fragmentDB.jl")
 include("preprocessing/normalize_names.jl")
