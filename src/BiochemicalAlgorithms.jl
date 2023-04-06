@@ -1,6 +1,7 @@
 module BiochemicalAlgorithms
 
 using AutoHashEquals
+using CellListMap
 using DataFrames
 using DataFramesMeta
 using DocStringExtensions
@@ -47,6 +48,7 @@ include("forcefields/common/forcefield.jl")
 include("forcefields/common/stretch_component.jl")
 include("forcefields/common/bend_component.jl")
 include("forcefields/common/torsion_component.jl")
+include("forcefields/common/nonbonded_component.jl")
 
 include("forcefields/AMBER/amberff_parameters.jl")
 include("forcefields/AMBER/amberff.jl")

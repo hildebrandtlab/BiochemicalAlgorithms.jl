@@ -10,9 +10,13 @@ using BiochemicalAlgorithms
 
     a_ff = AmberFF(p)
 
-    @test compute_energy(a_ff) ≈ 17.5688648f0
+    @test compute_energy(a_ff) ≈ 1425.5979f0
     
-    @test a_ff.energies[1] ≈ 1.3630637f0
-    @test a_ff.energies[2] ≈ 5.40766573f0
-    @test a_ff.energies[3] ≈ 10.798132f0
+    @test a_ff.energy["Bond Stretches"]   ≈ 1.3630637f0
+    @test a_ff.energy["Angle Bends"]      ≈ 5.40766573f0
+    @test a_ff.energy["Proper Torsion"]   ≈ 10.7981319f0
+    @test a_ff.energy["Improper Torsion"] ≈ 3.99017335e-06
+    @test a_ff.energy["Van der Waals"]    ≈ 1493.17578f0
+    @test a_ff.energy["Hydrogen Bonds"]   ≈ 0f0
+    @test a_ff.energy["Electrostatic"]    ≈ -85.1466827f0
 end

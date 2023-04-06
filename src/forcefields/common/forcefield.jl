@@ -15,7 +15,7 @@ abstract type AbstractForceFieldComponent{T<:Real} end
     options::Dict{Symbol, Any}
     atom_type_templates::Dict{String, AtomTypeTemplate{T}}
     components::AbstractVector{AbstractForceFieldComponent{T}}
-    energies::AbstractVector{T}
+    energy::Dict{String, T}
     unassigned_atoms::AbstractVector{Atom{T}}
 end
 
@@ -126,18 +126,22 @@ function assign_typenames_and_charges!(ff::ForceField{T}) where {T<:Real}
 end
 
 function compute_energy(ff::ForceField{T}; verbose=false) where {T<:Real}
-    map(((i,c),) -> ff.energies[i] = compute_energy(c), enumerate(ff.components))
+    total_energy = mapreduce(compute_energy, +, ff.components; init=zero(T))
 
-    total_energy = sum(ff.energies)
+    for c in ff.components
+        for (name, value) in c.energy
+            ff.energy[name] = value
+        end
+    end
 
     if verbose
         @info "AMBER Energy:"
 
-        max_length = maximum(map(c -> length(c.name), ff.components))
+        max_length = maximum([length(k) for (k, _) in ff.energy])
         f_string = Printf.Format("%-$(max_length)s: %.9g kJ/mol")
         
-        for i in 1:length(ff.energies)
-            @info Printf.format(f_string, ff.components[i].name, ff.energies[i])
+        for (name, value) in ff.energy
+            @info Printf.format(f_string, name, value)
         end
 
         @info repeat("-", max_length + 19)
