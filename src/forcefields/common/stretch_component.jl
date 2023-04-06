@@ -11,6 +11,7 @@ end
     name::String
     ff::ForceField{T}
     stretches::AbstractVector{QuadraticBondStretch{T}}
+    energy::Dict{String, T}
 
     function QuadraticStretchComponent{T}(ff::ForceField{T}) where {T<:Real}
         # extract the parameter section for quadratic bond stretches
@@ -20,7 +21,7 @@ end
         unit_k  = get(stretch_section.properties, "unit_k", "kcal/mol")
         unit_r0 = get(stretch_section.properties, "unit_r0", "angstrom")
 
-        # ball used to write Angstrom with a capitcal letter; this clashes with the convention in Unitful.jl
+        # ball used to write Angstrom with a capital letter; this clashes with the convention in Unitful.jl
         if unit_r0 == "Angstrom"
             unit_r0 = "angstrom"
         end
@@ -80,7 +81,7 @@ end
             end
         end
         
-        new("QuadraticBondStretch", ff, stretches)
+        new("QuadraticBondStretch", ff, stretches, Dict{String, T}())
     end
 end
 
@@ -93,6 +94,10 @@ end
 function compute_energy(qsc::QuadraticStretchComponent{T}) where {T<:Real}
     # iterate over all bonds in the system
 
-    mapreduce(compute_energy, +, qsc.stretches; init=zero(T))
+    total_energy = mapreduce(compute_energy, +, qsc.stretches; init=zero(T))
+
+    qsc.energy["Bond Stretches"] = total_energy
+
+    total_energy
 end
 

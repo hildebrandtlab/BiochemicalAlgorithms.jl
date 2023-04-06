@@ -12,6 +12,7 @@ end
     name::String
     ff::ForceField{T}
     bends::AbstractVector{QuadraticAngleBend{T}}
+    energy::Dict{String, T}
 
     function QuadraticBendComponent{T}(ff::ForceField{T}) where {T<:Real}
         # extract the parameter section for quadratic angle bends
@@ -94,7 +95,7 @@ end
             end
         end
 
-        new("QuadraticAngleBend", ff, bends)
+        new("QuadraticAngleBend", ff, bends, Dict{String, T}())
     end
 end
 
@@ -122,5 +123,9 @@ end
 
 function compute_energy(qbc::QuadraticBendComponent{T}) where {T<:Real}
     # iterate over all bends in the system
-    mapreduce(compute_energy, +, qbc.bends; init=zero(T))
+    total_energy = mapreduce(compute_energy, +, qbc.bends; init=zero(T))
+
+    qbc.energy["Angle Bends"] = total_energy
+
+    total_energy
 end

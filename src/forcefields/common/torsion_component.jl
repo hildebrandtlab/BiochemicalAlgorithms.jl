@@ -202,9 +202,10 @@ end
     ff::ForceField{T}
     proper_torsions::AbstractVector{CosineTorsion{T}}
     improper_torsions::AbstractVector{CosineTorsion{T}}
+    energy::Dict{String, T}
 
     function TorsionComponent{T}(ff::ForceField{T}) where {T<:Real}
-        new("TorsionComponent", ff, _handle_proper_torsions(ff), _handle_improper_torsions(ff))
+        new("Torsion", ff, _handle_proper_torsions(ff), _handle_improper_torsions(ff), Dict{String, T}())
     end
 end
 
@@ -237,5 +238,10 @@ function compute_energy(tc::TorsionComponent{T}) where {T<:Real}
     proper_torsion_energy   = mapreduce(compute_energy, +, tc.proper_torsions; init=zero(T))
     improper_torsion_energy = mapreduce(compute_energy, +, tc.improper_torsions; init=zero(T))
 
-    proper_torsion_energy + improper_torsion_energy
+    total_energy = proper_torsion_energy + improper_torsion_energy
+
+    tc.energy["Proper Torsion"]   = proper_torsion_energy
+    tc.energy["Improper Torsion"] = improper_torsion_energy
+
+    total_energy
 end

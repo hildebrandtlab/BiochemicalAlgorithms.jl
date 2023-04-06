@@ -14,6 +14,10 @@ get_amber_default_options(T=Float32) = Dict{Symbol, Any}(
     :assign_types                   => true,
     :overwrite_nonzero_charges      => true,
     :overwrite_typenames            => false,
+    :periodic_boundary_conditions   => false,
+    :periodic_box_width             => T(100.0),
+    :periodic_box_height            => T(100.0),
+    :periodic_box_depth             => T(100.0),
     :max_number_of_unassigned_atoms => typemax(Int32)
 )
 
@@ -29,7 +33,7 @@ function AmberFF(
         get_amber_default_options(T),
         init_atom_types(amber_params),
         Vector{AbstractForceFieldComponent{T}}(),
-        Vector{T}(),
+        Dict{String, T}(),
         Vector{Atom{T}}()
     )
 
@@ -40,16 +44,8 @@ function AmberFF(
         [
             QuadraticStretchComponent{T}(amber_ff),
             QuadraticBendComponent{T}(amber_ff),
-            TorsionComponent{T}(amber_ff)
-        ]
-    )
-
-    append!(
-        amber_ff.energies,
-        [
-            zero(T),
-            zero(T),
-            zero(T)
+            TorsionComponent{T}(amber_ff),
+            NonBondedComponent{T}(amber_ff)
         ]
     )
 
