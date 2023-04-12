@@ -185,7 +185,7 @@ function _update_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
 
                     # determine the first atom
                     a1 = ((bond_2.a1 == atom.idx) ? atom_by_idx(parent_system(atom), bond_2.a2)
-                                                : atom_by_idx(parent_system(atom), bond_2.a1))
+                                                  : atom_by_idx(parent_system(atom), bond_2.a1))
 
                     for bond_3 in bonds(atom_by_idx(parent_system(atom), bond_1.a2))
                         if has_flag(bond_3, :TYPE__HYDROGEN)
@@ -288,4 +288,59 @@ function compute_energy(tc::TorsionComponent{T}) where {T<:Real}
     tc.energy["Improper Torsion"] = improper_torsion_energy
 
     total_energy
+end
+
+function compute_forces(ct::CosineTorsion{T}) where {T<:Real}
+    a21 = ct.a1.r - ct.a2.r
+    a23 = ct.a3.r - ct.a2.r
+    a34 = ct.a4.r - ct.a3.r
+
+    cross2321 = cross(a23, a21)
+    cross2334 = cross(a23, a34)
+
+    length_cross2321 = norm(cross2321)
+    length_cross2334 = norm(cross2334)
+
+    if length_cross2321 ≠ zero(T) && length_cross2334 ≠ zero(T)
+        cos_ϕ = clamp(dot(cross2321, cross2334) / (length_cross2321 * length_cross2334), T(-1.0), T(1.0))
+
+        terms = -ct.V./ct.div .* ct.f .* (sin.(ct.f .* Ref(acos(cos_ϕ)) .- ct.ϕ₀))
+
+        # multiply with the barrier height and the factor for unit conversion
+        # from kJ/(mol A) -> J/(mol m) -> N
+        ∂E∂ϕ = sum(T(force_prefactor) .* terms)
+
+        @debug "$(get_full_name(ct.a1))-$(get_full_name(ct.a2))-" *
+               "$(get_full_name(ct.a3))-$(get_full_name(ct.a4)) " *
+               "$(cos_ϕ) terms: $(terms) $(∂E∂ϕ)"
+
+        direction = dot(cross(cross2321, cross2334), a23)
+
+        if direction > 0.0
+            ∂E∂ϕ *= -1
+        end
+
+        a13 = ct.a3.r - ct.a1.r
+        a24 = ct.a4.r - ct.a2.r
+
+        dEdt =  (∂E∂ϕ / (length_cross2321^2 * norm(a23)) * cross(cross2321, a23))
+        dEdu = -(∂E∂ϕ / (length_cross2334^2 * norm(a23)) * cross(cross2334, a23))
+
+        @debug "$(get_full_name(ct.a1))<->$(get_full_name(ct.a2))<->" *
+              "$(get_full_name(ct.a3))<->$(get_full_name(ct.a4)) "   *
+              "$(cross(dEdt, a23)); $(cross(a13, dEdt) + cross(dEdu, a34));" *
+              "$(cross(a21, dEdt) + cross(a24, dEdu)); $(cross(dEdu, a23))"
+
+        ct.a1.F += cross(dEdt, a23)
+        ct.a2.F += cross(a13, dEdt) + cross(dEdu, a34)
+        ct.a3.F += cross(a21, dEdt) + cross(a24, dEdu)
+        ct.a4.F += cross(dEdu, a23)
+    end
+end
+
+function compute_forces(tc::TorsionComponent{T}) where {T<:Real}
+    map(compute_forces, tc.proper_torsions)
+    map(compute_forces, tc.improper_torsions)
+
+    nothing
 end

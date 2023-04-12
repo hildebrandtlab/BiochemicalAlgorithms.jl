@@ -8,6 +8,8 @@ export
     compute_energy,
     compute_forces
 
+const force_prefactor = ustrip(u"kJ/mol/angstrom"/Constants.N_A |> u"N")
+
 abstract type AbstractForceFieldComponent{T<:Real} end
 
 @auto_hash_equals struct ForceField{T<:Real} 
@@ -163,4 +165,13 @@ function compute_energy(ff::ForceField{T}; verbose=false) where {T<:Real}
     end
 
     total_energy
+end
+
+function compute_forces(ff::ForceField{T}) where {T<:Real}
+    # first, zero out the current forces
+    atoms_df(ff.system).F .= Ref(zero(Vector3{T}))
+    
+    map(compute_forces, ff.components)
+
+    nothing
 end
