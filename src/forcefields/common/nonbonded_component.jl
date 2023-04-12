@@ -1,6 +1,82 @@
 export LennardJonesInteraction, ElectrostaticInteraction, NonBondedComponent
 
+
+# e_scaling_factor contains the unit conversions und the constants
+# appearing in Coulomb's law:
+#
+#               1        q1 * e0 * q2 * e0
+#     F = ------------- ------------------
+#         4 PI epsilon0       r * r
+#
+# Conversion factors are 1e-10 for Angstrom -> m
+# and Constants::e0 for the proton charge
 const ES_Prefactor = ustrip(Constants.N_A * Constants.e₀^2 / (4.0 * π * Constants.ε₀) |> u"angstrom*kJ/mol")
+
+const ES_Prefactor_force = ustrip(Constants.e₀^2 / (4.0 * π * Constants.ε₀) * 1u"angstrom^-2" |> u"N")
+
+@auto_hash_equals struct CubicSwitchingFunction{T<:Real}
+    cutoff::T
+    cuton::T
+
+    sq_cutoff::T
+    sq_cuton::T
+
+    inverse_distance_off_on_3::T
+
+    function CubicSwitchingFunction{T}(cutoff::T, cuton::T) where {T<:Real}
+        sq_cutoff = cutoff^2
+        sq_cuton  = cuton^2
+    
+        inverse_distance_off_on_3 = (sq_cutoff - sq_cuton)^3
+    
+        if (inverse_distance_off_on_3 <= T(0.0))
+            @warn "NonBondedComponent(): cuton value should be smaller than cutoff -- " *
+                    "switching function disabled."
+    
+            inverse_distance_off_on_3 = T(0.0)
+        else
+            inverse_distance_off_on_3 = T(1.0) / inverse_distance_off_on_3
+end
+
+        new(cutoff, cuton, sq_cutoff, sq_cuton, inverse_distance_off_on_3)
+    end
+end
+
+# the switching function is defined as follows:
+#         (r_{off}^2 - R^2)^2 (r_{off}^2 + 2 R^2 - 3r_{on}^2)
+# sw(R) = ---------------------------------------------------
+#                    (r_{off}^2 - r_{on}^2)^3
+#
+# [Brooks et al., J. Comput. Chem., 4:191 (1983)]
+#
+# the derivative has the following form:
+#
+#                      (r_{off}^2 - R^2)(r_{on}^2 - R^2)
+#   d/dR sw(R) = 12 R -----------------------------------
+#                           (r_{off}^2 - r_{on}^2)^3
+#
+function (f::CubicSwitchingFunction{T})(sq_distance::T) where {T<:Real}
+    below_off = ((sq_distance < f.sq_cutoff) ? one(T) : zero(T));
+    below_on  = ((sq_distance < f.sq_cuton)  ? one(T) : zero(T));
+
+    below_off * (below_on + (one(T) - below_on) * (f.sq_cutoff - sq_distance)^2
+                * (f.sq_cutoff + T(2.0) * sq_distance - T(3.0) * f.sq_cuton)
+                * f.inverse_distance_off_on_3)
+end
+
+function switching_derivative(f::CubicSwitchingFunction{T}, sq_distance::T) where {T<:Real}
+    primal = (f.sq_cutoff - sq_distance)^2 *
+                (f.sq_cutoff + T(2.0) * sq_distance - T(3.0) * f.sq_cuton) *
+                f.inverse_distance_off_on_3
+
+    difference_to_off = f.sq_cutoff - sq_distance
+    difference_to_on  = f.sq_cuton  - sq_distance
+
+    derivative = T(12.0) * difference_to_off * difference_to_on *
+                    f.inverse_distance_off_on_3
+
+    primal, derivative
+    end
 
 @auto_hash_equals struct LennardJonesInteraction{T<:Real, N, M}
     A::T
@@ -20,45 +96,6 @@ end
     a1::Atom{T}
     a2::Atom{T}
     switching_function
-end
-
-# the switching function is defined as follows:
-#         (r_{off}^2 - R^2)^2 (r_{off}^2 + 2 R^2 - 3r_{on}^2)
-# sw(R) = ---------------------------------------------------
-#                    (r_{off}^2 - r_{on}^2)^3
-#
-# [Brooks et al., J. Comput. Chem., 4:191 (1983)]
-#
-# the derivative has the following form:
-#
-#                      (r_{off}^2 - R^2)(r_{on}^2 - R^2)
-#   d/dR sw(R) = 12 R -----------------------------------
-#                           (r_{off}^2 - r_{on}^2)^3
-#
-function _build_cubic_switching_function(cutoff::T, cuton::T) where {T<:Real}
-    sq_cutoff = cutoff^2
-    sq_cuton  = cuton^2
-
-    inverse_distance_off_on_3 = (sq_cutoff - sq_cuton)^3
-
-    if (inverse_distance_off_on_3 <= T(0.0))
-        @warn "NonBondedComponent(): cuton value should be smaller than cutoff -- " *
-                "switching function disabled."
-
-        inverse_distance_off_on_3 = T(0.0)
-    else
-        inverse_distance_off_on_3 = T(1.0) / inverse_distance_off_on_3
-    end
-
-    # now, build the switching function as a closure
-    sq_distance::T -> (
-        below_off = ((sq_distance < sq_cutoff) ? one(T) : zero(T));
-        below_on  = ((sq_distance < sq_cuton)  ? one(T) : zero(T));
-
-        below_off * (below_on + (one(T) - below_on) * (sq_cutoff - sq_distance)^2
-                  * (sq_cutoff + T(2.0) * sq_distance - T(3.0) * sq_cuton)
-                  * inverse_distance_off_on_3)
-    )
 end
 
 function _try_assign_vdw!(
@@ -104,20 +141,28 @@ function _try_assign_vdw!(
     end
 end
 
-@auto_hash_equals struct NonBondedComponent{T<:Real} <: AbstractForceFieldComponent{T}
+@auto_hash_equals mutable struct NonBondedComponent{T<:Real} <: AbstractForceFieldComponent{T}
     name::String
     ff::ForceField{T}
+    cache::Dict{Symbol, Any}
+    energy::Dict{String, T}
     lj_interactions::AbstractVector{LennardJonesInteraction{T, 12, 6}}
     hydrogen_bonds::AbstractVector{LennardJonesInteraction{T, 12, 10}}
     electrostatic_interactions::AbstractVector{ElecrostaticInteraction{T}}
-    vdw_switching_function
-    es_switching_function
-    num_1_4_interactions::T
-    energy::Dict{String, T}
 
     function NonBondedComponent{T}(ff::ForceField{T}) where {T<:Real}
+        this = new("NonBonded", ff, Dict{Symbol, Any}(), Dict{String, T}())
+
+        setup!(this)
+        update!(this)
+
+        this
+    end
+end
+
+function _setup_vdw!(nbc::NonBondedComponent{T}) where {T<:Real}
         # extract the parameter section for quadratic angle bends
-        lj_section = extract_section(ff.parameters, "LennardJones")
+    lj_section = extract_section(nbc.ff.parameters, "LennardJones")
         lj_df = lj_section.data
 
         unit_R = get(lj_section.properties, "unit_R",       "angstrom")
@@ -131,11 +176,11 @@ end
         R_factor = ustrip((1uparse(unit_R)) |> u"angstrom")
         ϵ_factor = ustrip((1uparse(unit_ϵ)) |> u"kJ/mol")
 
-        lj_mininmal_df = lj_df[:, [:I, :R, :epsilon]]
-        lj_mininmal_df.R *= R_factor
-        lj_mininmal_df.epsilon *= ϵ_factor
+    lj_minimal_df = lj_df[:, [:I, :R, :epsilon]]
+    lj_minimal_df.R *= R_factor
+    lj_minimal_df.epsilon *= ϵ_factor
 
-        lj_combinations = crossjoin(lj_mininmal_df, lj_mininmal_df; makeunique=true)
+    lj_combinations = crossjoin(lj_minimal_df, lj_minimal_df; makeunique=true)
         rename!(lj_combinations, 
             [:R => :R_i, :epsilon => :epsilon_i, :I_1 => :J, :R_1 => :R_j, :epsilon_1 => :epsilon_j])
 
@@ -161,8 +206,36 @@ end
         
         lj_combinations = groupby(lj_combinations, ["I", "J"])
 
+    vdw_cutoff       = nbc.ff.options[:vdw_cutoff]
+    vdw_cuton        = nbc.ff.options[:vdw_cuton]
+
+    # build the switching function as a closure
+    vdw_switching_function = CubicSwitchingFunction{T}(vdw_cutoff, vdw_cuton)
+  
+    scaling_vdw_1_4 = nbc.ff.options[:scaling_vdw_1_4]
+    if (scaling_vdw_1_4 == T(0.0))
+        @warn "NonBondedComponent(): illegal - 1-4 vdW scaling factor: must be non-zero!"
+        @warn "Resetting to 1.0."
+
+        scaling_vdw_1_4 = T(1.0)
+    else
+        scaling_vdw_1_4 = T(1.0) / scaling_vdw_1_4
+    end
+
+    # remember those parts that stay constant when only the system is updated
+    nbc.cache[:lj_combinations] = lj_combinations
+
+    nbc.cache[:vdw_cutoff] = vdw_cutoff
+    nbc.cache[:vdw_cuton]  = vdw_cuton
+
+    nbc.cache[:vdw_switching_function] = vdw_switching_function
+
+    nbc.cache[:scaling_vdw_1_4] = scaling_vdw_1_4
+end
+
+function _setup_hydrogenbonds!(nbc::NonBondedComponent{T}) where {T<:Real}
         # we will also need the hydrogen bond section to determine if parameters are missing for a pair of atoms
-        hydrogen_bonds_section = extract_section(ff.parameters, "HydrogenBonds")
+    hydrogen_bonds_section = extract_section(nbc.ff.parameters, "HydrogenBonds")
         hydrogen_bonds_df = hydrogen_bonds_section.data
 
         unit_hbond_A = get(hydrogen_bonds_section.properties, "unit_A", "kcal/mol*angstrom^12")
@@ -182,28 +255,17 @@ end
         # group the hydrogen bond parameters by type_i, type_j combinations
         hydrogen_bond_combinations = groupby(hydrogen_bonds_df, ["I", "J"])
 
-        # the cutoffs for the nonbonded pair list and the switching function
-        nonbonded_cutoff = ff.options[:nonbonded_cutoff]
-        vdw_cutoff       = ff.options[:vdw_cutoff]
-        vdw_cuton        = ff.options[:vdw_cuton]
-        es_cutoff        = ff.options[:electrostatic_cutoff]
-        es_cuton         = ff.options[:electrostatic_cuton]  
-
-        # build the switching function as a closure
-        vdw_switching_function = _build_cubic_switching_function(vdw_cutoff, vdw_cuton)
-        es_switching_function  = _build_cubic_switching_function(es_cutoff, es_cuton)
+    # remember those parts that stay constant when only the system is updated
+    nbc.cache[:hydrogen_bond_combinations] = hydrogen_bond_combinations
+end
         
-        scaling_vdw_1_4 = ff.options[:scaling_vdw_1_4]
-        if (scaling_vdw_1_4 == T(0.0))
-            @warn "NonBondedComponent(): illegal - 1-4 vdW scaling factor: must be non-zero!"
-            @warn "Resetting to 1.0."
+function _setup_electrostatic_interactions!(nbc::NonBondedComponent{T}) where {T<:Real}
+    es_cutoff        = nbc.ff.options[:electrostatic_cutoff]
+    es_cuton         = nbc.ff.options[:electrostatic_cuton]  
 
-            scaling_vdw_1_4 = T(1.0)
-        else
-            scaling_vdw_1_4 = T(1.0) / scaling_vdw_1_4
-        end
+    es_switching_function  = CubicSwitchingFunction{T}(es_cutoff, es_cuton)
 
-        scaling_es_1_4 = ff.options[:scaling_electrostatic_1_4]
+    scaling_es_1_4 = nbc.ff.options[:scaling_electrostatic_1_4]
         if (scaling_es_1_4 == T(0.0))
             @warn "NonBondedComponent(): illegal - 1-4 electrostatic scaling factor: must be non-zero!"
             @warn "Resetting to 1.0."
@@ -213,12 +275,51 @@ end
             scaling_es_1_4 = T(1.0) / scaling_es_1_4
         end
 
+    # remember those parts that stay constant when only the system is updated
+    nbc.cache[:es_cutoff] = es_cutoff
+    nbc.cache[:es_cuton]  = es_cuton
+
+    nbc.cache[:es_switching_function] = es_switching_function
+
+    nbc.cache[:scaling_es_1_4] = scaling_es_1_4
+end
+
+function setup!(nbc::NonBondedComponent{T}) where {T<:Real}
+    _setup_vdw!(nbc)
+    _setup_hydrogenbonds!(nbc)
+    _setup_electrostatic_interactions!(nbc)
+
+    # the cutoffs for the nonbonded pair list and the switching function
+    nonbonded_cutoff = nbc.ff.options[:nonbonded_cutoff]
+
         # do we need to construct a periodic box?
         periodic_box = [
-            ff.options[:periodic_box_width], 
-            ff.options[:periodic_box_height],
-            ff.options[:periodic_box_depth]
+        nbc.ff.options[:periodic_box_width], 
+        nbc.ff.options[:periodic_box_height],
+        nbc.ff.options[:periodic_box_depth]
         ]
+
+    # remember those parts that stay constant when only the system is updated
+    nbc.cache[:nonbonded_cutoff] = nonbonded_cutoff
+    nbc.cache[:periodic_box]     = periodic_box
+end
+
+function update!(nbc::NonBondedComponent{T}) where {T<:Real}
+    ff = nbc.ff
+
+    periodic_box = nbc.cache[:periodic_box]
+    nonbonded_cutoff = nbc.cache[:nonbonded_cutoff]
+
+    scaling_vdw_1_4 = nbc.cache[:scaling_vdw_1_4]
+    scaling_es_1_4  = nbc.cache[:scaling_es_1_4]
+
+    vdw_switching_function = nbc.cache[:vdw_switching_function]
+    es_switching_function  = nbc.cache[:es_switching_function]
+
+    lj_combinations = nbc.cache[:lj_combinations]
+
+    hydrogen_bond_combinations = nbc.cache[:hydrogen_bond_combinations]
+
 
         neighbors = ((ff.options[:periodic_boundary_conditions]) 
             ? neighborlist(atoms_df(ff.system).r, unitcell=periodic_box, nonbonded_cutoff)
@@ -227,13 +328,9 @@ end
 
         distance_dependent_dielectric = ff.options[:distance_dependent_dielectric]
 
-
         lj_interactions = Vector{LennardJonesInteraction{T, 12, 6}}()
         hydrogen_bonds  = Vector{LennardJonesInteraction{T, 12, 10}}()
         electrostatic_interactions = Vector{ElecrostaticInteraction{T}}()
-
-		# count the number of 1-4 interactions (torsions)
-		num_1_4_interactions = 0
 
         for lj_candidate in neighbors
             atom_1 = atoms(ff.system)[lj_candidate[1]]
@@ -302,7 +399,6 @@ end
                 end
             else
                 # this is a torsion
-                num_1_4_interactions += 1
                 _try_assign_vdw!(
                     atom_1,
                     atom_2,
@@ -315,18 +411,9 @@ end
             end
         end
 
-        new(
-            "NonBonded", 
-            ff,
-            lj_interactions,
-            hydrogen_bonds,
-            electrostatic_interactions,
-            vdw_switching_function,
-            es_switching_function,
-            num_1_4_interactions, 
-            Dict{String, T}()
-        )
-    end
+    nbc.lj_interactions            = lj_interactions
+    nbc.hydrogen_bonds             = hydrogen_bonds
+    nbc.electrostatic_interactions = electrostatic_interactions
 end
 
 @inline function compute_energy(lji::LennardJonesInteraction{T, 12, 6}) where {T<:Real}
@@ -340,7 +427,7 @@ end
 end
 
 @inline function compute_energy(esi::ElecrostaticInteraction{T}) where {T<:Real}
-    energy = esi.distance_dependent_dielectric ? esi.q1q2 * esi.distance^-2 : esi.q1q2 / esi.distance
+    energy = esi.distance_dependent_dielectric ? 0.25 * esi.q1q2 / (esi.distance^2) : esi.q1q2 / esi.distance
 
     energy * esi.scaling_factor * esi.switching_function(esi.distance^2) * T(ES_Prefactor)
 end

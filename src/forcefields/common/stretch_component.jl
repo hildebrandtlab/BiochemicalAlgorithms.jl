@@ -7,15 +7,26 @@ export QuadraticBondStretch, QuadraticStretchComponent
     a2::Atom{T}
 end
 
-@auto_hash_equals struct QuadraticStretchComponent{T<:Real} <: AbstractForceFieldComponent{T}
+@auto_hash_equals mutable struct QuadraticStretchComponent{T<:Real} <: AbstractForceFieldComponent{T}
     name::String
     ff::ForceField{T}
-    stretches::AbstractVector{QuadraticBondStretch{T}}
+    cache::Dict{Symbol, Any}
     energy::Dict{String, T}
+    stretches::AbstractVector{QuadraticBondStretch{T}}
 
     function QuadraticStretchComponent{T}(ff::ForceField{T}) where {T<:Real}
+        this = new("QuadraticBondStretch", ff, Dict{Symbol, Any}(), Dict{String, T}())
+
+        setup!(this)
+        update!(this)
+
+        this
+    end
+end
+
+function setup!(qsc::QuadraticStretchComponent{T}) where {T}
         # extract the parameter section for quadratic bond stretches
-        stretch_section = extract_section(ff.parameters, "QuadraticBondStretch")
+    stretch_section = extract_section(qsc.ff.parameters, "QuadraticBondStretch")
         stretch_df = stretch_section.data
 
         unit_k  = get(stretch_section.properties, "unit_k", "kcal/mol")
@@ -31,6 +42,21 @@ end
 
         # group the stretch parameters by type_i, type_j combinations
         stretch_combinations = groupby(stretch_df, ["I", "J"])
+
+    # remember those parts that stay constant when only the system is updated
+    qsc.cache[:k_factor]  = T(k_factor)
+    qsc.cache[:r0_factor] = T(r0_factor)
+
+    qsc.cache[:stretch_combinations] = stretch_combinations
+end
+
+function update!(qsc::QuadraticStretchComponent{T}) where {T<:Real}
+    ff = qsc.ff
+
+    stretch_combinations = qsc.cache[:stretch_combinations]
+
+    k_factor  = qsc.cache[:k_factor]
+    r0_factor = qsc.cache[:r0_factor]
 
         stretches = Vector{QuadraticBondStretch}(undef, nbonds(ff.system))
 
@@ -81,8 +107,7 @@ end
             end
         end
         
-        new("QuadraticBondStretch", ff, stretches, Dict{String, T}())
-    end
+    qsc.stretches = stretches
 end
 
 @inline function compute_energy(qbs::QuadraticBondStretch{T}) where {T<:Real}

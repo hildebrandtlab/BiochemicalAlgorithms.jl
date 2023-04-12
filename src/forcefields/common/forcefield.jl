@@ -3,6 +3,8 @@ export
     AbstractForceFieldComponent,
     init_atom_types,
     assign_typenames_and_charges!,
+    setup!,
+    update!,
     compute_energy,
     compute_forces
 
@@ -123,6 +125,18 @@ function assign_typenames_and_charges!(ff::ForceField{T}) where {T<:Real}
             end
         end
     end
+end
+
+
+function setup!(component::AbstractForceFieldComponent) end
+function update(component::AbstractForceFieldComponent) end
+
+"""
+   Update the internal data structures of the force field when the system changes
+   (e.g., through coordinate updates)
+"""
+function update!(ff::ForceField{T}) where {T<:Real}
+    map(update, ff.components)
 end
 
 function compute_energy(ff::ForceField{T}; verbose=false) where {T<:Real}

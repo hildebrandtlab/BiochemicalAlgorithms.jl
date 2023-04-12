@@ -103,9 +103,61 @@ function _try_assign_torsion!(
     end
 end
 
-function _handle_proper_torsions(ff::ForceField{T}) where {T<:Real}
-    # extract the parameter section for proper torsions
-    V_factor, ϕ₀_factor, torsion_combinations = _get_torsion_data(ff, "Torsions")
+@auto_hash_equals mutable struct TorsionComponent{T<:Real} <: AbstractForceFieldComponent{T}
+    name::String
+    ff::ForceField{T}
+    cache::Dict{Symbol, Any}
+    energy::Dict{String, T}
+    proper_torsions::AbstractVector{CosineTorsion{T}}
+    improper_torsions::AbstractVector{CosineTorsion{T}}
+
+    function TorsionComponent{T}(ff::ForceField{T}) where {T<:Real}
+        this = new("Torsion", ff, Dict{Symbol, Any}(), Dict{String, Any}())
+
+        setup!(this)
+        update!(this)
+
+        this
+    end
+end
+
+function setup!(tc::TorsionComponent{T}) where {T<:Real}
+    # first, set up the proper torsions
+    V_factor, ϕ₀_factor, torsion_combinations = _get_torsion_data(tc.ff, "Torsions")
+
+    # remember those parts that stay constant when only the system is updated
+    tc.cache[:proper_V_factor]  = T(V_factor)
+    tc.cache[:proper_ϕ₀_factor] = T(ϕ₀_factor)
+
+    tc.cache[:proper_torsion_combinations] = torsion_combinations
+
+    # now, set up the improper torsions
+    V_factor, ϕ₀_factor, torsion_combinations = _get_torsion_data(tc.ff, "ImproperTorsions")
+
+    # extract the parameter sections containing all possible improper torsion atoms
+    impropers = extract_section(tc.ff.parameters, "ResidueImproperTorsions").data
+
+    # and again, remember those parts that stay constant when only the system is updated
+    tc.cache[:improper_V_factor]  = T(V_factor)
+    tc.cache[:improper_ϕ₀_factor] = T(ϕ₀_factor)
+
+    tc.cache[:improper_torsion_combinations] = torsion_combinations
+
+    tc.cache[:impropers] = impropers
+end
+
+function update!(tc::TorsionComponent{T}) where {T<:Real}
+    _update_proper_torsions!(tc)
+    _update_improper_torsions!(tc)
+end
+
+function _update_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
+    ff = tc.ff
+
+    torsion_combinations = tc.cache[:proper_torsion_combinations]
+
+    V_factor  = tc.cache[:proper_V_factor]
+    ϕ₀_factor = tc.cache[:proper_ϕ₀_factor]
 
     proper_torsions = Vector{CosineTorsion}()
 
@@ -155,15 +207,18 @@ function _handle_proper_torsions(ff::ForceField{T}) where {T<:Real}
         end
     end
 
-    proper_torsions
+    tc.proper_torsions = proper_torsions
 end
 
-function _handle_improper_torsions(ff::ForceField{T}) where {T<:Real}
-    # extract the parameter section for improper torsions
-    V_factor, ϕ₀_factor, torsion_combinations = _get_torsion_data(ff, "ImproperTorsions")
+function _update_improper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
+    ff = tc.ff
 
-    # extract the parameter sections containing all possible improper torsion atoms
-    impropers = extract_section(ff.parameters, "ResidueImproperTorsions").data
+    torsion_combinations = tc.cache[:improper_torsion_combinations]
+
+    V_factor  = tc.cache[:improper_V_factor]
+    ϕ₀_factor = tc.cache[:improper_ϕ₀_factor]
+
+    impropers = tc.cache[:impropers]
 
     improper_torsions = Vector{CosineTorsion}()
 
@@ -194,21 +249,8 @@ function _handle_improper_torsions(ff::ForceField{T}) where {T<:Real}
         end
     end
 
-    improper_torsions
+    tc.improper_torsions = improper_torsions
 end
-
-@auto_hash_equals struct TorsionComponent{T<:Real} <: AbstractForceFieldComponent{T}
-    name::String
-    ff::ForceField{T}
-    proper_torsions::AbstractVector{CosineTorsion{T}}
-    improper_torsions::AbstractVector{CosineTorsion{T}}
-    energy::Dict{String, T}
-
-    function TorsionComponent{T}(ff::ForceField{T}) where {T<:Real}
-        new("Torsion", ff, _handle_proper_torsions(ff), _handle_improper_torsions(ff), Dict{String, T}())
-    end
-end
-
 
 @inline function compute_energy(pt::CosineTorsion{T}) where {T<:Real}
     energy = zero(T)
@@ -225,7 +267,9 @@ end
 
         terms = pt.V./pt.div .* (1 .+ cos.(pt.f .* Ref(acos(cos_ϕ)) .- pt.ϕ₀))
 
-        @debug "$(get_full_name(pt.a1))-$(get_full_name(pt.a2))-$(get_full_name(pt.a3))-$(get_full_name(pt.a4)) $(cos_ϕ) terms: $(terms)"
+        @debug "$(get_full_name(pt.a1))-$(get_full_name(pt.a2))-" *
+               "$(get_full_name(pt.a3))-$(get_full_name(pt.a4)) " *
+               "$(cos_ϕ) terms: $(terms)"
 
         energy = sum(terms)
     end
