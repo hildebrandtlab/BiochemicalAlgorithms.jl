@@ -8,20 +8,30 @@ export QuadraticAngleBend, QuadraticBendComponent
     a3::Atom{T}
 end
 
-@auto_hash_equals struct QuadraticBendComponent{T<:Real} <: AbstractForceFieldComponent{T}
+@auto_hash_equals mutable struct QuadraticBendComponent{T<:Real} <: AbstractForceFieldComponent{T}
     name::String
     ff::ForceField{T}
-    bends::AbstractVector{QuadraticAngleBend{T}}
+    cache::Dict{Symbol, Any}
     energy::Dict{String, T}
+    bends::AbstractVector{QuadraticAngleBend{T}}
 
     function QuadraticBendComponent{T}(ff::ForceField{T}) where {T<:Real}
+        this = new("QuadraticAngleBend", ff, Dict{Symbol, Any}(), Dict{String, T}())
+
+        setup!(this)
+        update!(this)
+
+        this
+    end
+end
+
+function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
         # extract the parameter section for quadratic angle bends
-        bend_section = extract_section(ff.parameters, "QuadraticAngleBend")
+    bend_section = extract_section(qbc.ff.parameters, "QuadraticAngleBend")
         bend_df = bend_section.data
 
         unit_k  = get(bend_section.properties, "unit_k", "kcal/mol")
         unit_θ₀ = get(bend_section.properties, "unit_theta0", "°")
-
 
         # ball used only ascii for the units; this clashes with the convention in Unitful.jl
         if unit_θ₀ == "degree"
@@ -33,6 +43,21 @@ end
 
         # group the bend parameters by type_i, type_j, type_k combinations
         bend_combinations = groupby(bend_df, ["I", "J", "K"])
+
+    # remember those parts that stay constant when only the system is updated
+    qbc.cache[:k_factor]  = T(k_factor)
+    qbc.cache[:θ₀_factor] = T(θ₀_factor)
+
+    qbc.cache[:bend_combinations] = bend_combinations
+end
+
+function update!(qbc::QuadraticBendComponent{T}) where {T<:Real}
+    ff = qbc.ff
+
+    bend_combinations = qbc.cache[:bend_combinations]
+
+    k_factor  = qbc.cache[:k_factor]
+    θ₀_factor = qbc.cache[:θ₀_factor]
 
         bends = Vector{QuadraticAngleBend}()
 
@@ -95,8 +120,7 @@ end
             end
         end
 
-        new("QuadraticAngleBend", ff, bends, Dict{String, T}())
-    end
+    qbc.bends = bends
 end
 
 @inline function compute_energy(qab::QuadraticAngleBend{T}) where {T<:Real}
