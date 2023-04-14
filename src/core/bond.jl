@@ -7,7 +7,9 @@ export
     nbonds, 
     get_partner, 
     non_hydrogen_bonds, 
-    hydrogen_bonds
+    hydrogen_bonds,
+    non_hydrogen_bonds_df,
+    hydrogen_bonds_df
 
 """
     $(TYPEDEF)
@@ -224,3 +226,8 @@ end
 
 @inline non_hydrogen_bonds(ac) = filter(b -> !has_property(b, :TYPE__HYDROGEN), bonds(ac))
 @inline hydrogen_bonds(ac) = filter(b -> has_property(b, :TYPE__HYDROGEN), bonds(ac))
+
+
+@inline non_hydrogen_bonds_df(ac) = filter(b->:TYPE__HYDROGEN ∉ keys(b.properties), bonds_df(ac))
+@inline hydrogen_bonds_df(ac) = filter(b->:TYPE__HYDROGEN ∈ keys(b.properties), bonds_df(ac))
+
