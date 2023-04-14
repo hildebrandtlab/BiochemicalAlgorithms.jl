@@ -5,6 +5,7 @@ using CellListMap
 using DataFrames
 using DataFramesMeta
 using DocStringExtensions
+using Graphs, GraphDataFrameBridge
 using Unitful, UnitfulAtomic
 using PhysicalConstants
 

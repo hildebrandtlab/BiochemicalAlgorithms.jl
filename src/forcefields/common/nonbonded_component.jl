@@ -299,9 +299,33 @@ function setup!(nbc::NonBondedComponent{T}) where {T<:Real}
         nbc.ff.options[:periodic_box_depth]
     ]
 
+    # cache the is_bound_to-, geminal-, and vicinal-relationships
+    mg = MetaGraph(non_hydrogen_bonds_df(nbc.ff.system), :a1, :a2)
+
+    nh_0 = Set.(map(v -> mg.vprops[v][:name], vertices(mg)))
+
+    to_set(nh) = Set{Pair{Int64, Int64}}(
+        a => b for i in eachindex(nh_0) for a in nh_0[i] for b in nh[i]
+    )
+
+    compute_neighborhood(level) = 
+        map(v->Set(map(v->mg.vprops[v][:name], neighborhood(mg, v, level))), vertices(mg))
+    
+    nh_1 = compute_neighborhood(1)
+    nh_2 = compute_neighborhood(2)
+    nh_3 = compute_neighborhood(3)
+
+    bond_cache    = to_set(setdiff.(nh_1, nh_0))
+    geminal_cache = to_set(setdiff.(nh_2, nh_1))
+    vicinal_cache = to_set(setdiff.(nh_3, nh_2))
+
     # remember those parts that stay constant when only the system is updated
     nbc.cache[:nonbonded_cutoff] = nonbonded_cutoff
     nbc.cache[:periodic_box]     = periodic_box
+
+    nbc.cache[:bond_cache]    = bond_cache
+    nbc.cache[:geminal_cache] = geminal_cache
+    nbc.cache[:vicinal_cache] = vicinal_cache
 end
 
 function update!(nbc::NonBondedComponent{T}) where {T<:Real}
@@ -320,6 +344,13 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
 
     hydrogen_bond_combinations = nbc.cache[:hydrogen_bond_combinations]
 
+    bond_cache    = nbc.cache[:bond_cache]
+    geminal_cache = nbc.cache[:geminal_cache]
+    vicinal_cache = nbc.cache[:vicinal_cache]
+
+    check_bond(a1, a2)    = (a1 => a2) ∈ bond_cache
+    check_geminal(a1, a2) = (a1 => a2) ∈ geminal_cache
+    check_vicinal(a1, a2) = (a1 => a2) ∈ vicinal_cache
 
     neighbors = ((ff.options[:periodic_boundary_conditions]) 
         ? neighborlist(atoms_df(ff.system).r, unitcell=periodic_box, nonbonded_cutoff)
@@ -332,16 +363,25 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
     hydrogen_bonds  = Vector{LennardJonesInteraction{T, 12, 10}}()
     electrostatic_interactions = Vector{ElecrostaticInteraction{T}}()
 
+    hint = Int(round(1.2 * natoms(ff.system)))
+    sizehint!(lj_interactions, hint)
+    sizehint!(electrostatic_interactions, hint)
+
+    atom_cache = atoms(ff.system)
+    
     for lj_candidate in neighbors
-        atom_1 = atoms(ff.system)[lj_candidate[1]]
-        atom_2 = atoms(ff.system)[lj_candidate[2]]
+        atom_1 = atom_cache[lj_candidate[1]]
+        atom_2 = atom_cache[lj_candidate[2]]
+
+        atom_1_idx = atom_1.idx
+        atom_2_idx = atom_2.idx
 
         # exclude 1-2 and 1-3 interactions
-        if is_bound_to(atom_1, atom_2) || is_geminal(atom_1, atom_2)
+        if check_bond(atom_1_idx, atom_2_idx) || check_geminal(atom_1_idx, atom_2_idx)
             continue
         end
 
-        vicinal_pair = is_vicinal(atom_1, atom_2)
+        vicinal_pair = check_vicinal(atom_1_idx, atom_2_idx)
 
         q1q2 = atom_1.charge * atom_2.charge
 
@@ -414,6 +454,8 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
     nbc.lj_interactions            = lj_interactions
     nbc.hydrogen_bonds             = hydrogen_bonds
     nbc.electrostatic_interactions = electrostatic_interactions
+
+    nothing
 end
 
 @inline function compute_energy(lji::LennardJonesInteraction{T, 12, 6}) where {T<:Real}
