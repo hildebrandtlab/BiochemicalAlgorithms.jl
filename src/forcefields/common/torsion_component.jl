@@ -144,14 +144,54 @@ function setup!(tc::TorsionComponent{T}) where {T<:Real}
     tc.cache[:improper_torsion_combinations] = torsion_combinations
 
     tc.cache[:impropers] = impropers
+
+    _setup_proper_torsions!(tc)
+    _setup_improper_torsions!(tc)
 end
 
-function update!(tc::TorsionComponent{T}) where {T<:Real}
-    _update_proper_torsions!(tc)
-    _update_improper_torsions!(tc)
+function _setup_improper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
+    ff = tc.ff
+
+    torsion_combinations = tc.cache[:improper_torsion_combinations]
+
+    V_factor  = tc.cache[:improper_V_factor]
+    ϕ₀_factor = tc.cache[:improper_ϕ₀_factor]
+
+    impropers = tc.cache[:impropers]
+
+    improper_torsions = Vector{CosineTorsion}()
+
+    # check for each potential improper torsion atom (every atom having three bonds)
+    # whether it is contained in the list of impropers
+    for atom in atoms(ff.system)
+        if nbonds(atom) == 3
+            if get_full_name(atom) ∈ impropers.name
+                bs = collect(bonds(atom))
+                for i_1 in eachindex(bs)
+                    bond_1 = bs[i_1]
+                    a3 = atom
+                    a4 = get_partner(bond_1, atom)
+
+                    for i_2 = (i_1+1):length(bs)
+                        bond_2 = bs[i_2]
+                        a2 = get_partner(bond_2, atom)
+
+                        for i_3 = (i_2+1):length(bs)
+                            bond_3 = bs[i_3]
+                            a1 = get_partner(bond_3, atom)
+
+                            _try_assign_torsion!(ff, improper_torsions, torsion_combinations, a1, a2, a3, a4, V_factor, ϕ₀_factor)
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    tc.improper_torsions = improper_torsions
 end
 
-function _update_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
+function _setup_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
     ff = tc.ff
 
     torsion_combinations = tc.cache[:proper_torsion_combinations]
@@ -210,46 +250,8 @@ function _update_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
     tc.proper_torsions = proper_torsions
 end
 
-function _update_improper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
-    ff = tc.ff
-
-    torsion_combinations = tc.cache[:improper_torsion_combinations]
-
-    V_factor  = tc.cache[:improper_V_factor]
-    ϕ₀_factor = tc.cache[:improper_ϕ₀_factor]
-
-    impropers = tc.cache[:impropers]
-
-    improper_torsions = Vector{CosineTorsion}()
-
-    # check for each potential improper torsion atom (every atom having three bonds)
-    # whether it is contained in the list of impropers
-    for atom in atoms(ff.system)
-        if nbonds(atom) == 3
-            if get_full_name(atom) ∈ impropers.name
-                bs = collect(bonds(atom))
-                for i_1 in eachindex(bs)
-                    bond_1 = bs[i_1]
-                    a3 = atom
-                    a4 = get_partner(bond_1, atom)
-
-                    for i_2 = (i_1+1):length(bs)
-                        bond_2 = bs[i_2]
-                        a2 = get_partner(bond_2, atom)
-
-                        for i_3 = (i_2+1):length(bs)
-                            bond_3 = bs[i_3]
-                            a1 = get_partner(bond_3, atom)
-
-                            _try_assign_torsion!(ff, improper_torsions, torsion_combinations, a1, a2, a3, a4, V_factor, ϕ₀_factor)
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    tc.improper_torsions = improper_torsions
+function update!(tc::TorsionComponent{T}) where {T<:Real}
+    nothing
 end
 
 @inline function compute_energy(pt::CosineTorsion{T}) where {T<:Real}

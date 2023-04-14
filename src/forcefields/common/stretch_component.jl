@@ -25,6 +25,8 @@ end
 end
 
 function setup!(qsc::QuadraticStretchComponent{T}) where {T}
+    ff = qsc.ff
+    
     # extract the parameter section for quadratic bond stretches
     stretch_section = extract_section(qsc.ff.parameters, "QuadraticBondStretch")
     stretch_df = stretch_section.data
@@ -42,21 +44,6 @@ function setup!(qsc::QuadraticStretchComponent{T}) where {T}
 
     # group the stretch parameters by type_i, type_j combinations
     stretch_combinations = groupby(stretch_df, ["I", "J"])
-
-    # remember those parts that stay constant when only the system is updated
-    qsc.cache[:k_factor]  = T(k_factor)
-    qsc.cache[:r0_factor] = T(r0_factor)
-
-    qsc.cache[:stretch_combinations] = stretch_combinations
-end
-
-function update!(qsc::QuadraticStretchComponent{T}) where {T<:Real}
-    ff = qsc.ff
-
-    stretch_combinations = qsc.cache[:stretch_combinations]
-
-    k_factor  = qsc.cache[:k_factor]
-    r0_factor = qsc.cache[:r0_factor]
 
     stretches = Vector{QuadraticBondStretch}(undef, nbonds(ff.system))
 
@@ -108,6 +95,10 @@ function update!(qsc::QuadraticStretchComponent{T}) where {T<:Real}
     end
 
     qsc.stretches = stretches
+end
+
+function update!(qsc::QuadraticStretchComponent{T}) where {T<:Real}  
+    nothing
 end
 
 @inline function compute_energy(qbs::QuadraticBondStretch{T}) where {T<:Real}
