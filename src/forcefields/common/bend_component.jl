@@ -26,6 +26,8 @@ end
 end
 
 function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
+    ff = qbc.ff
+    
     # extract the parameter section for quadratic angle bends
     bend_section = extract_section(qbc.ff.parameters, "QuadraticAngleBend")
     bend_df = bend_section.data
@@ -43,21 +45,6 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
 
     # group the bend parameters by type_i, type_j, type_k combinations
     bend_combinations = groupby(bend_df, ["I", "J", "K"])
-
-    # remember those parts that stay constant when only the system is updated
-    qbc.cache[:k_factor]  = T(k_factor)
-    qbc.cache[:θ₀_factor] = T(θ₀_factor)
-
-    qbc.cache[:bend_combinations] = bend_combinations
-end
-
-function update!(qbc::QuadraticBendComponent{T}) where {T<:Real}
-    ff = qbc.ff
-
-    bend_combinations = qbc.cache[:bend_combinations]
-
-    k_factor  = qbc.cache[:k_factor]
-    θ₀_factor = qbc.cache[:θ₀_factor]
 
     bends = Vector{QuadraticAngleBend}()
 
@@ -121,6 +108,10 @@ function update!(qbc::QuadraticBendComponent{T}) where {T<:Real}
     end
 
     qbc.bends = bends
+end
+
+function update!(qbc::QuadraticBendComponent{T}) where {T<:Real}
+    nothing
 end
 
 @inline function compute_energy(qab::QuadraticAngleBend{T}) where {T<:Real}
