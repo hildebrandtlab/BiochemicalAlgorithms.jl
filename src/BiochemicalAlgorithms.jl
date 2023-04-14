@@ -2,12 +2,17 @@ module BiochemicalAlgorithms
 
 using AutoHashEquals
 using CellListMap
+using ChainRulesCore
 using DataFrames
 using DataFramesMeta
 using DocStringExtensions
 using Graphs, GraphDataFrameBridge
+using Optim
+using Optimization, OptimizationOptimJL, OptimizationOptimisers
 using Unitful, UnitfulAtomic
-using PhysicalConstants
+using Zygote
+
+import ChainRulesCore: frule, rrule
 
 include("core/exceptions.jl")
 include("core/constants.jl")
