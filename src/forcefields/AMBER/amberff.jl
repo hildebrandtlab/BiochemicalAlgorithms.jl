@@ -23,7 +23,8 @@ get_amber_default_options(T=Float32) = Dict{Symbol, Any}(
 
 function AmberFF(
         ac::AbstractAtomContainer{T}, 
-        filename=ball_data_path("forcefields/AMBER/amber96.ini")) where {T<:Real}
+        filename=ball_data_path("forcefields/AMBER/amber96.ini");
+        constrained_atoms=Vector{Int}()) where {T<:Real}
 
     amber_params = AmberFFParameters(filename)
     amber_ff = ForceField{T}(
@@ -31,10 +32,11 @@ function AmberFF(
         ac, 
         amber_params, 
         get_amber_default_options(T),
-        init_atom_types(amber_params),
+        init_atom_types(amber_params, T),
         Vector{AbstractForceFieldComponent{T}}(),
         Dict{String, T}(),
-        Vector{Atom{T}}()
+        Vector{Atom{T}}(),
+        constrained_atoms
     )
 
     assign_typenames_and_charges!(amber_ff)
