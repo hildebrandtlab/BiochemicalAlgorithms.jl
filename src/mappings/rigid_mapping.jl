@@ -49,6 +49,10 @@ function compute_rmsd(f::AbstractAtomBijection{T}) where {T<:Real}
     sqrt(mean(map(r -> transpose(r) * r, r_BA)))
 end
 
+function compute_rmsd(A::AbstractAtomContainer, B::AbstractAtomContainer)
+    sqrt(mean(squared_norm.(atoms_df(A).r .- atoms_df(B).r)))
+end
+
 function compute_rmsd_minimizer(f::AbstractAtomBijection{T}) where {T<:Real}
     r_A = Vector{Vector3{T}}(undef, size(f.atoms_A, 1))
     @with f.atoms_A r_A .= :r
