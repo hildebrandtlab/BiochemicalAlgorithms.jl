@@ -98,9 +98,11 @@ end
     switching_function
 end
 
-function _try_assign_vdw!(
+@inline function _try_assign_vdw!(
         atom_1::Atom{T},
+        type_atom_1,
         atom_2::Atom{T},
+        type_atom_2,
         distance::T,
         scaling_factor::T,
         lj_combinations,
@@ -113,7 +115,6 @@ function _try_assign_vdw!(
     params = get(lj_combinations, (I=type_atom_1, J=type_atom_2,), missing)
 
     if !ismissing(params)
-        params = only(params)
         push!(
             lj_interactions,
                 LennardJonesInteraction{T, 12, 6}(
@@ -204,7 +205,10 @@ function _setup_vdw!(nbc::NonBondedComponent{T}) where {T<:Real}
     lj_combinations.A_ij = ϵ .* r_6.^2
     lj_combinations.B_ij = T(2.0) * ϵ .* r_6
     
-    lj_combinations = groupby(lj_combinations, ["I", "J"])
+    lj_combinations_cache = Dict(
+        (I=r.I, J=r.J,) => (A_ij=r.A_ij, B_ij=r.B_ij) 
+            for r in eachrow(lj_combinations)
+    )
 
     vdw_cutoff       = nbc.ff.options[:vdw_cutoff]
     vdw_cuton        = nbc.ff.options[:vdw_cuton]
@@ -223,7 +227,7 @@ function _setup_vdw!(nbc::NonBondedComponent{T}) where {T<:Real}
     end
 
     # remember those parts that stay constant when only the system is updated
-    nbc.cache[:lj_combinations] = lj_combinations
+    nbc.cache[:lj_combinations] = lj_combinations_cache
 
     nbc.cache[:vdw_cutoff] = vdw_cutoff
     nbc.cache[:vdw_cuton]  = vdw_cuton
@@ -252,11 +256,13 @@ function _setup_hydrogenbonds!(nbc::NonBondedComponent{T}) where {T<:Real}
     hydrogen_bonds_df.A .*= T(hbond_A_factor)
     hydrogen_bonds_df.B .*= T(hbond_B_factor)
 
-    # group the hydrogen bond parameters by type_i, type_j combinations
-    hydrogen_bond_combinations = groupby(hydrogen_bonds_df, ["I", "J"])
+    hydrogen_bond_combinations_cache = Dict(
+        (I=r.I, J=r.J,) => (A=r.A, B_ij=r.B) 
+            for r in eachrow(hydrogen_bonds_df)
+    )
 
     # remember those parts that stay constant when only the system is updated
-    nbc.cache[:hydrogen_bond_combinations] = hydrogen_bond_combinations
+    nbc.cache[:hydrogen_bond_combinations] = hydrogen_bond_combinations_cache
 end
 
 function _setup_electrostatic_interactions!(nbc::NonBondedComponent{T}) where {T<:Real}
@@ -376,6 +382,9 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
         atom_1_idx = atom_1.idx
         atom_2_idx = atom_2.idx
 
+        atom_1_type = atom_1.atom_type
+        atom_2_type = atom_2.atom_type
+
         # exclude 1-2 and 1-3 interactions
         if check_bond(atom_1_idx, atom_2_idx) || check_geminal(atom_1_idx, atom_2_idx)
             continue
@@ -408,8 +417,8 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
             # and the two atoms are not vicinal (1-4).
 
             h_params = coalesce(
-                get(hydrogen_bond_combinations, (I=atom_1.atom_type, J=atom_2.atom_type,), missing),
-                get(hydrogen_bond_combinations, (I=atom_2.atom_type, J=atom_1.atom_type,), missing)
+                get(hydrogen_bond_combinations, (I=atom_1_type, J=atom_2_type,), missing),
+                get(hydrogen_bond_combinations, (I=atom_2_type, J=atom_1_type,), missing)
             )
 
             if !ismissing(h_params)
@@ -429,7 +438,9 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
             else
                 _try_assign_vdw!(
                     atom_1,
+                    atom_1_type,
                     atom_2,
+                    atom_2_type,
                     T(lj_candidate[3]),
                     T(1.0),
                     lj_combinations,
@@ -441,7 +452,9 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
             # this is a torsion
             _try_assign_vdw!(
                 atom_1,
+                atom_1_type,
                 atom_2,
+                atom_2_type,
                 T(lj_candidate[3]),
                 scaling_vdw_1_4,
                 lj_combinations,
