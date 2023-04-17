@@ -109,9 +109,6 @@ end
         lj_interactions,
         switching_function) where {T<:Real}
 
-    type_atom_1 = atom_1.atom_type
-    type_atom_2 = atom_2.atom_type
-
     params = get(lj_combinations, (I=type_atom_1, J=type_atom_2,), missing)
 
     if !ismissing(params)
@@ -373,17 +370,23 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
     sizehint!(lj_interactions, hint)
     sizehint!(electrostatic_interactions, hint)
 
-    atom_cache = atoms(ff.system)
-    
+    atom_cache   = atoms(ff.system)
+    idx_cache    = atoms_df(ff.system).idx
+    charge_cache = atoms_df(ff.system).charge
+    type_cache   = atoms_df(ff.system).atom_type
+
     for lj_candidate in neighbors
-        atom_1 = atom_cache[lj_candidate[1]]
-        atom_2 = atom_cache[lj_candidate[2]]
+        lj_1 = lj_candidate[1]
+        lj_2 = lj_candidate[2]
 
-        atom_1_idx = atom_1.idx
-        atom_2_idx = atom_2.idx
+        atom_1 = atom_cache[lj_1]
+        atom_2 = atom_cache[lj_2]
 
-        atom_1_type = atom_1.atom_type
-        atom_2_type = atom_2.atom_type
+        atom_1_idx = idx_cache[lj_1]
+        atom_2_idx = idx_cache[lj_2]
+
+        atom_1_type = type_cache[lj_1]
+        atom_2_type = type_cache[lj_2]
 
         # exclude 1-2 and 1-3 interactions
         if check_bond(atom_1_idx, atom_2_idx) || check_geminal(atom_1_idx, atom_2_idx)
@@ -392,13 +395,13 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
 
         vicinal_pair = check_vicinal(atom_1_idx, atom_2_idx)
 
-        q1q2 = atom_1.charge * atom_2.charge
+        q1q2 = charge_cache[lj_1]*charge_cache[lj_2]
 
         if q1q2 ≠ zero(T)
             push!(
                 electrostatic_interactions,
                 ElecrostaticInteraction{T}(
-                    atom_1.charge * atom_2.charge,
+                    q1q2,
                     T(lj_candidate[3]),
                     vicinal_pair ? scaling_es_1_4 : T(1.0),
                     distance_dependent_dielectric,
