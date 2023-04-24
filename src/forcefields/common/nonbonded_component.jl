@@ -635,9 +635,17 @@ function compute_forces(esi::ElecrostaticInteraction{T}) where {T<:Real}
 end
 
 function compute_forces(nbc::NonBondedComponent{T}) where {T<:Real}
-    map(compute_forces, nbc.lj_interactions)
-    map(compute_forces, nbc.hydrogen_bonds)
-    map(compute_forces, nbc.electrostatic_interactions)
+    constrained_ids = getproperty.(atoms(nbc.ff.system)[nbc.ff.constrained_atoms], :idx)
+
+    filter_pairs = (
+        isempty(constrained_ids) 
+            ? identity 
+            : s -> filter(p -> (p.a1.idx ∉ constrained_ids) || (p.a2.idx ∉ constrained_ids), s)
+    )
+
+    map(compute_forces, filter_pairs(nbc.lj_interactions))
+    map(compute_forces, filter_pairs(nbc.hydrogen_bonds))
+    map(compute_forces, filter_pairs(nbc.electrostatic_interactions))
 
     nothing
 end
