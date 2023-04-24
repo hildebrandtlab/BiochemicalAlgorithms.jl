@@ -7,6 +7,7 @@ using DataFrames
 using DataFramesMeta
 using DocStringExtensions
 using Graphs, GraphDataFrameBridge
+using Observables
 using Optim
 using Optimization, OptimizationOptimJL, OptimizationOptimisers
 using Unitful, UnitfulAtomic
