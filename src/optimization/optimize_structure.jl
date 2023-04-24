@@ -74,3 +74,24 @@ function optimize_hydrogen_positions!(ff::ForceField{T}; method=:OptimJL, kwargs
 
     solution
 end
+
+function optimize_structure!(ff::Observable{ForceField{T}}; method=:OptimJL, notification_frequency=1, kwargs...) where {T<:Real}
+    iterations = 0
+
+    _update = () -> (
+        iterations += 1;
+        if iterations % notification_frequency == 0
+            notify(ff)
+        end;
+
+        false
+    )
+
+    cb = if method == :OptimJL
+        x -> _update()
+    elseif method == :OptimizationJL
+        (θ, l) -> _update()
+    end
+
+    optimize_structure!(ff[]; method=method, callback=cb, kwargs...)
+end
