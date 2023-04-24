@@ -183,3 +183,8 @@ function compute_forces(ff::ForceField{T}) where {T<:Real}
 
     nothing
 end
+
+@inline Base.show(io::IO, ::MIME"text/plain", ff::ForceField) = println(io, 
+    "$(ff.name) for $(natoms(ff.system)) atoms with $(nbonds(ff.system)) bonds.")
+@inline Base.show(io::IO, ff::ForceField) = println(io, 
+    "$(ff.name) for $(natoms(ff.system)) atoms with $(nbonds(ff.system)) bonds.")
