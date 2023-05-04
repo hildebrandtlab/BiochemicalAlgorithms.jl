@@ -43,7 +43,7 @@ Creates a new `Atom{Float32}` in the default system.
 
 ```julia
 Atom(
-    sys::System{T},
+    ac::AbstractAtomContainer{T},
     number::Int,
     element::ElementType,
     name::String = "",
@@ -60,7 +60,7 @@ Atom(
     frame_id::Int = 1
 )
 ```
-Creates a new `Atom{T}` in the given system.
+Creates a new `Atom{T}` in the given atom container (e.g., `System{T}` or `Molecule{T}`).
 
     Atom(a::AtomTuple{T}; frame_id::Int = 1)
     Atom(sys::System{T}, a::AtomTuple{T}; frame_id::Int = 1)
