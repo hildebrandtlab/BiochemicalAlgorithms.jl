@@ -385,13 +385,14 @@ function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB) where {T<:Real}
     # DBFragments don't know anything about flags, they only know properties
     # so we mix them together here
     f_props = merge(f.properties, Dict{Symbol, Any}(flag => true for flag in f.flags))
+    is_true(x) = typeof(x) === Bool && x
 
     # iterate over all variants of the fragment and compare the properties
     for var in db_fragment.variants
         var_props = Dict(Symbol(p.name) => p.value for p in var.properties)
 
         # count the difference in the number of set properties
-        property_difference = abs(length(findall(identity, f_props)) - length(findall(identity, var_props)))
+        property_difference = abs(length(findall(is_true, f_props)) - length(findall(is_true, var_props)))
 
         # and count the properties fragment and variant have in common
         number_of_properties = length(f_props ∩ var_props)
