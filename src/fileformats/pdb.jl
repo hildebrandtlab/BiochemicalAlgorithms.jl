@@ -111,6 +111,7 @@ function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:R
     atoms.frame_id = orig_df.modelnumber
     atoms.chain_id = orig_df.chainid
     atoms.fragment_id = orig_df.resnumber
+    atoms.inscode = orig_df.inscode
 
     # note: we will remove this column as soon as we have filtered out alternates
     atoms.altlocid = orig_df.altlocid
@@ -119,7 +120,7 @@ function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:R
     for orig_chain in collectchains(orig_pdb)
         chain = Chain(mol, orig_chain.id)
         for orig_frag in collectresidues(orig_chain)
-            Fragment(chain, orig_frag.number, orig_frag.name)  # TODO push!
+            Fragment(chain, orig_frag.number, orig_frag.name, Properties([:insertion_code => orig_frag.ins_code]))
         end
     end
 
@@ -149,9 +150,13 @@ function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:R
     atoms = filter(:altlocid => ==(' '), atoms)
 
     # add all remaining atoms to the system
-    grp_atoms = groupby(atoms, [:chain_id, :fragment_id])
+    grp_atoms = groupby(atoms, [:chain_id, :fragment_id, :inscode])
     for frag in eachfragment(mol)
-        for atom in eachrow(grp_atoms[(chain_id = parent_chain(frag).name, fragment_id = frag.number)])
+        for atom in eachrow(grp_atoms[(
+            chain_id = parent_chain(frag).name,
+            fragment_id = frag.number,
+            inscode = frag.properties[:insertion_code]
+        )])
             push!(frag, AtomTuple{T}(atom.number, atom.element;
                 name = atom.name,
                 r = atom.r,
