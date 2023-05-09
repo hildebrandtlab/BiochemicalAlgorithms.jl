@@ -103,7 +103,10 @@ function load_pdb(fname::String, T=Float32)
     for orig_chain in collectchains(orig_pdb)
         chain = Chain(mol, orig_chain.id)
         for orig_frag in collectresidues(orig_chain)
-            Fragment(chain, orig_frag.number, orig_frag.name, Properties([:insertion_code => orig_frag.ins_code]))
+            Fragment(chain, orig_frag.number, orig_frag.name, Properties([
+                :is_hetero_fragment => orig_frag.het_res,
+                :insertion_code => orig_frag.ins_code
+            ]))
         end
     end
 
