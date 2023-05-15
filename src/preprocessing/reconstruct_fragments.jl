@@ -15,7 +15,7 @@ function _get_two_reference_atoms(ref_center_atom::DBAtom{T}, allowed::Set{DBAto
     # or we are running out of fresh atoms
 
     (current, atom_list_rest) = Iterators.peel(atom_list)
-    while length(atom_list) < 3 && !isnothing(current)
+    while length(atom_list) < 3
         for bond in bonds(current, ref)
             next_atom = get_partner(bond, current, ref)
 
@@ -28,6 +28,7 @@ function _get_two_reference_atoms(ref_center_atom::DBAtom{T}, allowed::Set{DBAto
         end
         
         # try the bonds of the next atom in the list
+        isempty(atom_list_rest) && break
         (current, atom_list_rest) = Iterators.peel(atom_list_rest)
     end
 
