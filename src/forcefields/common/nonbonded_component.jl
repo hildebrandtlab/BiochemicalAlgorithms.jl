@@ -254,7 +254,7 @@ function _setup_hydrogenbonds!(nbc::NonBondedComponent{T}) where {T<:Real}
     hydrogen_bonds_df.B .*= T(hbond_B_factor)
 
     hydrogen_bond_combinations_cache = Dict(
-        (I=r.I, J=r.J,) => (A=r.A, B_ij=r.B) 
+        (I=r.I, J=r.J,) => (A=r.A, B=r.B) 
             for r in eachrow(hydrogen_bonds_df)
     )
 
@@ -425,12 +425,11 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
             )
 
             if !ismissing(h_params)
-                params = only(params)
                 push!(
                     hydrogen_bonds,
                     LennardJonesInteraction{T, 12, 10}(
-                        params.A,
-                        params.B,
+                        only(h_params.A),
+                        only(h_params.B),
                         T(lj_candidate[3]),
                         T(1.0),
                         atom_1,
