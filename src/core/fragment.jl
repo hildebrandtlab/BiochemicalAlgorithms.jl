@@ -223,7 +223,7 @@ end
         # find the first amino acid in the chain of this fragment
         c = parent_chain(frag)
 
-        for f in fragments(c)
+        for f in eachfragment(c)
             if is_amino_acid(f)
                 return f == frag
             end
@@ -238,7 +238,7 @@ end
         # find the last amino acid in the chain of this fragment
         c = parent_chain(frag)
 
-        for f in reverse(fragments(c))
+        for f in Iterators.reverse(eachfragment(c))
             if is_amino_acid(f)
                 return f == frag
             end
@@ -254,7 +254,7 @@ end
         # find the first nucleotide in the chain of this fragment
         c = parent_chain(frag)
 
-        for f in fragments(c)
+        for f in eachfragment(c)
             if is_nucleotide(f)
                 return f == frag
             end
