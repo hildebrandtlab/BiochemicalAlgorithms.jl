@@ -343,12 +343,52 @@ Any value other than `nothing` limits the result to atoms matching this frame ID
     nrow(_atoms(sys; kwargs...))
 end
 
-@inline function bonds(a::Atom{T}; kwargs...) where T
-    bonds(a._sys)[findall(a._sys._bonds.a1 .== a.idx .|| a._sys._bonds.a2 .== a.idx)]
+"""
+    $(TYPEDSIGNATURES)
+
+Returns a raw `DataFrame` containing all of the given atom's bonds.
+"""
+@inline function _bonds(atom::Atom)
+    aidx = atom.idx
+    @rsubset(
+        parent(atom)._bonds, :a1 == aidx || :a2 == aidx; view = true
+    )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
-@inline function nbonds(a::Atom{T}; kwargs...) where T
-    length(bonds(a); kwargs...)
+"""
+    bonds(::Atom)
+
+Returns a `Vector{Bond{T}}` containing all bonds of the given atom.
+"""
+@inline function bonds(atom::Atom)
+    collect(eachbond(atom))
+end
+
+"""
+    bonds_df(::Atom)
+
+Returns a `SubDataFrame` containing all bonds of the given atom.
+"""
+@inline function bonds_df(atom::Atom)
+    _bonds(atom)
+end
+
+"""
+    eachbond(::Atom)
+
+Returns a `Bond{T}` generator for all bonds of the given atom.
+"""
+@inline function eachbond(atom::Atom{T}) where T
+    (Bond{T}(parent(atom), row) for row in eachrow(_bonds(atom)))
+end
+
+"""
+    nbonds(::Atom)
+
+Returns the number of bonds of the given atom.
+"""
+@inline function nbonds(atom::Atom)
+    nrow(_bonds(atom))
 end
 
 """
