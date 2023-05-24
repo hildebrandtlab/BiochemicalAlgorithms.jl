@@ -48,7 +48,7 @@ function setup!(qsc::QuadraticStretchComponent{T}) where {T}
     stretches = Vector{QuadraticBondStretch}(undef, nbonds(ff.system))
 
     # iterate over all bonds in the system
-    for (i, bond) in enumerate(bonds(ff.system))
+    for (i, bond) in enumerate(eachbond(ff.system))
         a1 = atom_by_idx(parent_system(ff.system), bond.a1)
         a2 = atom_by_idx(parent_system(ff.system), bond.a2)
 
