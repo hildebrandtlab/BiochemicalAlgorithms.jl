@@ -48,8 +48,8 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
 
     bends = Vector{QuadraticAngleBend}()
 
-    for atom in atoms(ff.system)
-        bs = collect(bonds(atom))
+    for atom in eachatom(ff.system)
+        bs = bonds(atom)
 
         for i in eachindex(bs)
             bond_1 = bs[i]
