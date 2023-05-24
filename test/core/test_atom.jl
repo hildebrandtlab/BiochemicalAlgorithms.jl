@@ -1,4 +1,4 @@
-using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
+using BiochemicalAlgorithms: _SystemAtomTuple, _atoms, _bonds
 
 @testset "Atom" begin
     for T in [Float32, Float64]
@@ -196,5 +196,45 @@ using BiochemicalAlgorithms: _SystemAtomTuple, _atoms
             nucleotide_id = 104, residue_id = 105) === sys
         @test natoms(sys) == 2
         @test natoms(sys, frame_id = 100) == 1
+
+        # atom bonds
+        @test size(_bonds(atom), 1) == 0
+        @test size(bonds_df(atom), 1) == 0
+        @test length(bonds(atom)) == 0
+        @test length(eachbond(atom)) == 0
+        @test nbonds(atom) == 0
+
+        @test push!(sys, BondTuple(
+            atom.idx,
+            Atom(sys, 2, Elements.C).idx,
+            BondOrder.Single
+        )) === sys
+        @test size(_bonds(atom), 1) == 1
+        @test size(bonds_df(atom), 1) == 1
+        @test length(bonds(atom)) == 1
+        @test length(eachbond(atom)) == 1
+        @test nbonds(atom) == 1
+
+        @test push!(sys, BondTuple(
+            Atom(sys, 3, Elements.C).idx,
+            atom.idx,
+            BondOrder.Double
+        )) === sys
+        @test size(_bonds(atom), 1) == 2
+        @test size(bonds_df(atom), 1) == 2
+        @test length(bonds(atom)) == 2
+        @test length(eachbond(atom)) == 2
+        @test nbonds(atom) == 2
+
+        @test push!(sys, BondTuple(
+            Atom(sys, 4, Elements.C).idx,
+            Atom(sys, 5, Elements.C).idx,
+            BondOrder.Double
+        )) === sys
+        @test size(_bonds(atom), 1) == 2
+        @test size(bonds_df(atom), 1) == 2
+        @test length(bonds(atom)) == 2
+        @test length(eachbond(atom)) == 2
+        @test nbonds(atom) == 2
     end
 end
