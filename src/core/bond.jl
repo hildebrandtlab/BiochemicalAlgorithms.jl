@@ -113,7 +113,7 @@ matching the given criteria (value or `missing`). Fields given as `nothing` are 
 """
 function _bonds(sys::System; kwargs...)
     # FIXME this implementation currently ignores bonds with _two_ invalid atom IDs
-    aidx = _atoms(sys; kwargs...).idx
+    aidx = Set(_atoms(sys; kwargs...).idx)
     @rsubset(
         sys._bonds, :a1 in aidx || :a2 in aidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
