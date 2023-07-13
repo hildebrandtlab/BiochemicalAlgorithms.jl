@@ -323,7 +323,7 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
 
 						v3 *= bond_length
 
-                        _add_hydrogen!(atom, atom.position + v3, atom_nr)
+                        _add_hydrogen!(atom, atom.r + v3, atom_nr)
                         return 1, atom_nr+1
                     end
                 end
