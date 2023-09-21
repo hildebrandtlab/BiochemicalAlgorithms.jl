@@ -167,7 +167,7 @@ end
 Returns the row number corresponding to the given `idx` in `df`.
 """
 @inline function _row_by_idx(df::DataFrame, idx::Int)
-    DataFramesMeta.@with df findfirst(:idx .== idx)::Union{Nothing, Int}
+    DataFramesMeta.@with df findfirst(:idx .== idx)::MaybeInt
 end
 
 Base.show(io::IO, ::MIME"text/plain", sys::System) = show(io, sys)

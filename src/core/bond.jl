@@ -97,8 +97,8 @@ end
     $(TYPEDSIGNATURES)
 
 Returns a raw `DataFrame` for all of the given system's bonds associated with at least one atom
-matching the given criteria (value or `missing`). Fields given as `nothing` are ignored. See
-[`_atoms`](@ref).
+matching the given criteria. Fields given as `nothing` are ignored. Use `Some(nothing)` if the field
+should be explicitly checked for a value of `nothing`. See [`_atoms`](@ref).
 """
 function _bonds(sys::System; kwargs...)
     # FIXME this implementation currently ignores bonds with _two_ invalid atom IDs
@@ -121,7 +121,7 @@ Returns a `Vector{Bond{T}}` containing all bonds of the given atom container whe
 associated atom is contained in the same container.
 
 # Supported keyword arguments
- - `frame_id::Union{Nothing, Int} = 1`: \
+ - `frame_id::MaybeInt = 1`: \
 Any value other than `nothing` also limits the result to bonds where at least on atom matches \
 this frame ID.
 """
@@ -142,7 +142,7 @@ Returns a `SubDataFrame` containing all bonds of the given atom container where 
 associated atom is contained in the same container.
 
 # Supported keyword arguments
- - `frame_id::Union{Nothing, Int} = 1`: \
+ - `frame_id::MaybeInt = 1`: \
 Any value other than `nothing` also limits the result to bonds where at least on atom matches \
 this frame ID.
 """
@@ -163,7 +163,7 @@ Returns a `Bond{T}` generator for all bonds of the given atom container where at
 associated atom is contained in the same container.
 
 # Supported keyword arguments
- - `frame_id::Union{Nothing, Int} = 1`: \
+ - `frame_id::MaybeInt = 1`: \
 Any value other than `nothing` also limits the result to bonds where at least on atom matches \
 this frame ID.
 """
@@ -184,7 +184,7 @@ Returns the number of bonds in the given atom container where at least one assoc
 is contained in the same container.
 
 # Supported keyword arguments
- - `frame_id::Union{Nothing, Int} = 1`: \
+ - `frame_id::MaybeInt = 1`: \
 Any value other than `nothing` also limits the result to bonds where at least on atom matches \
 this frame ID.
 """

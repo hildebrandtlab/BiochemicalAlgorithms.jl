@@ -89,11 +89,11 @@ function Atom(
     flags::Flags = Flags();
     frame_id::Int = 1,
     # private kwargs
-    molecule_id::MaybeInt = missing,
-    chain_id::MaybeInt = missing,
-    fragment_id::MaybeInt = missing,
-    nucleotide_id::MaybeInt = missing,
-    residue_id::MaybeInt = missing
+    molecule_id::MaybeInt = nothing,
+    chain_id::MaybeInt = nothing,
+    fragment_id::MaybeInt = nothing,
+    nucleotide_id::MaybeInt = nothing,
+    residue_id::MaybeInt = nothing
 ) where T
     idx = _next_idx(sys)
     push!(sys._atoms, (idx, number, element, name, atom_type, r, v, F, formal_charge, charge, radius,
@@ -170,31 +170,31 @@ end
 @inline parent_system(atom::Atom) = parent(atom)
 
 @inline function parent_molecule(atom::Atom) 
-    ismissing(atom._row.molecule_id) ?
+    isnothing(atom._row.molecule_id) ?
         nothing :
         molecule_by_idx(parent(atom), atom._row.molecule_id)
 end
 
 @inline function parent_chain(atom::Atom)
-    ismissing(atom._row.chain_id) ?
+    isnothing(atom._row.chain_id) ?
         nothing :
         chain_by_idx(atom._sys, atom._row.chain_id)
 end
 
 @inline function parent_fragment(atom::Atom)
-    ismissing(atom._row.fragment_id) ?
+    isnothing(atom._row.fragment_id) ?
         nothing :
         fragment_by_idx(parent(atom), atom._row.fragment_id)
 end
 
 @inline function parent_nucleotide(atom::Atom)
-    ismissing(atom._row.nucleotide_id) ?
+    isnothing(atom._row.nucleotide_id) ?
         nothing :
         nucleotide_by_idx(parent(atom), atom._row.nucleotide_id)
 end
 
 @inline function parent_residue(atom::Atom)
-    ismissing(atom._row.residue_id) ?
+    isnothing(atom._row.residue_id) ?
         nothing :
         residue_by_idx(parent(atom), atom._row.residue_id)
 end
@@ -219,25 +219,25 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Returns a raw `DataFrame` for all of the given system's atoms matching the given criteria (value or
-`missing`). Fields given as `nothing` are ignored. The returned `DataFrame` contains all public and
-private atom fields.
+Returns a raw `DataFrame` for all of the given system's atoms matching the given criteria. Fields
+given as `nothing` are ignored. Use `Some(nothing)` if the field should be explicitly checked for
+a value of `nothing`. The returned `DataFrame` contains all public and private atom fields.
 """
 function _atoms(sys::System{T};
-    frame_id::Union{Nothing, Int} = 1,
-    molecule_id::Union{Nothing, MaybeInt} = nothing,
-    chain_id::Union{Nothing, MaybeInt} = nothing,
-    fragment_id::Union{Nothing, MaybeInt} = nothing,
-    nucleotide_id::Union{Nothing, MaybeInt} = nothing,
-    residue_id::Union{Nothing, MaybeInt} = nothing
+    frame_id::MaybeInt = 1,
+    molecule_id::Union{MaybeInt, Some{Nothing}} = nothing,
+    chain_id::Union{MaybeInt, Some{Nothing}} = nothing,
+    fragment_id::Union{MaybeInt, Some{Nothing}} = nothing,
+    nucleotide_id::Union{MaybeInt, Some{Nothing}} = nothing,
+    residue_id::Union{MaybeInt, Some{Nothing}} = nothing
 ) where T
     cols = Tuple{Symbol, MaybeInt}[]
     isnothing(frame_id)      || push!(cols, (:frame_id, frame_id))
-    isnothing(molecule_id)   || push!(cols, (:molecule_id, molecule_id))
-    isnothing(chain_id)      || push!(cols, (:chain_id, chain_id))
-    isnothing(fragment_id)   || push!(cols, (:fragment_id, fragment_id))
-    isnothing(nucleotide_id) || push!(cols, (:nucleotide_id, nucleotide_id))
-    isnothing(residue_id)    || push!(cols, (:residue_id, residue_id))
+    isnothing(molecule_id)   || push!(cols, (:molecule_id, something(molecule_id)))
+    isnothing(chain_id)      || push!(cols, (:chain_id, something(chain_id)))
+    isnothing(fragment_id)   || push!(cols, (:fragment_id, something(fragment_id)))
+    isnothing(nucleotide_id) || push!(cols, (:nucleotide_id, something(nucleotide_id)))
+    isnothing(residue_id)    || push!(cols, (:residue_id, something(residue_id)))
 
     get(
         groupby(sys._atoms, getindex.(cols, 1)),
@@ -258,7 +258,7 @@ end
 Returns a `Vector{Atom{T}}` containing all atoms of the given atom container.
 
 # Supported keyword arguments
- - `frame_id::Union{Nothing, Int} = 1`: \
+ - `frame_id::MaybeInt = 1`: \
 Any value other than `nothing` limits the result to atoms matching this frame ID.
 """
 @inline function atoms(sys::System; kwargs...)
@@ -277,7 +277,7 @@ end
 Returns a `SubDataFrame` containing all atoms of the given atom container.
 
 # Supported keyword arguments
- - `frame_id::Union{Nothing, Int} = 1`: \
+ - `frame_id::MaybeInt = 1`: \
 Any value other than `nothing` limits the result to atoms matching this frame ID.
 """
 @inline function atoms_df(sys::System{T}; kwargs...) where T
@@ -296,7 +296,7 @@ end
 Returns an `Atom{T}` generator for all atoms of the given atom container.
 
 # Supported keyword arguments
- - `frame_id::Union{Nothing, Int} = 1`: \
+ - `frame_id::MaybeInt = 1`: \
 Any value other than `nothing` limits the result to atoms matching this frame ID.
 
 # Example
@@ -322,7 +322,7 @@ end
 Returns the number of atoms in the given atom container.
 
 # Supported keyword arguments
- - `frame_id::Union{Nothing, Int} = 1`: \
+ - `frame_id::MaybeInt = 1`: \
 Any value other than `nothing` limits the result to atoms matching this frame ID.
 """
 @inline function natoms(sys::System; kwargs...)
@@ -393,11 +393,11 @@ automatically assigned a new `idx`.
 """
 function Base.push!(sys::System{T}, atom::AtomTuple{T};
     frame_id::Int = 1,
-    molecule_id::MaybeInt = missing,
-    chain_id::MaybeInt = missing,
-    fragment_id::MaybeInt = missing,
-    nucleotide_id::MaybeInt = missing,
-    residue_id::MaybeInt = missing
+    molecule_id::MaybeInt = nothing,
+    chain_id::MaybeInt = nothing,
+    fragment_id::MaybeInt = nothing,
+    nucleotide_id::MaybeInt = nothing,
+    residue_id::MaybeInt = nothing
 ) where T
     push!(sys._atoms, 
         (; atom..., 

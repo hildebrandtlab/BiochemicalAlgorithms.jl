@@ -69,11 +69,11 @@ using BiochemicalAlgorithms: _SystemAtomTuple, _atoms, _bonds
 
         @test atom._row.frame_id isa Int
         @test atom._row.frame_id == 1
-        @test ismissing(atom._row.molecule_id)
-        @test ismissing(atom._row.chain_id)
-        @test ismissing(atom._row.fragment_id)
-        @test ismissing(atom._row.nucleotide_id)
-        @test ismissing(atom._row.residue_id)
+        @test isnothing(atom._row.molecule_id)
+        @test isnothing(atom._row.chain_id)
+        @test isnothing(atom._row.fragment_id)
+        @test isnothing(atom._row.nucleotide_id)
+        @test isnothing(atom._row.residue_id)
 
         @test atom2._row.frame_id isa Int
         @test atom2._row.frame_id == 10

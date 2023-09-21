@@ -82,7 +82,7 @@ end
 Returns a raw `DataFrame` for all of the given system's chains matching the given criteria. Fields
 given as `nothing` are ignored. The returned `DataFrame` contains all public and private chain fields.
 """
-function _chains(sys::System; molecule_id::Union{Nothing, Int} = nothing)
+function _chains(sys::System; molecule_id::MaybeInt = nothing)
     isnothing(molecule_id) && return sys._chains
 
     get(

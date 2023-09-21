@@ -87,8 +87,8 @@ Returns a raw `DataFrame` for all of the given system's fragments matching the g
 given as `nothing` are ignored. The returned `DataFrame` contains all public and private fragment fields.
 """
 function _fragments(sys::System{T};
-        molecule_id::Union{Nothing, Int} = nothing,
-        chain_id::Union{Nothing, Int} = nothing
+        molecule_id::MaybeInt = nothing,
+        chain_id::MaybeInt = nothing
 ) where T
     isnothing(molecule_id) && isnothing(chain_id) && return sys._fragments
 
