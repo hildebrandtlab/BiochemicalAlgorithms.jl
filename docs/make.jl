@@ -6,7 +6,7 @@ DocMeta.setdocmeta!(BiochemicalAlgorithms, :DocTestSetup, :(using BiochemicalAlg
 makedocs(;
     modules=[BiochemicalAlgorithms],
     authors="Andreas Hildebrandt <andreas.hildebrandt@uni-mainz.de> and contributors",
-    repo="https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/blob/{commit}{path}#{line}",
+    repo=Remotes.GitHub("hildebrandtlab", "BiochemicalAlgorithms.jl"),
     sitename="BiochemicalAlgorithms.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",

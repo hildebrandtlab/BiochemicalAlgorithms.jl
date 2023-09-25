@@ -1,3 +1,7 @@
 [deps]
 BiochemicalAlgorithms = "9d651bdf-8945-47d1-9188-34e269d8f7b5"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+
+[compat]
+Documenter = "1"
+julia = "1.7"
