@@ -72,7 +72,7 @@ end
 
 function Base.setproperty!(bond::Bond, name::Symbol, val)
     in(name, fieldnames(BondTuple)) && return setproperty!(getfield(bond, :_row), name, val)
-    setproperty!(bond, name, val)
+    setfield!(bond, name, val)
 end
 
 @inline Base.show(io::IO, ::MIME"text/plain", bond::Bond) = show(io, getfield(bond, :_row))
