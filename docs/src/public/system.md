@@ -40,6 +40,9 @@ atom_by_idx
 atoms
 atoms_df
 eachatom
+is_bound_to
+is_geminal
+is_vicinal
 natoms
 Base.push!(::System{T}, ::AtomTuple{T}) where T
 ```
