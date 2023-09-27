@@ -57,6 +57,7 @@ PhysicalConstants = "0.2"
 StaticArrays = "1"
 StructTypes = "1"
 TestItems = "0.1"
+Unitful = "1"
 julia = "1.7"
 
 [extras]
