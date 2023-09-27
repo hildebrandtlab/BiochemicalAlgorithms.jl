@@ -3,6 +3,17 @@ using Documenter
 
 DocMeta.setdocmeta!(BiochemicalAlgorithms, :DocTestSetup, :(using BiochemicalAlgorithms); recursive=true)
 
+const pages = Any[
+    "Home" => "index.md",
+    "Library" => Any[
+        "System representation" => "public/system.md",
+        "Force fields" => "public/forcefields.md",
+        "Internals" => Any[
+            "System representation" => "private/system.md"
+        ]
+    ]
+]
+
 makedocs(;
     modules=[BiochemicalAlgorithms],
     authors="Andreas Hildebrandt <andreas.hildebrandt@uni-mainz.de> and contributors",
@@ -13,15 +24,7 @@ makedocs(;
         canonical="https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl",
         assets=String[],
     ),
-    pages = Any[
-        "Home" => "index.md",
-        "Library" => Any[
-            "System representation" => "public/system.md",
-            "Internals" => Any[
-                "System representation" => "private/system.md"
-            ]
-        ]
-    ],
+    pages = pages,
 )
 
 deploydocs(;
