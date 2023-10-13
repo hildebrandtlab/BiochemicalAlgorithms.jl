@@ -19,11 +19,11 @@ export load_pdb, load_mmcif, write_pdb, write_mmcif, is_hetero_atom
 function is_hetero_atom(a::Atom{T}) where {T<:Real}
     f = parent_fragment(a)
 
-    if !isnothing(f) && is_amino_acid(f)
-        return false
+    if has_flag(a, :is_hetero_atom) || isnothing(f) || !is_amino_acid(f)
+        return true
     end
 
-    true
+    false
 end 
 
 function parse_element_string(es::String)
@@ -109,6 +109,14 @@ function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:R
         )
     )
 
+    atoms.flags = map(
+        h -> h ? Flags([:is_hetero_atom]) : Flags(),
+        orig_df.ishetero
+    ) .∪ map(
+        d -> d ? Flags([:is_deuterium]) : Flags(),
+        orig_df.element .== "D"
+    )  
+
     atoms.frame_id = orig_df.modelnumber
     atoms.chain_id = orig_df.chainid
     atoms.fragment_id = orig_df.resnumber
@@ -165,6 +173,7 @@ function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:R
                 name = atom.name,
                 r = atom.r,
                 properties = atom.properties,
+                flags = atom.flags
             ), frame_id = atom.frame_id)
         end
     end
