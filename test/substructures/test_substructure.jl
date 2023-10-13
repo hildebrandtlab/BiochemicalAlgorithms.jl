@@ -28,7 +28,7 @@
     @test size(bonds_df(s)) == (8,6)
     @test natoms(s) == 9
     @test nbonds(s) == 8
-    @test length(s.properties) == 0
+    @test length(s.properties) == 3
 
     # generate the same substructure by filtering
     s2 = filter_atoms(
