@@ -18,6 +18,7 @@ import ChainRulesCore: frule, rrule
 include("core/exceptions.jl")
 include("core/constants.jl")
 include("core/types.jl")
+include("core/indexed_dataframe.jl")
 include("core/element.jl")
 include("core/amino_acid.jl")
 include("core/bond_order.jl")

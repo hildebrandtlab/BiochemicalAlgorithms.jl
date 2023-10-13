@@ -113,11 +113,6 @@ function try_build_connection!(a1::Atom, con_1::DBConnection, a2::Atom, con_2::D
         return false
     end
 
-    # only create the bond if it does not exist
-    if is_bound_to(a1, a2)
-        return false
-    end
-
     if con_1.order != con_2.order
         @warn "build_bonds!(): inconsistent bond orders"
     end
@@ -136,6 +131,15 @@ end
 function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB) where {T<:Real}
     # while building up individual fragments, we remember inter-fragment connections
     connections = Dict{Int, DBConnection}()
+
+    # is_bound_to is currently quite slow and relies on dynamic dispatch; to speed things
+    # up, we precompute the bonds into a dictionary
+    bond_cache = Set{Tuple{Int, Int}}()
+
+    for bond in eachbond(m)
+        push!(bond_cache, (bond.a1, bond.a2))
+        push!(bond_cache, (bond.a2, bond.a1))
+    end
 
     num_bonds_built = 0
 
@@ -156,9 +160,14 @@ function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB) where {T<:Re
                 con_i = connections[con_keys[i]]
                 con_j = connections[con_keys[j]]
 
-                if try_build_connection!(atom_by_idx(m, con_keys[i]), con_i, atom_by_idx(m, con_keys[j]), con_j)
-                    num_bonds_built += 1
-                    break
+                # only create the bond if it does not exist
+                if (con_keys[i], con_keys[j]) ∉ bond_cache
+                    if try_build_connection!(atom_by_idx(m, con_keys[i]), con_i, atom_by_idx(m, con_keys[j]), con_j)
+                        push!(bond_cache, (con_keys[i], con_keys[j]))
+                        push!(bond_cache, (con_keys[j], con_keys[i]))
+                        num_bonds_built += 1
+                        break
+                    end
                 end
             end
         end

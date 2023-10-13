@@ -62,9 +62,11 @@ function do_match_(residue_name::AbstractString, residue_suffix::AbstractString,
 end
 
 function get_suffix_(frag::Fragment)
-    if is_c_terminal(frag)
+    #if is_c_terminal(frag)
+    if has_flag(frag, :C_TERMINAL)
         return "-C"
-    elseif is_n_terminal(frag)
+    #elseif is_n_terminal(frag)
+    elseif has_flag(frag, :N_TERMINAL)
         return "-N"
     end
 
@@ -77,7 +79,7 @@ function count_hits_(scheme::DBNameMapping, frag::Fragment{T}) where {T<:Real}
     hits = 0
     res_name_suffix = get_suffix_(frag)
 
-    for atom in atoms(frag)
+    for atom in eachatom(frag)
         hit, res_name, atom_name = do_match_(res_name, res_name_suffix, atom.name, scheme.mappings)
         if hit
             hits += 1
@@ -124,6 +126,9 @@ function normalize_names!(
         m::AbstractAtomContainer{T},
         fdb::FragmentDB;
         naming_standard = "") where {T<:Real}
+
+    # start by labelling all terminal fragments to speed up terminal lookups later on
+    label_terminal_fragments!(m)
 
     if naming_standard == ""
         naming_standard = fdb.defaults["Naming"]

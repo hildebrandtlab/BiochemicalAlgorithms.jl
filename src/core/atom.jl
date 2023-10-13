@@ -221,13 +221,13 @@ exists.
 """
 @inline function atom_by_idx(sys::System{T}, idx::Int) where T
     rn = _row_by_idx(sys._atoms, idx)
-    isnothing(rn) ? nothing : Atom{T}(sys, DataFrameRow(sys._atoms, rn, :))
+    isnothing(rn) ? nothing : Atom{T}(sys, DataFrameRow(sys._atoms.df, rn, :))
 end
 
 @inline function atom_by_name(ac::AbstractAtomContainer{T}, name::String) where T
     sys = ac isa System{T} ? ac : ac._sys
-    at = findfirst(sys._atoms.name .== name)
-    isnothing(at) ? nothing : Atom{T}(sys, DataFrameRow(sys._atoms, at, :))
+    at = findfirst(sys._atoms.df.name .== name)
+    isnothing(at) ? nothing : Atom{T}(sys, DataFrameRow(sys._atoms.df, at, :))
 end
 
 """
@@ -254,9 +254,9 @@ function _atoms(sys::System{T};
     isnothing(residue_id)    || push!(cols, (:residue_id, something(residue_id)))
 
     get(
-        groupby(sys._atoms, getindex.(cols, 1)),
+        groupby(sys._atoms.df, getindex.(cols, 1)),
         ntuple(i -> cols[i][2], length(cols)),
-        view(sys._atoms, Int[], :)
+        view(sys._atoms.df, Int[], :)
     )::SubDataFrame{DataFrame, DataFrames.Index, Vector{Int}}
 end
 
