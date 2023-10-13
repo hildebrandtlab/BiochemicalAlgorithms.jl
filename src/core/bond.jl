@@ -5,7 +5,8 @@ export
     bonds_df, 
     eachbond, 
     nbonds, 
-    get_partner, 
+    get_partner,
+    bond_length, 
     non_hydrogen_bonds, 
     hydrogen_bonds,
     non_hydrogen_bonds_df,
@@ -224,9 +225,13 @@ function get_partner(bond, atom)
     end
 end
 
+@inline function bond_length(bond)
+    s = parent(bond)
+    distance(atom_by_idx(s, bond.a1), atom_by_idx(s, bond.a2))
+end
+
 @inline non_hydrogen_bonds(ac) = filter(b -> !has_property(b, :TYPE__HYDROGEN), bonds(ac))
 @inline hydrogen_bonds(ac) = filter(b -> has_property(b, :TYPE__HYDROGEN), bonds(ac))
-
 
 @inline non_hydrogen_bonds_df(ac) = filter(b->:TYPE__HYDROGEN ∉ keys(b.properties), bonds_df(ac))
 @inline hydrogen_bonds_df(ac) = filter(b->:TYPE__HYDROGEN ∈ keys(b.properties), bonds_df(ac))
