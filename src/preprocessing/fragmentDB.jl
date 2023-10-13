@@ -333,6 +333,29 @@ StructTypes.lowertype(::Type{FragmentDB{T}}) where {T} = Array{DBNode}
 
 FragmentDB(path::String = ball_data_path("fragments/Fragments.db.json")) = FragmentDB{Float32}(path)
 
+function label_terminal_fragments!(ac::AbstractAtomContainer{T}) where {T<:Real}
+    # iterate over all chains and label their terminals
+    for chain in eachchain(ac)
+        if nfragments(chain) > 0
+            # first, the n- and c-terminals
+            amino_acids = filter(is_amino_acid, fragments(chain))
+
+            if length(amino_acids) > 0
+                set_flag!(first(amino_acids), :N_TERMINAL)
+                set_flag!(last(amino_acids),  :C_TERMINAL)
+            end
+
+            # then, the 3-, and 5-primes
+            nucleotides = filter(is_nucleotide, fragments(chain))
+
+            if length(nucleotides) > 0
+                set_flag!(first(nucleotides), Symbol("3_PRIME"))
+                set_flag!(last(nucleotides),  Symbol("5_PRIME"))
+            end
+
+        end
+    end
+end
 
 function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB) where {T<:Real}
     # first, try to find the fragment in the database
@@ -352,25 +375,6 @@ function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB) where {T<:Real}
     # have the corresponding properties set or cystein variants
     # without thiol hydrogen if the disulphide bond property
     # is set
-
-    # First, check for two special properties of amino acids:
-    # C_TERMINAL and N_TERMINAL
-    # They are usually not set, so set them here
-    if is_c_terminal(f)
-        set_flag!(f, :C_TERMINAL)
-    end
-
-    if is_n_terminal(f)
-        set_flag!(f, :N_TERMINAL)
-    end
-
-    if is_3_prime(f)
-        set_flag!(f, Symbol("3_PRIME"))
-    end
-
-    if is_5_prime(f)
-        set_flag!(f, Symbol("5_PRIME"))
-    end
 
     # the number of properties that matched
     # the fragment with the largest number of matched
