@@ -26,8 +26,8 @@
     @test nresidues(sys) == 0
     @test nnucleotides(sys) == 0
 
-    sys = load_pdb("data/2ptc.pdb")
-    orig = read("data/2ptc.pdb", PDB)
+    sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
+    orig = read(ball_data_path("../test/data/2ptc.pdb"), PDB)
     orig_model = orig.models[1]
     @test sys.name == orig.name
     @test natoms(sys) == countatoms(orig)
