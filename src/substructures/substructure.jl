@@ -14,7 +14,7 @@ export Substructure, filter_atoms
                              parent, 
                              atoms, 
                              bonds, 
-                             properties = Properties()) where {T<:Real}
+                             properties = parent.properties) where {T<:Real}
         new(name, parent, atoms, bonds, properties)
     end
 end
@@ -23,7 +23,7 @@ Substructure(name,
              parent,
              atoms,
              bonds,
-             properties = Properties()) = 
+             properties = parent.properties) = 
                 Substructure{Float32}(name, parent, atoms, bonds, properties)
 
 function filter_atoms(fn, mol; name="", adjacent_bonds=false)
@@ -35,6 +35,25 @@ function filter_atoms(fn, mol; name="", adjacent_bonds=false)
         _bonds(mol), view=true)
 
     Substructure(name, mol, atom_view, bond_view)
+end
+
+function Base.copy(substruct::Substructure{T}) where T
+    sys = System{T}(substruct.name)
+    sys._curr_idx = sys._curr_idx
+
+    sys.properties = copy(substruct.properties)
+    sys.flags      = copy(substruct.parent.flags)
+
+    sys._atoms = copy(substruct._atoms)
+    sys._bonds = copy(substruct._bonds)
+
+    sys._molecules   = copy(_molecules(substruct))
+    sys._chains      = copy(_chains(substruct))
+    sys._fragments   = copy(_fragments(substruct))
+    sys._nucleotides = copy(_nucleotides(substruct))
+    sys._residues    = copy(_residues(substruct))
+
+    sys
 end
 
 """
@@ -74,6 +93,41 @@ function _bonds(substruct::Substructure; kwargs...)
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
+function _molecules(substruct::Substructure; kwargs...)
+    midx = unique(_atoms(substruct; kwargs...).molecule_id)
+    @rsubset(
+        substruct.parent._molecules, :idx in midx; view = true
+    )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
+end
+
+function _chains(substruct::Substructure; kwargs...)
+    cidx = _atoms(substruct; kwargs...).chain_id
+    @rsubset(
+        substruct.parent._chains, :idx in cidx; view = true
+    )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
+end
+
+function _fragments(substruct::Substructure; kwargs...)
+    fidx = _atoms(substruct; kwargs...).fragment_id
+    @rsubset(
+        substruct.parent._fragments, :idx in fidx; view = true
+    )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
+end
+
+function _nucleotides(substruct::Substructure; kwargs...)
+    nidx = _atoms(substruct; kwargs...).nucleotide_id
+    @rsubset(
+        substruct.parent._nucleotides, :idx in nidx; view = true
+    )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
+end
+
+function _residues(substruct::Substructure; kwargs...)
+    ridx = _atoms(substruct; kwargs...).residue_id
+    @rsubset(
+        substruct.parent._residues, :idx in ridx; view = true
+    )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
+end
+
 @inline function eachatom(substruct::Substructure{T}; kwargs...) where T
     sys = substruct.parent isa System{T} ? substruct.parent : parent_system(substruct.parent)
     (Atom{T}(sys, row) for row in eachrow(_atoms(substruct; kwargs...)))
@@ -92,6 +146,24 @@ end
     collect(eachbond(substruct; kwargs...))
 end
 
+@inline function eachfragment(substruct::Substructure{T}; kwargs...) where T
+    sys = substruct.parent isa System{T} ? substruct.parent : parent_system(substruct.parent)
+    (Fragment{T}(sys, row) for row in eachrow(_fragments(substruct; kwargs...)))
+end
+
+@inline function fragments(substruct::Substructure{T}; kwargs...) where T
+    collect(eachfragment(substruct; kwargs...))
+end
+
+@inline function eachchain(substruct::Substructure{T}; kwargs...) where T
+    sys = substruct.parent isa System{T} ? substruct.parent : parent_system(substruct.parent)
+    (Chain{T}(sys, row) for row in eachrow(_chains(substruct; kwargs...)))
+end
+
+@inline function chains(substruct::Substructure{T}; kwargs...) where T
+    collect(eachchain(substruct; kwargs...))
+end
+
 function atoms_df(ac::Substructure{T}; kwargs...) where {T<:Real}
     view(_atoms(ac; kwargs...), :, 1:length(fieldnames(AtomTuple{T})))
 end
@@ -108,5 +180,14 @@ end
     nrow(_bonds(substruct; kwargs...))
 end
 
+@inline function nfragments(substruct::Substructure; kwargs...)
+    nrow(_fragments(substruct; kwargs...))
+end
+
 @inline Base.parent(substruct::Substructure) = parent(substruct.parent)
 @inline parent_system(substruct::Substructure) = parent_system(substruct.parent)
+
+@inline function atom_by_idx(substruct::Substructure{T}, idx::Int) where T
+    sys = substruct.parent isa System{T} ? substruct.parent : parent_system(substruct.parent)
+    atom_by_idx(sys, idx)
+end
