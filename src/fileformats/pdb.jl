@@ -5,6 +5,7 @@ using BioStructures:
     collectchains, 
     collectresidues, 
     PDB,
+    MMCIF,
     ProteinStructure,
     Model,
     unsafe_addatomtomodel!,
@@ -13,7 +14,7 @@ using BioStructures:
 
 using Printf
 
-export load_pdb, write_pdb, is_hetero_atom
+export load_pdb, load_mmcif, write_pdb, write_mmcif, is_hetero_atom
 
 function is_hetero_atom(a::Atom{T}) where {T<:Real}
     f = parent_fragment(a)
@@ -179,6 +180,14 @@ function load_pdb(fname::String, T=Float32)
     convert(System{T}, orig_pdb)
 end
 
+# Note: models are stored as frames
+# TODO: how to handle disordered atoms properly?
+function load_mmcif(fname::String, T=Float32)
+    # first, read the structure using BioStructures.jl
+    orig_mmcif = read(fname, MMCIF)
+    convert(System{T}, orig_mmcif)
+end
+
 function _to_atom_record(a::Atom{T}) where {T<:Real}
     # TODO: handle alternative location identifiers!
     f = parent_fragment(a)
@@ -233,4 +242,9 @@ end
 function write_pdb(fname::String, ac::AbstractAtomContainer{T}) where {T<:Real}
     ps = convert(ProteinStructure, ac)
     writepdb(fname, ps)
+end
+
+function write_mmcif(fname::String, ac::AbstractAtomContainer{T}) where {T<:Real}
+    ps = convert(ProteinStructure, ac)
+    writemmcif(fname, ps)
 end
