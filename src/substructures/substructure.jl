@@ -44,7 +44,7 @@ function Base.copy(substruct::Substructure{T}) where T
     sys.properties = copy(substruct.properties)
     sys.flags      = copy(substruct.parent.flags)
 
-    sys._atoms = copy(substruct._atoms)
+    sys._atoms = IndexedDataFrame(copy(substruct._atoms))
     sys._bonds = copy(substruct._bonds)
 
     sys._molecules   = copy(_molecules(substruct))
