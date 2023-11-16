@@ -99,6 +99,7 @@ end
 end
 
 @inline function _try_assign_vdw!(
+        ff::ForceField,
         atom_1::Atom{T},
         type_atom_1,
         atom_2::Atom{T},
@@ -439,6 +440,7 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
                 )
             else
                 _try_assign_vdw!(
+                    ff,
                     atom_1,
                     atom_1_type,
                     atom_2,
@@ -453,6 +455,7 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
         else
             # this is a torsion
             _try_assign_vdw!(
+                ff,
                 atom_1,
                 atom_1_type,
                 atom_2,
