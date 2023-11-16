@@ -6,7 +6,11 @@ struct IndexedDataFrame
 
     function IndexedDataFrame(values::Vector{T}) where T
         df = DataFrame(values)
-        index = Dict{Int, Int}()
+        IndexedDataFrame(df)
+    end
+
+    function IndexedDataFrame(df::DataFrame)
+        index = Dict{Int, Int}(df.idx .=> rownumber.(eachrow(df)))
 
         new(df, index)
     end
