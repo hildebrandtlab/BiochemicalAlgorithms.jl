@@ -11,7 +11,7 @@ export CosineTorsion, TorsionComponent
     a4::Atom{T}
 end
 
-function _get_torsion_data(ff::ForceField{T}, section::String) where {T<:Real}
+function _get_torsion_data(ff::ForceField{T}, section::String)::Tuple{T, T, GroupedDataFrame{DataFrame}} where {T<:Real}
     # extract the parameter section for quadratic bond stretches
     torsion_section = extract_section(ff.parameters, section)
     torsion_df = torsion_section.data
@@ -36,29 +36,29 @@ end
 function _try_assign_torsion!(
         ff::ForceField{T}, 
         torsions::Vector{CosineTorsion},
-        torsion_combinations,
+        torsion_combinations::Dict{K, V},
         a1::Atom{T}, 
         a2::Atom{T}, 
         a3::Atom{T}, 
         a4::Atom{T},
         V_factor::T,
-        ϕ₀_factor::T) where {T<:Real}
-    type_a1 = a1.atom_type
-    type_a2 = a2.atom_type
-    type_a3 = a3.atom_type
-    type_a4 = a4.atom_type
+        ϕ₀_factor::T) where {T<:Real, K, V}
+    type_a1::String = a1.atom_type
+    type_a2::String = a2.atom_type
+    type_a3::String = a3.atom_type
+    type_a4::String = a4.atom_type
 
     # now, search torsion parameters for (a1, a2, a3, a4)
     pt = coalesce(
-        get(torsion_combinations, (I=type_a1, J=type_a2, K=type_a3, L=type_a4,), missing),
-        get(torsion_combinations, (I=type_a4, J=type_a3, K=type_a2, L=type_a1,), missing),
-        get(torsion_combinations, (I="*",     J=type_a2, K=type_a3, L=type_a4,), missing),
-        get(torsion_combinations, (I="*",     J=type_a3, K=type_a2, L=type_a1,), missing),
-        get(torsion_combinations, (I=type_a1, J=type_a2, K=type_a3, L="*",    ), missing),
-        get(torsion_combinations, (I=type_a4, J=type_a3, K=type_a2, L="*",    ), missing),
-        get(torsion_combinations, (I="*",     J=type_a2, K=type_a3, L="*"    ,), missing),
-        get(torsion_combinations, (I="*",     J=type_a3, K=type_a2, L="*"    ,), missing),
-        get(torsion_combinations, (I="*",     J="*",     K=type_a3, L=type_a4,), missing)
+        get(torsion_combinations, (type_a1, type_a2, type_a3, type_a4,), missing),
+        get(torsion_combinations, (type_a4, type_a3, type_a2, type_a1,), missing),
+        get(torsion_combinations, ("*",     type_a2, type_a3, type_a4,), missing),
+        get(torsion_combinations, ("*",     type_a3, type_a2, type_a1,), missing),
+        get(torsion_combinations, (type_a1, type_a2, type_a3, "*",    ), missing),
+        get(torsion_combinations, (type_a4, type_a3, type_a2, "*",    ), missing),
+        get(torsion_combinations, ("*",     type_a2, type_a3, "*"    ,), missing),
+        get(torsion_combinations, ("*",     type_a3, type_a2, "*"    ,), missing),
+        get(torsion_combinations, ("*",     "*",     type_a3, type_a4,), missing)
     )
 
     if ismissing(pt)
@@ -152,10 +152,14 @@ end
 function _setup_improper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
     ff = tc.ff
 
-    torsion_combinations = tc.cache[:improper_torsion_combinations]
+    torsion_combinations::GroupedDataFrame{DataFrame} = tc.cache[:improper_torsion_combinations]
+    torsion_dict = Dict(
+        Tuple(k) => torsion_combinations[k] 
+        for k in keys(torsion_combinations)
+    )
 
-    V_factor  = tc.cache[:improper_V_factor]
-    ϕ₀_factor = tc.cache[:improper_ϕ₀_factor]
+    V_factor::T  = tc.cache[:improper_V_factor]
+    ϕ₀_factor::T = tc.cache[:improper_ϕ₀_factor]
 
     impropers = tc.cache[:impropers]
 
@@ -180,7 +184,7 @@ function _setup_improper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
                             bond_3 = bs[i_3]
                             a1 = get_partner(bond_3, atom)
 
-                            _try_assign_torsion!(ff, improper_torsions, torsion_combinations, a1, a2, a3, a4, V_factor, ϕ₀_factor)
+                            _try_assign_torsion!(ff, improper_torsions, torsion_dict, a1, a2, a3, a4, V_factor, ϕ₀_factor)
                         end
                     end
                 end
@@ -194,15 +198,20 @@ end
 function _setup_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
     ff = tc.ff
 
-    torsion_combinations = tc.cache[:proper_torsion_combinations]
+    torsion_combinations::GroupedDataFrame{DataFrame} = tc.cache[:proper_torsion_combinations]
 
-    V_factor  = tc.cache[:proper_V_factor]
-    ϕ₀_factor = tc.cache[:proper_ϕ₀_factor]
+    torsion_dict = Dict(
+        Tuple(k) => torsion_combinations[k] 
+        for k in keys(torsion_combinations)
+    )
+
+    V_factor::T  = tc.cache[:proper_V_factor]
+    ϕ₀_factor::T = tc.cache[:proper_ϕ₀_factor]
 
     proper_torsions = Vector{CosineTorsion}()
 
-    for atom in atoms(ff.system)
-        bs = bonds(atom)
+    for atom::Atom{T} in atoms(ff.system)
+        bs::Vector{Bond{T}} = bonds(atom)
 
         for bond_1 in bs
             if has_flag(bond_1, :TYPE__HYDROGEN)
@@ -212,7 +221,7 @@ function _setup_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
             if atom.idx == bond_1.a1
                 # central atoms
                 a2 = atom
-                a3 = atom_by_idx(parent_system(atom), bond_1.a2)
+                a3::Atom{T} = atom_by_idx(parent_system(atom), bond_1.a2)
 
                 for bond_2 in bs
                     if has_flag(bond_2, :TYPE__HYDROGEN)
@@ -224,8 +233,8 @@ function _setup_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
                     end
 
                     # determine the first atom
-                    a1 = ((bond_2.a1 == atom.idx) ? atom_by_idx(parent_system(atom), bond_2.a2)
-                                                  : atom_by_idx(parent_system(atom), bond_2.a1))
+                    a1::Atom{T} = ((bond_2.a1 == atom.idx) ? atom_by_idx(parent_system(atom), bond_2.a2)
+                                                           : atom_by_idx(parent_system(atom), bond_2.a1))
 
                     for bond_3 in bonds(atom_by_idx(parent_system(atom), bond_1.a2))
                         if has_flag(bond_3, :TYPE__HYDROGEN)
@@ -237,10 +246,10 @@ function _setup_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
                         end
                     
                         # determine the fourth atom a4
-                        a4 = ((bond_3.a1 == a3.idx) ? atom_by_idx(parent_system(atom), bond_3.a2)
+                        a4::Atom{T} = ((bond_3.a1 == a3.idx) ? atom_by_idx(parent_system(atom), bond_3.a2)
                                                     : atom_by_idx(parent_system(atom), bond_3.a1))
 
-                        _try_assign_torsion!(ff, proper_torsions, torsion_combinations, a1, a2, a3, a4, V_factor, ϕ₀_factor)
+                        _try_assign_torsion!(ff, proper_torsions, torsion_dict, a1, a2, a3, a4, V_factor, ϕ₀_factor)
                     end
                 end
             end
