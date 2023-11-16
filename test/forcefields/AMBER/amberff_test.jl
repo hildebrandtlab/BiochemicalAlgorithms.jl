@@ -5,8 +5,8 @@ using BiochemicalAlgorithms
     p = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 
     normalize_names!(p, fdb)
-    build_bonds!(p, fdb)
     reconstruct_fragments!(p, fdb)
+    build_bonds!(p, fdb)
 
     a_ff = AmberFF(p)
 
