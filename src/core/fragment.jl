@@ -218,65 +218,81 @@ end
 end
 
 # TODO: these should really be defined in Residue, not Fragment
-@inline function is_n_terminal(frag::Fragment)
-    if is_amino_acid(frag)
-        # find the first amino acid in the chain of this fragment
-        c = parent_chain(frag)
+@inline function is_n_terminal(frag::Fragment; precomputed=true)
+    if (precomputed)
+        has_flag(frag, :N_TERMINAL)
+    else
+        if is_amino_acid(frag)
+            # find the first amino acid in the chain of this fragment
+            c = parent_chain(frag)
 
-        for f in eachfragment(c)
-            if is_amino_acid(f)
-                return f == frag
+            for f in eachfragment(c)
+                if is_amino_acid(f)
+                    return f == frag
+                end
             end
         end
-    end
 
-    false
+        false
+    end
 end
 
-@inline function is_c_terminal(frag::Fragment)
-    if is_amino_acid(frag)
-        # find the last amino acid in the chain of this fragment
-        c = parent_chain(frag)
+@inline function is_c_terminal(frag::Fragment; precomputed=true)
+    if (precomputed)
+        has_flag(frag, :C_TERMINAL)
+    else
+        if is_amino_acid(frag)
+            # find the last amino acid in the chain of this fragment
+            c = parent_chain(frag)
 
-        for f in Iterators.reverse(eachfragment(c))
-            if is_amino_acid(f)
-                return f == frag
+            for f in Iterators.reverse(eachfragment(c))
+                if is_amino_acid(f)
+                    return f == frag
+                end
             end
         end
-    end
 
-    false
+        false
+    end
 end
 
 # TODO: these should really be defined in Nucleotide, not Fragment
-@inline function is_3_prime(frag::Fragment)
-    if is_nucleotide(frag)
-        # find the first nucleotide in the chain of this fragment
-        c = parent_chain(frag)
+@inline function is_3_prime(frag::Fragment; precomputed=true)
+    if (precomputed)
+        has_flag(frag, Symbol("3_PRIME"))
+    else
+        if is_nucleotide(frag)
+            # find the first nucleotide in the chain of this fragment
+            c = parent_chain(frag)
 
-        for f in eachfragment(c)
-            if is_nucleotide(f)
-                return f == frag
+            for f in eachfragment(c)
+                if is_nucleotide(f)
+                    return f == frag
+                end
             end
         end
-    end
 
-    false
+        false
+    end
 end
 
-@inline function is_5_prime(frag::Fragment)
-    if is_nucleotide(frag)
-        # find the last amino acid in the chain of this fragment
-        c = parent_chain(frag)
+@inline function is_5_prime(frag::Fragment; precomputed=true)
+    if (precomputed)
+        has_flag(frag, Symbol("5_PRIME"))
+    else
+        if is_nucleotide(frag)
+            # find the last amino acid in the chain of this fragment
+            c = parent_chain(frag)
 
-        for f in reverse(fragments(c))
-            if is_nucleotide(f)
-                return f == frag
+            for f in reverse(fragments(c))
+                if is_nucleotide(f)
+                    return f == frag
+                end
             end
         end
-    end
 
-    false
+        false
+    end
 end
 
 @inline function get_previous(frag::Fragment{T}) where {T<:Real}
