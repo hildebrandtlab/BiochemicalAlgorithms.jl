@@ -42,6 +42,11 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
     # group the bend parameters by type_i, type_j, type_k combinations
     bend_combinations = groupby(bend_df, ["I", "J", "K"])
 
+    bends_dict = Dict(
+        Tuple(k) => bend_combinations[k] 
+        for k in keys(bend_combinations)
+    )
+
     bends = Vector{QuadraticAngleBend}()
 
     for atom in eachatom(ff.system)
@@ -70,9 +75,9 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
                 type_a3 = a3.atom_type
 
                 qab = coalesce(
-                    get(bend_combinations, (I=type_a1, J=type_a2, K=type_a3,), missing),
-                    get(bend_combinations, (I=type_a3, J=type_a2, K=type_a1,), missing),
-                    get(bend_combinations, (I="*",     J=type_a2, K="*"    ,), missing)
+                    get(bends_dict, (type_a1, type_a2, type_a3,), missing),
+                    get(bends_dict, (type_a3, type_a2, type_a1,), missing),
+                    get(bends_dict, ("*",     type_a2, "*"    ,), missing)
                 )
 
                 if ismissing(qab)
