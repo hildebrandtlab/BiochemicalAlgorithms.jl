@@ -40,7 +40,11 @@ function Chain(
 end
 
 function Base.getproperty(chain::Chain, name::Symbol)
-    in(name, fieldnames(ChainTuple)) && return getproperty(getfield(chain, :_row), name)
+    gp = () -> getproperty(getfield(chain, :_row), name)
+    name === :idx        && return gp()::Int
+    name === :name       && return gp()::String
+    name === :properties && return gp()::Properties
+    name === :flags      && return gp()::Flags
     getfield(chain, name)
 end
 

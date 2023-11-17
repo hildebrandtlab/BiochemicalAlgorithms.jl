@@ -44,7 +44,12 @@ function Nucleotide(
 end
 
 function Base.getproperty(nuc::Nucleotide, name::Symbol)
-    in(name, fieldnames(NucleotideTuple)) && return getproperty(getfield(nuc, :_row), name)
+    gp = () -> getproperty(getfield(nuc, :_row), name)
+    name === :idx        && return gp()::Int
+    name === :number     && return gp()::Int
+    name === :name       && return gp()::String
+    name === :properties && return gp()::Properties
+    name === :flags      && return gp()::Flags
     getfield(nuc, name)
 end
 

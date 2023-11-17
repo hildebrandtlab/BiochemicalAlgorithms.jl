@@ -78,7 +78,13 @@ end
 end
 
 function Base.getproperty(bond::Bond, name::Symbol)
-    in(name, fieldnames(BondTuple)) && return getproperty(getfield(bond, :_row), name)
+    gp = () -> getproperty(getfield(bond, :_row), name)
+    name === :idx        && return gp()::Int
+    name === :a1         && return gp()::Int
+    name === :a2         && return gp()::Int
+    name === :order      && return gp()::BondOrderType
+    name === :properties && return gp()::Properties
+    name === :flags      && return gp()::Flags
     getfield(bond, name)
 end
 

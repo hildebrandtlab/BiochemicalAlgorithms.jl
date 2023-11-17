@@ -166,8 +166,21 @@ end
     Atom(default_system(), t; kwargs...)::Atom{Float32}
 end
 
-function Base.getproperty(atom::Atom, name::Symbol)
-    in(name, fieldnames(AtomTuple)) && return getproperty(getfield(atom, :_row), name)
+function Base.getproperty(atom::Atom{T}, name::Symbol) where T
+    gp = () -> getproperty(getfield(atom, :_row), name)
+    name === :idx           && return gp()::Int
+    name === :number        && return gp()::Int
+    name === :element       && return gp()::ElementType
+    name === :name          && return gp()::String
+    name === :atom_type     && return gp()::String
+    name === :r             && return gp()::Vector3{T}
+    name === :v             && return gp()::Vector3{T}
+    name === :F             && return gp()::Vector3{T}
+    name === :formal_charge && return gp()::Int
+    name === :charge        && return gp()::T
+    name === :radius        && return gp()::T
+    name === :properties    && return gp()::Properties
+    name === :flags         && return gp()::Flags
     getfield(atom, name)
 end
 

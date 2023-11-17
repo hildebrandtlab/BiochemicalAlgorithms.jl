@@ -45,7 +45,12 @@ function Fragment(
 end
 
 function Base.getproperty(frag::Fragment, name::Symbol)
-    in(name, fieldnames(FragmentTuple)) && return getproperty(getfield(frag, :_row), name)
+    gp = () -> getproperty(getfield(frag, :_row), name)
+    name === :idx        && return gp()::Int
+    name === :number     && return gp()::Int
+    name === :name       && return gp()::String
+    name === :properties && return gp()::Properties
+    name === :flags      && return gp()::Flags
     getfield(frag, name)
 end
 

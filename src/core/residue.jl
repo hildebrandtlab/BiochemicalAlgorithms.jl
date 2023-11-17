@@ -43,7 +43,12 @@ function Residue(
 end
 
 function Base.getproperty(res::Residue, name::Symbol)
-    in(name, fieldnames(ResidueTuple)) && return getproperty(getfield(res, :_row), name)
+    gp = () -> getproperty(getfield(res, :_row), name)
+    name === :idx        && return gp()::Int
+    name === :number     && return gp()::Int
+    name === :type       && return gp()::AminoAcid
+    name === :properties && return gp()::Properties
+    name === :flags      && return gp()::Flags
     getfield(res, name)
 end
 

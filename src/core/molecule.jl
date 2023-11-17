@@ -60,7 +60,11 @@ function Molecule(name::String = "", properties::Properties = Properties(), flag
 end
 
 function Base.getproperty(mol::Molecule, name::Symbol)
-    in(name, fieldnames(MoleculeTuple)) && return getproperty(getfield(mol, :_row), name)
+    gp = () -> getproperty(getfield(mol, :_row), name)
+    name === :idx        && return gp()::Int
+    name === :name       && return gp()::String
+    name === :properties && return gp()::Properties
+    name === :flags      && return gp()::Flags
     getfield(mol, name)
 end
 
