@@ -13,15 +13,11 @@ end
     ff::ForceField{T}
     cache::Dict{Symbol, Any}
     energy::Dict{String, T}
+    unassigned_bends::AbstractVector{Tuple{Atom{T}, Atom{T}, Atom{T}}}
     bends::AbstractVector{QuadraticAngleBend{T}}
 
     function QuadraticBendComponent{T}(ff::ForceField{T}) where {T<:Real}
-        this = new("QuadraticAngleBend", ff, Dict{Symbol, Any}(), Dict{String, T}())
-
-        setup!(this)
-        update!(this)
-
-        this
+        new("QuadraticAngleBend", ff, Dict{Symbol, Any}(), Dict{String, T}(), [])
     end
 end
 
@@ -80,11 +76,7 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
                 )
 
                 if ismissing(qab)
-                    @warn "QuadraticBendComponent(): cannot find bend parameters for "        *
-                          "atom types $(type_a1)-$(type_a2)-$(type_a3) (atoms are: "          *
-                          "$(get_full_name(a1, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/" *
-                          "$(get_full_name(a2, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/" *
-                          "$(get_full_name(a3, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID)))"
+                    push!(qbc.unassigned_bends, (a1, a2, a3))
                           
                     push!(ff.unassigned_atoms, a1)
                     push!(ff.unassigned_atoms, a2)
@@ -195,4 +187,24 @@ function compute_forces(qbc::QuadraticBendComponent{T}) where {T<:Real}
     map(compute_forces, qbc.bends)
 
     nothing
+end
+
+function count_warnings(qbc::QuadraticBendComponent{T}) where {T<:Real}
+    length(qbc.unassigned_bends)
+end
+
+function print_warnings(qbc::QuadraticBendComponent{T}) where {T<:Real}
+    for ub in qbc.unassigned_bends
+        a1, a2, a3 = ub
+
+        type_a1 = a1.atom_type
+        type_a2 = a2.atom_type
+        type_a3 = a3.atom_type
+
+        @warn "QuadraticBendComponent(): cannot find bend parameters for "        *
+                          "atom types $(type_a1)-$(type_a2)-$(type_a3) (atoms are: "          *
+                          "$(get_full_name(a1, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/" *
+                          "$(get_full_name(a2, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/" *
+                          "$(get_full_name(a3, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID)))"
+    end
 end

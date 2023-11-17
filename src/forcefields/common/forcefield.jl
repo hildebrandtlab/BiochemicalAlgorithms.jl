@@ -6,7 +6,9 @@ export
     setup!,
     update!,
     compute_energy,
-    compute_forces
+    compute_forces,
+    count_warnings,
+    print_warnings
 
 const force_prefactor = ustrip(u"kJ/mol/angstrom"/Constants.N_A |> u"N")
 
@@ -133,9 +135,33 @@ end
 
 function setup!(component::AbstractForceFieldComponent) end
 function update!(component::AbstractForceFieldComponent) end
+function count_warnings(component::AbstractForceFieldComponent) 0 end
+function print_warnings(component::AbstractForceFieldComponent) end
 
 function setup!(ff::ForceField{T}) where {T<:Real}
     map(setup!, ff.components)
+
+    warning_counts = map(count_warnings, ff.components)
+
+    if sum(warning_counts) > 0
+
+        max_length = maximum(length(c.name) for (i,c) in enumerate(ff.components) if warning_counts[i] > 0)
+
+        warning_string = "$(sum(warning_counts)) warnings occurred during setup that were suppressed:\n"
+        warning_string *= "Components:\n"
+        for (i, c) in enumerate(ff.components)
+            if warning_counts[i] > 0
+                warning_string *= Printf.format(
+                    Printf.Format("%-$(max_length)s: %d warnings\n"),
+                        c.name, 
+                        warning_counts[i]
+                )
+            end
+        end
+        warning_string *= "Use print_warnings(ff) to display them."
+
+        @warn warning_string
+    end
 end
 
 """
@@ -182,6 +208,12 @@ function compute_forces(ff::ForceField{T}) where {T<:Real}
     map(compute_forces, ff.components)
 
     nothing
+end
+
+function print_warnings(ff::ForceField{T}) where {T<:Real}
+    for component in ff.components
+        print_warnings(component)
+    end
 end
 
 @inline Base.show(io::IO, ::MIME"text/plain", ff::ForceField) = println(io, 
