@@ -55,7 +55,7 @@ end
 #   d/dR sw(R) = 12 R -----------------------------------
 #                           (r_{off}^2 - r_{on}^2)^3
 #
-function (f::CubicSwitchingFunction{T})(sq_distance::T) where {T<:Real}
+function switching_function(f::CubicSwitchingFunction{T}, sq_distance::T)::T where {T<:Real}
     below_off = ((sq_distance < f.sq_cutoff) ? one(T) : zero(T));
     below_on  = ((sq_distance < f.sq_cuton)  ? one(T) : zero(T));
 
@@ -85,7 +85,7 @@ end
     scaling_factor::T
     a1::Atom{T}
     a2::Atom{T}
-    switching_function
+    switching_function::CubicSwitchingFunction{T}
 end
 
 @auto_hash_equals struct ElecrostaticInteraction{T<:Real}
@@ -95,7 +95,7 @@ end
     distance_dependent_dielectric::Bool
     a1::Atom{T}
     a2::Atom{T}
-    switching_function
+    switching_function::CubicSwitchingFunction{T}
 end
 
 @auto_hash_equals mutable struct NonBondedComponent{T<:Real} <: AbstractForceFieldComponent{T}
@@ -103,11 +103,11 @@ end
     ff::ForceField{T}
     cache::Dict{Symbol, Any}
     energy::Dict{String, T}
-    unassigned_lj_interactions::AbstractVector{Tuple{Atom, Atom}}
+    unassigned_lj_interactions::Vector{Tuple{Atom, Atom}}
 
-    lj_interactions::AbstractVector{LennardJonesInteraction{T, 12, 6}}
-    hydrogen_bonds::AbstractVector{LennardJonesInteraction{T, 12, 10}}
-    electrostatic_interactions::AbstractVector{ElecrostaticInteraction{T}}
+    lj_interactions::Vector{LennardJonesInteraction{T, 12, 6}}
+    hydrogen_bonds::Vector{LennardJonesInteraction{T, 12, 10}}
+    electrostatic_interactions::Vector{ElecrostaticInteraction{T}}
 
     function NonBondedComponent{T}(ff::ForceField{T}) where {T<:Real}
         new("NonBonded", ff, Dict{Symbol, Any}(), Dict{String, T}(), [])
@@ -472,23 +472,23 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
     nothing
 end
 
-@inline function compute_energy(lji::LennardJonesInteraction{T, 12, 6}) where {T<:Real}
-    inv_dist_6 = lji.distance^-6
+@inline function compute_energy(lji::LennardJonesInteraction{T, 12, 6})::T where {T<:Real}
+    inv_dist_6::T = lji.distance^-6
 
-    inv_dist_6 * (inv_dist_6 * lji.A - lji.B) * lji.scaling_factor * lji.switching_function(lji.distance^2)
+    inv_dist_6 * (inv_dist_6 * lji.A - lji.B) * lji.scaling_factor * switching_function(lji.switching_function, lji.distance^2)
 end
 
-@inline function compute_energy(hb::LennardJonesInteraction{T, 12, 10}) where {T<:Real}
-    hb.distance^-12 * hb.A - hb.distance^-10 * hb.B * hb.scaling_factor * hb.switching_function(hb.distance^2)
+@inline function compute_energy(hb::LennardJonesInteraction{T, 12, 10})::T where {T<:Real}
+    hb.distance^-12 * hb.A - hb.distance^-10 * hb.B * hb.scaling_factor * switching_function(hb.switching_function, hb.distance^2)
 end
 
-@inline function compute_energy(esi::ElecrostaticInteraction{T}) where {T<:Real}
-    energy = esi.distance_dependent_dielectric ? 0.25 * esi.q1q2 / (esi.distance^2) : esi.q1q2 / esi.distance
+@inline function compute_energy(esi::ElecrostaticInteraction{T})::T where {T<:Real}
+    energy::T = esi.distance_dependent_dielectric ? 0.25 * esi.q1q2 / (esi.distance^2) : esi.q1q2 / esi.distance
 
-    energy * esi.scaling_factor * esi.switching_function(esi.distance^2) * T(ES_Prefactor)
+    energy * esi.scaling_factor * switching_function(esi.switching_function, esi.distance^2) * T(ES_Prefactor)
 end
 
-function compute_energy(nbc::NonBondedComponent{T}) where {T<:Real}
+function compute_energy(nbc::NonBondedComponent{T})::T where {T<:Real}
     # iterate over all interactions in the system
     vdw_energy   = mapreduce(compute_energy, +, nbc.lj_interactions;            init=zero(T))
     hbond_energy = mapreduce(compute_energy, +, nbc.hydrogen_bonds;             init=zero(T))

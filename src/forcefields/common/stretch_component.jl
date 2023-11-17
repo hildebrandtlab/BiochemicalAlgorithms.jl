@@ -12,8 +12,8 @@ end
     ff::ForceField{T}
     cache::Dict{Symbol, Any}
     energy::Dict{String, T}
-    unassigned_stretches::AbstractVector{Tuple{Atom{T}, Atom{T}}}
-    stretches::AbstractVector{QuadraticBondStretch{T}}
+    unassigned_stretches::Vector{Tuple{Atom{T}, Atom{T}}}
+    stretches::Vector{QuadraticBondStretch{T}}
 
     function QuadraticStretchComponent{T}(ff::ForceField{T}) where {T<:Real}
         new("QuadraticBondStretch", ff, Dict{Symbol, Any}(), Dict{String, T}(), [])
@@ -97,13 +97,13 @@ function update!(qsc::QuadraticStretchComponent{T}) where {T<:Real}
     nothing
 end
 
-@inline function compute_energy(qbs::QuadraticBondStretch{T}) where {T<:Real}
+@inline function compute_energy(qbs::QuadraticBondStretch{T})::T where {T<:Real}
     d = distance(qbs.a1.r, qbs.a2.r)
 
     qbs.k * (d - qbs.r0)^2
 end
 
-function compute_energy(qsc::QuadraticStretchComponent{T}) where {T<:Real}
+function compute_energy(qsc::QuadraticStretchComponent{T})::T where {T<:Real}
     # iterate over all bonds in the system
 
     total_energy = mapreduce(compute_energy, +, qsc.stretches; init=zero(T))

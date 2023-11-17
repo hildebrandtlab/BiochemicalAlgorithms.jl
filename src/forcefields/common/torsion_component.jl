@@ -1,10 +1,10 @@
 export CosineTorsion, TorsionComponent
 
 @auto_hash_equals struct CosineTorsion{T<:Real}
-    V::AbstractVector{T}
-    ϕ₀::AbstractVector{T}
-    f::AbstractVector{Int}
-    div::AbstractVector{Int}
+    V::Vector{T}
+    ϕ₀::Vector{T}
+    f::Vector{Int}
+    div::Vector{Int}
     a1::Atom{T}
     a2::Atom{T}
     a3::Atom{T}
@@ -19,8 +19,8 @@ end
 
     unassigned_torsions::Vector{Tuple{Atom{T}, Atom{T}, Atom{T}, Atom{T}, Bool}}
 
-    proper_torsions::AbstractVector{CosineTorsion{T}}
-    improper_torsions::AbstractVector{CosineTorsion{T}}
+    proper_torsions::Vector{CosineTorsion{T}}
+    improper_torsions::Vector{CosineTorsion{T}}
 
     function TorsionComponent{T}(ff::ForceField{T}) where {T<:Real}
         new("Torsion", ff, Dict{Symbol, Any}(), Dict{String, Any}(), [])
@@ -266,7 +266,7 @@ function update!(tc::TorsionComponent{T}) where {T<:Real}
     nothing
 end
 
-@inline function compute_energy(pt::CosineTorsion{T}) where {T<:Real}
+@inline function compute_energy(pt::CosineTorsion{T})::T where {T<:Real}
     energy = zero(T)
 
     a21 = pt.a1.r - pt.a2.r
@@ -291,7 +291,7 @@ end
     energy
 end
 
-function compute_energy(tc::TorsionComponent{T}) where {T<:Real}
+function compute_energy(tc::TorsionComponent{T})::T where {T<:Real}
     # iterate over all proper torsions in the system
     proper_torsion_energy   = mapreduce(compute_energy, +, tc.proper_torsions; init=zero(T))
     improper_torsion_energy = mapreduce(compute_energy, +, tc.improper_torsions; init=zero(T))
