@@ -12,15 +12,11 @@ end
     ff::ForceField{T}
     cache::Dict{Symbol, Any}
     energy::Dict{String, T}
+    unassigned_stretches::AbstractVector{Tuple{Atom{T}, Atom{T}}}
     stretches::AbstractVector{QuadraticBondStretch{T}}
 
     function QuadraticStretchComponent{T}(ff::ForceField{T}) where {T<:Real}
-        this = new("QuadraticBondStretch", ff, Dict{Symbol, Any}(), Dict{String, T}())
-
-        setup!(this)
-        update!(this)
-
-        this
+        new("QuadraticBondStretch", ff, Dict{Symbol, Any}(), Dict{String, T}(), [])
     end
 end
 
@@ -69,11 +65,7 @@ function setup!(qsc::QuadraticStretchComponent{T}) where {T}
         )
 
         stretches[i] = if ismissing(qbs)
-
-            @warn "QuadraticStretchComponent(): cannot find stretch parameters for " *
-                "atom types $(type_a1)-$(type_a2) (atoms are: "                      *
-                "$(get_full_name(a1, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/"  *
-                "$(get_full_name(a2, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID)))"
+            push!(qsc.unassigned_stretches, (a1, a2))
 
             push!(ff.unassigned_atoms, a1)
             push!(ff.unassigned_atoms, a2)
@@ -137,4 +129,22 @@ function compute_forces(qsc::QuadraticStretchComponent{T}) where {T<:Real}
     map(compute_forces, qsc.stretches)
 
     nothing
+end
+
+function count_warnings(qsc::QuadraticStretchComponent{T}) where {T<:Real}
+    length(qsc.unassigned_stretches)
+end
+
+function print_warnings(qsc::QuadraticStretchComponent{T}) where {T<:Real}
+    for us in qsc.unassigned_stretches
+        a1, a2 = us
+
+        type_a1::String = a1.atom_type
+        type_a2::String = a2.atom_type
+
+        @warn "QuadraticStretchComponent(): cannot find stretch parameters for " *
+                "atom types $(type_a1)-$(type_a2) (atoms are: "                      *
+                "$(get_full_name(a1, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/"  *
+                "$(get_full_name(a2, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID)))"
+    end
 end

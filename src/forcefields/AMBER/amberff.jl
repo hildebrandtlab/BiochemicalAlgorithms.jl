@@ -51,5 +51,8 @@ function AmberFF(
         ]
     )
 
+    setup!(amber_ff)
+    update!(amber_ff)
+
     amber_ff
 end

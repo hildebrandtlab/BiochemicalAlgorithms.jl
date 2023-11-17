@@ -98,8 +98,24 @@ end
     switching_function
 end
 
+@auto_hash_equals mutable struct NonBondedComponent{T<:Real} <: AbstractForceFieldComponent{T}
+    name::String
+    ff::ForceField{T}
+    cache::Dict{Symbol, Any}
+    energy::Dict{String, T}
+    unassigned_lj_interactions::AbstractVector{Tuple{Atom, Atom}}
+
+    lj_interactions::AbstractVector{LennardJonesInteraction{T, 12, 6}}
+    hydrogen_bonds::AbstractVector{LennardJonesInteraction{T, 12, 10}}
+    electrostatic_interactions::AbstractVector{ElecrostaticInteraction{T}}
+
+    function NonBondedComponent{T}(ff::ForceField{T}) where {T<:Real}
+        new("NonBonded", ff, Dict{Symbol, Any}(), Dict{String, T}(), [])
+    end
+end
+
 @inline function _try_assign_vdw!(
-        ff::ForceField,
+        nbc::NonBondedComponent{T},
         atom_1::Atom{T},
         type_atom_1,
         atom_2::Atom{T},
@@ -109,6 +125,8 @@ end
         lj_combinations,
         lj_interactions,
         switching_function) where {T<:Real}
+
+    ff = nbc.ff
 
     params = get(lj_combinations, (I=type_atom_1, J=type_atom_2,), missing)
 
@@ -126,10 +144,7 @@ end
                 )
         )
     else
-        @warn "NonBondedComponent(): cannot find vdW parameters for "                   *
-                "atom types $(type_atom_1)-$(type_atom_2) (atoms are: "                 *
-                "$(get_full_name(atom_1, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/" *
-                "$(get_full_name(atom_2, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID)))"
+        push!(nbc.unassigned_lj_interactions)
 
         push!(ff.unassigned_atoms, atom_1)
         push!(ff.unassigned_atoms, atom_2)
@@ -137,25 +152,6 @@ end
         if length(ff.unassigned_atoms) > ff.options[:max_number_of_unassigned_atoms]
             throw(TooManyErrors())
         end
-    end
-end
-
-@auto_hash_equals mutable struct NonBondedComponent{T<:Real} <: AbstractForceFieldComponent{T}
-    name::String
-    ff::ForceField{T}
-    cache::Dict{Symbol, Any}
-    energy::Dict{String, T}
-    lj_interactions::AbstractVector{LennardJonesInteraction{T, 12, 6}}
-    hydrogen_bonds::AbstractVector{LennardJonesInteraction{T, 12, 10}}
-    electrostatic_interactions::AbstractVector{ElecrostaticInteraction{T}}
-
-    function NonBondedComponent{T}(ff::ForceField{T}) where {T<:Real}
-        this = new("NonBonded", ff, Dict{Symbol, Any}(), Dict{String, T}())
-
-        setup!(this)
-        update!(this)
-
-        this
     end
 end
 
@@ -440,7 +436,7 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
                 )
             else
                 _try_assign_vdw!(
-                    ff,
+                    nbc,
                     atom_1,
                     atom_1_type,
                     atom_2,
@@ -455,7 +451,7 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
         else
             # this is a torsion
             _try_assign_vdw!(
-                ff,
+                nbc,
                 atom_1,
                 atom_1_type,
                 atom_2,
@@ -650,4 +646,22 @@ function compute_forces(nbc::NonBondedComponent{T}) where {T<:Real}
     map(compute_forces, filter_pairs(nbc.electrostatic_interactions))
 
     nothing
+end
+
+function count_warnings(nbc::NonBondedComponent{T}) where {T<:Real}
+    length(nbc.unassigned_lj_interactions)
+end
+
+function print_warnings(nbc::NonBondedComponent{T}) where {T<:Real}
+    for ulj in nbc.unassigned_lj_interactions
+        atom_1, atom_2 = ulj
+
+        type_atom_1::String = atom_1.atom_type
+        type_atom_2::String = atom_2.atom_type
+
+        @warn "NonBondedComponent(): cannot find vdW parameters for "                   *
+                "atom types $(type_atom_1)-$(type_atom_2) (atoms are: "                 *
+                "$(get_full_name(atom_1, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/" *
+                "$(get_full_name(atom_2, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID)))"
+    end
 end

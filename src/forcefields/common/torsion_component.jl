@@ -11,6 +11,22 @@ export CosineTorsion, TorsionComponent
     a4::Atom{T}
 end
 
+@auto_hash_equals mutable struct TorsionComponent{T<:Real} <: AbstractForceFieldComponent{T}
+    name::String
+    ff::ForceField{T}
+    cache::Dict{Symbol, Any}
+    energy::Dict{String, T}
+
+    unassigned_torsions::Vector{Tuple{Atom{T}, Atom{T}, Atom{T}, Atom{T}, Bool}}
+
+    proper_torsions::AbstractVector{CosineTorsion{T}}
+    improper_torsions::AbstractVector{CosineTorsion{T}}
+
+    function TorsionComponent{T}(ff::ForceField{T}) where {T<:Real}
+        new("Torsion", ff, Dict{Symbol, Any}(), Dict{String, Any}(), [])
+    end
+end
+
 function _get_torsion_data(ff::ForceField{T}, section::String)::Tuple{T, T, GroupedDataFrame{DataFrame}} where {T<:Real}
     # extract the parameter section for quadratic bond stretches
     torsion_section = extract_section(ff.parameters, section)
@@ -34,7 +50,7 @@ function _get_torsion_data(ff::ForceField{T}, section::String)::Tuple{T, T, Grou
 end
 
 function _try_assign_torsion!(
-        ff::ForceField{T}, 
+        tc::TorsionComponent{T}, 
         torsions::Vector{CosineTorsion},
         torsion_combinations::Dict{K, V},
         a1::Atom{T}, 
@@ -42,7 +58,11 @@ function _try_assign_torsion!(
         a3::Atom{T}, 
         a4::Atom{T},
         V_factor::T,
-        ϕ₀_factor::T) where {T<:Real, K, V}
+        ϕ₀_factor::T,
+        is_proper::Bool) where {T<:Real, K, V}
+
+    ff = tc.ff
+    
     type_a1::String = a1.atom_type
     type_a2::String = a2.atom_type
     type_a3::String = a3.atom_type
@@ -62,13 +82,8 @@ function _try_assign_torsion!(
     )
 
     if ismissing(pt)
-        @warn "TorsionComponent(): cannot find torsion parameters for "      *
-            "atom types $(type_a1)-$(type_a2)-$(type_a3)-$(type_a4) (atoms are: " *
-            "$(get_full_name(a1, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/"   *
-            "$(get_full_name(a2, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/"   *
-            "$(get_full_name(a3, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/"   *
-            "$(get_full_name(a4, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID)))"
-            
+        push!(tc.unassigned_torsions, (a1, a2, a3, a4, is_proper))
+
         push!(ff.unassigned_atoms, a1)
         push!(ff.unassigned_atoms, a2)
         push!(ff.unassigned_atoms, a3)
@@ -103,39 +118,21 @@ function _try_assign_torsion!(
     end
 end
 
-@auto_hash_equals mutable struct TorsionComponent{T<:Real} <: AbstractForceFieldComponent{T}
-    name::String
-    ff::ForceField{T}
-    cache::Dict{Symbol, Any}
-    energy::Dict{String, T}
-    proper_torsions::AbstractVector{CosineTorsion{T}}
-    improper_torsions::AbstractVector{CosineTorsion{T}}
-
-    function TorsionComponent{T}(ff::ForceField{T}) where {T<:Real}
-        this = new("Torsion", ff, Dict{Symbol, Any}(), Dict{String, Any}())
-
-        setup!(this)
-        update!(this)
-
-        this
-    end
-end
-
 function setup!(tc::TorsionComponent{T}) where {T<:Real}
     # first, set up the proper torsions
-    V_factor, ϕ₀_factor, torsion_combinations = _get_torsion_data(tc.ff, "Torsions")
-
-    # remember those parts that stay constant when only the system is updated
-    tc.cache[:proper_V_factor]  = T(V_factor)
-    tc.cache[:proper_ϕ₀_factor] = T(ϕ₀_factor)
-
-    tc.cache[:proper_torsion_combinations] = torsion_combinations
+    _setup_proper_torsions!(tc)
 
     # now, set up the improper torsions
-    V_factor, ϕ₀_factor, torsion_combinations = _get_torsion_data(tc.ff, "ImproperTorsions")
+    _setup_improper_torsions!(tc)
+end
+
+function _setup_improper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
+    ff = tc.ff
+
+    V_factor, ϕ₀_factor, torsion_combinations = _get_torsion_data(ff, "ImproperTorsions")
 
     # extract the parameter sections containing all possible improper torsion atoms
-    impropers = extract_section(tc.ff.parameters, "ResidueImproperTorsions").data
+    impropers = extract_section(ff.parameters, "ResidueImproperTorsions").data
 
     # and again, remember those parts that stay constant when only the system is updated
     tc.cache[:improper_V_factor]  = T(V_factor)
@@ -145,23 +142,12 @@ function setup!(tc::TorsionComponent{T}) where {T<:Real}
 
     tc.cache[:impropers] = impropers
 
-    _setup_proper_torsions!(tc)
-    _setup_improper_torsions!(tc)
-end
-
-function _setup_improper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
-    ff = tc.ff
-
-    torsion_combinations::GroupedDataFrame{DataFrame} = tc.cache[:improper_torsion_combinations]
     torsion_dict = Dict(
         Tuple(k) => torsion_combinations[k] 
         for k in keys(torsion_combinations)
     )
 
-    V_factor::T  = tc.cache[:improper_V_factor]
-    ϕ₀_factor::T = tc.cache[:improper_ϕ₀_factor]
-
-    impropers = tc.cache[:impropers]
+    tc.cache[:improper_torsion_combinations] = torsion_dict
 
     improper_torsions = Vector{CosineTorsion}()
 
@@ -184,7 +170,15 @@ function _setup_improper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
                             bond_3 = bs[i_3]
                             a1 = get_partner(bond_3, atom)
 
-                            _try_assign_torsion!(ff, improper_torsions, torsion_dict, a1, a2, a3, a4, V_factor, ϕ₀_factor)
+                            _try_assign_torsion!(
+                                tc, 
+                                improper_torsions, 
+                                torsion_dict, 
+                                a1, a2, a3, a4, 
+                                V_factor, 
+                                ϕ₀_factor,
+                                false
+                            )
                         end
                     end
                 end
@@ -198,15 +192,18 @@ end
 function _setup_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
     ff = tc.ff
 
-    torsion_combinations::GroupedDataFrame{DataFrame} = tc.cache[:proper_torsion_combinations]
+    V_factor, ϕ₀_factor, torsion_combinations = _get_torsion_data(ff, "Torsions")
+
+    # remember those parts that stay constant when only the system is updated
+    tc.cache[:proper_V_factor]  = T(V_factor)
+    tc.cache[:proper_ϕ₀_factor] = T(ϕ₀_factor)
 
     torsion_dict = Dict(
         Tuple(k) => torsion_combinations[k] 
         for k in keys(torsion_combinations)
     )
 
-    V_factor::T  = tc.cache[:proper_V_factor]
-    ϕ₀_factor::T = tc.cache[:proper_ϕ₀_factor]
+    tc.cache[:proper_torsion_combinations] = torsion_dict
 
     proper_torsions = Vector{CosineTorsion}()
 
@@ -247,9 +244,17 @@ function _setup_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
                     
                         # determine the fourth atom a4
                         a4::Atom{T} = ((bond_3.a1 == a3.idx) ? atom_by_idx(parent_system(atom), bond_3.a2)
-                                                    : atom_by_idx(parent_system(atom), bond_3.a1))
+                                                             : atom_by_idx(parent_system(atom), bond_3.a1))
 
-                        _try_assign_torsion!(ff, proper_torsions, torsion_dict, a1, a2, a3, a4, V_factor, ϕ₀_factor)
+                        _try_assign_torsion!(
+                            tc, 
+                            proper_torsions, 
+                            torsion_dict, 
+                            a1, a2, a3, a4, 
+                            V_factor, 
+                            ϕ₀_factor,
+                            true
+                        )
                     end
                 end
             end
@@ -354,4 +359,28 @@ function compute_forces(tc::TorsionComponent{T}) where {T<:Real}
     map(compute_forces, tc.improper_torsions)
 
     nothing
+end
+
+function count_warnings(tc::TorsionComponent{T}) where {T<:Real}
+    length(tc.unassigned_torsions)
+end
+
+function print_warnings(tc::TorsionComponent{T}) where {T<:Real}
+    for ut in tc.unassigned_torsions
+        a1, a2, a3, a4, is_proper = ut
+
+        type_a1::String = a1.atom_type
+        type_a2::String = a2.atom_type
+        type_a3::String = a3.atom_type
+        type_a4::String = a4.atom_type
+
+        torsion_type = (is_proper) ? "proper" : "improper"
+
+        @warn "TorsionComponent(): cannot find $(torsion_type) torsion parameters for "      *
+            "atom types $(type_a1)-$(type_a2)-$(type_a3)-$(type_a4) (atoms are: " *
+            "$(get_full_name(a1, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/"   *
+            "$(get_full_name(a2, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/"   *
+            "$(get_full_name(a3, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/"   *
+            "$(get_full_name(a4, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID)))"
+    end
 end
