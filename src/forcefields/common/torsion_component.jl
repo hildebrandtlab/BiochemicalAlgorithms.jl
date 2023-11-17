@@ -138,8 +138,6 @@ function _setup_improper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
     tc.cache[:improper_V_factor]  = T(V_factor)
     tc.cache[:improper_ϕ₀_factor] = T(ϕ₀_factor)
 
-    tc.cache[:improper_torsion_combinations] = torsion_combinations
-
     tc.cache[:impropers] = impropers
 
     torsion_dict = Dict(

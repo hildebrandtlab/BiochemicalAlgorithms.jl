@@ -40,7 +40,11 @@ function setup!(qsc::QuadraticStretchComponent{T}) where {T}
 
     # group the stretch parameters by type_i, type_j combinations
     stretch_combinations = groupby(stretch_df, ["I", "J"])
-
+    
+    stretch_dict = Dict(
+        Tuple(k) => stretch_combinations[k] 
+        for k in keys(stretch_combinations)
+    )
     stretches = Vector{QuadraticBondStretch}(undef, nbonds(ff.system))
 
     # iterate over all bonds in the system
@@ -57,11 +61,11 @@ function setup!(qsc::QuadraticStretchComponent{T}) where {T}
         end
 
         qbs = coalesce(
-            get(stretch_combinations, (I=type_a1, J=type_a2,), missing),
-            get(stretch_combinations, (I=type_a2, J=type_a1,), missing),
-            get(stretch_combinations, (I=type_a1, J="*",    ), missing),
-            get(stretch_combinations, (I="*",     J=type_a2,), missing),
-            get(stretch_combinations, (I="*",     J="*",    ), missing)
+            get(stretch_dict, (type_a1, type_a2,), missing),
+            get(stretch_dict, (type_a2, type_a1,), missing),
+            get(stretch_dict, (type_a1, "*",    ), missing),
+            get(stretch_dict, ("*",     type_a2,), missing),
+            get(stretch_dict, ("*",     "*",    ), missing)
         )
 
         stretches[i] = if ismissing(qbs)
