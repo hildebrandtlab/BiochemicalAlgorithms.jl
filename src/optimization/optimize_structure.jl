@@ -1,6 +1,6 @@
 export optimize_structure!, optimize_hydrogen_positions!
 
-function compute_energy(ff::ForceField{T}, r::AbstractVector{T}; verbose=false) where {T<:Real}
+function compute_energy(ff::ForceField{T}, r::AbstractVector{T}; verbose=false)::T where {T<:Real}
     # first, convert the vector of positions to something we can use
     atoms_df(ff.system).r = Vector3{T}.(r[1:3:end], r[2:3:end], r[3:3:end])
 

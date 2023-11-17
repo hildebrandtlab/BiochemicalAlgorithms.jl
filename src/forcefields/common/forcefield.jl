@@ -175,7 +175,7 @@ function update!(ff::ForceField{T}) where {T<:Real}
     map(update!, ff.components)
 end
 
-function compute_energy(ff::ForceField{T}; verbose=false) where {T<:Real}
+function compute_energy(ff::ForceField{T}; verbose=false)::T where {T<:Real}
     total_energy = mapreduce(compute_energy, +, ff.components; init=zero(T))
 
     for c in ff.components

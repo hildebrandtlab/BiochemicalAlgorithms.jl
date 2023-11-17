@@ -13,8 +13,8 @@ end
     ff::ForceField{T}
     cache::Dict{Symbol, Any}
     energy::Dict{String, T}
-    unassigned_bends::AbstractVector{Tuple{Atom{T}, Atom{T}, Atom{T}}}
-    bends::AbstractVector{QuadraticAngleBend{T}}
+    unassigned_bends::Vector{Tuple{Atom{T}, Atom{T}, Atom{T}}}
+    bends::Vector{QuadraticAngleBend{T}}
 
     function QuadraticBendComponent{T}(ff::ForceField{T}) where {T<:Real}
         new("QuadraticAngleBend", ff, Dict{Symbol, Any}(), Dict{String, T}(), [])
@@ -111,7 +111,7 @@ function update!(qbc::QuadraticBendComponent{T}) where {T<:Real}
     nothing
 end
 
-@inline function compute_energy(qab::QuadraticAngleBend{T}) where {T<:Real}
+@inline function compute_energy(qab::QuadraticAngleBend{T})::T where {T<:Real}
     v1 = qab.a1.r - qab.a2.r
     v2 = qab.a3.r - qab.a2.r
 
@@ -133,7 +133,7 @@ end
     qab.k * (θ - qab.θ₀)^2
 end
 
-function compute_energy(qbc::QuadraticBendComponent{T}) where {T<:Real}
+function compute_energy(qbc::QuadraticBendComponent{T})::T where {T<:Real}
     # iterate over all bends in the system
     total_energy = mapreduce(compute_energy, +, qbc.bends; init=zero(T))
 
