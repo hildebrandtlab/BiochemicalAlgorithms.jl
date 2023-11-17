@@ -112,7 +112,7 @@ function Atom(
     idx = _next_idx(sys)
     push!(sys._atoms, (idx, number, element, name, atom_type, r, v, F, formal_charge, charge, radius,
         properties, flags, frame_id, molecule_id, chain_id, fragment_id, nucleotide_id, residue_id))
-    atom_by_idx(sys, idx)
+    atom_by_idx(sys, idx)::Atom{T}
 end
 
 function Atom(
@@ -136,7 +136,7 @@ function Atom(
           atom_type=atom_type, r=r, v=v, F=F, formal_charge=formal_charge, 
           charge=charge, radius=radius, properties=properties, flags=flags)::AtomTuple{T};
           frame_id=frame_id)
-    atom_by_idx(ac._sys, ac._sys._curr_idx)
+    atom_by_idx(ac._sys, ac._sys._curr_idx)::Atom{T}
 end
 
 function Atom(
@@ -155,15 +155,15 @@ function Atom(
     kwargs...
 )
     Atom(default_system(), number, element, name, atom_type, r, v, F, formal_charge, charge, radius,
-        properties, flags; kwargs...)
+        properties, flags; kwargs...)::Atom{Float32}
 end
 
 @inline function Atom(sys::System{T}, atom::AtomTuple{T}; kwargs...) where T
-    Atom(sys, ntuple(i -> atom[i+1], length(atom) - 1)...; kwargs...)
+    Atom(sys, ntuple(i -> atom[i+1], length(atom) - 1)...; kwargs...)::Atom{T}
 end
 
 @inline function Atom(t::AtomTuple{Float32}; kwargs...)
-    Atom(default_system(), t; kwargs...)
+    Atom(default_system(), t; kwargs...)::Atom{Float32}
 end
 
 function Base.getproperty(atom::Atom, name::Symbol)
