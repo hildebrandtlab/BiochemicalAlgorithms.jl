@@ -64,7 +64,7 @@ using BiochemicalAlgorithms: _SystemChainTuple, _chains
         @test_throws ErrorException chain.molecule_id = 0
 
         # chain_by_idx
-        @test isnothing(chain_by_idx(sys, -1))
+        @test_throws chain_by_idx(sys, -1)
         @test chain_by_idx(sys, chain.idx) isa Chain{T}
         @test chain_by_idx(sys, chain.idx) == chain
         

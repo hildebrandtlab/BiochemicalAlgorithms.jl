@@ -229,12 +229,11 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Returns the `Atom{T}` associated with the given `idx` in `sys`. Returns `nothing` if no such atom
-exists.
+Returns the `Atom{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
+atom exists.
 """
 @inline function atom_by_idx(sys::System{T}, idx::Int) where T
-    rn = _row_by_idx(sys._atoms, idx)
-    isnothing(rn) ? nothing : Atom{T}(sys, DataFrameRow(sys._atoms.df, rn, :))
+    Atom{T}(sys, DataFrameRow(sys._atoms.df, _row_by_idx(sys._atoms, idx), :))
 end
 
 @inline function atom_by_name(ac::AbstractAtomContainer{T}, name::String) where T
@@ -364,7 +363,7 @@ Returns a raw `DataFrame` containing all of the given atom's bonds.
 @inline function _bonds(atom::Atom)
     aidx = atom.idx
     @rsubset(
-        parent(atom)._bonds, :a1 == aidx || :a2 == aidx; view = true
+        parent(atom)._bonds.df, :a1 == aidx || :a2 == aidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 

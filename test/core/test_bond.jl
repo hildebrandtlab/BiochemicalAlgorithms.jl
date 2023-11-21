@@ -80,7 +80,7 @@
         @test :C in bond.flags
 
         # bond_by_idx
-        @test isnothing(bond_by_idx(sys, -1))
+        @test_throws KeyError bond_by_idx(sys, -1)
         @test bond_by_idx(sys, bond.idx) isa Bond{T}
         @test bond_by_idx(sys, bond.idx) == bond
 

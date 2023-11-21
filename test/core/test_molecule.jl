@@ -55,7 +55,7 @@
         @test :C in mol.flags
 
         # molecule_by_idx
-        @test isnothing(molecule_by_idx(sys, -1))
+        @test_throws KeyError molecule_by_idx(sys, -1)
         @test molecule_by_idx(sys, mol.idx) isa Molecule{T}
         @test molecule_by_idx(sys, mol.idx) == mol
 

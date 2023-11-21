@@ -79,7 +79,7 @@
         @test_throws ErrorException res.chain_id = 0
 
         # residue_by_idx
-        @test isnothing(residue_by_idx(sys, -1))
+        @test_throws KeyError residue_by_idx(sys, -1)
         @test residue_by_idx(sys, res.idx) isa Residue{T}
         @test residue_by_idx(sys, res.idx) == res
 

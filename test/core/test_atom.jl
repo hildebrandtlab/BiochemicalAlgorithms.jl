@@ -128,7 +128,7 @@
         @test_throws ErrorException atom.residue_id = 0
 
         # atom_by_idx
-        @test_throws KeyError isnothing(atom_by_idx(sys, -1))
+        @test_throws KeyError atom_by_idx(sys, -1)
         @test atom_by_idx(sys, atom.idx) isa Atom{T}
         @test atom_by_idx(sys, atom.idx) == atom
 

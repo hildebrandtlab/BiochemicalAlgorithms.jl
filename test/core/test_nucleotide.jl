@@ -79,7 +79,7 @@
         @test_throws ErrorException nuc.chain_id = 0
 
         # nucleotide_by_idx
-        @test isnothing(nucleotide_by_idx(sys, -1))
+        @test_throws KeyError nucleotide_by_idx(sys, -1)
         @test nucleotide_by_idx(sys, nuc.idx) isa Nucleotide{T}
         @test nucleotide_by_idx(sys, nuc.idx) == nuc
 

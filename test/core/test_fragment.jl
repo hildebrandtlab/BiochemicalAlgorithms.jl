@@ -79,7 +79,7 @@
         @test_throws ErrorException frag.chain_id = 0
 
         # fragment_by_idx
-        @test isnothing(fragment_by_idx(sys, -1))
+        @test_throws KeyError fragment_by_idx(sys, -1)
         @test fragment_by_idx(sys, frag.idx) isa Fragment{T}
         @test fragment_by_idx(sys, frag.idx) == frag
 

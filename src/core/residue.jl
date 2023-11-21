@@ -75,12 +75,11 @@ Returns the `Residue{T}` containing the given atom. Returns `nothing` if no such
 """
     $(TYPEDSIGNATURES)
 
-Returns the `Residue{T}` associated with the given `idx` in `sys`. Returns `nothing` if no such residue
-exists.
+Returns the `Residue{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
+residue exists.
 """
 @inline function residue_by_idx(sys::System{T}, idx::Int) where T
-    rn = _row_by_idx(sys._residues, idx)
-    isnothing(rn) ? nothing : Residue{T}(sys, DataFrameRow(sys._residues, rn, :))
+    Residue{T}(sys, DataFrameRow(sys._residues.df, _row_by_idx(sys._residues, idx), :))
 end
 
 """
@@ -93,14 +92,14 @@ function _residues(sys::System{T};
     molecule_id::MaybeInt = nothing,
     chain_id::MaybeInt = nothing
 ) where T
-    isnothing(molecule_id) && isnothing(chain_id) && return sys._residues
+    isnothing(molecule_id) && isnothing(chain_id) && return sys._residues.df
 
     cols = Tuple{Symbol, Int}[]
     isnothing(molecule_id) || push!(cols, (:molecule_id, molecule_id))
     isnothing(chain_id)    || push!(cols, (:chain_id, chain_id))
 
     get(
-        groupby(sys._residues, getindex.(cols, 1)),
+        groupby(sys._residues.df, getindex.(cols, 1)),
         ntuple(i -> cols[i][2], length(cols)),
         DataFrame(_SystemResidueTuple[])
     )
