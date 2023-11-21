@@ -72,12 +72,11 @@ Returns the `Chain{T}` containing the given object. Returns `nothing` if no such
 """
     $(TYPEDSIGNATURES)
 
-Returns the `Chain{T}` associated with the given `idx` in `sys`. Returns `nothing` if no such chain
-exists.
+Returns the `Chain{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
+chain exists.
 """
 @inline function chain_by_idx(sys::System{T}, idx::Int) where T
-    rn = _row_by_idx(sys._chains, idx)
-    isnothing(rn) ? nothing : Chain{T}(sys, DataFrameRow(sys._chains, rn, :))
+    Chain{T}(sys, DataFrameRow(sys._chains.df, _row_by_idx(sys._chains, idx), :))
 end
 
 """
@@ -87,10 +86,10 @@ Returns a raw `DataFrame` for all of the given system's chains matching the give
 given as `nothing` are ignored. The returned `DataFrame` contains all public and private chain fields.
 """
 function _chains(sys::System; molecule_id::MaybeInt = nothing)
-    isnothing(molecule_id) && return sys._chains
+    isnothing(molecule_id) && return sys._chains.df
 
     get(
-        groupby(sys._chains, :molecule_id),
+        groupby(sys._chains.df, :molecule_id),
         (molecule_id = molecule_id,),
         DataFrame(_SystemChainTuple[])
     )

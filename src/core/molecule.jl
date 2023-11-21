@@ -98,12 +98,11 @@ Returns the `Molecule{T}` containing the given object. Returns `nothing` if no s
 """
     $(TYPEDSIGNATURES)
 
-Returns the `Molecule{T}` associated with the given `idx` in `sys`. Returns `nothing` if no such
+Returns the `Molecule{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
 molecule exists.
 """
 @inline function molecule_by_idx(sys::System{T}, idx::Int) where T
-    rn = _row_by_idx(sys._molecules, idx)
-    isnothing(rn) ? nothing : Molecule{T}(sys, DataFrameRow(sys._molecules, rn, :))
+    Molecule{T}(sys, DataFrameRow(sys._molecules.df, _row_by_idx(sys._molecules, idx), :))
 end
 
 """
@@ -113,7 +112,7 @@ Returns a raw `DataFrame` for all of the given system's molecules. The returned 
 contains all public and private molecule fields.
 """
 @inline function _molecules(sys::System)
-    sys._molecules
+    sys._molecules.df
 end
 
 """

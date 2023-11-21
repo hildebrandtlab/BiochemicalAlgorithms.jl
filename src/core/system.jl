@@ -101,12 +101,12 @@ Creates a new and empty `System{T}`.
     flags::Flags
 
     _atoms::IndexedDataFrame
-    _bonds::DataFrame
-    _molecules::DataFrame
-    _chains::DataFrame
-    _fragments::DataFrame
-    _nucleotides::DataFrame
-    _residues::DataFrame
+    _bonds::IndexedDataFrame
+    _molecules::IndexedDataFrame
+    _chains::IndexedDataFrame
+    _fragments::IndexedDataFrame
+    _nucleotides::IndexedDataFrame
+    _residues::IndexedDataFrame
     _curr_idx::Int
 
     function System{T}(
@@ -119,12 +119,12 @@ Creates a new and empty `System{T}`.
             properties,
             flags,
             IndexedDataFrame(_SystemAtomTuple{T}[]),
-            DataFrame(BondTuple[]),
-            DataFrame(MoleculeTuple[]),
-            DataFrame(_SystemChainTuple[]),
-            DataFrame(_SystemFragmentTuple[]),
-            DataFrame(_SystemNucleotideTuple[]),
-            DataFrame(_SystemResidueTuple[]),
+            IndexedDataFrame(BondTuple[]),
+            IndexedDataFrame(MoleculeTuple[]),
+            IndexedDataFrame(_SystemChainTuple[]),
+            IndexedDataFrame(_SystemFragmentTuple[]),
+            IndexedDataFrame(_SystemNucleotideTuple[]),
+            IndexedDataFrame(_SystemResidueTuple[]),
             0
         )
     end

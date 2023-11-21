@@ -77,12 +77,11 @@ Returns the `Fragment{T}` containing the given atom. Returns `nothing` if no suc
 """
     $(TYPEDSIGNATURES)
 
-Returns the `Fragment{T}` associated with the given `idx` in `sys`. Returns `nothing` if no such
+Returns the `Fragment{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
 fragment exists.
 """
 @inline function fragment_by_idx(sys::System{T}, idx::Int) where T
-    rn = _row_by_idx(sys._fragments, idx)
-    isnothing(rn) ? nothing : Fragment{T}(sys, DataFrameRow(sys._fragments, rn, :))
+    Fragment{T}(sys, DataFrameRow(sys._fragments.df, _row_by_idx(sys._fragments, idx), :))
 end
 
 """
@@ -95,14 +94,14 @@ function _fragments(sys::System{T};
         molecule_id::MaybeInt = nothing,
         chain_id::MaybeInt = nothing
 ) where T
-    isnothing(molecule_id) && isnothing(chain_id) && return sys._fragments
+    isnothing(molecule_id) && isnothing(chain_id) && return sys._fragments.df
 
     cols = Tuple{Symbol, Int}[]
     isnothing(molecule_id) || push!(cols, (:molecule_id, molecule_id))
     isnothing(chain_id)    || push!(cols, (:chain_id, chain_id))
 
     get(
-        groupby(sys._fragments, getindex.(cols, 1)),
+        groupby(sys._fragments.df, getindex.(cols, 1)),
         ntuple(i -> cols[i][2], length(cols)),
         DataFrame(_SystemFragmentTuple[])
     )
@@ -304,7 +303,7 @@ end
     try
         prev_candidate = fragment_by_idx(parent(frag), frag.idx - 1)
 
-        if !isnothing(prev_candidate) && parent_chain(prev_candidate) == parent_chain(frag)
+        if parent_chain(prev_candidate) == parent_chain(frag)
             return prev_candidate
         end
     catch
@@ -317,7 +316,7 @@ end
     try
         prev_candidate = fragment_by_idx(parent(frag), frag.idx + 1)
 
-        if !isnothing(prev_candidate) && parent_chain(prev_candidate) == parent_chain(frag)
+        if parent_chain(prev_candidate) == parent_chain(frag)
             return prev_candidate
         end
     catch

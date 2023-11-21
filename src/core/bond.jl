@@ -103,12 +103,11 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Returns the `Bond{T}` associated with the given `idx` in `sys`. Returns `nothing` if no such bond
-exists.
+Returns the `Bond{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
+bond exists.
 """
 @inline function bond_by_idx(sys::System{T}, idx::Int) where T
-    rn = _row_by_idx(sys._bonds, idx)
-    isnothing(rn) ? nothing : Bond{T}(sys, DataFrameRow(sys._bonds, rn, :))
+    Bond{T}(sys, DataFrameRow(sys._bonds.df, _row_by_idx(sys._bonds, idx), :))
 end
 
 """
@@ -122,7 +121,7 @@ function _bonds(sys::System; kwargs...)
     # FIXME this implementation currently ignores bonds with _two_ invalid atom IDs
     aidx = Set(_atoms(sys; kwargs...).idx)
     @rsubset(
-        sys._bonds, :a1 in aidx || :a2 in aidx; view = true
+        sys._bonds.df, :a1 in aidx || :a2 in aidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 

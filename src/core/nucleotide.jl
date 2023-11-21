@@ -76,12 +76,11 @@ Returns the `Nucleotide{T}` containing the given atom. Returns `nothing` if no s
 """
     $(TYPEDSIGNATURES)
 
-Returns the `Nucleotide{T}` associated with the given `idx` in `sys`. Returns `nothing` if no such
+Returns the `Nucleotide{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
 nucleotide exists.
 """
 @inline function nucleotide_by_idx(sys::System{T}, idx::Int) where T
-    rn = _row_by_idx(sys._nucleotides, idx)
-    isnothing(rn) ? nothing : Nucleotide{T}(sys, DataFrameRow(sys._nucleotides, rn, :))
+    Nucleotide{T}(sys, DataFrameRow(sys._nucleotides.df, _row_by_idx(sys._nucleotides, idx), :))
 end
 
 """
@@ -94,14 +93,14 @@ function _nucleotides(sys::System{T};
     molecule_id::MaybeInt = nothing,
     chain_id::MaybeInt = nothing
 ) where T
-    isnothing(molecule_id) && isnothing(chain_id) && return sys._nucleotides
+    isnothing(molecule_id) && isnothing(chain_id) && return sys._nucleotides.df
 
     cols = Tuple{Symbol, Int}[]
     isnothing(molecule_id) || push!(cols, (:molecule_id, molecule_id))
     isnothing(chain_id)    || push!(cols, (:chain_id, chain_id))
 
     get(
-        groupby(sys._nucleotides, getindex.(cols, 1)),
+        groupby(sys._nucleotides.df, getindex.(cols, 1)),
         ntuple(i -> cols[i][2], length(cols)),
         DataFrame(_SystemNucleotideTuple[])
     )

@@ -55,7 +55,7 @@
         @test :C in prot.flags
 
         # protein_by_idx
-        @test isnothing(protein_by_idx(sys, -1))
+        @test_throws KeyError protein_by_idx(sys, -1)
         @test protein_by_idx(sys, prot.idx) isa Protein{T}
         @test protein_by_idx(sys, prot.idx) == prot
 

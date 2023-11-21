@@ -45,13 +45,13 @@ function Base.copy(substruct::Substructure{T}) where T
     sys.flags      = copy(substruct.parent.flags)
 
     sys._atoms = IndexedDataFrame(copy(substruct._atoms))
-    sys._bonds = copy(substruct._bonds)
+    sys._bonds = IndexedDataFrame(copy(substruct._bonds))
 
-    sys._molecules   = copy(_molecules(substruct))
-    sys._chains      = copy(_chains(substruct))
-    sys._fragments   = copy(_fragments(substruct))
-    sys._nucleotides = copy(_nucleotides(substruct))
-    sys._residues    = copy(_residues(substruct))
+    sys._molecules   = IndexedDataFrame(copy(_molecules(substruct)))
+    sys._chains      = IndexedDataFrame(copy(_chains(substruct)))
+    sys._fragments   = IndexedDataFrame(copy(_fragments(substruct)))
+    sys._nucleotides = IndexedDataFrame(copy(_nucleotides(substruct)))
+    sys._residues    = IndexedDataFrame(copy(_residues(substruct)))
 
     sys
 end
@@ -96,35 +96,35 @@ end
 function _molecules(substruct::Substructure; kwargs...)
     midx = unique(_atoms(substruct; kwargs...).molecule_id)
     @rsubset(
-        substruct.parent._molecules, :idx in midx; view = true
+        _molecules(substruct.parent), :idx in midx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
 function _chains(substruct::Substructure; kwargs...)
     cidx = _atoms(substruct; kwargs...).chain_id
     @rsubset(
-        substruct.parent._chains, :idx in cidx; view = true
+        _chains(substruct.parent), :idx in cidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
 function _fragments(substruct::Substructure; kwargs...)
     fidx = _atoms(substruct; kwargs...).fragment_id
     @rsubset(
-        substruct.parent._fragments, :idx in fidx; view = true
+        _fragments(substruct.parent), :idx in fidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
 function _nucleotides(substruct::Substructure; kwargs...)
     nidx = _atoms(substruct; kwargs...).nucleotide_id
     @rsubset(
-        substruct.parent._nucleotides, :idx in nidx; view = true
+        _nucleotides(substruct.parent), :idx in nidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
 function _residues(substruct::Substructure; kwargs...)
     ridx = _atoms(substruct; kwargs...).residue_id
     @rsubset(
-        substruct.parent._residues, :idx in ridx; view = true
+        _residues(substruct.parent), :idx in ridx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
