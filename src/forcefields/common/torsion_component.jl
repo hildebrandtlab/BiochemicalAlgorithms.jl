@@ -6,9 +6,13 @@ export CosineTorsion, TorsionComponent
     f::Vector{Int}
     div::Vector{Int}
     a1::Atom{T}
+    a1r::Vector3{T}
     a2::Atom{T}
+    a2r::Vector3{T}
     a3::Atom{T}
+    a3r::Vector3{T}
     a4::Atom{T}
+    a4r::Vector3{T}
 end
 
 @auto_hash_equals mutable struct TorsionComponent{T<:Real} <: AbstractForceFieldComponent{T}
@@ -108,10 +112,10 @@ function _try_assign_torsion!(
                     T.(ϕ₀_factor * pts.phi0),
                     Int.(pts.f),
                     Int.(pts.div),
-                    a1,
-                    a2,
-                    a3,
-                    a4
+                    a1, a1.r,
+                    a2, a2.r,
+                    a3, a3.r,
+                    a4, a4.r
                 )
             )
         end
@@ -269,17 +273,15 @@ end
 @inline function compute_energy(pt::CosineTorsion{T})::T where {T<:Real}
     energy = zero(T)
 
-    a21 = pt.a1.r - pt.a2.r
-    a23 = pt.a3.r - pt.a2.r
-    a34 = pt.a4.r - pt.a3.r
+    a23 = pt.a3r .- pt.a2r
 
-    cross2321 = normalize(cross(a23, a21))
-    cross2334 = normalize(cross(a23, a34))
+    cross2321 = normalize(cross(a23, pt.a1r .- pt.a2r))
+    cross2334 = normalize(cross(a23, pt.a4r .- pt.a3r))
 
     if !isnan(cross2321[1]) && !isnan(cross2334[1])
         cos_ϕ = clamp(dot(cross2321, cross2334), T(-1.0), T(1.0))
 
-        terms = pt.V./pt.div .* (1 .+ cos.(pt.f .* Ref(acos(cos_ϕ)) .- pt.ϕ₀))
+        terms = pt.V ./ pt.div .* (Ref(1) .+ cos.(pt.f .* Ref(acos(cos_ϕ)) .- pt.ϕ₀))
 
         @debug "$(get_full_name(pt.a1))-$(get_full_name(pt.a2))-" *
                "$(get_full_name(pt.a3))-$(get_full_name(pt.a4)) " *
@@ -305,9 +307,9 @@ function compute_energy(tc::TorsionComponent{T})::T where {T<:Real}
 end
 
 function compute_forces(ct::CosineTorsion{T}) where {T<:Real}
-    a21 = ct.a1.r - ct.a2.r
-    a23 = ct.a3.r - ct.a2.r
-    a34 = ct.a4.r - ct.a3.r
+    a21 = ct.a1r .- ct.a2r
+    a23 = ct.a3r .- ct.a2r
+    a34 = ct.a4r .- ct.a3r
 
     cross2321 = cross(a23, a21)
     cross2334 = cross(a23, a34)
@@ -334,8 +336,8 @@ function compute_forces(ct::CosineTorsion{T}) where {T<:Real}
             ∂E∂ϕ *= -1
         end
 
-        a13 = ct.a3.r - ct.a1.r
-        a24 = ct.a4.r - ct.a2.r
+        a13 = ct.a3r .- ct.a1r
+        a24 = ct.a4r .- ct.a2r
 
         dEdt =  (∂E∂ϕ / (length_cross2321^2 * norm(a23)) * cross(cross2321, a23))
         dEdu = -(∂E∂ϕ / (length_cross2334^2 * norm(a23)) * cross(cross2334, a23))
