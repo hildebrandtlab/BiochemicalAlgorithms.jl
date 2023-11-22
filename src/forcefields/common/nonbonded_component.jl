@@ -483,7 +483,7 @@ end
 end
 
 @inline function compute_energy(esi::ElecrostaticInteraction{T})::T where {T<:Real}
-    energy::T = esi.distance_dependent_dielectric ? 0.25 * esi.q1q2 / (esi.distance^2) : esi.q1q2 / esi.distance
+    energy::T = esi.distance_dependent_dielectric ? esi.q1q2 / 4 / esi.distance^2 : esi.q1q2 / esi.distance
 
     energy * esi.scaling_factor * switching_function(esi.switching_function, esi.distance^2) * T(ES_Prefactor)
 end
