@@ -11,7 +11,7 @@ Tuple-based atom representation for `DataFrame` usage.
  - `element::ElementType`
  - `name::String`
  - `atom_type::String`
- - `r::Vector3{T}`
+ - `r::Position{T}`
  - `v::Vector3{T}`
  - `F::Vector3{T}`
  - `properties::Properties`
@@ -26,12 +26,12 @@ AtomTuple(
     idx::Int = 0,
     name::String = "",
     atom_type::String = "",
-    r::Vector3{T} = Vector3{T}(0, 0, 0),
-    v::Vector3{T} = Vector3{T}(0, 0, 0),
-    F::Vector3{T} = Vector3{T}(0, 0, 0),
+    r::Union{Position{Float32}, Vector3{Float32}} = zeros(Position{Float32}),
+    v::Vector3{Float32} = zeros(Vector3{Float32}),
+    F::Vector3{Float32} = zeros(Vector3{Float32}),
     formal_charge::Int = 0,
-    charge::T = zero(T),
-    radius::T = zero(T),
+    charge::Float32 = zero(Float32),
+    radius::Float32 = zero(Float32),
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )
@@ -46,9 +46,9 @@ AtomTuple{T}(
     idx::Int = 0,
     name::String = "",
     atom_type::String = "",
-    r::Vector3{T} = Vector3{T}(0, 0, 0),
-    v::Vector3{T} = Vector3{T}(0, 0, 0),
-    F::Vector3{T} = Vector3{T}(0, 0, 0),
+    r::Union{Position{T}, Vector3{T}} = zeros(Position{T}),
+    v::Vector3{T} = zeros(Vector3{T}),
+    F::Vector3{T} = zeros(Vector3{T}),
     formal_charge::Int = 0,
     charge::T = zero(T),
     radius::T = zero(T),
@@ -64,7 +64,7 @@ const AtomTuple{T} = @NamedTuple begin
     element::ElementType
     name::String
     atom_type::String
-    r::Vector3{T}
+    r::Position{T}
     v::Vector3{T}
     F::Vector3{T}
     formal_charge::Int
@@ -80,7 +80,7 @@ end
     idx::Int = 0,
     name::String = "",
     atom_type::String = "",
-    r::Vector3{T} = Vector3{T}(0, 0, 0),
+    r::Union{Position{T}, Vector3{T}} = zeros(Position{T}),
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
     formal_charge::Int = 0,
@@ -94,7 +94,7 @@ end
     element = element,
     name = name,
     atom_type = atom_type,
-    r = r,
+    r = convert(Position{T}, r),
     v = v,
     F = F,
     formal_charge = formal_charge,

@@ -42,7 +42,7 @@
         @test atom.name == at.name
         @test atom.atom_type isa String
         @test atom.atom_type == at.atom_type
-        @test atom.r isa Vector3{T}
+        @test atom.r isa Position{T}
         @test atom.r == at.r
         @test atom.v isa Vector3{T}
         @test atom.v == at.v
@@ -99,8 +99,8 @@
         @test atom.name == "another name"
         atom.atom_type = "none"
         @test atom.atom_type == "none"
-        atom.r = Vector3{T}(10, 20, 30)
-        @test atom.r == Vector3{T}(10, 20, 30)
+        atom.r = Position(T[10, 20, 30])
+        @test atom.r == Position(T[10, 20, 30])
         atom.v = Vector3{T}(100, 200, 300)
         @test atom.v == Vector3{T}(100, 200, 300)
         atom.F = Vector3{T}(1000, 2000, 3000)
