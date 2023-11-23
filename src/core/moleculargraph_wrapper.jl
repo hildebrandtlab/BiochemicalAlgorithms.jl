@@ -10,7 +10,7 @@ function _atom_to_molgraph(a)
         "symbol" => a.element,
         "charge" => a.formal_charge,
         "mass"   => nothing,      # TODO: handle masses
-        "coords" => a.r,
+        "coords" => ustrip.(a.r),
         "idx"    => a.idx
     )
 end
@@ -62,7 +62,7 @@ function _molgraph_to_atom((i, a)::Tuple{Int, SDFileAtom}, T)
         element = getproperty(Elements, a.symbol),
         name    = "$(a.symbol)$(i)",
         atomtype = "",
-        r = Vector3{T}(a.coords),
+        r = Vector3{T}(a.coords) * u"Å",
         v = zeros(Vector3{T}),
         F = zeros(Vector3{T}),
         formal_charge = a.charge,
@@ -82,7 +82,7 @@ function _molgraph_to_atom((i, a)::Tuple{Int, SmilesAtom}, T)
         element = getproperty(Elements, a.symbol),
         name    = "$(a.symbol)$(i)",
         atomtype = "",
-        r = zeros(Vector3{T}),
+        r = zeros(Position{T}),
         v = zeros(Vector3{T}),
         F = zeros(Vector3{T}),
         formal_charge = a.charge,
