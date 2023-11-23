@@ -160,8 +160,8 @@ end
                     params.B_ij,
                     T(distance),
                     scaling_factor,
-                    atom_1, atom_1.r,
-                    atom_2, atom_2.r,
+                    atom_1, ustrip.(atom_1.r),
+                    atom_2, ustrip.(atom_2.r),
                     switching_function
                 )
         )
@@ -363,8 +363,8 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
 
     atom_cache::AtomTable{T} = atoms(ff.system)
     neighbors::Vector{Tuple{Int, Int, T}} = ff.options[:periodic_boundary_conditions]::Bool ?
-        neighborlist(atom_cache.r, unitcell=periodic_box, nonbonded_cutoff) :
-        neighborlist(atom_cache.r, nonbonded_cutoff)
+        neighborlist(ustrip.(atom_cache.r), unitcell=periodic_box, nonbonded_cutoff) :
+        neighborlist(ustrip.(atom_cache.r), nonbonded_cutoff)
 
     distance_dependent_dielectric = ff.options[:distance_dependent_dielectric]::Bool
 
@@ -405,8 +405,8 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
                 lj_candidate[3],
                 vicinal_pair ? scaling_es_1_4 : T(1.0),
                 distance_dependent_dielectric,
-                atom_1, atom_1.r,
-                atom_2, atom_2.r,
+                atom_1, ustrip.(atom_1.r),
+                atom_2, ustrip.(atom_2.r),
                 es_switching_function
             )
             push!(electrostatic_interactions, es)
@@ -432,8 +432,8 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
                         only(h_params.B),
                         T(lj_candidate[3]),
                         T(1.0),
-                        atom_1,
-                        atom_2,
+                        atom_1, ustrip.(atom_1.r),
+                        atom_2, ustrip.(atom_2.r),
                         vdw_switching_function
                     )
                 )

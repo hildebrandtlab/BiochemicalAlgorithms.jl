@@ -80,13 +80,13 @@ function setup!(qsc::QuadraticStretchComponent{T}) where {T}
             end
 
             # we don't want to get any force or energy component from this stretch
-            QuadraticBondStretch(one(T), zero(T), a1, a1.r, a2, a2.r)
+            QuadraticBondStretch(one(T), zero(T), a1, ustrip.(a1.r), a2, ustrip.(a2.r))
         else
             QuadraticBondStretch(
                 T(r0_factor*only(qbs.r0)), 
                 T(k_factor*only(qbs.k)),
-                a1, a1.r,
-                a2, a2.r
+                a1, ustrip.(a1.r),
+                a2, ustrip.(a2.r)
             )
         end
     end

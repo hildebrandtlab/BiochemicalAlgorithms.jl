@@ -10,7 +10,7 @@ function _atom_to_molgraph(a)
         "symbol" => a.element,
         "charge" => a.formal_charge,
         "mass"   => nothing,      # TODO: handle masses
-        "coords" => a.r,
+        "coords" => ustrip.(a.r),
         "idx"    => a.idx
     )
 end
@@ -59,7 +59,7 @@ end
 @inline function _molgraph_to_atom(mol::Molecule{T}, (i, a)::Tuple{Int, SDFileAtom}) where T
     Atom(mol, i, getproperty(Elements, a.symbol);
         name = "$(a.symbol)$(i)",
-        r = Vector3{T}(a.coords),
+        r = Vector3{T}(a.coords) * u"Å",
         formal_charge = a.charge,
         properties = Properties(
             :multiplicity => a.multiplicity,

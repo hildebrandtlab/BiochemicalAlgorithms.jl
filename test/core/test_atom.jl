@@ -47,7 +47,7 @@
         @test at.name == [a1.name, a2.name]
         @test at.atom_type isa AbstractVector{String}
         @test at.atom_type == [a1.atom_type, a2.atom_type]
-        @test at.r isa AbstractVector{Vector3{T}}
+        @test at.r isa AbstractVector{Vector3{Angstrom{T}}}
         @test at.r == [a1.r, a2.r]
         @test at.v isa AbstractVector{Vector3{T}}
         @test at.v == [a1.v, a2.v]
@@ -93,8 +93,8 @@
         @test Tables.getcolumn(at, :atom_type) isa AbstractVector{String}
         @test Tables.getcolumn(at, 5) isa AbstractVector{String}
         @test Tables.getcolumn(at, :atom_type) == Tables.getcolumn(at, 5) == [a1.atom_type, a2.atom_type]
-        @test Tables.getcolumn(at, :r) isa AbstractVector{Vector3{T}}
-        @test Tables.getcolumn(at, 6) isa AbstractVector{Vector3{T}}
+        @test Tables.getcolumn(at, :r) isa AbstractVector{Vector3{Angstrom{T}}}
+        @test Tables.getcolumn(at, 6) isa AbstractVector{Vector3{Angstrom{T}}}
         @test Tables.getcolumn(at, :r) == Tables.getcolumn(at, 6) == [a1.r, a2.r]
         @test Tables.getcolumn(at, :v) isa AbstractVector{Vector3{T}}
         @test Tables.getcolumn(at, 7) isa AbstractVector{Vector3{T}}
@@ -169,13 +169,15 @@
 end
 
 @testitem "Atom" begin
+    using Unitful
+
     for T in [Float32, Float64]
         at = (
             number = 1,
             element = Elements.H,
             name = "my atom",
             atom_type = "my atom type",
-            r = ones(Vector3{T}),
+            r = ones(Vector3{T}) * u"Å",
             v = 2 .* ones(Vector3{T}),
             F = 3 .* ones(Vector3{T}),
             formal_charge = 4,
@@ -243,7 +245,7 @@ end
         @test atom.name == at.name
         @test atom.atom_type isa String
         @test atom.atom_type == at.atom_type
-        @test atom.r isa Vector3{T}
+        @test atom.r isa Position{T}
         @test atom.r == at.r
         @test atom.v isa Vector3{T}
         @test atom.v == at.v
@@ -293,8 +295,8 @@ end
         @test atom.name == "another name"
         atom.atom_type = "none"
         @test atom.atom_type == "none"
-        atom.r = Vector3{T}(10, 20, 30)
-        @test atom.r == Vector3{T}(10, 20, 30)
+        atom.r = Position(T[10, 20, 30])
+        @test atom.r == Position(T[10, 20, 30])
         atom.v = Vector3{T}(100, 200, 300)
         @test atom.v == Vector3{T}(100, 200, 300)
         atom.F = Vector3{T}(1000, 2000, 3000)

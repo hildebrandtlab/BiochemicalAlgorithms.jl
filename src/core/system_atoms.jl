@@ -9,7 +9,7 @@ const _atom_table_cols_priv = Set([:properties, :flags, :frame_id, :molecule_idx
     element::Vector{ElementType}
     name::Vector{String}
     atom_type::Vector{String}
-    r::Vector{Vector3{T}}
+    r::Vector{Vector3{Angstrom{T}}}
     v::Vector{Vector3{T}}
     F::Vector{Vector3{T}}
     formal_charge::Vector{Int}
@@ -36,7 +36,7 @@ const _atom_table_cols_priv = Set([:properties, :flags, :frame_id, :molecule_idx
             ElementType[],
             String[],
             String[],
-            Vector3{T}[],
+            Vector3{Angstrom{T}}[],
             Vector3{T}[],
             Vector3{T}[],
             Int[],
@@ -78,7 +78,7 @@ function Base.push!(
     element::ElementType;
     name::String = "",
     atom_type::String = "",
-    r::Vector3{T} = Vector3{T}(0, 0, 0),
+    r::Union{Position{T}, Vector3{T}} = Vector3{T}(0, 0, 0),
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
     formal_charge::Int = 0,
@@ -99,7 +99,7 @@ function Base.push!(
     push!(at.element, element)
     push!(at.name, name)
     push!(at.atom_type, atom_type)
-    push!(at.r, r)
+    push!(at.r, convert(Position{T}, r))
     push!(at.v, v)
     push!(at.F, F)
     push!(at.formal_charge, formal_charge)
@@ -159,7 +159,7 @@ end
     nm === :element        && return _getproperty(atr, :element)::ElementType
     nm === :name           && return _getproperty(atr, :name)::String
     nm === :atom_type      && return _getproperty(atr, :atom_type)::String
-    nm === :r              && return _getproperty(atr, :r)::Vector3{T}
+    nm === :r              && return _getproperty(atr, :r)::Vector3{Angstrom{T}}
     nm === :v              && return _getproperty(atr, :v)::Vector3{T}
     nm === :F              && return _getproperty(atr, :F)::Vector3{T}
     nm === :properties     && return _getproperty(atr, :properties)::Properties

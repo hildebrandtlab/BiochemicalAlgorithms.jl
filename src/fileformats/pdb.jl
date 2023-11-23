@@ -82,7 +82,7 @@ function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:R
     mol = Molecule(sys; name = sys.name)
 
     ### convert the atom positions
-    r = Vector3{T}.(T.(orig_df.x), T.(orig_df.y), T.(orig_df.z))
+    r = Position.(T.(orig_df.x), T.(orig_df.y), T.(orig_df.z))
 
     ### extracting the elements is a little more complicated than it could be,
     ### as the DataFrame-conversion strips whitespaces from atom names
@@ -214,7 +214,7 @@ function _to_atom_record(a::Atom{T}) where {T<:Real}
         parent_chain(a).name,
         f.number,
         get_property(a, :insertion_code, ' '),
-        Vector{Float64}(a.r),
+        Vector{Float64}(ustrip.(a.r)),
         get_property(a, :occupancy, 1.0),
         get_property(a, :tempfactor, 0.0),
         string(a.element),

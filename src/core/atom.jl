@@ -25,7 +25,7 @@ generated using [`atoms`](@ref) or filtered from other atom tables (via `Base.fi
  - `element::AbstractVector{ElementType}`
  - `name::AbstractVector{String}`
  - `atom_type::AbstractVector{String}`
- - `r::AbstractVector{Vector3{T}}`
+ - `r::AbstractVector{Vector3{Angstrom{T}}}`
  - `v::AbstractVector{Vector3{T}}`
  - `F::AbstractVector{Vector3{T}}`
  - `formal_charge::AbstractVector{Int}`
@@ -116,7 +116,7 @@ Mutable representation of an individual atom in a system.
  - `element::ElementType`
  - `name::String`
  - `atom_type::String`
- - `r::Vector3{T}`
+ - `r::Vector3{Angstrom{T}}`
  - `v::Vector3{T}`
  - `F::Vector3{T}`
  - `formal_charge::Int`
@@ -142,7 +142,7 @@ Atom(
     # keyword arguments
     name::String = "",
     atom_type::String = "",
-    r::Vector3{T} = Vector3{T}(0, 0, 0),
+    r::Union{Position{T}, Vector3{T}} = Vector3{T}(0, 0, 0),
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
     formal_charge::Int = 0,

@@ -15,10 +15,10 @@ StructTypes.StructType(::Type{DBNode}) = StructTypes.Struct()
 @auto_hash_equals struct DBAtom{T<:Real}
     name::String
     element::ElementType
-    r::Vector3
+    r::Vector3{Angstrom{T}}
 
-    function DBAtom{T}(name::String, element::ElementType, r::Vector3) where {T<:Real}
-        new(name, element, r)
+    function DBAtom{T}(name::String, element::ElementType, r::Union{Position{T}, Vector3{T}}) where {T<:Real}
+        new(name, element, convert(Position{T}, r) .|> u"Å")
     end
 
     function DBAtom{T}(n::DBNode) where {T<:Real}
@@ -29,7 +29,7 @@ StructTypes.StructType(::Type{DBNode}) = StructTypes.Struct()
         if length(raw_data) == 4
             element = parse(Elements, raw_data[1])
 
-            r = Vector3(map(d -> parse(T, d), raw_data[2:4]))
+            r = Position(map(d -> parse(T, d), raw_data[2:4]))
 
             return new(name, element, r)
         end
@@ -98,8 +98,8 @@ end
     atom_name::String
     match_name::String
     order::BondOrderType
-    distance::T
-    tolerance::T
+    distance::Angstrom{T}
+    tolerance::Angstrom{T}
 
     function DBConnection{T}(n::DBNode) where {T<:Real}
         name = n.key
@@ -114,8 +114,8 @@ end
         match_name = raw_data[2]
         order      = to_bond_order(raw_data[3])
 
-        distance   = parse(T, raw_data[4])
-        tolerance  = parse(T, raw_data[5])
+        distance   = Angstrom(parse(T, raw_data[4]))
+        tolerance  = Angstrom(parse(T, raw_data[5]))
 
         new(name, atom_name, match_name, order, distance, tolerance)
     end

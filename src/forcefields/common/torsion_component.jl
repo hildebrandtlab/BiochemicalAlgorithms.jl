@@ -111,10 +111,10 @@ function _try_assign_torsion!(
                     ϕ₀_factor .* getproperty.(pts, :phi0),
                     getproperty.(pts, :f),
                     getproperty.(pts, :div),
-                    a1, a1.r,
-                    a2, a2.r,
-                    a3, a3.r,
-                    a4, a4.r
+                    a1, ustrip.(a1.r),
+                    a2, ustrip.(a2.r),
+                    a3, ustrip.(a3.r),
+                    a4, ustrip.(a4.r)
                 )
             )
         end

@@ -1,7 +1,7 @@
 export load_pubchem_json
 
 using BiochemicalAlgorithms: Molecule, Atom, Bond, BondOrder, BondOrderType, Bond,
-    Elements, ElementType, Vector3, Properties, System, atoms, parent_system
+    Elements, ElementType, Position, Properties, System, Vector3, atoms, parent_system
 
 using StructTypes
 using JSON3
@@ -523,7 +523,7 @@ function parse_atoms!(mol::Molecule, compound::PCCompound, T=Float32)
                     atom_type = isnothing(compound.atoms.label)
                         ? ""
                         : compound.atoms.label[i].value, # does the label contain the atom type?
-                    r = T.(conformers[j][i]),
+                    r = Position(T.(conformers[j][i])),
                     formal_charge = isnothing(compound.atoms.charge)
                         ? 0
                         : Int(compound.atoms.charge[i]),

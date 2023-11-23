@@ -98,9 +98,9 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
                         QuadraticAngleBend(
                             T(θ₀_factor*only(qab.theta0)),
                             T(k_factor*only(qab.k)),
-                            a1, a1.r,
-                            a2, a2.r,
-                            a3, a3.r
+                            a1, ustrip.(a1.r),
+                            a2, ustrip.(a2.r),
+                            a3, ustrip.(a3.r)
                         ))
                 end
             end
