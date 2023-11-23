@@ -69,7 +69,7 @@ function build_fragment_bonds!(
                     bond.order = tpl_bond.order
                 end
 
-                break
+                continue
             end
         end
     end
