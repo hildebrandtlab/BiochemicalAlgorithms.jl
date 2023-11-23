@@ -6,6 +6,7 @@ export
     eachbond, 
     nbonds, 
     get_partner,
+    get_partners,
     bond_length, 
     non_hydrogen_bonds, 
     hydrogen_bonds,
@@ -228,6 +229,11 @@ function get_partner(bond, atom)
     else
         return nothing
     end
+end
+
+function get_partners(bond)
+    s = parent(bond)
+    atom_by_idx(s, bond.a1), atom_by_idx(s, bond.a2)
 end
 
 @inline function bond_length(bond)
