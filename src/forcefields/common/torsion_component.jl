@@ -112,10 +112,10 @@ function _try_assign_torsion!(
                     T.(ϕ₀_factor * pts.phi0),
                     Int.(pts.f),
                     Int.(pts.div),
-                    a1, a1.r,
-                    a2, a2.r,
-                    a3, a3.r,
-                    a4, a4.r
+                    a1, ustrip.(a1.r),
+                    a2, ustrip.(a2.r),
+                    a3, ustrip.(a3.r),
+                    a4, ustrip.(a4.r)
                 )
             )
         end
