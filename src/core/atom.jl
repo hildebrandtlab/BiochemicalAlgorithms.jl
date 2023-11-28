@@ -26,7 +26,7 @@ Mutable representation of an individual atom in a system.
  - `name::String`
  - `atom_type::String`
  - `r::Position{T}`
- - `v::Vector3{T}`
+ - `v::Velocity{T}`
  - `F::Vector3{T}`
  - `formal_charge::Int`
  - `charge::T`
@@ -42,7 +42,7 @@ Atom(
     name::String = "",
     atom_type::String = "",
     r::Position{Float32} = zeros(Position{Float32}),
-    v::Vector3{Float32} = Vector3{Float32}(0, 0, 0),
+    v::Velocity{Float32} = zeros(Velocity{Float32}),
     F::Vector3{Float32} = Vector3{Float32}(0, 0, 0),
     formal_charge::Int = 0,
     charge::Float32 = zero(Float32),
@@ -63,7 +63,7 @@ Atom(
     name::String = "",
     atom_type::String = "",
     r::Position{T} = zeros(Position{T}),
-    v::Vector3{T} = Vector3{T}(0, 0, 0),
+    v::Velocity{T} = zeros(Velocity{T}),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
     formal_charge::Int = 0,
     charge::T = zero(T),
@@ -94,7 +94,7 @@ function Atom(
     name::String = "",
     atom_type::String = "",
     r::Union{Position{T}, Vector3{T}} = zeros(Position{T}),
-    v::Vector3{T} = Vector3{T}(0, 0, 0),
+    v::Union{Velocity{T}, Vector3{T}} = zeros(Velocity{T}),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
     formal_charge::Int = 0,
     charge::T = zero(T),
@@ -110,9 +110,9 @@ function Atom(
     residue_id::MaybeInt = nothing
 ) where T
     idx = _next_idx(sys)
-    push!(sys._atoms, (idx, number, element, name, atom_type, convert(Position{T}, r), v, F,
-        formal_charge, charge, radius, properties, flags, frame_id, molecule_id, chain_id,
-        fragment_id, nucleotide_id, residue_id))
+    push!(sys._atoms, (idx, number, element, name, atom_type, convert(Position{T}, r),
+        convert(Velocity{T}, v), F, formal_charge, charge, radius, properties, flags,
+        frame_id, molecule_id, chain_id, fragment_id, nucleotide_id, residue_id))
     atom_by_idx(sys, idx)::Atom{T}
 end
 
@@ -123,7 +123,7 @@ function Atom(
     name::String = "",
     atom_type::String = "",
     r::Union{Position{T}, Vector3{T}} = zeros(Position{T}),
-    v::Vector3{T} = Vector3{T}(0, 0, 0),
+    v::Union{Velocity{T}, Vector3{T}} = zeros(Velocity{T}),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
     formal_charge::Int = 0,
     charge::T = zero(T),
@@ -133,8 +133,9 @@ function Atom(
     frame_id::Int = 1
 ) where T
     push!(ac, (idx=0, number=number, element=element, name=name, atom_type=atom_type,
-        r=convert(Position{T}, r), v=v, F=F, formal_charge=formal_charge, charge=charge,
-        radius=radius, properties=properties, flags=flags)::AtomTuple{T}; frame_id=frame_id)
+        r=convert(Position{T}, r), v=convert(Velocity{T}, v), F=F,
+        formal_charge=formal_charge, charge=charge, radius=radius, properties=properties,
+        flags=flags)::AtomTuple{T}; frame_id=frame_id)
     atom_by_idx(ac._sys, ac._sys._curr_idx)::Atom{T}
 end
 
@@ -144,7 +145,7 @@ function Atom(
     name::String = "",
     atom_type::String = "",
     r::Union{Position{Float32}, Vector3{Float32}} = zeros(Position{T}),
-    v::Vector3{Float32} = Vector3{Float32}(0, 0, 0),
+    v::Union{Velocity{Float32}, Vector3{Float32}} = zeros(Velocity{T}),
     F::Vector3{Float32} = Vector3{Float32}(0, 0, 0),
     formal_charge::Int = 0,
     charge::Float32 = 0.0f32,
@@ -154,7 +155,8 @@ function Atom(
     kwargs...
 )
     Atom(default_system(), number, element, name, atom_type, convert(Position{Float32}, r),
-        v, F, formal_charge, charge, radius, properties, flags; kwargs...)::Atom{Float32}
+        convert(Velocity{Float32}, v), F, formal_charge, charge, radius, properties, flags;
+        kwargs...)::Atom{Float32}
 end
 
 @inline function Atom(sys::System{T}, atom::AtomTuple{T}; kwargs...) where T
@@ -173,7 +175,7 @@ function Base.getproperty(atom::Atom{T}, name::Symbol) where T
     name === :name          && return gp()::String
     name === :atom_type     && return gp()::String
     name === :r             && return gp()::Position{T}
-    name === :v             && return gp()::Vector3{T}
+    name === :v             && return gp()::Velocity{T}
     name === :F             && return gp()::Vector3{T}
     name === :formal_charge && return gp()::Int
     name === :charge        && return gp()::T
