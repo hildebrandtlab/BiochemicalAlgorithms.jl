@@ -12,7 +12,7 @@ Tuple-based atom representation for `DataFrame` usage.
  - `name::String`
  - `atom_type::String`
  - `r::Position{T}`
- - `v::Vector3{T}`
+ - `v::Velocity{T}`
  - `F::Vector3{T}`
  - `properties::Properties`
  - `flags::Flags`
@@ -27,7 +27,7 @@ AtomTuple(
     name::String = "",
     atom_type::String = "",
     r::Union{Position{Float32}, Vector3{Float32}} = zeros(Position{Float32}),
-    v::Vector3{Float32} = zeros(Vector3{Float32}),
+    v::Union{Velocity{Float32}, Vector3{Float32}} = zeros(Velocity{Float32}),
     F::Vector3{Float32} = zeros(Vector3{Float32}),
     formal_charge::Int = 0,
     charge::Float32 = zero(Float32),
@@ -47,7 +47,7 @@ AtomTuple{T}(
     name::String = "",
     atom_type::String = "",
     r::Union{Position{T}, Vector3{T}} = zeros(Position{T}),
-    v::Vector3{T} = zeros(Vector3{T}),
+    v::Union{Velocity{T}, Vector3{T}} = zeros(Velocity{T}),
     F::Vector3{T} = zeros(Vector3{T}),
     formal_charge::Int = 0,
     charge::T = zero(T),
@@ -65,7 +65,7 @@ const AtomTuple{T} = @NamedTuple begin
     name::String
     atom_type::String
     r::Position{T}
-    v::Vector3{T}
+    v::Velocity{T}
     F::Vector3{T}
     formal_charge::Int
     charge::T
@@ -81,7 +81,7 @@ end
     name::String = "",
     atom_type::String = "",
     r::Union{Position{T}, Vector3{T}} = zeros(Position{T}),
-    v::Vector3{T} = Vector3{T}(0, 0, 0),
+    v::Union{Velocity{T}, Vector3{T}} = zeros(Velocity{T}),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
     formal_charge::Int = 0,
     charge::T = zero(T),
@@ -95,7 +95,7 @@ end
     name = name,
     atom_type = atom_type,
     r = convert(Position{T}, r),
-    v = v,
+    v = convert(Velocity{T}, v),
     F = F,
     formal_charge = formal_charge,
     charge = charge,
