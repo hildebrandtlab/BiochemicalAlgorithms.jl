@@ -11,7 +11,7 @@ const _atom_table_cols_priv = Set([:properties, :flags, :frame_id, :molecule_idx
     atom_type::Vector{String}
     r::Vector{Vector3{Angstrom{T}}}
     v::Vector{Vector3{AngstromPerSecond{T}}}
-    F::Vector{Vector3{T}}
+    F::Vector{Vector3{Newton{T}}}
     formal_charge::Vector{Int}
     charge::Vector{T}
     radius::Vector{T}
@@ -38,7 +38,7 @@ const _atom_table_cols_priv = Set([:properties, :flags, :frame_id, :molecule_idx
             String[],
             Vector3{Angstrom{T}}[],
             Vector3{AngstromPerSecond{T}}[],
-            Vector3{T}[],
+            Vector3{Newton{T}}[],
             Int[],
             T[],
             T[],
@@ -80,7 +80,7 @@ function Base.push!(
     atom_type::String = "",
     r::Union{Position{T}, Vector3{T}} = Vector3{T}(0, 0, 0),
     v::Union{Velocity{T}, Vector3{T}} = Vector3{T}(0, 0, 0),
-    F::Vector3{T} = Vector3{T}(0, 0, 0),
+    F::Union{Force{T}, Vector3{T}} = Vector3{T}(0, 0, 0),
     formal_charge::Int = 0,
     charge::T = zero(T),
     radius::T = zero(T),
@@ -101,7 +101,7 @@ function Base.push!(
     push!(at.atom_type, atom_type)
     push!(at.r, convert(Position{T}, r))
     push!(at.v, convert(Velocity{T}, v))
-    push!(at.F, F)
+    push!(at.F, convert(Force{T}, F))
     push!(at.formal_charge, formal_charge)
     push!(at.charge, charge)
     push!(at.radius, radius)
@@ -161,7 +161,7 @@ end
     nm === :atom_type      && return _getproperty(atr, :atom_type)::String
     nm === :r              && return _getproperty(atr, :r)::Vector3{Angstrom{T}}
     nm === :v              && return _getproperty(atr, :v)::Vector3{AngstromPerSecond{T}}
-    nm === :F              && return _getproperty(atr, :F)::Vector3{T}
+    nm === :F              && return _getproperty(atr, :F)::Vector3{Newton{T}}
     nm === :properties     && return _getproperty(atr, :properties)::Properties
     nm === :flags          && return _getproperty(atr, :flags)::Flags
     nm === :frame_id       && return _getproperty(atr, :frame_id)::Int

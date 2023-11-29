@@ -535,8 +535,8 @@ function compute_forces(lji::LennardJonesInteraction{T, 12, 6}) where {T<:Real}
 
         #@info "vdW $(get_full_name(lji.a1))<->$(get_full_name(lji.a2)) $(force)"
 
-        lji.a1.F += force
-        lji.a2.F -= force
+        lji.a1.F += force * u"N"
+        lji.a2.F -= force * u"N"
     end
 end
 
@@ -575,8 +575,8 @@ function compute_forces(hb::LennardJonesInteraction{T, 12, 10}) where {T<:Real}
         @info "HB $(get_full_name(hb.a1))<->$(get_full_name(hb.a2)) $(force)"
 
 
-        hb.a1.F += force
-        hb.a2.F -= force
+        hb.a1.F += force * u"N"
+        hb.a2.F -= force * u"N"
     end
 end
 
@@ -630,8 +630,8 @@ function compute_forces(esi::ElecrostaticInteraction{T}) where {T<:Real}
 
         # @info "ES force $(get_full_name(esi.a1))<->$(get_full_name(esi.a2)) $(force)"
         
-        esi.a1.F += force
-        esi.a2.F -= force
+        esi.a1.F += force * u"N"
+        esi.a2.F -= force * u"N"
     end
 end
 

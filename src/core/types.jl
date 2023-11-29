@@ -2,8 +2,10 @@ export
     Angstrom,
     AngstromPerSecond,
     Flags,
+    Force,
     Matrix3,
     MaybeInt,
+    Newton,
     Position,
     Properties,
     Vector3,
@@ -80,4 +82,25 @@ const Velocity{T} = Vector3{<:Unitful.Velocity{T}}
 
 @inline Base.convert(::Type{Velocity{T}}, r::Vector3{T}) where T = Velocity(r)
 @inline Base.zeros(::Type{Velocity{T}}) where T = Vector3(zeros(T, 3)u"Å/s")
+
+const Newton{T <: Real} = Quantity{
+    T,
+    Unitful.𝐋 * Unitful.𝐌 / Unitful.𝐓 / Unitful.𝐓,
+    Unitful.FreeUnits{
+        (Unitful.Unit{:Newton, Unitful.𝐋 * Unitful.𝐌 / Unitful.𝐓 / Unitful.𝐓}(0, 1),),
+        Unitful.𝐋 * Unitful.𝐌 / Unitful.𝐓 / Unitful.𝐓,
+        nothing
+    }
+}
+
+@inline Newton(x::T) where {T <: Real} = x * u"N"
+
+const Force{T} = Vector3{<:Unitful.Force{T}}
+
+@inline Force(r::Vector3{T}) where T = r * u"N"
+@inline Force(r::AbstractVector{T}) where T = Vector3(r) * u"N"
+@inline Force(rx::T, ry::T, rz::T) where T = Vector3(rx, ry, rz) * u"N"
+
+@inline Base.convert(::Type{Force{T}}, r::Vector3{T}) where T = Force(r)
+@inline Base.zeros(::Type{Force{T}}) where T = Vector3(zeros(T, 3)u"N")
 

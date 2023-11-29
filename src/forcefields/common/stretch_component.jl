@@ -126,8 +126,8 @@ function compute_forces(qbs::QuadraticBondStretch{T}) where {T<:Real}
 
     #@info "$(get_full_name(qbs.a1))<->$(get_full_name(qbs.a2)) $(direction)"
     
-    qbs.a1.F -= direction
-    qbs.a2.F += direction
+    qbs.a1.F -= direction * u"N"
+    qbs.a2.F += direction * u"N"
 end
 
 function compute_forces(qsc::QuadraticStretchComponent{T}) where {T<:Real}

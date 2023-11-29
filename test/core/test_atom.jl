@@ -51,7 +51,7 @@
         @test at.r == [a1.r, a2.r]
         @test at.v isa AbstractVector{Vector3{AngstromPerSecond{T}}}
         @test at.v == [a1.v, a2.v]
-        @test at.F isa AbstractVector{Vector3{T}}
+        @test at.F isa AbstractVector{Vector3{Newton{T}}}
         @test at.F == [a1.F, a2.F]
         @test at.formal_charge isa AbstractVector{Int}
         @test at.formal_charge == [a1.formal_charge, a2.formal_charge]
@@ -99,8 +99,8 @@
         @test Tables.getcolumn(at, :v) isa AbstractVector{Vector3{AngstromPerSecond{T}}}
         @test Tables.getcolumn(at, 7) isa AbstractVector{Vector3{AngstromPerSecond{T}}}
         @test Tables.getcolumn(at, :v) == Tables.getcolumn(at, 7) == [a1.v, a2.v]
-        @test Tables.getcolumn(at, :F) isa AbstractVector{Vector3{T}}
-        @test Tables.getcolumn(at, 8) isa AbstractVector{Vector3{T}}
+        @test Tables.getcolumn(at, :F) isa AbstractVector{Vector3{Newton{T}}}
+        @test Tables.getcolumn(at, 8) isa AbstractVector{Vector3{Newton{T}}}
         @test Tables.getcolumn(at, :F) == Tables.getcolumn(at, 8) == [a1.F, a2.F]
         @test Tables.getcolumn(at, :formal_charge) isa AbstractVector{Int}
         @test Tables.getcolumn(at, 9) isa AbstractVector{Int}
@@ -179,7 +179,7 @@ end
             atom_type = "my atom type",
             r = ones(Vector3{T}) * u"Å",
             v = 2 .* ones(Vector3{T}) * u"Å/s",
-            F = 3 .* ones(Vector3{T}),
+            F = 3 .* ones(Vector3{T}) * u"N",
             formal_charge = 4,
             charge = T(5),
             radius = T(6),
@@ -249,7 +249,7 @@ end
         @test atom.r == at.r
         @test atom.v isa Velocity{T}
         @test atom.v == at.v
-        @test atom.F isa Vector3{T}
+        @test atom.F isa Force{T}
         @test atom.F == at.F
         @test atom.formal_charge isa Int
         @test atom.formal_charge == at.formal_charge
@@ -299,8 +299,8 @@ end
         @test atom.r == Position(T[10, 20, 30])
         atom.v = Velocity(T[100, 200, 300])
         @test atom.v == Velocity(T[100, 200, 300])
-        atom.F = Vector3{T}(1000, 2000, 3000)
-        @test atom.F == Vector3{T}(1000, 2000, 3000)
+        atom.F = Force(T[1000, 2000, 3000])
+        @test atom.F == Force(T[1000, 2000, 3000])
         atom.formal_charge = 2
         @test atom.formal_charge == 2
         atom.charge = -one(T)

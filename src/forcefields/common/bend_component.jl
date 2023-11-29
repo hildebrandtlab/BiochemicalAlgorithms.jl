@@ -184,10 +184,10 @@ function compute_forces(qab::QuadraticAngleBend{T}) where {T<:Real}
     #@info "$(get_full_name(qab.a1))<->$(get_full_name(qab.a2))<->" *
     #      "$(get_full_name(qab.a3)) $(n1) $(n2)"
 
-    qab.a1.F -= n1
-    qab.a2.F += n1
-    qab.a2.F -= n2
-    qab.a3.F += n2
+    qab.a1.F -= n1 * u"N"
+    qab.a2.F += n1 * u"N"
+    qab.a2.F -= n2 * u"N"
+    qab.a3.F += n2 * u"N"
 end
 
 function compute_forces(qbc::QuadraticBendComponent{T}) where {T<:Real}

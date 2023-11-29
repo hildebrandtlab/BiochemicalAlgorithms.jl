@@ -334,10 +334,10 @@ function compute_forces(ct::CosineTorsion{T}) where {T<:Real}
               "$(cross(dEdt, a23)); $(cross(a13, dEdt) + cross(dEdu, a34));" *
               "$(cross(a21, dEdt) + cross(a24, dEdu)); $(cross(dEdu, a23))"
 
-        ct.a1.F += cross(dEdt, a23)
-        ct.a2.F += cross(a13, dEdt) + cross(dEdu, a34)
-        ct.a3.F += cross(a21, dEdt) + cross(a24, dEdu)
-        ct.a4.F += cross(dEdu, a23)
+        ct.a1.F += cross(dEdt, a23) * u"N"
+        ct.a2.F += (cross(a13, dEdt) + cross(dEdu, a34)) * u"N"
+        ct.a3.F += (cross(a21, dEdt) + cross(a24, dEdu)) * u"N"
+        ct.a4.F += cross(dEdu, a23) * u"N"
     end
 end
 
