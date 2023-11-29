@@ -85,5 +85,5 @@ const Force{T} = Vector3{<:Unitful.Force{T}}
 @inline Base.convert(::Type{Force{T}}, r::Vector3{T}) where T = Force(r)
 @inline Base.zeros(::Type{Force{T}}) where T = Vector3(zeros(T, 3)u"N")
 
-squared_norm(v::Vector3{T}) where {T<:Real} = dot(v, v)
+@generated squared_norm(v) = :(dot(v, v))
 distance(v::Vector3{T}, w::Vector3{T}) where {T<:Real} = norm(v - w)
