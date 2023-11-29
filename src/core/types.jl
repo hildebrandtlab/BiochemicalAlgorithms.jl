@@ -35,7 +35,7 @@ const Angstrom{T <: Real} = Quantity{
 #Base.show(io::IO, ::Type{Angstrom}) = print(io, "Angstrom")
 #Base.show(io::IO, ::Type{Angstrom{T}}) where T = print(io, "Angstrom{$T}")
 
-const Position{T} = Vector3{Angstrom{T}}
+const Position{T} = Vector3{<:Unitful.Length{T}}
 
 @inline Position(r::Vector3{T}) where T = r * u"Å"
 @inline Position(r::AbstractVector{T}) where T = Vector3(r) * u"Å"
@@ -62,7 +62,7 @@ const AngstromPerSecond{T <: Real} = Quantity{
 #Base.show(io::IO, ::Type{AngstromPerSecond}) = print(io, "AngstromPerSecond")
 #Base.show(io::IO, ::Type{AngstromPerSecond{T}}) where T = print(io, "AngstromPerSecond{$T}")
 
-const Velocity{T} = Vector3{AngstromPerSecond{T}}
+const Velocity{T} = Vector3{<:Unitful.Velocity{T}}
 
 @inline Velocity(r::Vector3{T}) where T = r * u"Å/s"
 @inline Velocity(r::AbstractVector{T}) where T = Vector3(r) * u"Å/s"

@@ -64,8 +64,8 @@ const AtomTuple{T} = @NamedTuple begin
     element::ElementType
     name::String
     atom_type::String
-    r::Position{T}
-    v::Velocity{T}
+    r::Vector3{Angstrom{T}}
+    v::Vector3{AngstromPerSecond{T}}
     F::Vector3{T}
     formal_charge::Int
     charge::T
@@ -94,8 +94,8 @@ end
     element = element,
     name = name,
     atom_type = atom_type,
-    r = convert(Position{T}, r),
-    v = convert(Velocity{T}, v),
+    r = convert(Position{T}, r) .|> u"Å",
+    v = convert(Velocity{T}, v) .|> u"Å/s",
     F = F,
     formal_charge = formal_charge,
     charge = charge,
