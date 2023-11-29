@@ -27,7 +27,7 @@ Mutable representation of an individual atom in a system.
  - `atom_type::String`
  - `r::Position{T}`
  - `v::Velocity{T}`
- - `F::Vector3{T}`
+ - `F::Force{T}`
  - `formal_charge::Int`
  - `charge::T`
  - `radius::T`
@@ -43,7 +43,7 @@ Atom(
     atom_type::String = "",
     r::Position{Float32} = zeros(Position{Float32}),
     v::Velocity{Float32} = zeros(Velocity{Float32}),
-    F::Vector3{Float32} = Vector3{Float32}(0, 0, 0),
+    F::Force{Float32} = zeros(Force{Float32}),
     formal_charge::Int = 0,
     charge::Float32 = zero(Float32),
     radius::Float32 = zero(Float32),
@@ -64,7 +64,7 @@ Atom(
     atom_type::String = "",
     r::Position{T} = zeros(Position{T}),
     v::Velocity{T} = zeros(Velocity{T}),
-    F::Vector3{T} = Vector3{T}(0, 0, 0),
+    F::Force{T} = zeros(Force{T}),
     formal_charge::Int = 0,
     charge::T = zero(T),
     radius::T = zero(T),
@@ -95,7 +95,7 @@ function Atom(
     atom_type::String = "",
     r::Union{Position{T}, Vector3{T}} = zeros(Position{T}),
     v::Union{Velocity{T}, Vector3{T}} = zeros(Velocity{T}),
-    F::Vector3{T} = Vector3{T}(0, 0, 0),
+    F::Union{Force{T}, Vector3{T}} = zeros(Force{T}),
     formal_charge::Int = 0,
     charge::T = zero(T),
     radius::T = zero(T),
@@ -111,8 +111,9 @@ function Atom(
 ) where T
     idx = _next_idx(sys)
     push!(sys._atoms, (idx, number, element, name, atom_type, convert(Position{T}, r),
-        convert(Velocity{T}, v), F, formal_charge, charge, radius, properties, flags,
-        frame_id, molecule_id, chain_id, fragment_id, nucleotide_id, residue_id))
+        convert(Velocity{T}, v), convert(Force{T}, F), formal_charge, charge, radius,
+        properties, flags, frame_id, molecule_id, chain_id, fragment_id, nucleotide_id,
+        residue_id))
     atom_by_idx(sys, idx)::Atom{T}
 end
 
@@ -133,7 +134,7 @@ function Atom(
     frame_id::Int = 1
 ) where T
     push!(ac, (idx=0, number=number, element=element, name=name, atom_type=atom_type,
-        r=convert(Position{T}, r), v=convert(Velocity{T}, v), F=F,
+        r=convert(Position{T}, r), v=convert(Velocity{T}, v), F=convert(Force{T}, F),
         formal_charge=formal_charge, charge=charge, radius=radius, properties=properties,
         flags=flags)::AtomTuple{T}; frame_id=frame_id)
     atom_by_idx(ac._sys, ac._sys._curr_idx)::Atom{T}
@@ -155,8 +156,8 @@ function Atom(
     kwargs...
 )
     Atom(default_system(), number, element, name, atom_type, convert(Position{Float32}, r),
-        convert(Velocity{Float32}, v), F, formal_charge, charge, radius, properties, flags;
-        kwargs...)::Atom{Float32}
+        convert(Velocity{Float32}, v), convert(Force{Float32}, F), formal_charge, charge,
+        radius, properties, flags; kwargs...)::Atom{Float32}
 end
 
 @inline function Atom(sys::System{T}, atom::AtomTuple{T}; kwargs...) where T
@@ -176,7 +177,7 @@ function Base.getproperty(atom::Atom{T}, name::Symbol) where T
     name === :atom_type     && return gp()::String
     name === :r             && return gp()::Position{T}
     name === :v             && return gp()::Velocity{T}
-    name === :F             && return gp()::Vector3{T}
+    name === :F             && return gp()::Force{T}
     name === :formal_charge && return gp()::Int
     name === :charge        && return gp()::T
     name === :radius        && return gp()::T

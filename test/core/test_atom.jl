@@ -46,7 +46,7 @@
         @test atom.r == at.r
         @test atom.v isa Velocity{T}
         @test atom.v == at.v
-        @test atom.F isa Vector3{T}
+        @test atom.F isa Force{T}
         @test atom.F == at.F
         @test atom.formal_charge isa Int
         @test atom.formal_charge == at.formal_charge
@@ -103,8 +103,8 @@
         @test atom.r == Position(T[10, 20, 30])
         atom.v = Velocity(T[100, 200, 300])
         @test atom.v == Velocity(T[100, 200, 300])
-        atom.F = Vector3{T}(1000, 2000, 3000)
-        @test atom.F == Vector3{T}(1000, 2000, 3000)
+        atom.F = Force(T[1000, 2000, 3000])
+        @test atom.F == Force(T[1000, 2000, 3000])
         atom.formal_charge = 2
         @test atom.formal_charge == 2
         atom.charge = -one(T)
