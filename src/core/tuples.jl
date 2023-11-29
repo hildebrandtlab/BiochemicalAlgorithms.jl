@@ -13,7 +13,7 @@ Tuple-based atom representation for `DataFrame` usage.
  - `atom_type::String`
  - `r::Position{T}`
  - `v::Velocity{T}`
- - `F::Vector3{T}`
+ - `F::Force{T}`
  - `properties::Properties`
  - `flags::Flags`
 
@@ -28,7 +28,7 @@ AtomTuple(
     atom_type::String = "",
     r::Union{Position{Float32}, Vector3{Float32}} = zeros(Position{Float32}),
     v::Union{Velocity{Float32}, Vector3{Float32}} = zeros(Velocity{Float32}),
-    F::Vector3{Float32} = zeros(Vector3{Float32}),
+    F::Union{Force{Float32}, Vector3{Float32}} = zeros(Force{Float32}),
     formal_charge::Int = 0,
     charge::Float32 = zero(Float32),
     radius::Float32 = zero(Float32),
@@ -48,7 +48,7 @@ AtomTuple{T}(
     atom_type::String = "",
     r::Union{Position{T}, Vector3{T}} = zeros(Position{T}),
     v::Union{Velocity{T}, Vector3{T}} = zeros(Velocity{T}),
-    F::Vector3{T} = zeros(Vector3{T}),
+    F::Union{Force{T}, Vector3{T}} = zeros(Force{T}),
     formal_charge::Int = 0,
     charge::T = zero(T),
     radius::T = zero(T),
@@ -66,7 +66,7 @@ const AtomTuple{T} = @NamedTuple begin
     atom_type::String
     r::Vector3{Angstrom{T}}
     v::Vector3{AngstromPerSecond{T}}
-    F::Vector3{T}
+    F::Vector3{Newton{T}}
     formal_charge::Int
     charge::T
     radius::T
@@ -82,7 +82,7 @@ end
     atom_type::String = "",
     r::Union{Position{T}, Vector3{T}} = zeros(Position{T}),
     v::Union{Velocity{T}, Vector3{T}} = zeros(Velocity{T}),
-    F::Vector3{T} = Vector3{T}(0, 0, 0),
+    F::Union{Force{T}, Vector3{T}} = zeros(Force{T}),
     formal_charge::Int = 0,
     charge::T = zero(T),
     radius::T = zero(T),
@@ -96,7 +96,7 @@ end
     atom_type = atom_type,
     r = convert(Position{T}, r) .|> u"Å",
     v = convert(Velocity{T}, v) .|> u"Å/s",
-    F = F,
+    F = convert(Force{T}, F) .|> u"N",
     formal_charge = formal_charge,
     charge = charge,
     radius = radius,
