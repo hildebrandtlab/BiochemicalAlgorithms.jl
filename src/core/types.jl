@@ -32,9 +32,6 @@ const Angstrom{T <: Real} = Quantity{
 
 @inline Angstrom(x::T) where {T <: Real} = x * u"Å"
 
-#Base.show(io::IO, ::Type{Angstrom}) = print(io, "Angstrom")
-#Base.show(io::IO, ::Type{Angstrom{T}}) where T = print(io, "Angstrom{$T}")
-
 const Position{T} = Vector3{<:Unitful.Length{T}}
 
 @inline Position(r::Vector3{T}) where T = r * u"Å"
@@ -43,9 +40,6 @@ const Position{T} = Vector3{<:Unitful.Length{T}}
 
 @inline Base.convert(::Type{Position{T}}, r::Vector3{T}) where T = Position(r)
 @inline Base.zeros(::Type{Position{T}}) where T = Vector3(zeros(T, 3)u"Å")
-
-#Base.show(io::IO, ::Type{Position}) = print(io, "Position")
-#Base.show(io::IO, ::Type{Position{T}}) where T = print(io, "Position{$T}")
 
 const AngstromPerSecond{T <: Real} = Quantity{
     T,
@@ -59,9 +53,6 @@ const AngstromPerSecond{T <: Real} = Quantity{
 
 @inline AngstromPerSecond(x::T) where {T <: Real} = x * u"Å/s"
 
-#Base.show(io::IO, ::Type{AngstromPerSecond}) = print(io, "AngstromPerSecond")
-#Base.show(io::IO, ::Type{AngstromPerSecond{T}}) where T = print(io, "AngstromPerSecond{$T}")
-
 const Velocity{T} = Vector3{<:Unitful.Velocity{T}}
 
 @inline Velocity(r::Vector3{T}) where T = r * u"Å/s"
@@ -71,8 +62,6 @@ const Velocity{T} = Vector3{<:Unitful.Velocity{T}}
 @inline Base.convert(::Type{Velocity{T}}, r::Vector3{T}) where T = Velocity(r)
 @inline Base.zeros(::Type{Velocity{T}}) where T = Vector3(zeros(T, 3)u"Å/s")
 
-#Base.show(io::IO, ::Type{Velocity}) = print(io, "Velocity")
-#Base.show(io::IO, ::Type{Velocity{T}}) where T = print(io, "Velocity{$T}")
 
 squared_norm(v::Vector3{T}) where {T<:Real} = dot(v, v)
 distance(v::Vector3{T}, w::Vector3{T}) where {T<:Real} = norm(v - w)
