@@ -144,7 +144,7 @@ function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:R
     #   - for each atom that has alternative locations, find them
     #   - find the smallest alternate location id and use this as the base case
     #   - store all other variants as properties
-    all_altlocs = groupby(filter(:altlocid => !=(' '), atoms, view=true), [:fragment_id, :name])
+    all_altlocs = groupby(filter(:altlocid => !=(' '), atoms, view=true), [:chain_id, :fragment_id, :name])
     for altlocs in all_altlocs
         sorted_altlocs = sort(altlocs, :altlocid, view=true)
 
