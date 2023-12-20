@@ -749,6 +749,10 @@ end
     end
 end
 
+@inline function is_previous(f1::Fragment{T}, f2::Fragment{T}) where {T<:Real}
+    (parent_chain(f1) == parent_chain(f2)) && (f1.idx == f2.idx - 1)
+end
+
 @inline function get_previous(frag::Fragment{T}) where {T<:Real}
     try
         prev_candidate = fragment_by_idx(parent(frag), frag.idx - 1)
@@ -760,6 +764,11 @@ end
     end
 
     nothing
+end
+
+
+@inline function is_next(f1::Fragment{T}, f2::Fragment{T}) where {T<:Real}
+    (parent_chain(f1) == parent_chain(f2)) && (f1.idx == f2.idx + 1)
 end
 
 @inline function get_next(frag::Fragment{T}) where {T<:Real}
