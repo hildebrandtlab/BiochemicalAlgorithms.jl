@@ -20,10 +20,10 @@ abstract type AbstractForceFieldComponent{T<:Real} end
     parameters::AbstractForceFieldParameters
     options::Dict{Symbol, Any}
     atom_type_templates::Dict{String, AtomTypeTemplate{T}}
-    components::AbstractVector{AbstractForceFieldComponent{T}}
+    components::Vector{AbstractForceFieldComponent{T}}
     energy::Dict{String, T}
-    unassigned_atoms::AbstractVector{Atom{T}}
-    constrained_atoms::AbstractVector{Int}
+    unassigned_atoms::Vector{Atom{T}}
+    constrained_atoms::Vector{Int}
 end
 
 function init_atom_types(params::AbstractForceFieldParameters, T=Float32)
