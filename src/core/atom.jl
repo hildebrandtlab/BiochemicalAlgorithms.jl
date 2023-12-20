@@ -236,10 +236,24 @@ atom exists.
     Atom{T}(sys, DataFrameRow(sys._atoms.df, _row_by_idx(sys._atoms, idx), :))
 end
 
-@inline function atom_by_name(ac::AbstractAtomContainer{T}, name::String) where T
-    sys = ac isa System{T} ? ac : ac._sys
-    at = findfirst(sys._atoms.df.name .== name)
-    isnothing(at) ? nothing : Atom{T}(sys, DataFrameRow(sys._atoms.df, at, :))
+"""
+    $(TYPEDSIGNATURES)
+
+Returns the first `Atom{T}` associated with the given `name` in `ac`. Returns nothing if no such
+atom exists.
+
+# Supported keyword arguments
+ - `frame_id::MaybeInt = 1`: \
+Any value other than `nothing` limits the result to atoms matching this frame ID.
+"""
+@inline function atom_by_name(
+    ac::AbstractAtomContainer{T},
+    name::String;
+    frame_id::MaybeInt = 1
+) where T
+    df = _atoms(ac; frame_id = frame_id)
+    at = findfirst(df.name .== name)
+    isnothing(at) ? nothing : Atom{T}(parent(ac), DataFrameRow(df, at, :))
 end
 
 """

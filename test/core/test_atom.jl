@@ -136,6 +136,13 @@
         @test isnothing(atom_by_name(sys, "invalid"))
         @test atom_by_name(sys, atom.name) isa Atom{T}
         @test atom_by_name(sys, atom.name) == atom
+        @test atom_by_name(sys, atom.name; frame_id = 1) == atom
+        @test isnothing(atom_by_name(sys, atom.name; frame_id = 9999))
+        @test isnothing(atom_by_name(sys, atom2.name))
+        @test atom_by_name(sys, atom2.name; frame_id = 10) == atom2
+        mol = Molecule(sys)
+        atom3 = Atom(mol, at.number, at.element, at.name; frame_id = 10)
+        @test atom_by_name(mol, atom3.name; frame_id = 10) == atom3
 
         # _atoms
         df = _atoms(sys)
@@ -144,8 +151,8 @@
         @test copy(df[1, 1:length(fieldnames(AtomTuple{T}))]) isa AtomTuple{T}
         @test size(_atoms(sys, frame_id = 1), 1) == 1
         @test size(_atoms(sys, frame_id = 2), 1) == 0
-        @test size(_atoms(sys, frame_id = 10), 1) == 1
-        @test size(_atoms(sys, frame_id = nothing), 1) == 2
+        @test size(_atoms(sys, frame_id = 10), 1) == 2
+        @test size(_atoms(sys, frame_id = nothing), 1) == 3
         @test size(_atoms(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
             nucleotide_id = 14, residue_id = 15), 1) == 1
 
@@ -155,8 +162,8 @@
         @test length(avec) == 1
         @test length(atoms(sys, frame_id = 1)) == 1
         @test length(atoms(sys, frame_id = 2)) == 0
-        @test length(atoms(sys, frame_id = 10)) == 1
-        @test length(atoms(sys, frame_id = nothing)) == 2
+        @test length(atoms(sys, frame_id = 10)) == 2
+        @test length(atoms(sys, frame_id = nothing)) == 3
         @test length(atoms(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
             nucleotide_id = 14, residue_id = 15)) == 1
 
@@ -167,8 +174,8 @@
         @test copy(df[1, :]) isa AtomTuple{T}
         @test size(atoms_df(sys, frame_id = 1), 1) == 1
         @test size(atoms_df(sys, frame_id = 2), 1) == 0
-        @test size(atoms_df(sys, frame_id = 10), 1) == 1
-        @test size(atoms_df(sys, frame_id = nothing), 1) == 2
+        @test size(atoms_df(sys, frame_id = 10), 1) == 2
+        @test size(atoms_df(sys, frame_id = nothing), 1) == 3
         @test size(atoms_df(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
             nucleotide_id = 14, residue_id = 15), 1) == 1
 
@@ -177,8 +184,8 @@
         @test first(eachatom(sys)) isa Atom{T}
         @test length(eachatom(sys, frame_id = 1)) == 1
         @test length(eachatom(sys, frame_id = 2)) == 0
-        @test length(eachatom(sys, frame_id = 10)) == 1
-        @test length(eachatom(sys, frame_id = nothing)) == 2
+        @test length(eachatom(sys, frame_id = 10)) == 2
+        @test length(eachatom(sys, frame_id = nothing)) == 3
         @test length(eachatom(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
             nucleotide_id = 14, residue_id = 15)) == 1
 
@@ -187,8 +194,8 @@
         @test natoms(sys) == 1
         @test natoms(sys, frame_id = 1) == 1
         @test natoms(sys, frame_id = 2) == 0
-        @test natoms(sys, frame_id = 10) == 1
-        @test natoms(sys, frame_id = nothing) == 2
+        @test natoms(sys, frame_id = 10) == 2
+        @test natoms(sys, frame_id = nothing) == 3
         @test natoms(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
             nucleotide_id = 14, residue_id = 15) == 1
 
