@@ -1,6 +1,6 @@
 export Fragment, fragment_by_idx, fragments, fragments_df, eachfragment, nfragments, parent_fragment, 
     is_c_terminal, is_n_terminal, is_amino_acid, is_nucleotide, is_3_prime, is_5_prime,
-    get_previous, get_next, get_full_name
+    is_previous, get_previous, is_next, get_next, get_full_name
 
 """
     $(TYPEDEF)
@@ -299,6 +299,10 @@ end
     end
 end
 
+@inline function is_previous(f1::Fragment{T}, f2::Fragment{T}) where {T<:Real}
+    (parent_chain(f1) == parent_chain(f2)) && (f1.idx == f2.idx - 1)
+end
+
 @inline function get_previous(frag::Fragment{T}) where {T<:Real}
     try
         prev_candidate = fragment_by_idx(parent(frag), frag.idx - 1)
@@ -310,6 +314,11 @@ end
     end
 
     nothing
+end
+
+
+@inline function is_next(f1::Fragment{T}, f2::Fragment{T}) where {T<:Real}
+    (parent_chain(f1) == parent_chain(f2)) && (f1.idx == f2.idx + 1)
 end
 
 @inline function get_next(frag::Fragment{T}) where {T<:Real}
