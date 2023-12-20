@@ -154,7 +154,7 @@ end
 #=
     Molecule atoms
 =#
-@inline _atoms(mol::Molecule; kwargs...) = _atoms(parent(mol), molecule_id = mol.idx, kwargs...)
+@inline _atoms(mol::Molecule; kwargs...) = _atoms(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline atoms(mol::Molecule; kwargs...) = atoms(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline atoms_df(mol::Molecule; kwargs...) = atoms_df(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline eachatom(mol::Molecule; kwargs...) = eachatom(parent(mol); molecule_id = mol.idx, kwargs...)
