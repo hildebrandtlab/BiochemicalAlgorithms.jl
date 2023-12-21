@@ -175,9 +175,9 @@ function Base.getproperty(atom::Atom{T}, name::Symbol) where T
     name === :element       && return gp()::ElementType
     name === :name          && return gp()::String
     name === :atom_type     && return gp()::String
-    name === :r             && return gp()::Position{T}
-    name === :v             && return gp()::Velocity{T}
-    name === :F             && return gp()::Force{T}
+    name === :r             && return gp()::Vector3{Angstrom{T}}
+    name === :v             && return gp()::Vector3{AngstromPerSecond{T}}
+    name === :F             && return gp()::Vector3{Newton{T}}
     name === :formal_charge && return gp()::Int
     name === :charge        && return gp()::T
     name === :radius        && return gp()::T
