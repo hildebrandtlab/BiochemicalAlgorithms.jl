@@ -572,7 +572,7 @@ function add_hydrogens!(ac::AbstractAtomContainer{T}) where {T<:Real}
     ring_atoms = is_ring_atom(ac)
 
     # we need to collect all atoms here, before any hydrogen has been added
-    all_atoms = collect(atoms(ac))
+    all_atoms = atoms(ac)
 
     # first, place all peptide bond hydrogens
     num_added_hydrogens = 0
