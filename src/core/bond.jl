@@ -241,9 +241,9 @@ end
     distance(atom_by_idx(s, bond.a1), atom_by_idx(s, bond.a2))
 end
 
-@inline non_hydrogen_bonds(ac) = filter(b -> !has_property(b, :TYPE__HYDROGEN), bonds(ac))
-@inline hydrogen_bonds(ac) = filter(b -> has_property(b, :TYPE__HYDROGEN), bonds(ac))
+@inline non_hydrogen_bonds(ac) = filter(b -> !has_flag(b, :TYPE__HYDROGEN), bonds(ac))
+@inline hydrogen_bonds(ac) = filter(b -> has_flag(b, :TYPE__HYDROGEN), bonds(ac))
 
-@inline non_hydrogen_bonds_df(ac) = filter(b->:TYPE__HYDROGEN ∉ keys(b.properties), bonds_df(ac))
-@inline hydrogen_bonds_df(ac) = filter(b->:TYPE__HYDROGEN ∈ keys(b.properties), bonds_df(ac))
+@inline non_hydrogen_bonds_df(ac) = filter(b->!has_flag(b, :TYPE__HYDROGEN), bonds_df(ac))
+@inline hydrogen_bonds_df(ac) = filter(b->has_flag(b, :TYPE__HYDROGEN), bonds_df(ac))
 
