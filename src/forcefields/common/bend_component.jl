@@ -52,21 +52,13 @@ function setup!(qbc::QuadraticBendComponent{T}) where T
     bends = Vector{QuadraticAngleBend{T}}()
 
     for atom in atoms(ff.system)
-        bs = bonds(atom)
+        bs = non_hydrogen_bonds(atom)
 
         for i in eachindex(bs)
             bond_1 = bs[i]
 
-            if has_flag(bond_1, :TYPE__HYDROGEN)
-                continue
-            end
-
             for j in i+1:length(bs)
                 bond_2 = bs[j]
-
-                if has_flag(bond_2, :TYPE__HYDROGEN)
-                    continue
-                end
 
                 a1 = get_partner(bond_1, atom)
                 a2 = atom
