@@ -70,6 +70,7 @@ include("preprocessing/normalize_names.jl")
 include("preprocessing/build_bonds.jl")
 include("preprocessing/add_hydrogens.jl")
 include("preprocessing/reconstruct_fragments.jl")
+include("preprocessing/predict_hbonds.jl")
 
 using .PubChem
 
