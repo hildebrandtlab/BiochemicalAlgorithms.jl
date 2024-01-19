@@ -100,6 +100,8 @@ Creates a new and empty `System{T}`.
     properties::Properties
     flags::Flags
 
+    _fsys::AtomsBase.FastSystem{3, Angstrom{T}, Dalton{T}}
+
     _atoms::IndexedDataFrame
     _bonds::IndexedDataFrame
     _molecules::IndexedDataFrame
@@ -114,10 +116,14 @@ Creates a new and empty `System{T}`.
         properties::Properties = Properties(),
         flags::Flags = Flags()
     ) where T
+        box = Vector3(Vector3.([Angstrom.([1000, 0, 0]), Angstrom.([0, 1000, 0]), Angstrom.([0, 0, 1000])]))
+        bcs = Vector3([DirichletZero(), DirichletZero(), DirichletZero()])
+        fsys = FastSystem(box, bcs, Vector3{Angstrom{T}}[], Symbol[], Int[], Dalton{T}[])
         new(
             name,
             properties,
             flags,
+            fsys,
             IndexedDataFrame(_SystemAtomTuple{T}[]),
             IndexedDataFrame(BondTuple[]),
             IndexedDataFrame(MoleculeTuple[]),

@@ -1,6 +1,7 @@
 module BiochemicalAlgorithms
 
 using AutoHashEquals
+using AtomsBase
 using CellListMap
 using ChainRulesCore
 using DataFrames
