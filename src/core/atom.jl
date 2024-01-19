@@ -110,6 +110,10 @@ function Atom(
     residue_id::MaybeInt = nothing
 ) where T
     idx = _next_idx(sys)
+    push!(sys._fsys.position, r)
+    push!(sys._fsys.atomic_symbol, Symbol(element))
+    push!(sys._fsys.atomic_number, number)
+    push!(sys._fsys.atomic_mass, Dalton(zero(T)))
     push!(sys._atoms, (idx, number, element, name, atom_type, convert(Position{T}, r),
         convert(Velocity{T}, v), convert(Force{T}, F), formal_charge, charge, radius,
         properties, flags, frame_id, molecule_id, chain_id, fragment_id, nucleotide_id,
@@ -441,6 +445,10 @@ function Base.push!(sys::System{T}, atom::AtomTuple{T};
     nucleotide_id::MaybeInt = nothing,
     residue_id::MaybeInt = nothing
 ) where T
+    push!(sys._fsys.position, atom.r)
+    push!(sys._fsys.atomic_symbol, Symbol(atom.element))
+    push!(sys._fsys.atomic_number, atom.number)
+    push!(sys._fsys.atomic_mass, Dalton(zero(T)))
     push!(sys._atoms, 
         (; atom..., 
             idx = _next_idx(sys),
