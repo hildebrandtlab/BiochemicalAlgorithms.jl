@@ -4,6 +4,7 @@ authors = ["Andreas Hildebrandt <andreas.hildebrandt@uni-mainz.de> and contribut
 version = "0.1.0"
 
 [deps]
+AtomsBase = "a963bdd2-2df7-4f54-a1ee-49d51e6be12a"
 AutoHashEquals = "15f4f7f2-30c1-5605-9d31-71845cf9641f"
 BioStructures = "de9282ab-8554-53be-b2d6-f6c222edabfc"
 BioSymbols = "3c28c6f8-a34d-59c4-9654-267d177fcfa9"
@@ -38,6 +39,7 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
+AtomsBase = "0.3"
 AutoHashEquals = "0.2, 1, 2"
 BioStructures = "1, 2, 3"
 BioSymbols = "4, 5"
