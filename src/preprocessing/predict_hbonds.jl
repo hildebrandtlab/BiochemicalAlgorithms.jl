@@ -25,7 +25,7 @@ export predict_hbonds!, backbone_hydrogen_bonds
     Example:
 
     ```julia
-    predict_hbonds(sys, :WISHART_ET_AL)
+    predict_hbonds!(sys, :WISHART_ET_AL)
     ```
 """
 function predict_hbonds!(ac::AbstractAtomContainer{T}, method::Symbol, h_bond_from_donor=true) where {T}
