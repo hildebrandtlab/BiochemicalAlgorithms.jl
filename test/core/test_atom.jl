@@ -20,6 +20,7 @@
         @test atom isa Atom{T}
         @test parent(atom) === sys
         @test parent_system(atom) === sys
+        T == Float32 && @test Atom(at.number, at.element) isa Atom{T}
         T == Float32 && @test parent(Atom(at)) === default_system()
         T == Float32 && @test parent_system(Atom(at)) === default_system()
 
