@@ -6,30 +6,28 @@ export predict_hbonds!, backbone_hydrogen_bonds
 """
     $(TYPEDSIGNATURES)
 
-    Predict hydrogen bonds for a given AtomContainer.
+Predict hydrogen bonds for a given AtomContainer.
 
-    The `method` parameter selects one of the implemented strategies for H-bond prediction. Bonds can be created between
-    the donor and acceptor atoms (e.g., `N` and `O`), which is the default, or between the hydrogen and the acceptor (e.g., `H` and `O`). 
-    This behaviour is controlled by the `h_bond_from_donor`-switch.
+The `method` parameter selects one of the implemented strategies for H-bond prediction. Bonds can be created between
+the donor and acceptor atoms (e.g., `N` and `O`), which is the default, or between the hydrogen and the acceptor (e.g., `H` and `O`). 
+This behaviour is controlled by the `h_bond_from_donor`-switch.
 
-    Available methods:
+# Available methods
+ - `:KABSCH_SANDER`: only predicts *protein backbone* hydrogen bonds as required for secondary
+   structure prediction with the Kabsch-Sander algorithm `DSSP` (Kabsch W & Sander C (1983). Dictionary of protein secondary 
+   structure: pattern recognition of hydrogen-bonded and geometrical features. Biopolymers, 22, 2577-2637".)
 
-        - `:KABSCH_SANDER`: only predicts *protein backbone* hydrogen bonds as required for secondary
-          structure prediction with the Kabsch-Sander algorithm `DSSP` (Kabsch W & Sander C (1983). Dictionary of protein secondary 
-          structure: pattern recognition of hydrogen-bonded and geometrical features. Biopolymers, 22, 2577-2637".)
+ - `:WISHART_ET_AL`: predicts hydrogen bonds between amid and α-hydrogens (`H`/`HA`) and carbonyl oxygens in the backbone (`O`)
+   or sidechain oxygens (`OD`, `OE`, `OG`, `OH`). This method follows the criterion given in (Neal, S., Nip, A. M., Zhang, H., 
+   and Wishart, D. S. (2003). Rapid and accurate calculation of protein 1H, 13C and 15N chemical shifts. J Biomol NMR, 26(3):215-240.
 
-        - `:WISHART_ET_AL`: predicts hydrogen bonds between amid and α-hydrogens (`H`/`HA`) and carbonyl oxygens in the backbone (`O`)
-          or sidechain oxygens (`OD`, `OE`, `OG`, `OH`). This method follows the criterion given in (Neal, S., Nip, A. M., Zhang, H., 
-          and Wishart, D. S. (2003). Rapid and accurate calculation of protein 1H, 13C and 15N chemical shifts. J Biomol NMR, 26(3):215-240.
+# Example
 
-
-    Example:
-
-    ```julia
-    predict_hbonds(sys, :WISHART_ET_AL)
-    ```
+```julia
+predict_hbonds!(sys, :WISHART_ET_AL)
+```
 """
-function predict_hbonds!(ac::AbstractAtomContainer{T}, method::Symbol, h_bond_from_donor=true) where {T}
+function predict_hbonds!(ac::AbstractAtomContainer, method::Symbol, h_bond_from_donor::Bool=true)
     if (method == :KABSCH_SANDER)
         return predict_hbonds_kabsch_sander!(ac, h_bond_from_donor)
     elseif (method == :WISHART_ET_AL)
@@ -39,14 +37,14 @@ function predict_hbonds!(ac::AbstractAtomContainer{T}, method::Symbol, h_bond_fr
     end
 end
 
-function predict_hbonds_kabsch_sander!(ac::AbstractAtomContainer{T}, h_bond_from_donor=true) where {T}
+function predict_hbonds_kabsch_sander!(ac::AbstractAtomContainer{T}, h_bond_from_donor::Bool=true) where T
     MAX_HBOND_LENGTH = 5.2
     BOND_LENGTH_N_H = T(1.020)
     ϵ = -0.5
 
     # we only iterate over the amino acids in the atom container that are complete
     # in the sense that they contain an "O", an "N", and a "C" atom
-    amino_acids = filter(f -> (is_amino_acid(f)  && (["O", "N", "C"] ⊆ atoms_df(f).name)), fragments(ac))
+    amino_acids = filter(f -> (is_amino_acid(f)  && (["O", "N", "C"] ⊆ atoms(f).name)), fragments(ac))
 
     N_rs = getproperty.(atom_by_name.(amino_acids, "N"), :r)
     O_rs = getproperty.(atom_by_name.(amino_acids, "O"), :r)
@@ -122,7 +120,7 @@ function predict_hbonds_kabsch_sander!(ac::AbstractAtomContainer{T}, h_bond_from
         donor_idx    = h_bond_from_donor ? N.idx : H.idx
         acceptor_idx = O.idx
 
-        Bond(parent_system(N), donor_idx, acceptor_idx, BondOrder.Single, Properties(), Flags([:TYPE__HYDROGEN]))
+        Bond(parent_system(N), donor_idx, acceptor_idx, BondOrder.Single; flags=Flags([:TYPE__HYDROGEN]))
 
         @debug "H-Bond found between $(get_full_name(c1)) and $(get_full_name(c2))"
     end
@@ -133,19 +131,19 @@ end
 """
     $(TYPEDSIGNATURES)
 
-    Return all backbone hydrogen bonds in the given atom container.
+Return all backbone hydrogen bonds in the given atom container.
 
-    The criterion for a hydrogen bond to be a backbone bond is as follows:
-        - the bond connects a donor nitrogen or hydrogen with the name "N" or "H" with an oxygen named "O"
-        - the bond connects atoms in two different fragments
+The criterion for a hydrogen bond to be a backbone bond is as follows:
+ - the bond connects a donor nitrogen or hydrogen with the name "N" or "H" with an oxygen named "O"
+ - the bond connects atoms in two different fragments
 
-    Example:
+# Example
 
-    ```julia
-    backbone_hydrogen_bonds(sys)
-    ```
+```julia
+backbone_hydrogen_bonds(sys)
+```
 """
-function backbone_hydrogen_bonds(ac::AbstractAtomContainer{T}) where {T}
+function backbone_hydrogen_bonds(ac::AbstractAtomContainer)
     filter(
         b -> begin
             a1, a2 = get_partners(b)

@@ -5,8 +5,7 @@ export
 function _filter_bonds(ac::AbstractAtomContainer)
      # filter out cystein bridges and h bridges (TODO!)
      new_atoms = atoms(ac)
-     new_bonds = filter(row -> !has_flag(row, :TYPE__DISULPHIDE_BOND), bonds(ac)
-    )
+     new_bonds = filter(row -> !has_flag(row, :TYPE__DISULPHIDE_BOND), bonds(ac))
 
     convert(MolecularGraph.SDFMolGraph, Substructure(ac.name, ac, new_atoms, new_bonds, ac.properties))
 end
