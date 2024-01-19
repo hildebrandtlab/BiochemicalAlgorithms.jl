@@ -3,6 +3,7 @@ using StaticArrays
 export
     Angstrom,
     AngstromPerSecond,
+    Dalton,
     Flags,
     Force,
     Matrix3,
@@ -81,6 +82,18 @@ const Force{T} = Vector3{<:Unitful.Force{T}}
 @inline Force(r::Vector3{T}) where T = r * u"N"
 @inline Force(r::AbstractVector{T}) where T = Vector3(r) * u"N"
 @inline Force(rx::T, ry::T, rz::T) where T = Vector3(rx, ry, rz) * u"N"
+
+const Dalton{T <: Real} = Quantity{
+    T,
+    Unitful.𝐌,
+    Unitful.FreeUnits{
+        (Unitful.Unit{:UnifiedAtomicMassUnit,Unitful.𝐌}(0, 1),),
+        Unitful.𝐌,
+        nothing
+    }
+}
+
+@inline Dalton(x::T) where {T <: Real} = x * u"u"
 
 @inline Base.convert(::Type{Force{T}}, r::Vector3{T}) where T = Force(r)
 @inline Base.zeros(::Type{Force{T}}) where T = Vector3(zeros(T, 3)u"N")
