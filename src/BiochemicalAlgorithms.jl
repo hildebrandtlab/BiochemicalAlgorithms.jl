@@ -2,18 +2,11 @@ module BiochemicalAlgorithms
 
 using AutoHashEquals
 using CellListMap
-using ChainRulesCore
 using DataFrames
 using DataFramesMeta
 using DocStringExtensions
 using Graphs, GraphDataFrameBridge
-using Observables
-using Optim
-using Optimization, OptimizationOptimJL, OptimizationOptimisers
 using Unitful, UnitfulAtomic
-using Zygote
-
-import ChainRulesCore: frule, rrule
 
 include("core/exceptions.jl")
 include("core/constants.jl")
@@ -62,8 +55,6 @@ include("forcefields/AMBER/amberff_parameters.jl")
 include("forcefields/AMBER/amberff.jl")
 
 include("forcefields/MMFF94/mmff94_parameters.jl")
-
-include("optimization/optimize_structure.jl")
 
 include("preprocessing/fragmentDB.jl")
 include("preprocessing/normalize_names.jl")
