@@ -1,4 +1,5 @@
 using CellListMap
+using LinearAlgebra
 
 export predict_hbonds!, backbone_hydrogen_bonds
 
@@ -40,6 +41,7 @@ end
 
 function predict_hbonds_kabsch_sander!(ac::AbstractAtomContainer{T}, h_bond_from_donor=true) where {T}
     MAX_HBOND_LENGTH = 5.2
+    BOND_LENGTH_N_H = T(1.020)
     ϵ = -0.5
 
     # we only iterate over the amino acids in the atom container that are complete
@@ -65,24 +67,43 @@ function predict_hbonds_kabsch_sander!(ac::AbstractAtomContainer{T}, h_bond_from
 
     n_added_hbonds = 0
 
-    # now, for each filtered candidate pair, approximate the hydrogen bond energy
-    # TODO: do we need to treat N-terminals differently? right now, we skip them
-    for (c1, c2) in filtered_candidates
-        if (is_n_terminal(c1))
-            continue
-        end
+    # computing the hydrogen position requires looking at the predecessor in the chain; to speed things up,
+    # we precompute that information
+    NH_positions = Dict{Fragment{T}, Vector3}()
+
+    for a in amino_acids
         
+    end
+
+    # now, for each filtered candidate pair, approximate the hydrogen bond energy
+    for (c1, c2) in filtered_candidates
         N = atom_by_name(c1, "N")
         H = atom_by_name(c1, "H")
         O = atom_by_name(c2, "O")
         C = atom_by_name(c2, "C")
 
-        if isnothing(H)
+        if !h_bond_from_donor && isnothing(H)
             continue
         end
-       
+
+        pos_H = if haskey(NH_positions, c1)
+            NH_positions[c1]
+        else
+            predecessor = get_previous(c1)
+            if isnothing(predecessor)
+                continue
+            end
+
+            OC = atom_by_name(predecessor, "O").r - atom_by_name(predecessor, "C").r
+            pos_H = N.r - normalize(OC)*BOND_LENGTH_N_H
+
+            NH_positions[c1] = pos_H
+
+            pos_H
+        end
+
         energy = 0.42 * 0.20 * 332.0 * (
-            1/distance(O, N) + 1/distance(C, H) - 1/distance(O, H) - 1/distance(C, N)
+            1/distance(O, N) + 1/distance(C.r, pos_H) - 1/distance(O.r, pos_H) - 1/distance(C, N)
         )
 
         if energy >= ϵ
