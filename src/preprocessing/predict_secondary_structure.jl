@@ -2,7 +2,7 @@ export predict_secondary_structure!
 
 @enum _DSSP_bridge_pattern PARALLEL ANTIPARALLEL DEFAULT
 
-DSSP_DEBUG = true #false
+DSSP_DEBUG =     true #false
 
 function _insert_turn!(target_n_turn::String, turn_char::Char, position::Int)
 	# first sign
@@ -26,32 +26,31 @@ function _insert_turn!(target_n_turn::String, turn_char::Char, position::Int)
 end
 
 function _test_pattern_at_two_positions(target_string, pos_i::Int, test_char::Char)
-    #function test_string(const String& s, Size offset, Size offset_2)
-        #testString2_(s, offset) && testString2_(s, offset + offset_2)
+ 
     return  _test_pattern_at_position(target_string, pos_i)  &&
             _test_for_char_at_position(target_string, pos_i, test_char)
 end
     
 function _test_pattern_at_position(target_string, pos_i::Int)
-        #if (s.size() < offset + 2) return false;
-        if length(target_string) <= pos_i + 1 # TODO +1??
-            return false
-        end
-
-        return target_string[pos_i:pos_i+1] ∈ [">>", "XX", ">X", "X>"]
+ 
+    if length(target_string) < pos_i + 1  
+        return false
+    end
+ 
+    return String(target_string[pos_i:pos_i+1]) ∈ [">>", "XX", ">X", "X>"]
 end
     
 function _test_for_char_at_position(target_string, pos_i::Int, test_char::Char)
     #if (s.size() < offset + 2) return false;
-    if length(target_string) <= pos_i + 1 # TODO +1??
+    if length(target_string) < pos_i + 1  
         return false
     end
 
-    if target_string[pos_i:pos_i+1] ∈ ["><", "X<"]
+    if String(target_string[pos_i:pos_i+1]) ∈ ["><", "X<"]
         return true
     end
 
-    return (( target_string[pos_i+1] == test_char )     
+    return ((target_string[pos_i+1] == test_char)     
         &&  (target_string[pos_i] ∈ [ '>', 'X'])) 
 end
     
@@ -88,7 +87,8 @@ function _prepare_hbonds(ac::AbstractAtomContainer{T}) where {T}
     fragment_list = [findall(t -> t[1] == i, bonded_fragments) for i in 1:nfragments(ac)]
 
     result = [map(t->t[2], d) for d in getindex.(Ref(bonded_fragments), fragment_list)]
-    if DSSP_DEBUG
+
+    if DSSP_DEBUG    
         println("DSSP_DEBUG converted hbonds: ", result)
         for (i, f) in enumerate(result)
             println(i,":", f)  
@@ -157,24 +157,25 @@ function predict_secondary_structure!(ac::AbstractAtomContainer{T}) where {T<:Re
 
     # first search turns
     for i in eachindex(hbonds) 
-        
+        #println(" DEBUG: hbond i ", i)
 
         # over all HBondpartners
         for k in 1:length(hbonds[i])
-       
+            #println(" DEBUG: hbond i ", i, "has partner ", hbonds[i][k] )
             # ---------- 4 turns ----------
             #    >444<
             if hbonds[i][k] == (i+4)
-
+                #println(" DEBUG: hbond i ",i, " found >444<" )
+                
                 # first position
-                #if  (fourturn[i]  == '<') || (fourturn[i] == 'X')
+                
                 if  fourturn[i] ∈ ['<', 'X']
                     fourturn[i]   = 'X';
                 else
                     fourturn[i]   = '>'
                 end
                 # position 2,3,4
-                for j in 1:3 ## (int j=1; j<4; j++)
+                for j in 1:3  
                     if fourturn[i+j] == '-'
                         fourturn[i+j] = '4'
                     end
@@ -184,10 +185,10 @@ function predict_secondary_structure!(ac::AbstractAtomContainer{T}) where {T<:Re
                 fourturn[i+4] = '<'
             # ---------- 3 turns -------------
             elseif hbonds[i][k] == (i + 3)
-
+                #println(" DEBUG: hbond i ",i, " found >33<" )
                 #println("i:", i, " a threeturn is detected:", k)
 
-                #if threeturn[i] == '<' || threeturn[i] == 'X'
+               
                 if threeturn[i] ∈ ['<', 'X']
                     threeturn[i] = 'X'
                 else
@@ -204,7 +205,9 @@ function predict_secondary_structure!(ac::AbstractAtomContainer{T}) where {T<:Re
 
             # ---------- 5 turns ----------
             elseif hbonds[i][k] == (i + 5)
-                #if fiveturn[i] == '<' || fiveturn[i] == 'X'
+                
+                #println(" DEBUG: hbond i ", i, " found >5555<" )
+             
                 if fiveturn[i] ∈ ['<', 'X']
                     fiveturn[i] = 'X'
                 else
@@ -431,7 +434,7 @@ function predict_secondary_structure!(ac::AbstractAtomContainer{T}) where {T<:Re
     end # end of search ladders
 
     if DSSP_DEBUG
-        println("DSSP_DEBUG: naming (looking for ) sheet_s")
+        println("DSSP_DEBUG: naming/looking for sheet_s")
     end 
 
     #
@@ -549,11 +552,17 @@ function predict_secondary_structure!(ac::AbstractAtomContainer{T}) where {T<:Re
         end		
     end
     
+    if DSSP_DEBUG
+        println("DSSP_DEBUG: start construct summary string")
+        println("            status summary:", String(summary))
+    end
+
+
     # *****************************************************
     # *
     # *     now we construct the summary string  
     # *
-    # * structural overlaps are eleminated by considering
+    # * structural overlaps are eliminated by considering
     # * hierarchy H > B > E > G > I > T
     # * 		H means 4 Helices, 
     # *         B means single bridges, 
@@ -561,21 +570,20 @@ function predict_secondary_structure!(ac::AbstractAtomContainer{T}) where {T<:Re
     # *         G means 3 Helices
     # *		    I means 5 Helices and 
     # *         T means single 3-, 4-, or 5-turns 
-    # * we start with writing 5 Helices and overwrite graduately 
-    # * the summary_ string with 3 Helices, extended bridges, 
-    # * single bridges and 4 Helices helices	
+    # * we start with writing type 5 helices and overwrite gradually 
+    # * the summary string with type 3 helices, extended bridges, 
+    # * single bridges and type 4 helices 	
     # *
     # ****************************************************
     
 
     # --------------------- 5 helices ---------------------- 
     for i in 1:length(hbonds) 
-        # we initialize the summary_ string with '-'			
+        # we initialize the summary string with '-'			
         if (fiveturn[i] == '-') 
             summary[i] = '-';
-        #else if (testString2_(fiveturn, i))
         elseif _test_pattern_at_position(fiveturn, i)
-            if i+5 < length(hbonds) ## TODO i+5 <= length(hbonds)?
+            if i+5 <= length(summary)  
                 summary[i+1] = 'I';
                 summary[i+2] = 'I';
                 summary[i+3] = 'I';
@@ -583,11 +591,9 @@ function predict_secondary_structure!(ac::AbstractAtomContainer{T}) where {T<:Re
                 summary[i+5] = 'I';
             end	
         else   #  do we have a helix reduced to less than minimal size?
-            #String ss = fiveturn_.getSubstring(i).toString();
-            #if (testString3_(fiveturn_, i, '5'))
             if _test_for_char_at_position(fiveturn, i, '5') 
                 #for (int j=1; (j<5) && ((i+j)<summary_.size()) && ((i+j)<fiveturn_.size()) ;j++)
-                for j in 1:5
+                for j in 1:4
                     if ((i+j) > length(summary)) ||  ((i+j) > length(fiveturn))
                         break
                     end
@@ -598,25 +604,21 @@ function predict_secondary_structure!(ac::AbstractAtomContainer{T}) where {T<:Re
             end	
         end
     end	
-
-    
-
+ 
     # -------------------3 helices ------------------------
     for i in 1:length(hbonds)
-        #if (testString2_(threeturn_, i))
         if _test_pattern_at_position(threeturn, i)
-            if ( (i+3) < length(hbonds)) # TODO?? i+3 <= length(hbonds)?
-                summary[i+1]= 'G';
-                summary[i+2]= 'G';
-                summary[i+3]= 'G';
+            if ( (i+3) <= length(summary)) 
+                summary[i+1] = 'G';
+                summary[i+2] = 'G';
+                summary[i+3] = 'G';
             end	
         # do we have a helix reduced to less than minimal size?
-        # we have to consider, that we do not overwrite 
-        #else if(testString3_(threeturn_, i, '3'))
+        # we have to ensure that we do not overwrite 
         elseif _test_for_char_at_position(threeturn, i, '3') 
-            if i+3 < length(summary) # TODO?? i+3 <= length(hbonds)?
-                for j in 1:3 #(Size j=1; j<3;j++)
-                    if summary[i+j] ∉ ['G',  'I']
+            if i+3 <= length(summary)  
+                for j in 1:2  
+                    if summary[i+j] ∉ ['G', 'I']
                         summary[i+j] = 'T';	
                     end
                 end
@@ -625,22 +627,25 @@ function predict_secondary_structure!(ac::AbstractAtomContainer{T}) where {T<:Re
     end
 
 
+    if DSSP_DEBUG
+        println("DSSP_DEBUG: extend bridges and single bridges ")
+        println("            status summary:", String(summary))
+    end
     # ---------------- Extended Bridges and Single Bridges --------------
     # according to the paper:
     # 		single bridges are ladders of length one -> B, 
     # 		all other ladder residues -> E
     # we assume that there is a mistake in the paper: E has a higher priority than B
-    # first we generate the sheet_-line and than summarize it in the summary_ line
+    # first we generate the sheet_-line and than summarize it in the summary line
 
-    #for(Size i=0; i< (sheet_.size()); i++)
     sheet_test_index = 1
-    while sheet_test_index < length(sheet)
+    while sheet_test_index < length(sheet)        
         if sheet[sheet_test_index] != '-'
             letter = sheet[sheet_test_index]
             
             # check the length of that sheet
             j::Int = 0 # start a sheet	
-            #for(j=0; ((i+j)<sheet_.size()) && (sheet_[i+j]==letter); j++)
+            
             while ((sheet_test_index+j) <= length(sheet) && (sheet[sheet_test_index+j]==letter))
                 j += 1
             end
@@ -651,7 +656,6 @@ function predict_secondary_structure!(ac::AbstractAtomContainer{T}) where {T<:Re
             #    #println("uups")
             else #extended bridge
                 for n in 0:j-1	
-                #for(int n=0; n<j; n++)
                     summary[sheet_test_index + n] = 'E';
                 end
                 # hop forward
@@ -662,25 +666,23 @@ function predict_secondary_structure!(ac::AbstractAtomContainer{T}) where {T<:Re
     end
 
 
+
     #				
     #  ---------------- 4 helices ---------------------
     # 
-    #for(Size i= 0; i<size; i++)
     for i in 1:length(hbonds)
-        #if (testString2_(fourturn_, i))
         if _test_pattern_at_position(fourturn, i)
             if (i+4 < length(hbonds))
-                summary_[i+1] = 'H';
-                summary_[i+2] = 'H';
-                summary_[i+3] = 'H';
-                summary_[i+4] = 'H';
+                summary[i+1] = 'H';
+                summary[i+2] = 'H';
+                summary[i+3] = 'H';
+                summary[i+4] = 'H';
             end	
         # or do we have a helix reduced to less than minimal size?
         # we have to ensure, that we do not overwrite 
         elseif (i < length(hbonds) ) && (fourturn[i:i+1] ∈ [['>','4'], ['X','4']]  ) 
             # single 3-, 4- or 5- helix
             if i+4 < length(hbonds)
-                #for(Size j=1; j<4; j++)
                 for j in 1:3
                     # do not overwrite!
                     if summary[i+j] ∉ ['G','H','I','E','B']
@@ -691,11 +693,15 @@ function predict_secondary_structure!(ac::AbstractAtomContainer{T}) where {T<:Re
         end #if	
     end
 
+    if DSSP_DEBUG
+        println("DSSP_DEBUG: final summary clean up")
+        println("            status summary:", String(summary))
+    end
+
     # finally we need to check the summary string again 
     # in order to identify and correct 'single/shortend' G or Is, 
     # (i.e. remains generated by partial overwrite a pattern GGG or IIIII by HHHH )
-
-    #for(Size i=0; i<( summary_.size()); i++)
+ 
     for i in 1:length(summary)
                 
         if  (i+2) <= length(summary)   
@@ -740,8 +746,8 @@ function predict_secondary_structure!(ac::AbstractAtomContainer{T}) where {T<:Re
     end
 
     if DSSP_DEBUG
-        println("DSSP DEBUG resulting summary:   ", String(summary))
-        println("DSSP DEBUG resulting threeturn: ",String(threeturn))
+        #println("DSSP DEBUG resulting summary:   ", String(summary))
+        println("DSSP DEBUG resulting threeturn: ", String(threeturn))
         println("DSSP DEBUG resulting fourturn:  ", String(fourturn))
         println("DSSP DEBUG resulting fiveturn:  ", String(fiveturn))
         println("DSSP DEBUG resulting sheet:     ", String(sheet))
