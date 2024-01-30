@@ -23,6 +23,7 @@ function build_fragment_bonds!(
 
     # iterate over all fragment atoms
     fatoms = atoms(f)
+    fbonds = bonds(f)
     for atom in fatoms
         atom_name = strip(atom.name)
 
@@ -58,14 +59,14 @@ function build_fragment_bonds!(
                 bond_index = findfirst(
                     b ->    (b.a1 == atom.idx && b.a2 == partner_atom.idx)
                          || (b.a1 == partner_atom.idx && b.a2 == atom.idx),
-                    bonds(f))
+                    fbonds)
 
                 if isnothing(bond_index)
-                    Bond(parent_system(f), atom.idx, partner_atom.idx, tpl_bond.order)
+                    push!(fbonds._idx, Bond(parent_system(f), atom.idx, partner_atom.idx, tpl_bond.order).idx)
                 
                     num_bonds_built += 1
                 else
-                    bond = bonds(f)[bond_index]
+                    bond = fbonds[bond_index]
 
                     bond.order = tpl_bond.order
                 end
