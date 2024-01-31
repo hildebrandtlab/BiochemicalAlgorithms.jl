@@ -247,26 +247,26 @@
         @test nresidues(chain3) == nresidues(sys, chain_id = chain3.idx)
 
         # residue atoms
-        @test size(_atoms(res), 1) == 0
-        @test _atoms(res) == _atoms(sys, residue_id = res.idx)
+        @test length(collect(_atoms(res))) == 0
+        @test Tables.materializer(AtomTable{T})(_atoms(res)) ==
+            Tables.materializer(AtomTable{T})(_atoms(sys, residue_id = res.idx))
         @test size(atoms_df(res), 1) == 0
         @test atoms_df(res) == atoms_df(sys, residue_id = res.idx)
         @test length(atoms(res)) == 0
         @test atoms(res) == atoms(sys, residue_id = res.idx)
-        @test length(eachatom(res)) == 0
-        @test length(eachatom(res)) == length(eachatom(sys, residue_id = res.idx))
+        @test length(collect(eachatom(res))) == 0
+        @test length(collect(eachatom(res))) == length(collect(eachatom(sys, residue_id = res.idx)))
         @test natoms(res) == 0
         @test natoms(res) == natoms(sys, residue_id = res.idx)
 
         @test push!(res, AtomTuple{T}(1, Elements.H)) === res
-        @test size(_atoms(res), 1) == 1
-        @test size(_atoms(res)) == size(_atoms(sys, residue_id = res.idx))
+        @test length(collect(_atoms(res))) == 1
         @test size(atoms_df(res), 1) == 1
         @test size(atoms_df(res)) == size(atoms_df(sys, residue_id = res.idx))
         @test length(atoms(res)) == 1
         @test atoms(res) == atoms(sys, residue_id = res.idx)
-        @test length(eachatom(res)) == 1
-        @test length(eachatom(res)) == length(eachatom(sys, residue_id = res.idx))
+        @test length(collect(eachatom(res))) == 1
+        @test length(collect(eachatom(res))) == length(collect(eachatom(sys, residue_id = res.idx)))
         @test natoms(res) == 1
         @test natoms(res) == natoms(sys, residue_id = res.idx)
 

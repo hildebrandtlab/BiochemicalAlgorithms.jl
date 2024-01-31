@@ -85,26 +85,26 @@
         @test nmolecules(sys) == 2
 
         # molecule atoms
-        @test size(_atoms(mol), 1) == 0
-        @test _atoms(mol) == _atoms(sys, molecule_id = mol.idx)
+        @test length(collect(_atoms(mol))) == 0
+        @test Tables.materializer(AtomTable{T})(_atoms(mol)) == 
+            Tables.materializer(AtomTable{T})(_atoms(sys, molecule_id = mol.idx))
         @test size(atoms_df(mol), 1) == 0
         @test atoms_df(mol) == atoms_df(sys, molecule_id = mol.idx)
         @test length(atoms(mol)) == 0
         @test atoms(mol) == atoms(sys, molecule_id = mol.idx)
-        @test length(eachatom(mol)) == 0
-        @test length(eachatom(mol)) == length(eachatom(sys, molecule_id = mol.idx))
+        @test length(collect(eachatom(mol))) == 0
+        @test length(collect(eachatom(mol))) == length(collect(eachatom(sys, molecule_id = mol.idx)))
         @test natoms(mol) == 0
         @test natoms(mol) == natoms(sys, molecule_id = mol.idx)
 
         @test push!(mol, AtomTuple{T}(1, Elements.H)) === mol
-        @test size(_atoms(mol), 1) == 1
-        @test size(_atoms(mol)) == size(_atoms(sys, molecule_id = mol.idx))
+        @test length(collect(_atoms(mol))) == 1
         @test size(atoms_df(mol), 1) == 1
         @test size(atoms_df(mol)) == size(atoms_df(sys, molecule_id = mol.idx))
         @test length(atoms(mol)) == 1
         @test atoms(mol) == atoms(sys, molecule_id = mol.idx)
-        @test length(eachatom(mol)) == 1
-        @test length(eachatom(mol)) == length(eachatom(sys, molecule_id = mol.idx))
+        @test length(collect(eachatom(mol))) == 1
+        @test length(collect(eachatom(mol))) == length(collect(eachatom(sys, molecule_id = mol.idx)))
         @test natoms(mol) == 1
         @test natoms(mol) == natoms(sys, molecule_id = mol.idx)
 

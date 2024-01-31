@@ -84,7 +84,7 @@ is automatically assigned a new `idx`.
 """
 @auto_hash_equals struct Atom{T} <: AbstractSystemComponent{T}
     _sys::System{T}
-    _row::DataFrameRow
+    _row::AtomTableRow{T}
 end
 
 function Atom(
@@ -110,8 +110,26 @@ function Atom(
     residue_id::MaybeInt = nothing
 ) where T
     idx = _next_idx(sys)
-    push!(sys._atoms, (idx, number, element, name, atom_type, r, v, F, formal_charge, charge, radius,
-        properties, flags, frame_id, molecule_id, chain_id, fragment_id, nucleotide_id, residue_id))
+    push!(sys._atoms, AtomTuple{T}(number, element;
+            idx = idx,
+            name = name,
+            atom_type = atom_type,
+            r = r,
+            v = v,
+            F = F,
+            formal_charge = formal_charge,
+            charge = charge,
+            radius = radius,
+            properties = properties,
+            flags = flags
+        );
+        frame_id = frame_id,
+        molecule_id = molecule_id,
+        chain_id = chain_id,
+        fragment_id = fragment_id,
+        nucleotide_id = nucleotide_id,
+        residue_id = residue_id
+    )
     atom_by_idx(sys, idx)::Atom{T}
 end
 
@@ -166,26 +184,13 @@ end
     Atom(default_system(), t; kwargs...)::Atom{Float32}
 end
 
-function Base.getproperty(atom::Atom{T}, name::Symbol) where T
-    gp = () -> getproperty(getfield(atom, :_row), name)
-    name === :idx           && return gp()::Int
-    name === :number        && return gp()::Int
-    name === :element       && return gp()::ElementType
-    name === :name          && return gp()::String
-    name === :atom_type     && return gp()::String
-    name === :r             && return gp()::Vector3{T}
-    name === :v             && return gp()::Vector3{T}
-    name === :F             && return gp()::Vector3{T}
-    name === :formal_charge && return gp()::Int
-    name === :charge        && return gp()::T
-    name === :radius        && return gp()::T
-    name === :properties    && return gp()::Properties
-    name === :flags         && return gp()::Flags
+function Base.getproperty(atom::Atom, name::Symbol)
+    in(name, Tables.columnnames(getfield(atom, :_row))) && return getproperty(getfield(atom, :_row), name)
     getfield(atom, name)
 end
 
 function Base.setproperty!(atom::Atom, name::Symbol, val)
-    in(name, fieldnames(AtomTuple)) && return setproperty!(getfield(atom, :_row), name, val)
+    in(name, Tables.columnnames(getfield(atom, :_row))) && return setproperty!(getfield(atom, :_row), name, val)
     setfield!(atom, name, val)
 end
 
@@ -233,7 +238,7 @@ Returns the `Atom{T}` associated with the given `idx` in `sys`. Throws a `KeyErr
 atom exists.
 """
 @inline function atom_by_idx(sys::System{T}, idx::Int) where T
-    Atom{T}(sys, DataFrameRow(sys._atoms.df, _row_by_idx(sys._atoms, idx), :))
+    Atom{T}(sys, _row_by_idx(sys._atoms, idx))
 end
 
 """
@@ -251,9 +256,9 @@ Any value other than `nothing` limits the result to atoms matching this frame ID
     name::String;
     frame_id::MaybeInt = 1
 ) where T
-    df = _atoms(ac; frame_id = frame_id)
-    at = findfirst(df.name .== name)
-    isnothing(at) ? nothing : Atom{T}(parent(ac), DataFrameRow(df, at, :))
+    at = _atoms(ac; frame_id = frame_id) |> Tables.columntable
+    row = findfirst(e -> e == name, at.name)
+    isnothing(row) ? nothing : atom_by_idx(parent(ac), at.idx[row])
 end
 
 """
@@ -279,11 +284,7 @@ function _atoms(sys::System{T};
     isnothing(nucleotide_id) || push!(cols, (:nucleotide_id, something(nucleotide_id)))
     isnothing(residue_id)    || push!(cols, (:residue_id, something(residue_id)))
 
-    get(
-        groupby(sys._atoms.df, getindex.(cols, 1)),
-        ntuple(i -> cols[i][2], length(cols)),
-        view(sys._atoms.df, Int[], :)
-    )::SubDataFrame{DataFrame, DataFrames.Index, Vector{Int}}
+    TableOperations.filter(row -> all(p -> _getcolumn(row, p[1]) == p[2], cols), sys._atoms)
 end
 
 """
@@ -314,14 +315,14 @@ end
     atoms_df(::Residue)
     atoms_df(::System)
 
-Returns a `SubDataFrame` containing all atoms of the given atom container.
+Returns a `DataFrame` containing all atoms of the given atom container.
 
 # Supported keyword arguments
  - `frame_id::MaybeInt = 1`: \
 Any value other than `nothing` limits the result to atoms matching this frame ID.
 """
 @inline function atoms_df(sys::System{T}; kwargs...) where T
-    view(_atoms(sys; kwargs...), :, 1:length(fieldnames(AtomTuple{T})))
+    DataFrame(_atoms(sys; kwargs...))
 end
 
 """
@@ -347,7 +348,7 @@ end
 ```
 """
 @inline function eachatom(sys::System{T}; kwargs...) where T
-    (Atom{T}(sys, row) for row in eachrow(_atoms(sys; kwargs...)))
+    (Atom{T}(sys, row) for row in _atoms(sys; kwargs...))
 end
 
 """
@@ -366,7 +367,7 @@ Returns the number of atoms in the given atom container.
 Any value other than `nothing` limits the result to atoms matching this frame ID.
 """
 @inline function natoms(sys::System; kwargs...)
-    nrow(_atoms(sys; kwargs...))
+    count(_ -> true, _atoms(sys; kwargs...))
 end
 
 """
@@ -439,16 +440,14 @@ function Base.push!(sys::System{T}, atom::AtomTuple{T};
     nucleotide_id::MaybeInt = nothing,
     residue_id::MaybeInt = nothing
 ) where T
-    push!(sys._atoms, 
-        (; atom..., 
-            idx = _next_idx(sys),
-            frame_id = frame_id,
-            molecule_id = molecule_id,
-            chain_id = chain_id,
-            fragment_id = fragment_id,
-            nucleotide_id = nucleotide_id,
-            residue_id = residue_id
-        )
+    push!(sys._atoms,
+        (; atom..., idx = _next_idx(sys));
+        frame_id = frame_id,
+        molecule_id = molecule_id,
+        chain_id = chain_id,
+        fragment_id = fragment_id,
+        nucleotide_id = nucleotide_id,
+        residue_id = residue_id
     )
     sys
 end
@@ -503,9 +502,9 @@ end
     Hydrogen bonds (has_flag(bond, :TYPE__HYDROGEN)) are ignored.
 """
 function is_bound_to(a1::Atom, a2::Atom)
-    s = a1._sys
+    s = parent(a1)
 
-    if s != a2._sys
+    if s != parent(a2)
         return false
     end
 

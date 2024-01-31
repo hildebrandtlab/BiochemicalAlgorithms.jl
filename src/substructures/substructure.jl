@@ -5,7 +5,7 @@ export Substructure, filter_atoms
 
     parent::AbstractAtomContainer{T}
     
-    _atoms::SubDataFrame
+    _atoms::AtomTable{T}
     _bonds::SubDataFrame
     
     properties::Properties
@@ -26,12 +26,13 @@ Substructure(name,
              properties = parent.properties) = 
                 Substructure{Float32}(name, parent, atoms, bonds, properties)
 
-function filter_atoms(fn, mol; name="", adjacent_bonds=false)
-    atom_view = filter(fn, _atoms(mol), view=true)
+function filter_atoms(fn, mol::AbstractAtomContainer{T}; name="", adjacent_bonds=false) where T
+    atom_view = Tables.materializer(AtomTable{T})(TableOperations.filter(fn, _atoms(mol)))
+    idxset = Set(atom_view.idx)
     bond_view = filter(
         [:a1, :a2] => (a1, a2) -> 
-            adjacent_bonds ? a1 ∈ atom_view.idx || a2 ∈ atom_view.idx
-                           : a1 ∈ atom_view.idx && a2 ∈ atom_view.idx,
+            adjacent_bonds ? a1 ∈ idxset || a2 ∈ idxset
+                           : a1 ∈ idxset && a2 ∈ idxset,
         _bonds(mol), view=true)
 
     Substructure(name, mol, atom_view, bond_view)
@@ -44,7 +45,7 @@ function Base.copy(substruct::Substructure{T}) where T
     sys.properties = copy(substruct.properties)
     sys.flags      = copy(substruct.parent.flags)
 
-    sys._atoms = IndexedDataFrame(copy(substruct._atoms))
+    sys._atoms = deepcopy(substruct._atoms)
     sys._bonds = IndexedDataFrame(copy(substruct._bonds))
 
     sys._molecules   = IndexedDataFrame(copy(_molecules(substruct)))
@@ -79,50 +80,46 @@ function _atoms(substruct::Substructure{T};
     isnothing(nucleotide_id) || push!(cols, (:nucleotide_id, nucleotide_id))
     isnothing(residue_id)    || push!(cols, (:residue_id, residue_id))
 
-    get(
-        groupby(substruct._atoms, getindex.(cols, 1)),
-        ntuple(i -> cols[i][2], length(cols)),
-        view(substruct._atoms, Int[], :)
-    )::SubDataFrame{DataFrame, DataFrames.Index, Vector{Int}}
+    TableOperations.filter(row -> all(p -> _getcolumn(row, p[1]) == p[2], cols), substruct._atoms)
 end
 
 function _bonds(substruct::Substructure; kwargs...)
-    aidx = _atoms(substruct; kwargs...).idx
+    aidx = (_atoms(substruct; kwargs...) |> Tables.columntable).idx
     @rsubset(
         substruct._bonds, :a1 in aidx || :a2 in aidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
 function _molecules(substruct::Substructure; kwargs...)
-    midx = unique(_atoms(substruct; kwargs...).molecule_id)
+    midx = unique((_atoms(substruct; kwargs...) |> Tables.columntable).molecule_id)
     @rsubset(
         _molecules(substruct.parent), :idx in midx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
 function _chains(substruct::Substructure; kwargs...)
-    cidx = _atoms(substruct; kwargs...).chain_id
+    cidx = (_atoms(substruct; kwargs...) |> Tables.columntable).chain_id
     @rsubset(
         _chains(substruct.parent), :idx in cidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
 function _fragments(substruct::Substructure; kwargs...)
-    fidx = _atoms(substruct; kwargs...).fragment_id
+    fidx = (_atoms(substruct; kwargs...) |> Tables.columntable).fragment_id
     @rsubset(
         _fragments(substruct.parent), :idx in fidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
 function _nucleotides(substruct::Substructure; kwargs...)
-    nidx = _atoms(substruct; kwargs...).nucleotide_id
+    nidx = (_atoms(substruct; kwargs...) |> Tables.columntable).nucleotide_id
     @rsubset(
         _nucleotides(substruct.parent), :idx in nidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
 function _residues(substruct::Substructure; kwargs...)
-    ridx = _atoms(substruct; kwargs...).residue_id
+    ridx = (_atoms(substruct; kwargs...) |> Tables.columntable).residue_id
     @rsubset(
         _residues(substruct.parent), :idx in ridx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
@@ -130,7 +127,7 @@ end
 
 @inline function eachatom(substruct::Substructure{T}; kwargs...) where T
     sys = substruct.parent isa System{T} ? substruct.parent : parent_system(substruct.parent)
-    (Atom{T}(sys, row) for row in eachrow(_atoms(substruct; kwargs...)))
+    (Atom{T}(sys, row) for row in _atoms(substruct; kwargs...))
 end
 
 @inline function atoms(substruct::Substructure; kwargs...)
@@ -165,7 +162,7 @@ end
 end
 
 function atoms_df(ac::Substructure{T}; kwargs...) where {T<:Real}
-    view(_atoms(ac; kwargs...), :, 1:length(fieldnames(AtomTuple{T})))
+    DataFrame(_atoms(ac; kwargs...))
 end
 
 function bonds_df(ac::Substructure{T}; kwargs...) where {T<:Real}
@@ -173,7 +170,7 @@ function bonds_df(ac::Substructure{T}; kwargs...) where {T<:Real}
 end
 
 @inline function natoms(substruct::Substructure; kwargs...)
-    nrow(_atoms(substruct; kwargs...))
+    count(_ -> true, _atoms(substruct; kwargs...))
 end
 
 @inline function nbonds(substruct::Substructure; kwargs...)

@@ -7,7 +7,7 @@ using DataFramesMeta
 using DocStringExtensions
 using Graphs, GraphDataFrameBridge
 using Unitful, UnitfulAtomic
-using Tables
+using Tables, TableOperations
 
 include("core/exceptions.jl")
 include("core/constants.jl")
@@ -19,9 +19,9 @@ include("core/bond_order.jl")
 include("core/tuples.jl")
 include("core/system_component.jl")
 include("core/atom_container.jl")
+include("core/atom_table.jl")
 include("core/system.jl")
 include("core/bond.jl")
-include("core/atom_table.jl")
 include("core/atom.jl")
 include("core/molecule.jl")
 include("core/chain.jl")

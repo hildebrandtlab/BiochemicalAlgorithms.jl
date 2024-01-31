@@ -247,26 +247,26 @@
         @test nfragments(chain3) == nfragments(sys, chain_id = chain3.idx)
 
         # fragment atoms
-        @test size(_atoms(frag), 1) == 0
-        @test _atoms(frag) == _atoms(sys, fragment_id = frag.idx)
+        @test length(collect(_atoms(frag))) == 0
+        @test Tables.materializer(AtomTable{T})(_atoms(frag)) == 
+            Tables.materializer(AtomTable{T})(_atoms(sys, fragment_id = frag.idx))
         @test size(atoms_df(frag), 1) == 0
         @test atoms_df(frag) == atoms_df(sys, fragment_id = frag.idx)
         @test length(atoms(frag)) == 0
         @test atoms(frag) == atoms(sys, fragment_id = frag.idx)
-        @test length(eachatom(frag)) == 0
-        @test length(eachatom(frag)) == length(eachatom(sys, fragment_id = frag.idx))
+        @test length(collect(eachatom(frag))) == 0
+        @test length(collect(eachatom(frag))) == length(collect(eachatom(sys, fragment_id = frag.idx)))
         @test natoms(frag) == 0
         @test natoms(frag) == natoms(sys, fragment_id = frag.idx)
 
         @test push!(frag, AtomTuple{T}(1, Elements.H)) === frag
-        @test size(_atoms(frag), 1) == 1
-        @test size(_atoms(frag)) == size(_atoms(sys, fragment_id = frag.idx))
+        @test length(collect(_atoms(frag))) == 1
         @test size(atoms_df(frag), 1) == 1
         @test size(atoms_df(frag)) == size(atoms_df(sys, fragment_id = frag.idx))
         @test length(atoms(frag)) == 1
         @test atoms(frag) == atoms(sys, fragment_id = frag.idx)
-        @test length(eachatom(frag)) == 1
-        @test length(eachatom(frag)) == length(eachatom(sys, fragment_id = frag.idx))
+        @test length(collect(eachatom(frag))) == 1
+        @test length(collect(eachatom(frag))) == length(collect(eachatom(sys, fragment_id = frag.idx)))
         @test natoms(frag) == 1
         @test natoms(frag) == natoms(sys, fragment_id = frag.idx)
 
