@@ -1,5 +1,6 @@
 export
-    AtomTable
+    AtomTable,
+    AtomTableRow
 
 const _atom_table_cols = fieldnames(AtomTuple)
 const _atom_table_cols_set = Set(_atom_table_cols)
@@ -62,12 +63,11 @@ Tables.istable(::Type{<: AtomTable}) = true
 Tables.columnaccess(::Type{<: AtomTable}) = true
 Tables.columns(at::AtomTable) = at
 
-Tables.getcolumn(at::AtomTable, nm::Symbol) = nm in _atom_table_cols_set ? getfield(at, nm) : error("type AtomTable has no column $nm")
+Tables.getcolumn(at::AtomTable, nm::Symbol) = nm in _atom_table_cols_priv || nm in _atom_table_cols_set ?
+    getfield(at, nm) : error("type AtomTable has no column $nm")
 Tables.getcolumn(at::AtomTable, i::Int) = getfield(at, Tables.columnnames(at)[i])
 Tables.columnnames(::AtomTable) = _atom_table_cols
 Tables.schema(::AtomTable{T}) where T = Tables.Schema(fieldnames(AtomTuple{T}), fieldtypes(AtomTuple{T}))
-
-_getcolumn(at::AtomTable, nm::Symbol) = nm in _atom_table_cols_priv || nm in _atom_table_cols_set ? getfield(at, nm) : error("type AtomTable has no column $nm")
 
 Base.size(at::AtomTable) = (length(at.idx), length(_atom_table_cols))
 Base.size(at::AtomTable, dim) = size(at)[dim]
@@ -122,3 +122,48 @@ function _atom_table(::Type{T}, itr) where T
 end
 Tables.materializer(::Type{AtomTable{T}}) where T = itr -> _atom_table(T, itr)
 
+function _filter_select(itr, col::Symbol)
+    (getproperty(a, col) for a in itr)
+end
+
+struct AtomTableRow{T} <: Tables.AbstractRow
+    _row::Int
+    _tab::AtomTable{T}
+end
+
+Tables.rowaccess(::Type{<: AtomTable}) = true
+Tables.rows(at::AtomTable) = at
+Tables.getcolumn(atr::AtomTableRow, nm::Symbol) = Tables.getcolumn(getfield(atr, :_tab), nm)[getfield(atr, :_row)]
+Tables.getcolumn(atr::AtomTableRow, i::Int) = getfield(atr, Tables.columnnames(atr)[i])
+Tables.columnnames(::AtomTableRow) = _atom_table_cols
+
+_row_by_idx(at::AtomTable{T}, idx::Int) where T = AtomTableRow{T}(getfield(at, :_idx_map)[idx], at)
+
+function Base.getproperty(atr::AtomTableRow{T}, nm::Symbol) where T
+    nm === :idx           && return _getproperty(atr, :idx)::Int
+    nm === :number        && return _getproperty(atr, :number)::Int
+    nm === :element       && return _getproperty(atr, :element)::ElementType
+    nm === :name          && return _getproperty(atr, :name)::String
+    nm === :atom_type     && return _getproperty(atr, :atom_type)::String
+    nm === :r             && return _getproperty(atr, :r)::Vector3{Angstrom{T}}
+    nm === :v             && return _getproperty(atr, :v)::Vector3{AngstromPerSecond{T}}
+    nm === :F             && return _getproperty(atr, :F)::Vector3{Newton{T}}
+    nm === :properties    && return _getproperty(atr, :properties)::Properties
+    nm === :flags         && return _getproperty(atr, :flags)::Flags
+    nm === :frame_id      && return _getproperty(atr, :frame_id)::Int
+    nm === :molecule_id   && return _getproperty(atr, :molecule_id)::MaybeInt
+    nm === :chain_id      && return _getproperty(atr, :chain_id)::MaybeInt
+    nm === :fragment_id   && return _getproperty(atr, :fragment_id)::MaybeInt
+    nm === :nucleotide_id && return _getproperty(atr, :nucleotide_id)::MaybeInt
+    nm === :residue_id    && return _getproperty(atr, :residue_id)::MaybeInt
+    getindex(getfield(getfield(atr, :_tab), nm), getfield(atr, :_row))
+end
+
+@inline function _getproperty(atr::AtomTableRow{T}, nm::Symbol) where T
+    getindex(getproperty(getfield(atr, :_tab), nm), getfield(atr, :_row))
+end
+
+Base.setproperty!(atr::AtomTableRow, nm::Symbol, val) = setindex!(getproperty(getfield(atr, :_tab), nm), val, getfield(atr, :_row))
+
+Base.eltype(::AtomTable{T}) where T = AtomTableRow{T}
+Base.iterate(at::AtomTable, st=1) = st > length(at) ? nothing : (AtomTableRow(st, at), st + 1)
