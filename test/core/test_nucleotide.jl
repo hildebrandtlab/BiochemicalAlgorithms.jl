@@ -229,26 +229,26 @@
         @test nnucleotides(chain3) == nnucleotides(sys, chain_id = chain3.idx)
 
         # nucleotide atoms
-        @test size(_atoms(nuc), 1) == 0
-        @test _atoms(nuc) == _atoms(sys, nucleotide_id = nuc.idx)
+        @test length(collect(_atoms(nuc))) == 0
+        @test Tables.materializer(AtomTable{T})(_atoms(nuc)) ==
+            Tables.materializer(AtomTable{T})(_atoms(sys, nucleotide_id = nuc.idx))
         @test size(atoms_df(nuc), 1) == 0
         @test atoms_df(nuc) == atoms_df(sys, nucleotide_id = nuc.idx)
         @test length(atoms(nuc)) == 0
         @test atoms(nuc) == atoms(sys, nucleotide_id = nuc.idx)
-        @test length(eachatom(nuc)) == 0
-        @test length(eachatom(nuc)) == length(eachatom(sys, nucleotide_id = nuc.idx))
+        @test length(collect(eachatom(nuc))) == 0
+        @test length(collect(eachatom(nuc))) == length(collect(eachatom(sys, nucleotide_id = nuc.idx)))
         @test natoms(nuc) == 0
         @test natoms(nuc) == natoms(sys, nucleotide_id = nuc.idx)
 
         @test push!(nuc, AtomTuple{T}(1, Elements.H)) === nuc
-        @test size(_atoms(nuc), 1) == 1
-        @test size(_atoms(nuc)) == size(_atoms(sys, nucleotide_id = nuc.idx))
+        @test length(collect(_atoms(nuc))) == 1
         @test size(atoms_df(nuc), 1) == 1
         @test size(atoms_df(nuc)) == size(atoms_df(sys, nucleotide_id = nuc.idx))
         @test length(atoms(nuc)) == 1
         @test atoms(nuc) == atoms(sys, nucleotide_id = nuc.idx)
-        @test length(eachatom(nuc)) == 1
-        @test length(eachatom(nuc)) == length(eachatom(sys, nucleotide_id = nuc.idx))
+        @test length(collect(eachatom(nuc))) == 1
+        @test length(collect(eachatom(nuc))) == length(collect(eachatom(sys, nucleotide_id = nuc.idx)))
         @test natoms(nuc) == 1
         @test natoms(nuc) == natoms(sys, nucleotide_id = nuc.idx)
 

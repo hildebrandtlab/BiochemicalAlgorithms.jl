@@ -100,7 +100,7 @@ Creates a new and empty `System{T}`.
     properties::Properties
     flags::Flags
 
-    _atoms::IndexedDataFrame
+    _atoms::AtomTable{T}
     _bonds::IndexedDataFrame
     _molecules::IndexedDataFrame
     _chains::IndexedDataFrame
@@ -118,7 +118,7 @@ Creates a new and empty `System{T}`.
             name,
             properties,
             flags,
-            IndexedDataFrame(_SystemAtomTuple{T}[]),
+            AtomTable{T}(),
             IndexedDataFrame(BondTuple[]),
             IndexedDataFrame(MoleculeTuple[]),
             IndexedDataFrame(_SystemChainTuple[]),

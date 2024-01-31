@@ -1,17 +1,19 @@
 @testitem "Substructure" begin
     using DataFrames
+    using Tables, TableOperations
 
     # read a simple molecule
     mol = molecules(load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json")))[1]
 
-    filter_fn = :element => e -> e == Elements.C
+    filter_fn = atom -> atom.element == Elements.C
 
     # and create a substructure
-    filtered_atoms = filter(filter_fn, BiochemicalAlgorithms._atoms(mol), view = true)
+    filtered_atoms = Tables.materializer(AtomTable{Float32})(TableOperations.filter(filter_fn, BiochemicalAlgorithms._atoms(mol)))
+    idxset = Set(filtered_atoms.idx)
     filtered_bonds = filter(
         [:a1, :a2] => 
-            (a1, a2) -> a1 ∈ filtered_atoms.idx && 
-                        a2 ∈ filtered_atoms.idx, BiochemicalAlgorithms._bonds(mol), view = true)
+            (a1, a2) -> a1 ∈ idxset && 
+                        a2 ∈ idxset, BiochemicalAlgorithms._bonds(mol), view = true)
 
     s = Substructure(
         "aspirin substructure",
@@ -22,7 +24,7 @@
 
     @test s isa Substructure
     @test s.name == "aspirin substructure"
-    @test atoms_df(s) isa SubDataFrame
+    @test atoms_df(s) isa DataFrame
     @test size(atoms_df(s)) == (9,13)
     @test bonds_df(s) isa SubDataFrame
     @test size(bonds_df(s)) == (8,6)

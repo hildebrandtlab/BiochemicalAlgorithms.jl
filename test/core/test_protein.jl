@@ -85,26 +85,26 @@
         @test nproteins(sys) == 2
 
         # protein atoms
-        @test size(_atoms(prot), 1) == 0
-        @test _atoms(prot) == _atoms(sys, molecule_id = prot.idx)
+        @test length(collect(_atoms(prot))) == 0
+        @test Tables.materializer(AtomTable{T})(_atoms(prot)) == 
+            Tables.materializer(AtomTable{T})(_atoms(sys, molecule_id = prot.idx))
         @test size(atoms_df(prot), 1) == 0
         @test atoms_df(prot) == atoms_df(sys, molecule_id = prot.idx)
         @test length(atoms(prot)) == 0
         @test atoms(prot) == atoms(sys, molecule_id = prot.idx)
-        @test length(eachatom(prot)) == 0
-        @test length(eachatom(prot)) == length(eachatom(sys, molecule_id = prot.idx))
+        @test length(collect(eachatom(prot))) == 0
+        @test length(collect(eachatom(prot))) == length(collect(eachatom(sys, molecule_id = prot.idx)))
         @test natoms(prot) == 0
         @test natoms(prot) == natoms(sys, molecule_id = prot.idx)
 
         @test push!(prot, AtomTuple{T}(1, Elements.H)) === prot
-        @test size(_atoms(prot), 1) == 1
-        @test size(_atoms(prot)) == size(_atoms(sys, molecule_id = prot.idx))
+        @test length(collect(_atoms(prot))) == 1
         @test size(atoms_df(prot), 1) == 1
         @test size(atoms_df(prot)) == size(atoms_df(sys, molecule_id = prot.idx))
         @test length(atoms(prot)) == 1
         @test atoms(prot) == atoms(sys, molecule_id = prot.idx)
-        @test length(eachatom(prot)) == 1
-        @test length(eachatom(prot)) == length(eachatom(sys, molecule_id = prot.idx))
+        @test length(collect(eachatom(prot))) == 1
+        @test length(collect(eachatom(prot))) == length(collect(eachatom(sys, molecule_id = prot.idx)))
         @test natoms(prot) == 1
         @test natoms(prot) == natoms(sys, molecule_id = prot.idx)
 
