@@ -2,26 +2,6 @@ using AutoHashEquals
 export System, default_system, parent_system
 
 """
-    const _SystemAtomTuple{T} = NamedTuple{...}
-
-System-specific extension of `AtomTuple{T}`. See [`AtomTuple`](@ref).
-
-# Additional fields
- - `frame_id::Int`
- - `molecule_id::MaybeInt`
- - `chain_id::MaybeInt`
- - `fragment_id::MaybeInt`
- - `nucleotide_id::MaybeInt`
- - `residue_id::MaybeInt`
-"""
-const _SystemAtomTuple{T} = NamedTuple{
-    (fieldnames(AtomTuple{T})...,
-        :frame_id, :molecule_id, :chain_id, :fragment_id, :nucleotide_id, :residue_id),
-    Tuple{fieldtypes(AtomTuple{T})...,
-        Int, MaybeInt, MaybeInt, MaybeInt, MaybeInt, MaybeInt}
-}
-
-"""
     const _SystemChainTuple{T} = NamedTuple{...}
 
 System-specific extension of `ChainTuple{T}`. See [`ChainTuple`](@ref).
