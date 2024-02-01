@@ -84,42 +84,42 @@ function _atoms(substruct::Substructure{T};
 end
 
 function _bonds(substruct::Substructure; kwargs...)
-    aidx = (_atoms(substruct; kwargs...) |> Tables.columntable).idx
+    aidx = Set(_filter_select(_atoms(substruct; kwargs...), :idx))
     @rsubset(
         substruct._bonds, :a1 in aidx || :a2 in aidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
 function _molecules(substruct::Substructure; kwargs...)
-    midx = unique((_atoms(substruct; kwargs...) |> Tables.columntable).molecule_id)
+    midx = Set(_filter_select(_atoms(substruct; kwargs...), :molecule_id))
     @rsubset(
         _molecules(substruct.parent), :idx in midx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
 function _chains(substruct::Substructure; kwargs...)
-    cidx = (_atoms(substruct; kwargs...) |> Tables.columntable).chain_id
+    cidx = Set(_filter_select(_atoms(substruct; kwargs...), :chain_id))
     @rsubset(
         _chains(substruct.parent), :idx in cidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
 function _fragments(substruct::Substructure; kwargs...)
-    fidx = (_atoms(substruct; kwargs...) |> Tables.columntable).fragment_id
+    fidx = Set(_filter_select(_atoms(substruct; kwargs...), :fragment_id))
     @rsubset(
         _fragments(substruct.parent), :idx in fidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
 function _nucleotides(substruct::Substructure; kwargs...)
-    nidx = (_atoms(substruct; kwargs...) |> Tables.columntable).nucleotide_id
+    nidx = Set(_filter_select(_atoms(substruct; kwargs...), :nucleotide_id))
     @rsubset(
         _nucleotides(substruct.parent), :idx in nidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
 function _residues(substruct::Substructure; kwargs...)
-    ridx = (_atoms(substruct; kwargs...) |> Tables.columntable).residue_id
+    ridx = Set(_filter_select(_atoms(substruct; kwargs...), :residue_id))
     @rsubset(
         _residues(substruct.parent), :idx in ridx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}

@@ -256,9 +256,8 @@ Any value other than `nothing` limits the result to atoms matching this frame ID
     name::String;
     frame_id::MaybeInt = 1
 ) where T
-    at = _atoms(ac; frame_id = frame_id) |> Tables.columntable
-    row = findfirst(e -> e == name, at.name)
-    isnothing(row) ? nothing : atom_by_idx(parent(ac), at.idx[row])
+    idx = _filter_select(TableOperations.filter(row -> row.name == name, _atoms(ac; frame_id = frame_id)), :idx)
+    isempty(idx) ? nothing : atom_by_idx(parent(ac), first(idx))
 end
 
 """
