@@ -50,7 +50,7 @@
         @test bond.flags == Flags()
 
         @test bond._sys isa System{T}
-        @test bond._row isa DataFrameRow
+        @test bond._row isa BondTableRow
 
         @test bond2.idx isa Int
         @test bond2.a1 isa Int
@@ -84,25 +84,15 @@
         @test bond_by_idx(sys, bond.idx) isa Bond{T}
         @test bond_by_idx(sys, bond.idx) == bond
 
-        # _bonds
-        df = _bonds(sys)
-        @test df isa AbstractDataFrame
-        @test size(df) == (2, length(fieldnames(BondTuple)))
-        @test copy(df[1, :]) isa BondTuple
-        @test size(_bonds(sys, frame_id = 1), 1) == 2
-        @test size(_bonds(sys, frame_id = 2), 1) == 1
-        @test size(_bonds(sys, frame_id = 3), 1) == 0
-        @test size(_bonds(sys, frame_id = nothing), 1) == 3
-
         # bonds_df
         df = bonds_df(sys)
-        @test df isa AbstractDataFrame
+        @test df isa DataFrame
         @test size(df) == (2, length(fieldnames(BondTuple)))
         @test copy(df[1, :]) isa BondTuple
-        @test size(_bonds(sys, frame_id = 1), 1) == 2
-        @test size(_bonds(sys, frame_id = 2), 1) == 1
-        @test size(_bonds(sys, frame_id = 3), 1) == 0
-        @test size(_bonds(sys, frame_id = nothing), 1) == 3
+        @test size(bonds_df(sys, frame_id = 1), 1) == 2
+        @test size(bonds_df(sys, frame_id = 2), 1) == 1
+        @test size(bonds_df(sys, frame_id = 3), 1) == 0
+        @test size(bonds_df(sys, frame_id = nothing), 1) == 3
 
         # bonds
         bv = bonds(sys)
@@ -115,11 +105,11 @@
 
         # eachbond
         @test first(eachbond(sys)) isa Bond{T}
-        @test length(eachbond(sys)) == 2
-        @test length(eachbond(sys, frame_id = 1)) == 2
-        @test length(eachbond(sys, frame_id = 2)) == 1
-        @test length(eachbond(sys, frame_id = 3)) == 0
-        @test length(eachbond(sys, frame_id = nothing)) == 3
+        @test length(collect(eachbond(sys))) == 2
+        @test length(collect(eachbond(sys, frame_id = 1))) == 2
+        @test length(collect(eachbond(sys, frame_id = 2))) == 1
+        @test length(collect(eachbond(sys, frame_id = 3))) == 0
+        @test length(collect(eachbond(sys, frame_id = nothing))) == 3
 
         # nbonds
         @test nbonds(sys) isa Int

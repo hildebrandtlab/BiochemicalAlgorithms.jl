@@ -52,7 +52,7 @@ Creates a new `Bond{T}` in the given system.
 """
 @auto_hash_equals struct Bond{T} <: AbstractSystemComponent{T}
     _sys::System{T}
-    _row::DataFrameRow
+    _row::BondTableRow
 end
 
 function Bond(
@@ -64,7 +64,11 @@ function Bond(
     flags::Flags = Flags()
 ) where T
     idx = _next_idx(sys)
-    push!(sys._bonds, (idx, a1, a2, order, properties, flags))
+    push!(sys._bonds, BondTuple(a1, a2, order;
+        idx = idx,
+        properties = properties,
+        flags = flags
+    ))
     bond_by_idx(sys, idx)
 end
 
@@ -79,18 +83,12 @@ end
 end
 
 function Base.getproperty(bond::Bond, name::Symbol)
-    gp = () -> getproperty(getfield(bond, :_row), name)
-    name === :idx        && return gp()::Int
-    name === :a1         && return gp()::Int
-    name === :a2         && return gp()::Int
-    name === :order      && return gp()::BondOrderType
-    name === :properties && return gp()::Properties
-    name === :flags      && return gp()::Flags
+    in(name, Tables.columnnames(getfield(bond, :_row))) && return getproperty(getfield(bond, :_row), name)
     getfield(bond, name)
 end
 
 function Base.setproperty!(bond::Bond, name::Symbol, val)
-    in(name, fieldnames(BondTuple)) && return setproperty!(getfield(bond, :_row), name, val)
+    in(name, Tables.columnnames(getfield(bond, :_row))) && return setproperty!(getfield(bond, :_row), name, val)
     setfield!(bond, name, val)
 end
 
@@ -108,7 +106,7 @@ Returns the `Bond{T}` associated with the given `idx` in `sys`. Throws a `KeyErr
 bond exists.
 """
 @inline function bond_by_idx(sys::System{T}, idx::Int) where T
-    Bond{T}(sys, DataFrameRow(sys._bonds.df, _row_by_idx(sys._bonds, idx), :))
+    Bond{T}(sys, _row_by_idx(sys._bonds, idx))
 end
 
 """
@@ -121,9 +119,7 @@ should be explicitly checked for a value of `nothing`. See [`_atoms`](@ref).
 function _bonds(sys::System; kwargs...)
     # FIXME this implementation currently ignores bonds with _two_ invalid atom IDs
     aidx = Set(_filter_select(_atoms(sys; kwargs...), :idx))
-    @rsubset(
-        sys._bonds.df, :a1 in aidx || :a2 in aidx; view = true
-    )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
+    TableOperations.filter(row -> row.a1 in aidx || row.a2 in aidx, sys._bonds)
 end
 
 """
@@ -156,7 +152,7 @@ end
     bonds_df(::Residue)
     bonds_df(::System)
 
-Returns a `SubDataFrame` containing all bonds of the given atom container where at least one
+Returns a `DataFrame` containing all bonds of the given atom container where at least one
 associated atom is contained in the same container.
 
 # Supported keyword arguments
@@ -165,7 +161,7 @@ Any value other than `nothing` also limits the result to bonds where at least on
 this frame ID.
 """
 @inline function bonds_df(sys::System; kwargs...)
-    _bonds(sys; kwargs...)
+    DataFrame(_bonds(sys; kwargs...))
 end
 
 """
@@ -186,7 +182,7 @@ Any value other than `nothing` also limits the result to bonds where at least on
 this frame ID.
 """
 function eachbond(sys::System{T}; kwargs...) where T
-    (Bond{T}(sys, row) for row in eachrow(_bonds(sys; kwargs...)))
+    (Bond{T}(sys, row) for row in _bonds(sys; kwargs...))
 end
 
 """
@@ -207,7 +203,7 @@ Any value other than `nothing` also limits the result to bonds where at least on
 this frame ID.
 """
 function nbonds(sys::System{T}; kwargs...) where T
-    nrow(_bonds(sys; kwargs...))
+    count(_ -> true, _bonds(sys; kwargs...))
 end
 
 """
@@ -246,4 +242,3 @@ end
 
 @inline non_hydrogen_bonds_df(ac) = filter(b->:TYPE__HYDROGEN ∉ keys(b.properties), bonds_df(ac))
 @inline hydrogen_bonds_df(ac) = filter(b->:TYPE__HYDROGEN ∈ keys(b.properties), bonds_df(ac))
-

@@ -227,10 +227,10 @@
         @test is_vicinal(d, a)
 
         # atom bonds
-        @test size(_bonds(atom), 1) == 0
+        @test size(collect(_bonds(atom)), 1) == 0
         @test size(bonds_df(atom), 1) == 0
         @test length(bonds(atom)) == 0
-        @test length(eachbond(atom)) == 0
+        @test length(collect(eachbond(atom))) == 0
         @test nbonds(atom) == 0
 
         @test push!(sys, BondTuple(
@@ -238,10 +238,10 @@
             Atom(sys, 2, Elements.C).idx,
             BondOrder.Single
         )) === sys
-        @test size(_bonds(atom), 1) == 1
+        @test size(collect(_bonds(atom)), 1) == 1
         @test size(bonds_df(atom), 1) == 1
         @test length(bonds(atom)) == 1
-        @test length(eachbond(atom)) == 1
+        @test length(collect(eachbond(atom))) == 1
         @test nbonds(atom) == 1
 
         @test push!(sys, BondTuple(
@@ -249,10 +249,10 @@
             atom.idx,
             BondOrder.Double
         )) === sys
-        @test size(_bonds(atom), 1) == 2
+        @test size(collect(_bonds(atom)), 1) == 2
         @test size(bonds_df(atom), 1) == 2
         @test length(bonds(atom)) == 2
-        @test length(eachbond(atom)) == 2
+        @test length(collect(eachbond(atom))) == 2
         @test nbonds(atom) == 2
 
         @test push!(sys, BondTuple(
@@ -260,10 +260,10 @@
             Atom(sys, 5, Elements.C).idx,
             BondOrder.Double
         )) === sys
-        @test size(_bonds(atom), 1) == 2
+        @test size(collect(_bonds(atom)), 1) == 2
         @test size(bonds_df(atom), 1) == 2
         @test length(bonds(atom)) == 2
-        @test length(eachbond(atom)) == 2
+        @test length(collect(eachbond(atom))) == 2
         @test nbonds(atom) == 2
     end
 end

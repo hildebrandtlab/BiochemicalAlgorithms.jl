@@ -271,14 +271,15 @@
         @test natoms(res) == natoms(sys, residue_id = res.idx)
 
         # residue bonds
-        @test size(_bonds(res), 1) == 0
-        @test _bonds(res) == _bonds(sys, residue_id = res.idx)
+        @test size(collect(_bonds(res)), 1) == 0
+        @test Tables.materializer(BondTable)(_bonds(res)) ==
+            Tables.materializer(BondTable)(_bonds(sys, residue_id = res.idx))
         @test size(bonds_df(res), 1) == 0
         @test bonds_df(res) == bonds_df(sys, residue_id = res.idx)
         @test length(bonds(res)) == 0
         @test bonds(res) == bonds(sys, residue_id = res.idx)
-        @test length(eachbond(res)) == 0
-        @test length(eachbond(res)) == length(eachbond(sys, residue_id = res.idx))
+        @test length(collect(eachbond(res))) == 0
+        @test length(collect(eachbond(res))) == length(collect(eachbond(sys, residue_id = res.idx)))
         @test nbonds(res) == 0
         @test nbonds(res) == nbonds(sys, residue_id = res.idx)
 
@@ -287,14 +288,14 @@
             Atom(res, 2, Elements.C).idx,
             BondOrder.Single
         )) === res
-        @test size(_bonds(res), 1) == 1
-        @test size(_bonds(res)) == size(_bonds(sys, residue_id = res.idx))
+        @test size(collect(_bonds(res)), 1) == 1
+        @test size(collect(_bonds(res))) == size(collect(_bonds(sys, residue_id = res.idx)))
         @test size(bonds_df(res), 1) == 1
         @test size(bonds_df(res)) == size(bonds_df(sys, residue_id = res.idx))
         @test length(bonds(res)) == 1
         @test bonds(res) == bonds(sys, residue_id = res.idx)
-        @test length(eachbond(res)) == 1
-        @test length(eachbond(res)) == length(eachbond(sys, residue_id = res.idx))
+        @test length(collect(eachbond(res))) == 1
+        @test length(collect(eachbond(res))) == length(collect(eachbond(sys, residue_id = res.idx)))
         @test nbonds(res) == 1
         @test nbonds(res) == nbonds(sys, residue_id = res.idx)
     end

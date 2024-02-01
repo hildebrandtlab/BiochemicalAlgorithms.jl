@@ -10,10 +10,12 @@
     # and create a substructure
     filtered_atoms = Tables.materializer(AtomTable{Float32})(TableOperations.filter(filter_fn, BiochemicalAlgorithms._atoms(mol)))
     idxset = Set(filtered_atoms.idx)
-    filtered_bonds = filter(
-        [:a1, :a2] => 
-            (a1, a2) -> a1 ∈ idxset && 
-                        a2 ∈ idxset, BiochemicalAlgorithms._bonds(mol), view = true)
+    filtered_bonds = Tables.materializer(BondTable)(
+        TableOperations.filter(row ->
+            row.a1 ∈ idxset && row.a2 ∈ idxset,
+            BiochemicalAlgorithms._bonds(mol)
+        )
+    )
 
     s = Substructure(
         "aspirin substructure",
@@ -26,7 +28,7 @@
     @test s.name == "aspirin substructure"
     @test atoms_df(s) isa DataFrame
     @test size(atoms_df(s)) == (9,13)
-    @test bonds_df(s) isa SubDataFrame
+    @test bonds_df(s) isa DataFrame
     @test size(bonds_df(s)) == (8,6)
     @test natoms(s) == 9
     @test nbonds(s) == 8
