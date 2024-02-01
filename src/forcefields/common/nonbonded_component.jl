@@ -433,8 +433,8 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
                         only(h_params.B),
                         T(lj_candidate[3]),
                         T(1.0),
-                        atom_1,
-                        atom_2,
+                        atom_1, ustrip.(atom_1.r),
+                        atom_2, ustrip.(atom_2.r),
                         vdw_switching_function
                     )
                 )
