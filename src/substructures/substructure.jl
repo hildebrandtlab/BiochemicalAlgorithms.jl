@@ -6,7 +6,7 @@ export Substructure, filter_atoms
     parent::AbstractAtomContainer{T}
     
     _atoms::AtomTable{T}
-    _bonds::SubDataFrame
+    _bonds::BondTable
     
     properties::Properties
 
@@ -29,12 +29,13 @@ Substructure(name,
 function filter_atoms(fn, mol::AbstractAtomContainer{T}; name="", adjacent_bonds=false) where T
     atom_view = Tables.materializer(AtomTable{T})(TableOperations.filter(fn, _atoms(mol)))
     idxset = Set(atom_view.idx)
-    bond_view = filter(
-        [:a1, :a2] => (a1, a2) -> 
-            adjacent_bonds ? a1 ∈ idxset || a2 ∈ idxset
-                           : a1 ∈ idxset && a2 ∈ idxset,
-        _bonds(mol), view=true)
-
+    bond_view = Tables.materializer(BondTable)(
+        TableOperations.filter(row ->
+            adjacent_bonds ? row.a1 ∈ idxset || row.a2 ∈ idxset
+                           : row.a1 ∈ idxset && row.a2 ∈ idxset,
+            _bonds(mol)
+        )
+    )
     Substructure(name, mol, atom_view, bond_view)
 end
 
@@ -46,7 +47,7 @@ function Base.copy(substruct::Substructure{T}) where T
     sys.flags      = copy(substruct.parent.flags)
 
     sys._atoms = deepcopy(substruct._atoms)
-    sys._bonds = IndexedDataFrame(copy(substruct._bonds))
+    sys._bonds = deepcopy(substruct._bonds)
 
     sys._molecules   = IndexedDataFrame(copy(_molecules(substruct)))
     sys._chains      = IndexedDataFrame(copy(_chains(substruct)))
@@ -85,9 +86,7 @@ end
 
 function _bonds(substruct::Substructure; kwargs...)
     aidx = Set(_filter_select(_atoms(substruct; kwargs...), :idx))
-    @rsubset(
-        substruct._bonds, :a1 in aidx || :a2 in aidx; view = true
-    )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
+    TableOperations.filter(row -> row.a1 in aidx || row.a2.idx, substruct._bonds)
 end
 
 function _molecules(substruct::Substructure; kwargs...)
@@ -136,7 +135,7 @@ end
 
 @inline function eachbond(substruct::Substructure{T}; kwargs...) where T
     sys = substruct.parent isa System{T} ? substruct.parent : parent_system(substruct.parent)
-    (Bond{T}(sys, row) for row in eachrow(_bonds(substruct; kwargs...)))
+    (Bond{T}(sys, row) for row in _bonds(substruct; kwargs...))
 end
 
 @inline function bonds(substruct::Substructure; kwargs...)
@@ -166,7 +165,7 @@ function atoms_df(ac::Substructure{T}; kwargs...) where {T<:Real}
 end
 
 function bonds_df(ac::Substructure{T}; kwargs...) where {T<:Real}
-    _bonds(ac; kwargs...)
+    DataFrame(_bonds(ac; kwargs...))
 end
 
 @inline function natoms(substruct::Substructure; kwargs...)
@@ -174,7 +173,7 @@ end
 end
 
 @inline function nbonds(substruct::Substructure; kwargs...)
-    nrow(_bonds(substruct; kwargs...))
+    count(_ -> true, _bonds(substruct; kwargs...))
 end
 
 @inline function nfragments(substruct::Substructure; kwargs...)

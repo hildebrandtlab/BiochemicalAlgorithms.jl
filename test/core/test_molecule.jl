@@ -114,14 +114,15 @@
         @test parent_molecule(Atom(mol, 2, Elements.C)) === mol
 
         # molecule bonds
-        @test size(_bonds(mol), 1) == 0
-        @test _bonds(mol) == _bonds(sys, molecule_id = mol.idx)
+        @test size(collect(_bonds(mol)), 1) == 0
+        @test Tables.materializer(BondTable)(_bonds(mol)) ==
+            Tables.materializer(BondTable)(_bonds(sys, molecule_id = mol.idx))
         @test size(bonds_df(mol), 1) == 0
         @test bonds_df(mol) == bonds_df(sys, molecule_id = mol.idx)
         @test length(bonds(mol)) == 0
         @test bonds(mol) == bonds(sys, molecule_id = mol.idx)
-        @test length(eachbond(mol)) == 0
-        @test length(eachbond(mol)) == length(eachbond(sys, molecule_id = mol.idx))
+        @test length(collect(eachbond(mol))) == 0
+        @test length(collect(eachbond(mol))) == length(collect(eachbond(sys, molecule_id = mol.idx)))
         @test nbonds(mol) == 0
         @test nbonds(mol) == nbonds(sys, molecule_id = mol.idx)
 
@@ -130,14 +131,14 @@
             Atom(mol, 2, Elements.C).idx,
             BondOrder.Single)
         ) === mol
-        @test size(_bonds(mol), 1) == 1
-        @test size(_bonds(mol)) == size(_bonds(sys, molecule_id = mol.idx))
+        @test size(collect(_bonds(mol)), 1) == 1
+        @test size(collect(_bonds(mol))) == size(collect(_bonds(sys, molecule_id = mol.idx)))
         @test size(bonds_df(mol), 1) == 1
         @test size(bonds_df(mol)) == size(bonds_df(sys, molecule_id = mol.idx))
         @test length(bonds(mol)) == 1
         @test bonds(mol) == bonds(sys, molecule_id = mol.idx)
-        @test length(eachbond(mol)) == 1
-        @test length(eachbond(mol)) == length(eachbond(sys, molecule_id = mol.idx))
+        @test length(collect(eachbond(mol))) == 1
+        @test length(collect(eachbond(mol))) == length(collect(eachbond(sys, molecule_id = mol.idx)))
         @test nbonds(mol) == 1
         @test nbonds(mol) == nbonds(sys, molecule_id = mol.idx)
     end

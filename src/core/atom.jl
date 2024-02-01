@@ -375,10 +375,7 @@ end
 Returns a raw `DataFrame` containing all of the given atom's bonds.
 """
 @inline function _bonds(atom::Atom)
-    aidx = atom.idx
-    @rsubset(
-        parent(atom)._bonds.df, :a1 == aidx || :a2 == aidx; view = true
-    )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
+    TableOperations.filter(row -> row.a1 == atom.idx || row.a2 == atom.idx, parent(atom)._bonds)
 end
 
 """
@@ -396,7 +393,7 @@ end
 Returns a `SubDataFrame` containing all bonds of the given atom.
 """
 @inline function bonds_df(atom::Atom)
-    _bonds(atom)
+    DataFrame(_bonds(atom))
 end
 
 """
@@ -405,7 +402,7 @@ end
 Returns a `Bond{T}` generator for all bonds of the given atom.
 """
 @inline function eachbond(atom::Atom{T}) where T
-    (Bond{T}(parent(atom), row) for row in eachrow(_bonds(atom)))
+    (Bond{T}(parent(atom), row) for row in _bonds(atom))
 end
 
 """
@@ -414,7 +411,7 @@ end
 Returns the number of bonds of the given atom.
 """
 @inline function nbonds(atom::Atom)
-    nrow(_bonds(atom))
+    count(_ -> true, _bonds(atom))
 end
 
 """

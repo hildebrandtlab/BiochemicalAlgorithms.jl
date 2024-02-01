@@ -271,14 +271,15 @@
         @test natoms(frag) == natoms(sys, fragment_id = frag.idx)
 
         # fragment bonds
-        @test size(_bonds(frag), 1) == 0
-        @test _bonds(frag) == _bonds(sys, fragment_id = frag.idx)
+        @test size(collect(_bonds(frag)), 1) == 0
+        @test Tables.materializer(BondTable)(_bonds(frag)) ==
+            Tables.materializer(BondTable)(_bonds(sys, fragment_id = frag.idx))
         @test size(bonds_df(frag), 1) == 0
         @test bonds_df(frag) == bonds_df(sys, fragment_id = frag.idx)
         @test length(bonds(frag)) == 0
         @test bonds(frag) == bonds(sys, fragment_id = frag.idx)
-        @test length(eachbond(frag)) == 0
-        @test length(eachbond(frag)) == length(eachbond(sys, fragment_id = frag.idx))
+        @test length(collect(eachbond(frag))) == 0
+        @test length(collect(eachbond(frag))) == length(collect(eachbond(sys, fragment_id = frag.idx)))
         @test nbonds(frag) == 0
         @test nbonds(frag) == nbonds(sys, fragment_id = frag.idx)
 
@@ -287,14 +288,14 @@
             Atom(frag, 2, Elements.C).idx,
             BondOrder.Single
         )) === frag
-        @test size(_bonds(frag), 1) == 1
-        @test size(_bonds(frag)) == size(_bonds(sys, fragment_id = frag.idx))
+        @test size(collect(_bonds(frag)), 1) == 1
+        @test size(collect(_bonds(frag))) == size(collect(_bonds(sys, fragment_id = frag.idx)))
         @test size(bonds_df(frag), 1) == 1
         @test size(bonds_df(frag)) == size(bonds_df(sys, fragment_id = frag.idx))
         @test length(bonds(frag)) == 1
         @test bonds(frag) == bonds(sys, fragment_id = frag.idx)
-        @test length(eachbond(frag)) == 1
-        @test length(eachbond(frag)) == length(eachbond(sys, fragment_id = frag.idx))
+        @test length(collect(eachbond(frag))) == 1
+        @test length(collect(eachbond(frag))) == length(collect(eachbond(sys, fragment_id = frag.idx)))
         @test nbonds(frag) == 1
         @test nbonds(frag) == nbonds(sys, fragment_id = frag.idx)
     end

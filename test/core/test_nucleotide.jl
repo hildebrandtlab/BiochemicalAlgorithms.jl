@@ -253,14 +253,15 @@
         @test natoms(nuc) == natoms(sys, nucleotide_id = nuc.idx)
 
         # nucleotide bonds
-        @test size(_bonds(nuc), 1) == 0
-        @test _bonds(nuc) == _bonds(sys, nucleotide_id = nuc.idx)
+        @test size(collect(_bonds(nuc)), 1) == 0
+        @test Tables.materializer(BondTable)(_bonds(nuc)) ==
+            Tables.materializer(BondTable)(_bonds(sys, nucleotide_id = nuc.idx))
         @test size(bonds_df(nuc), 1) == 0
         @test bonds_df(nuc) == bonds_df(sys, nucleotide_id = nuc.idx)
         @test length(bonds(nuc)) == 0
         @test bonds(nuc) == bonds(sys, nucleotide_id = nuc.idx)
-        @test length(eachbond(nuc)) == 0
-        @test length(eachbond(nuc)) == length(eachbond(sys, nucleotide_id = nuc.idx))
+        @test length(collect(eachbond(nuc))) == 0
+        @test length(collect(eachbond(nuc))) == length(collect(eachbond(sys, nucleotide_id = nuc.idx)))
         @test nbonds(nuc) == 0
         @test nbonds(nuc) == nbonds(sys, nucleotide_id = nuc.idx)
 
@@ -269,14 +270,14 @@
             Atom(nuc, 2, Elements.C).idx,
             BondOrder.Single
         )) === nuc
-        @test size(_bonds(nuc), 1) == 1
-        @test size(_bonds(nuc)) == size(_bonds(sys, nucleotide_id = nuc.idx))
+        @test size(collect(_bonds(nuc)), 1) == 1
+        @test size(collect(_bonds(nuc))) == size(collect(_bonds(sys, nucleotide_id = nuc.idx)))
         @test size(bonds_df(nuc), 1) == 1
         @test size(bonds_df(nuc)) == size(bonds_df(sys, nucleotide_id = nuc.idx))
         @test length(bonds(nuc)) == 1
         @test bonds(nuc) == bonds(sys, nucleotide_id = nuc.idx)
-        @test length(eachbond(nuc)) == 1
-        @test length(eachbond(nuc)) == length(eachbond(sys, nucleotide_id = nuc.idx))
+        @test length(collect(eachbond(nuc))) == 1
+        @test length(collect(eachbond(nuc))) == length(collect(eachbond(sys, nucleotide_id = nuc.idx)))
         @test nbonds(nuc) == 1
         @test nbonds(nuc) == nbonds(sys, nucleotide_id = nuc.idx)
     end
