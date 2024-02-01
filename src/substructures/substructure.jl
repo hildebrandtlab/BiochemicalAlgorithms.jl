@@ -66,22 +66,22 @@ Returns a raw `DataFrame` for all of the given system's atoms matching the given
 private atom fields.
 """
 function _atoms(substruct::Substructure{T};
-    frame_id::Union{Nothing, Int} = 1,
-    molecule_id::Union{Nothing, MaybeInt} = nothing,
-    chain_id::Union{Nothing, MaybeInt} = nothing,
-    fragment_id::Union{Nothing, MaybeInt} = nothing,
-    nucleotide_id::Union{Nothing, MaybeInt} = nothing,
-    residue_id::Union{Nothing, MaybeInt} = nothing
+    frame_id::MaybeInt = 1,
+    molecule_id::Union{MaybeInt, Some{Nothing}} = nothing,
+    chain_id::Union{MaybeInt, Some{Nothing}} = nothing,
+    fragment_id::Union{MaybeInt, Some{Nothing}} = nothing,
+    nucleotide_id::Union{MaybeInt, Some{Nothing}} = nothing,
+    residue_id::Union{MaybeInt, Some{Nothing}} = nothing
 ) where T
-    cols = Tuple{Symbol, MaybeInt}[]
-    isnothing(frame_id)      || push!(cols, (:frame_id, frame_id))
-    isnothing(molecule_id)   || push!(cols, (:molecule_id, molecule_id))
-    isnothing(chain_id)      || push!(cols, (:chain_id, chain_id))
-    isnothing(fragment_id)   || push!(cols, (:fragment_id, fragment_id))
-    isnothing(nucleotide_id) || push!(cols, (:nucleotide_id, nucleotide_id))
-    isnothing(residue_id)    || push!(cols, (:residue_id, residue_id))
-
-    TableOperations.filter(row -> all(p -> Tables.getcolumn(row, p[1]) == p[2], cols), substruct._atoms)
+    TableOperations.filter(row ->
+        (isnothing(frame_id)      || row.frame_id == frame_id) &&
+        (isnothing(molecule_id)   || row.molecule_id == something(molecule_id)) &&
+        (isnothing(chain_id)      || row.chain_id == something(chain_id)) &&
+        (isnothing(fragment_id)   || row.fragment_id == something(fragment_id)) &&
+        (isnothing(nucleotide_id) || row.nucleotide_id == something(nucleotide_id)) &&
+        (isnothing(residue_id)    || row.residue_id == something(residue_id)),
+        substruct._atoms
+    )
 end
 
 function _bonds(substruct::Substructure; kwargs...)

@@ -275,15 +275,15 @@ function _atoms(sys::System{T};
     nucleotide_id::Union{MaybeInt, Some{Nothing}} = nothing,
     residue_id::Union{MaybeInt, Some{Nothing}} = nothing
 ) where T
-    cols = Tuple{Symbol, MaybeInt}[]
-    isnothing(frame_id)      || push!(cols, (:frame_id, frame_id))
-    isnothing(molecule_id)   || push!(cols, (:molecule_id, something(molecule_id)))
-    isnothing(chain_id)      || push!(cols, (:chain_id, something(chain_id)))
-    isnothing(fragment_id)   || push!(cols, (:fragment_id, something(fragment_id)))
-    isnothing(nucleotide_id) || push!(cols, (:nucleotide_id, something(nucleotide_id)))
-    isnothing(residue_id)    || push!(cols, (:residue_id, something(residue_id)))
-
-    TableOperations.filter(row -> all(p -> Tables.getcolumn(row, p[1]) == p[2], cols), sys._atoms)
+    TableOperations.filter(row ->
+        (isnothing(frame_id)      || row.frame_id == frame_id) &&
+        (isnothing(molecule_id)   || row.molecule_id == something(molecule_id)) &&
+        (isnothing(chain_id)      || row.chain_id == something(chain_id)) &&
+        (isnothing(fragment_id)   || row.fragment_id == something(fragment_id)) &&
+        (isnothing(nucleotide_id) || row.nucleotide_id == something(nucleotide_id)) &&
+        (isnothing(residue_id)    || row.residue_id == something(residue_id)),
+        sys._atoms
+    )
 end
 
 """
