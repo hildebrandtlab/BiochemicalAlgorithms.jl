@@ -63,8 +63,12 @@ Tables.istable(::Type{<: AtomTable}) = true
 Tables.columnaccess(::Type{<: AtomTable}) = true
 Tables.columns(at::AtomTable) = at
 
-Tables.getcolumn(at::AtomTable, nm::Symbol) = nm in _atom_table_cols_priv || nm in _atom_table_cols_set ?
-    getfield(at, nm) : error("type AtomTable has no column $nm")
+@inline function Tables.getcolumn(at::AtomTable, nm::Symbol)
+    @assert nm in _atom_table_cols_priv || nm in _atom_table_cols_set "type AtomTable has no column $nm"
+    getfield(at, nm)
+end
+Base.getproperty(at::AtomTable, nm::Symbol) = getfield(at, nm)
+
 Tables.getcolumn(at::AtomTable, i::Int) = getfield(at, Tables.columnnames(at)[i])
 Tables.columnnames(::AtomTable) = _atom_table_cols
 Tables.schema(::AtomTable{T}) where T = Tables.Schema(fieldnames(AtomTuple{T}), fieldtypes(AtomTuple{T}))

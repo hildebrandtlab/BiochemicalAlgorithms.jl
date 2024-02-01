@@ -284,7 +284,7 @@ function _atoms(sys::System{T};
     isnothing(nucleotide_id) || push!(cols, (:nucleotide_id, something(nucleotide_id)))
     isnothing(residue_id)    || push!(cols, (:residue_id, something(residue_id)))
 
-    TableOperations.filter(row -> all(p -> _getcolumn(row, p[1]) == p[2], cols), sys._atoms)
+    TableOperations.filter(row -> all(p -> Tables.getcolumn(row, p[1]) == p[2], cols), sys._atoms)
 end
 
 """

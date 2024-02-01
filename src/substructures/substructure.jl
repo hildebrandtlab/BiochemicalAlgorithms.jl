@@ -80,7 +80,7 @@ function _atoms(substruct::Substructure{T};
     isnothing(nucleotide_id) || push!(cols, (:nucleotide_id, nucleotide_id))
     isnothing(residue_id)    || push!(cols, (:residue_id, residue_id))
 
-    TableOperations.filter(row -> all(p -> _getcolumn(row, p[1]) == p[2], cols), substruct._atoms)
+    TableOperations.filter(row -> all(p -> Tables.getcolumn(row, p[1]) == p[2], cols), substruct._atoms)
 end
 
 function _bonds(substruct::Substructure; kwargs...)
