@@ -120,7 +120,7 @@ should be explicitly checked for a value of `nothing`. See [`_atoms`](@ref).
 """
 function _bonds(sys::System; kwargs...)
     # FIXME this implementation currently ignores bonds with _two_ invalid atom IDs
-    aidx = Set((_atoms(sys; kwargs...) |> Tables.columntable).idx)
+    aidx = Set(_filter_select(_atoms(sys; kwargs...), :idx))
     @rsubset(
         sys._bonds.df, :a1 in aidx || :a2 in aidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
