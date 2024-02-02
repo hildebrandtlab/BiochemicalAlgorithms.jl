@@ -738,8 +738,9 @@ function predict_secondary_structure!(ac::AbstractAtomContainer{T}) where {T<:Re
         end	
     end
 
+    postprocess_dssp_!(ac, summary)
+
     if DSSP_DEBUG
-        #println("DSSP DEBUG resulting summary:   ", String(summary))
         println("DSSP DEBUG resulting threeturn: ", String(threeturn))
         println("DSSP DEBUG resulting fourturn:  ", String(fourturn))
         println("DSSP DEBUG resulting fiveturn:  ", String(fiveturn))
@@ -749,5 +750,58 @@ function predict_secondary_structure!(ac::AbstractAtomContainer{T}) where {T<:Re
 
     # DONE DSSP!
 
-    return summary
+    String(summary)
+end
+
+function postprocess_dssp_!(ac::AbstractAtomContainer{T}, summary::Vector{Char}) where {T<:Real}
+    last_ss = nothing
+    last_ss_type = 'x'
+    last_chain_idx = -1
+    ss_number = 1
+
+    delete!(secondary_structures(ac); keep_fragments=true)
+
+    all_fragments = fragments(ac)
+
+    for i in range(1, length(summary))
+        current_type = get_dssp_type_(summary[i])
+        current_frag = all_fragments[i]
+        current_chain = parent_chain(current_frag)
+
+        if current_type != last_ss_type || last_chain_idx != current_chain.idx
+            # create a new secondary structure type
+            last_ss_type, last_ss = create_new_ss_(current_chain, ss_number, current_type)
+
+            last_chain_idx = current_chain.idx
+
+            ss_number += 1
+        end
+
+        current_frag.secondary_structure_idx = last_ss.idx
+    end
+end
+
+function get_dssp_type_(type::Char)
+    type ∉ ['H', 'G', 'I', 'E'] ? 'L' : type
+end
+
+function create_new_ss_(chain::Chain{T}, number::Int, type::Char) where {T<:Real}
+    ss = nothing
+    
+    if     type == 'H'
+        ss = SecondaryStructure(chain, number, SecondaryStructureElement.Helix)
+        set_property!(ss, :HELIX_TYPE, :ALPHA)
+    elseif type == 'G'
+        ss = SecondaryStructure(chain, number, SecondaryStructureElement.Helix)
+        set_property!(ss, :HELIX_TYPE, :THREE_TEN)
+    elseif type == 'I'
+        ss = SecondaryStructure(chain, number, SecondaryStructureElement.Helix)
+        set_property!(ss, :HELIX_TYPE, :PI)
+    elseif type == 'E'
+        ss = SecondaryStructure(chain, number, SecondaryStructureElement.Strand)
+    else
+        ss = SecondaryStructure(chain, number, SecondaryStructureElement.Coil)
+    end
+
+    type, ss
 end

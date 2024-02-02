@@ -46,7 +46,7 @@ function predict_hbonds_kabsch_sander!(ac::AbstractAtomContainer{T}, h_bond_from
 
     # we only iterate over the amino acids in the atom container that are complete
     # in the sense that they contain an "O", an "N", and a "C" atom
-    amino_acids = filter(f -> (is_amino_acid(f)  && (["O", "N", "C"] ⊆ atoms_df(f).name)), fragments(ac))
+    amino_acids = filter(f -> (is_amino_acid(f)  && (["O", "N", "C"] ⊆ atoms(f).name)), fragments(ac))
 
     N_rs = getproperty.(atom_by_name.(amino_acids, "N"), :r)
     O_rs = getproperty.(atom_by_name.(amino_acids, "O"), :r)
@@ -122,7 +122,7 @@ function predict_hbonds_kabsch_sander!(ac::AbstractAtomContainer{T}, h_bond_from
         donor_idx    = h_bond_from_donor ? N.idx : H.idx
         acceptor_idx = O.idx
 
-        Bond(parent_system(N), donor_idx, acceptor_idx, BondOrder.Single, Properties(), Flags([:TYPE__HYDROGEN]))
+        Bond(parent_system(N), donor_idx, acceptor_idx, BondOrder.Single; flags=Flags([:TYPE__HYDROGEN]))
 
         @debug "H-Bond found between $(get_full_name(c1)) and $(get_full_name(c2))"
     end
