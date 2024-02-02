@@ -1,0 +1,3 @@
+[deps]
+BiochemicalAlgorithms = "9d651bdf-8945-47d1-9188-34e269d8f7b5"
+IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
