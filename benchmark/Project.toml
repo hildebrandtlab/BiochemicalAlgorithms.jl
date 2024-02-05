@@ -1,0 +1,4 @@
+[deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+BiochemicalAlgorithms = "9d651bdf-8945-47d1-9188-34e269d8f7b5"
+PkgBenchmark = "32113eaa-f34f-5b0d-bd6c-c81e245fc73d"
