@@ -33,10 +33,8 @@ function read_ball_ini_file(path::String, T=Float32; cleanup_keys=true)
     result = BALLIniFile()
 
     open(path) do paramfile
-        params_string = read(paramfile, String)
-
         # filter out comments
-        params_string = join(filter(l -> !startswith(strip(l), ";"), split(params_string, "\n")), "\n")
+        params_string = join(filter(l -> !startswith(strip(l), ";"), readlines(paramfile)), "\n")
 
         # find each section
         for s_match in eachmatch(r"^\[(.*)\]"m, params_string)
