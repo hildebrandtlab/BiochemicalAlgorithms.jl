@@ -256,14 +256,14 @@ Any value other than `nothing` limits the result to atoms matching this frame ID
     name::String;
     frame_id::MaybeInt = 1
 ) where T
-    idx = _filter_select(TableOperations.filter(row -> row.name == name, _atoms(ac; frame_id = frame_id)), :idx)
+    idx = filter(atom -> atom.name == name, _atoms(ac; frame_id = frame_id)).idx
     isempty(idx) ? nothing : atom_by_idx(parent(ac), first(idx))
 end
 
 """
     $(TYPEDSIGNATURES)
 
-Returns a raw `DataFrame` for all of the given system's atoms matching the given criteria. Fields
+Returns an `AtomTableView` for all of the given system's atoms matching the given criteria. Fields
 given as `nothing` are ignored. Use `Some(nothing)` if the field should be explicitly checked for
 a value of `nothing`. The returned `DataFrame` contains all public and private atom fields.
 """
@@ -275,13 +275,13 @@ function _atoms(sys::System{T};
     nucleotide_id::Union{MaybeInt, Some{Nothing}} = nothing,
     residue_id::Union{MaybeInt, Some{Nothing}} = nothing
 ) where T
-    TableOperations.filter(row ->
-        (isnothing(frame_id)      || row.frame_id == frame_id) &&
-        (isnothing(molecule_id)   || row.molecule_id == something(molecule_id)) &&
-        (isnothing(chain_id)      || row.chain_id == something(chain_id)) &&
-        (isnothing(fragment_id)   || row.fragment_id == something(fragment_id)) &&
-        (isnothing(nucleotide_id) || row.nucleotide_id == something(nucleotide_id)) &&
-        (isnothing(residue_id)    || row.residue_id == something(residue_id)),
+    filter(atom ->
+        (isnothing(frame_id)      || atom.frame_id == frame_id) &&
+        (isnothing(molecule_id)   || atom.molecule_id == something(molecule_id)) &&
+        (isnothing(chain_id)      || atom.chain_id == something(chain_id)) &&
+        (isnothing(fragment_id)   || atom.fragment_id == something(fragment_id)) &&
+        (isnothing(nucleotide_id) || atom.nucleotide_id == something(nucleotide_id)) &&
+        (isnothing(residue_id)    || atom.residue_id == something(residue_id)),
         sys._atoms
     )
 end
