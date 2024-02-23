@@ -199,7 +199,7 @@ end
     bonds(::Residue)
     bonds(::System)
 
-Returns a `Vector{Bond{T}}` containing all bonds of the given atom container where at least one
+Returns a `BondTable{T}` containing all bonds of the given atom container where at least one
 associated atom is contained in the same container.
 
 # Supported keyword arguments
@@ -208,7 +208,7 @@ Any value other than `nothing` also limits the result to bonds where at least on
 this frame ID.
 """
 @inline function bonds(sys::System; kwargs...)
-    collect(eachbond(sys; kwargs...))
+    _bonds(sys; kwargs...)
 end
 
 """
@@ -305,8 +305,8 @@ end
     distance(atom_by_idx(s, bond.a1), atom_by_idx(s, bond.a2))
 end
 
-@inline non_hydrogen_bonds(ac) = filter(b -> !has_property(b, :TYPE__HYDROGEN), bonds(ac))
-@inline hydrogen_bonds(ac) = filter(b -> has_property(b, :TYPE__HYDROGEN), bonds(ac))
+@inline non_hydrogen_bonds(ac) = filter(b -> !haskey(b.properties, :TYPE__HYDROGEN), bonds(ac))
+@inline hydrogen_bonds(ac) = filter(b -> has_key(b.properties, :TYPE__HYDROGEN), bonds(ac))
 
 @inline non_hydrogen_bonds_df(ac) = filter(b->:TYPE__HYDROGEN ∉ keys(b.properties), bonds_df(ac))
 @inline hydrogen_bonds_df(ac) = filter(b->:TYPE__HYDROGEN ∈ keys(b.properties), bonds_df(ac))

@@ -1,5 +1,4 @@
 @testitem "Substructure" begin
-    using BiochemicalAlgorithms: _AtomTable, _BondTable
     using DataFrames
     using Tables, TableOperations
 
@@ -11,11 +10,9 @@
     # and create a substructure
     filtered_atoms = filter(filter_fn, atoms(mol))
     idxset = Set(filtered_atoms.idx)
-    filtered_bonds = Tables.materializer(_BondTable)(
-        TableOperations.filter(row ->
-            row.a1 ∈ idxset && row.a2 ∈ idxset,
-            BiochemicalAlgorithms._bonds(mol)
-        )
+    filtered_bonds = filter(bond ->
+        bond.a1 ∈ idxset && bond.a2 ∈ idxset,
+        bonds(mol)
     )
 
     s = Substructure(

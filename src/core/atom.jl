@@ -437,19 +437,22 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Returns a raw `DataFrame` containing all of the given atom's bonds.
+Returns a `BondTable` containing all of the given atom's bonds.
 """
 @inline function _bonds(atom::Atom)
-    TableOperations.filter(row -> row.a1 == atom.idx || row.a2 == atom.idx, parent(atom)._bonds)
+    _filter_bonds(
+        bond -> bond.a1 == atom.idx || bond.a2 == atom.idx,
+        parent(atom)
+    )
 end
 
 """
     bonds(::Atom)
 
-Returns a `Vector{Bond{T}}` containing all bonds of the given atom.
+Returns a `BondTable{T}` containing all bonds of the given atom.
 """
 @inline function bonds(atom::Atom)
-    collect(eachbond(atom))
+    _bonds(atom)
 end
 
 """
@@ -467,7 +470,7 @@ end
 Returns a `Bond{T}` generator for all bonds of the given atom.
 """
 @inline function eachbond(atom::Atom{T}) where T
-    (Bond{T}(parent(atom), row) for row in _bonds(atom))
+    (bond for bond in _bonds(atom))
 end
 
 """
@@ -476,7 +479,7 @@ end
 Returns the number of bonds of the given atom.
 """
 @inline function nbonds(atom::Atom)
-    count(_ -> true, _bonds(atom))
+    length(_bonds(atom))
 end
 
 """

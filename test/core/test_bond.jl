@@ -96,7 +96,7 @@
 
         # bonds
         bv = bonds(sys)
-        @test bv isa Vector{Bond{T}}
+        @test bv isa BondTable{T}
         @test length(bv) == 2
         @test length(bonds(sys, frame_id = 1)) == 2
         @test length(bonds(sys, frame_id = 2)) == 1

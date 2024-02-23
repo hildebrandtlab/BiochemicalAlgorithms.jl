@@ -6,7 +6,7 @@ export Substructure, filter_atoms
     parent::AbstractAtomContainer{T}
     
     _atoms::AtomTable{T}
-    _bonds::_BondTable
+    _bonds::BondTable{T}
     
     properties::Properties
 
@@ -29,12 +29,10 @@ Substructure(name,
 function filter_atoms(fn, mol::AbstractAtomContainer{T}; name="", adjacent_bonds=false) where T
     atom_view = filter(fn, atoms(mol))
     idxset = Set(atom_view.idx)
-    bond_view = Tables.materializer(_BondTable)(
-        TableOperations.filter(row ->
-            adjacent_bonds ? row.a1 ∈ idxset || row.a2 ∈ idxset
-                           : row.a1 ∈ idxset && row.a2 ∈ idxset,
-            _bonds(mol)
-        )
+    bond_view = filter(row ->
+        adjacent_bonds ? row.a1 ∈ idxset || row.a2 ∈ idxset
+                        : row.a1 ∈ idxset && row.a2 ∈ idxset,
+        bonds(mol)
     )
     Substructure(name, mol, atom_view, bond_view)
 end
@@ -47,7 +45,7 @@ function Base.copy(substruct::Substructure{T}) where T
     sys.flags      = copy(substruct.parent.flags)
 
     sys._atoms = _atom_table(T, deepcopy(substruct._atoms))
-    sys._bonds = deepcopy(substruct._bonds)
+    sys._bonds = _bond_table(deepcopy(substruct._bonds))
 
     sys._molecules   = IndexedDataFrame(copy(_molecules(substruct)))
     sys._chains      = IndexedDataFrame(copy(_chains(substruct)))
@@ -86,7 +84,7 @@ end
 
 function _bonds(substruct::Substructure; kwargs...)
     aidx = Set(_filter_select(_atoms(substruct; kwargs...), :idx))
-    TableOperations.filter(row -> row.a1 in aidx || row.a2.idx, substruct._bonds)
+    filter(row -> row.a1 in aidx || row.a2.idx, substruct._bonds)
 end
 
 function _molecules(substruct::Substructure; kwargs...)
@@ -133,12 +131,11 @@ end
 end
 
 @inline function eachbond(substruct::Substructure{T}; kwargs...) where T
-    sys = substruct.parent isa System{T} ? substruct.parent : parent_system(substruct.parent)
-    (Bond{T}(sys, row) for row in _bonds(substruct; kwargs...))
+    (bond for bond in _bonds(substruct; kwargs...))
 end
 
 @inline function bonds(substruct::Substructure; kwargs...)
-    collect(eachbond(substruct; kwargs...))
+    _bonds(substruct; kwargs...)
 end
 
 @inline function eachfragment(substruct::Substructure{T}; kwargs...) where T
@@ -172,7 +169,7 @@ end
 end
 
 @inline function nbonds(substruct::Substructure; kwargs...)
-    count(_ -> true, _bonds(substruct; kwargs...))
+    length(_bonds(substruct; kwargs...))
 end
 
 @inline function nfragments(substruct::Substructure; kwargs...)
