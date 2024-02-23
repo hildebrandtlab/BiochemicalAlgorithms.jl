@@ -5,7 +5,7 @@ export Substructure, filter_atoms
 
     parent::AbstractAtomContainer{T}
     
-    _atoms::_AtomTable{T}
+    _atoms::AtomTable{T}
     _bonds::_BondTable
     
     properties::Properties
@@ -27,7 +27,7 @@ Substructure(name,
                 Substructure{Float32}(name, parent, atoms, bonds, properties)
 
 function filter_atoms(fn, mol::AbstractAtomContainer{T}; name="", adjacent_bonds=false) where T
-    atom_view = Tables.materializer(_AtomTable{T})(TableOperations.filter(fn, _atoms(mol)))
+    atom_view = filter(fn, atoms(mol))
     idxset = Set(atom_view.idx)
     bond_view = Tables.materializer(_BondTable)(
         TableOperations.filter(row ->
@@ -46,7 +46,7 @@ function Base.copy(substruct::Substructure{T}) where T
     sys.properties = copy(substruct.properties)
     sys.flags      = copy(substruct.parent.flags)
 
-    sys._atoms = deepcopy(substruct._atoms)
+    sys._atoms = _atom_table(T, deepcopy(substruct._atoms))
     sys._bonds = deepcopy(substruct._bonds)
 
     sys._molecules   = IndexedDataFrame(copy(_molecules(substruct)))
@@ -61,7 +61,7 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Returns a raw `DataFrame` for all of the given system's atoms matching the given criteria (value or
+Returns an `AtomTable` for all of the given system's atoms matching the given criteria (value or
 `missing`). Fields given as `nothing` are ignored. The returned `DataFrame` contains all public and
 private atom fields.
 """
@@ -73,7 +73,7 @@ function _atoms(substruct::Substructure{T};
     nucleotide_id::Union{MaybeInt, Some{Nothing}} = nothing,
     residue_id::Union{MaybeInt, Some{Nothing}} = nothing
 ) where T
-    TableOperations.filter(row ->
+    filter(row ->
         (isnothing(frame_id)      || row.frame_id == frame_id) &&
         (isnothing(molecule_id)   || row.molecule_id == something(molecule_id)) &&
         (isnothing(chain_id)      || row.chain_id == something(chain_id)) &&
@@ -125,12 +125,11 @@ function _residues(substruct::Substructure; kwargs...)
 end
 
 @inline function eachatom(substruct::Substructure{T}; kwargs...) where T
-    sys = substruct.parent isa System{T} ? substruct.parent : parent_system(substruct.parent)
-    (Atom{T}(sys, row) for row in _atoms(substruct; kwargs...))
+    (atom for atom in _atoms(substruct; kwargs...))
 end
 
 @inline function atoms(substruct::Substructure; kwargs...)
-    collect(eachatom(substruct; kwargs...))
+    _atoms(substruct; kwargs...)
 end
 
 @inline function eachbond(substruct::Substructure{T}; kwargs...) where T
@@ -169,7 +168,7 @@ function bonds_df(ac::Substructure{T}; kwargs...) where {T<:Real}
 end
 
 @inline function natoms(substruct::Substructure; kwargs...)
-    count(_ -> true, _atoms(substruct; kwargs...))
+    length(_atoms(substruct; kwargs...))
 end
 
 @inline function nbonds(substruct::Substructure; kwargs...)
