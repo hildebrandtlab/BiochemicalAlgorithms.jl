@@ -22,7 +22,8 @@ function build_fragment_bonds!(
     num_bonds_built = 0
 
     # iterate over all fragment atoms
-    for atom in atoms(f)
+    fatoms = atoms(f)
+    for atom in fatoms
         atom_name = strip(atom.name)
 
         if !haskey(template_names, atom_name)
@@ -44,7 +45,7 @@ function build_fragment_bonds!(
             end
 
             # does the fragment contain the partner atom?
-            partner_atoms = filter(a -> strip(a.name) == strip(tpl_partner), atoms(f))
+            partner_atoms = filter(a -> strip(a.name) == strip(tpl_partner), fatoms)
 
             if length(partner_atoms) > 1
                 throw("build_bonds!(): corrupt FragmentDB - data encountered. Fragment atoms not unique!")
@@ -83,10 +84,10 @@ function build_fragment_bonds!(
         # bonds are only built if the atoms are within the tolerance of the expected distance
 
         # try to find an atom with the name of this connection in the fragment
-        atom_idx = findfirst(a -> a.name == con.atom_name, atoms(f))
+        atom_idx = findfirst(a -> a.name == con.atom_name, fatoms)
 
         if !isnothing(atom_idx)
-            atom = atoms(f)[atom_idx].idx
+            atom = fatoms[atom_idx].idx
 
             if haskey(connections, atom)
                 @warn "build_bonds!(): duplicate connection encountered!"

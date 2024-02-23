@@ -32,7 +32,10 @@ function Tables.getcolumn(at::AtomTable, nm::Symbol)
         map(idx -> _atoms(at)._idx_map[idx], getfield(at, :_idx))
     )
 end
-@inline Base.getproperty(at::AtomTable, nm::Symbol) = Tables.getcolumn(at, nm)
+@inline function Base.getproperty(at::AtomTable, nm::Symbol)
+    hasfield(typeof(at), nm) && return getfield(at, nm)
+    Tables.getcolumn(at, nm)
+end
 
 @inline Tables.getcolumn(at::AtomTable, i::Int) = Tables.getcolumn(at, Tables.columnnames(at)[i])
 @inline Tables.columnnames(at::AtomTable) = Tables.columnnames(_atoms(at))
@@ -69,6 +72,8 @@ end
         (atom_by_idx(getfield(at, :_sys), getfield(at, :_idx)[st]), st + 1)
 end
 @inline Base.eltype(::AtomTable{T}) where T = Atom{T}
+@inline Base.getindex(at::AtomTable{T}, i::Int) where T = atom_by_idx(getfield(at, :_sys), getfield(at, :_idx)[i])
+@inline Base.keys(at::AtomTable) = LinearIndices((length(at),))
 
 """
     $(TYPEDEF)
@@ -353,14 +358,14 @@ end
     atoms(::Residue)
     atoms(::System)
 
-Returns a `Vector{Atom{T}}` containing all atoms of the given atom container.
+Returns an `AtomTable{T}` containing all atoms of the given atom container.
 
 # Supported keyword arguments
  - `frame_id::MaybeInt = 1`: \
 Any value other than `nothing` limits the result to atoms matching this frame ID.
 """
 @inline function atoms(sys::System; kwargs...)
-    collect(eachatom(sys; kwargs...))
+    _atoms(sys; kwargs...)
 end
 
 """

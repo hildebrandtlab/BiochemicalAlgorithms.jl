@@ -46,7 +46,7 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
 
     # Get a copy of the atom names occurring in the current fragment....
     name_to_atom = Dict(
-        a.name => a for a in atoms(f)
+        a.name => a for a in eachatom(f)
     )
 
     # And add the atoms from the template missing in the reference
@@ -65,7 +65,7 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
             # later on.
 			new_atom = Atom(
                 f,
-                maximum(atoms_df(parent_system(f)).number)+1, # does this make sense?
+                maximum(atoms(parent_system(f)).number)+1, # does this make sense?
                 tpl_atom.element,
                 tpl_atom.name,
                 "",

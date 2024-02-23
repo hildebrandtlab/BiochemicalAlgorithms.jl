@@ -236,7 +236,7 @@ function Base.convert(::Type{ProteinStructure}, ac::AbstractAtomContainer{T}) wh
     for (i, frame_id) in enumerate(sys_frame_ids)
         struc[i] = Model(i, struc)
        
-        for a in atoms(ac; frame_id=frame_id)
+        for a in eachatom(ac; frame_id=frame_id)
             unsafe_addatomtomodel!(
                 struc[i],
                 _to_atom_record(a)

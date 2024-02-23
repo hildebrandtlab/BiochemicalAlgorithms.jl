@@ -357,8 +357,8 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
     check_vicinal(a1, a2) = (a1 => a2) ∈ vicinal_cache
 
     neighbors = ((ff.options[:periodic_boundary_conditions]) 
-        ? neighborlist(atoms_df(ff.system).r, unitcell=periodic_box, nonbonded_cutoff)
-        : neighborlist(atoms_df(ff.system).r, nonbonded_cutoff)
+        ? neighborlist(atoms(ff.system).r, unitcell=periodic_box, nonbonded_cutoff)
+        : neighborlist(atoms(ff.system).r, nonbonded_cutoff)
     )
 
     distance_dependent_dielectric = ff.options[:distance_dependent_dielectric]
@@ -371,10 +371,10 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
     sizehint!(lj_interactions, hint)
     sizehint!(electrostatic_interactions, hint)
 
-    atom_cache   = atoms(ff.system)
-    idx_cache    = atoms_df(ff.system).idx
-    charge_cache = atoms_df(ff.system).charge
-    type_cache   = atoms_df(ff.system).atom_type
+    atom_cache::AtomTable{T} = atoms(ff.system)
+    idx_cache    = atom_cache.idx
+    charge_cache = atom_cache.charge
+    type_cache   = atom_cache.atom_type
 
     for lj_candidate in neighbors
         lj_1 = lj_candidate[1]
@@ -637,7 +637,7 @@ function compute_forces(esi::ElecrostaticInteraction{T}) where {T<:Real}
 end
 
 function compute_forces(nbc::NonBondedComponent{T}) where {T<:Real}
-    constrained_ids = getproperty.(atoms(nbc.ff.system)[nbc.ff.constrained_atoms], :idx)
+    constrained_ids = getproperty.(getindex.(Ref(atoms(nbc.ff.system)), nbc.ff.constrained_atoms), :idx)
 
     filter_pairs = (
         isempty(constrained_ids) 

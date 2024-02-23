@@ -203,7 +203,7 @@ end
 
 function compute_forces(ff::ForceField{T}) where {T<:Real}
     # first, zero out the current forces
-    atoms_df(ff.system).F .= Ref(zero(Vector3{T}))
+    atoms(ff.system).F .= Ref(zero(Vector3{T}))
     
     map(compute_forces, ff.components)
 

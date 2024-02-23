@@ -155,7 +155,7 @@ function _setup_improper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
 
     # check for each potential improper torsion atom (every atom having three bonds)
     # whether it is contained in the list of impropers
-    for atom in atoms(ff.system)
+    for atom in eachatom(ff.system)
         bs = bonds(atom)
         if length(bs) == 3
             if get_full_name(atom) ∈ impropers.name

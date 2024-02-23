@@ -146,7 +146,7 @@
 
         # atoms
         avec = atoms(sys)
-        @test avec isa Vector{Atom{T}}
+        @test avec isa AtomTable{T}
         @test length(avec) == 1
         @test length(atoms(sys, frame_id = 1)) == 1
         @test length(atoms(sys, frame_id = 2)) == 0
