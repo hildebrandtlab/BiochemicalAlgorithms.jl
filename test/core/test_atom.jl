@@ -62,33 +62,26 @@
         @test atom._sys isa System{T}
         @test atom._row isa _AtomTableRow{T}
 
-        @test_throws ErrorException atom.frame_id
-        @test_throws ErrorException atom.molecule_id
-        @test_throws ErrorException atom.chain_id
-        @test_throws ErrorException atom.fragment_id
-        @test_throws ErrorException atom.nucleotide_id
-        @test_throws ErrorException atom.residue_id
+        @test atom.frame_id isa Int
+        @test atom.frame_id == 1
+        @test isnothing(atom.molecule_id)
+        @test isnothing(atom.chain_id)
+        @test isnothing(atom.fragment_id)
+        @test isnothing(atom.nucleotide_id)
+        @test isnothing(atom.residue_id)
 
-        @test atom._row.frame_id isa Int
-        @test atom._row.frame_id == 1
-        @test isnothing(atom._row.molecule_id)
-        @test isnothing(atom._row.chain_id)
-        @test isnothing(atom._row.fragment_id)
-        @test isnothing(atom._row.nucleotide_id)
-        @test isnothing(atom._row.residue_id)
-
-        @test atom2._row.frame_id isa Int
-        @test atom2._row.frame_id == 10
-        @test atom2._row.molecule_id isa Int
-        @test atom2._row.molecule_id == 11
-        @test atom2._row.chain_id isa Int
-        @test atom2._row.chain_id == 12
-        @test atom2._row.fragment_id isa Int
-        @test atom2._row.fragment_id == 13
-        @test atom2._row.nucleotide_id isa Int
-        @test atom2._row.nucleotide_id == 14
-        @test atom2._row.residue_id isa Int
-        @test atom2._row.residue_id == 15
+        @test atom2.frame_id isa Int
+        @test atom2.frame_id == 10
+        @test atom2.molecule_id isa Int
+        @test atom2.molecule_id == 11
+        @test atom2.chain_id isa Int
+        @test atom2.chain_id == 12
+        @test atom2.fragment_id isa Int
+        @test atom2.fragment_id == 13
+        @test atom2.nucleotide_id isa Int
+        @test atom2.nucleotide_id == 14
+        @test atom2.residue_id isa Int
+        @test atom2.residue_id == 15
 
         # setproperty!
         atom.number = 42
@@ -120,12 +113,19 @@
         @test :A in atom.flags
         @test :B in atom.flags
 
-        @test_throws ErrorException atom.frame_id = 0
-        @test_throws ErrorException atom.molecule_id = 0
-        @test_throws ErrorException atom.chain_id = 0
-        @test_throws ErrorException atom.fragment_id = 0
-        @test_throws ErrorException atom.nucleotide_id = 0
-        @test_throws ErrorException atom.residue_id = 0
+        atom3 = Atom(System{T}(), at.number, at.element, at.name; frame_id = 10)
+        atom3.frame_id = 999
+        @test atom3.frame_id == 999
+        atom3.molecule_id = 998
+        @test atom3.molecule_id == 998
+        atom3.chain_id = 997
+        @test atom3.chain_id == 997
+        atom3.fragment_id = 996
+        @test atom3.fragment_id == 996
+        atom3.nucleotide_id = 995
+        @test atom3.nucleotide_id == 995
+        atom3.residue_id = 994
+        @test atom3.residue_id == 994
 
         # atom_by_idx
         @test_throws KeyError atom_by_idx(sys, -1)

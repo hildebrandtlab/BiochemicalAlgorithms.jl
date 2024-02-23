@@ -126,45 +126,6 @@ function _filter_select(itr, col::Symbol)
     (getproperty(a, col) for a in itr)
 end
 
-@auto_hash_equals struct _AtomTableView{T} <: Tables.AbstractColumns
-    _tab::_AtomTable{T}
-    _idx::Vector{Int}
-end
-
-Tables.istable(::Type{<: _AtomTableView}) = true
-Tables.columnaccess(::Type{<: _AtomTableView}) = true
-Tables.columns(at::_AtomTableView) = at
-
-function Tables.getcolumn(at::_AtomTableView, nm::Symbol)
-    RowProjectionVector(
-        Tables.getcolumn(getfield(at, :_tab), nm),
-        map(idx -> getfield(at, :_tab)._idx_map[idx], getfield(at, :_idx))
-    )
-end
-Base.getproperty(at::_AtomTableView, nm::Symbol) = Tables.getcolumn(at, nm)
-
-Tables.getcolumn(at::_AtomTableView, i::Int) = Tables.getcolumn(at, Tables.columnnames(at)[i])
-Tables.columnnames(::_AtomTableView) = _atom_table_cols
-Tables.schema(at::_AtomTableView) = Tables.schema(getfield(at, :_tab))
-
-Base.size(at::_AtomTableView) = (length(getfield(at, :_idx)), length(_atom_table_cols))
-Base.size(at::_AtomTableView, dim) = size(at)[dim]
-Base.length(at::_AtomTableView) = size(at, 1)
-
-function Base.filter(f, at::_AtomTable)
-    _AtomTableView(at, collect(Int, _filter_select(
-        TableOperations.filter(f, at),
-        :idx
-    )))
-end
-
-function Base.filter(f, at::_AtomTableView)
-    _AtomTableView(getfield(at, :_tab), collect(Int, _filter_select(
-        TableOperations.filter(f, at),
-        :idx
-    )))
-end
-
 struct _AtomTableRow{T} <: Tables.AbstractRow
     _row::Int
     _tab::_AtomTable{T}
@@ -173,15 +134,11 @@ end
 Tables.rowaccess(::Type{<: _AtomTable}) = true
 Tables.rows(at::_AtomTable) = at
 
-Tables.rowaccess(::Type{<: _AtomTableView}) = true
-Tables.rows(at::_AtomTableView) = at
-
 Tables.getcolumn(atr::_AtomTableRow, nm::Symbol) = Tables.getcolumn(getfield(atr, :_tab), nm)[getfield(atr, :_row)]
 Tables.getcolumn(atr::_AtomTableRow, i::Int) = getfield(atr, Tables.columnnames(atr)[i])
 Tables.columnnames(::_AtomTableRow) = _atom_table_cols
 
 _row_by_idx(at::_AtomTable{T}, idx::Int) where T = _AtomTableRow{T}(getfield(at, :_idx_map)[idx], at)
-_row_by_idx(at::_AtomTableView, idx::Int) = _row_by_idx(getfield(at, :_tab), idx)
 
 function Base.getproperty(atr::_AtomTableRow{T}, nm::Symbol) where T
     nm === :idx           && return _getproperty(atr, :idx)::Int
@@ -211,6 +168,3 @@ Base.setproperty!(atr::_AtomTableRow, nm::Symbol, val) = setindex!(getproperty(g
 
 Base.eltype(::_AtomTable{T}) where T = _AtomTableRow{T}
 Base.iterate(at::_AtomTable, st=1) = st > length(at) ? nothing : (_AtomTableRow(st, at), st + 1)
-
-Base.eltype(::_AtomTableView{T}) where T = _AtomTableRow{T}
-Base.iterate(at::_AtomTableView, st=1) = st > length(at) ? nothing : (_row_by_idx(at, getfield(at, :_idx)[st]), st + 1)

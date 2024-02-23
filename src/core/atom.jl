@@ -1,18 +1,74 @@
-export 
-    Atom, 
-    atom_by_idx, 
-    atom_by_name, 
-    atoms, 
-    atoms_df, 
-    eachatom, 
-    natoms, 
-    has_property, 
-    get_property, 
-    set_property, 
-    get_full_name, 
-    is_bound_to, 
-    is_geminal, 
+export
+    Atom,
+    AtomTable,
+    atom_by_idx,
+    atom_by_name,
+    atoms,
+    atoms_df,
+    eachatom,
+    natoms,
+    has_property,
+    get_property,
+    set_property,
+    get_full_name,
+    is_bound_to,
+    is_geminal,
     is_vicinal
+
+@auto_hash_equals struct AtomTable{T} <: Tables.AbstractColumns
+    _sys::System{T}
+    _idx::Vector{Int}
+end
+
+@inline _atoms(at::AtomTable) = getfield(at, :_sys)._atoms
+
+@inline Tables.istable(::Type{<: AtomTable}) = true
+@inline Tables.columnaccess(::Type{<: AtomTable}) = true
+@inline Tables.columns(at::AtomTable) = at
+
+function Tables.getcolumn(at::AtomTable, nm::Symbol)
+    RowProjectionVector(
+        Tables.getcolumn(_atoms(at), nm),
+        map(idx -> _atoms(at)._idx_map[idx], getfield(at, :_idx))
+    )
+end
+@inline Base.getproperty(at::AtomTable, nm::Symbol) = Tables.getcolumn(at, nm)
+
+@inline Tables.getcolumn(at::AtomTable, i::Int) = Tables.getcolumn(at, Tables.columnnames(at)[i])
+@inline Tables.columnnames(at::AtomTable) = Tables.columnnames(_atoms(at))
+@inline Tables.schema(at::AtomTable) = Tables.schema(_atoms(at))
+
+@inline Base.size(at::AtomTable) = (length(getfield(at, :_idx)), length(_atom_table_cols))
+@inline Base.size(at::AtomTable, dim) = size(at)[dim]
+@inline Base.length(at::AtomTable) = size(at, 1)
+
+function Base.push!(at::AtomTable{T}, t::AtomTuple{T}; kwargs...) where T
+    sys = getfield(at, :_sys)
+    push!(sys, t; kwargs...)
+    push!(getfield(at, :_idx), sys._curr_idx)
+    at
+end
+
+function _filter_atoms(f, sys::System{T}) where T
+    AtomTable(sys, collect(Int, _filter_select(
+        TableOperations.filter(f, sys._atoms),
+        :idx
+    )))
+end
+
+function Base.filter(f, at::AtomTable)
+    AtomTable(getfield(at, :_sys), collect(Int, _filter_select(
+        TableOperations.filter(f, at),
+        :idx
+    )))
+end
+
+@inline function Base.iterate(at::AtomTable, st = 1)
+    st > length(at) ?
+        nothing :
+        (atom_by_idx(getfield(at, :_sys), getfield(at, :_idx)[st]), st + 1)
+end
+@inline Base.eltype(::AtomTable{T}) where T = Atom{T}
 
 """
     $(TYPEDEF)
@@ -184,14 +240,16 @@ end
     Atom(default_system(), t; kwargs...)::Atom{Float32}
 end
 
+@inline Tables.getcolumn(atom::Atom, name::Symbol) = Tables.getcolumn(getfield(atom, :_row), name)
+
 function Base.getproperty(atom::Atom, name::Symbol)
-    in(name, Tables.columnnames(getfield(atom, :_row))) && return getproperty(getfield(atom, :_row), name)
-    getfield(atom, name)
+    hasfield(typeof(atom), name) && return getfield(atom, name)
+    getproperty(getfield(atom, :_row), name)
 end
 
 function Base.setproperty!(atom::Atom, name::Symbol, val)
-    in(name, Tables.columnnames(getfield(atom, :_row))) && return setproperty!(getfield(atom, :_row), name, val)
-    setfield!(atom, name, val)
+    hasfield(typeof(atom), name) && return setfield!(atom, name, val)
+    setproperty!(getfield(atom, :_row), name, val)
 end
 
 # TODO hide internals
@@ -263,7 +321,7 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Returns an `_AtomTableView` for all of the given system's atoms matching the given criteria. Fields
+Returns an `AtomTable` for all of the given system's atoms matching the given criteria. Fields
 given as `nothing` are ignored. Use `Some(nothing)` if the field should be explicitly checked for
 a value of `nothing`. The returned `DataFrame` contains all public and private atom fields.
 """
@@ -275,14 +333,14 @@ function _atoms(sys::System{T};
     nucleotide_id::Union{MaybeInt, Some{Nothing}} = nothing,
     residue_id::Union{MaybeInt, Some{Nothing}} = nothing
 ) where T
-    filter(atom ->
+    _filter_atoms(atom ->
         (isnothing(frame_id)      || atom.frame_id == frame_id) &&
         (isnothing(molecule_id)   || atom.molecule_id == something(molecule_id)) &&
         (isnothing(chain_id)      || atom.chain_id == something(chain_id)) &&
         (isnothing(fragment_id)   || atom.fragment_id == something(fragment_id)) &&
         (isnothing(nucleotide_id) || atom.nucleotide_id == something(nucleotide_id)) &&
         (isnothing(residue_id)    || atom.residue_id == something(residue_id)),
-        sys._atoms
+        sys
     )
 end
 
@@ -347,7 +405,7 @@ end
 ```
 """
 @inline function eachatom(sys::System{T}; kwargs...) where T
-    (Atom{T}(sys, row) for row in _atoms(sys; kwargs...))
+    (atom for atom in _atoms(sys; kwargs...))
 end
 
 """
@@ -366,7 +424,7 @@ Returns the number of atoms in the given atom container.
 Any value other than `nothing` limits the result to atoms matching this frame ID.
 """
 @inline function natoms(sys::System; kwargs...)
-    count(_ -> true, _atoms(sys; kwargs...))
+    length(_atoms(sys; kwargs...))
 end
 
 """
