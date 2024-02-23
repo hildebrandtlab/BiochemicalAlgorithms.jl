@@ -20,18 +20,20 @@ export
     _idx::Vector{Int}
 end
 
-@inline _atoms(at::AtomTable) = getfield(at, :_sys)._atoms
+@inline _atoms(at::AtomTable) = getproperty(getfield(at, :_sys), :_atoms)
 
 @inline Tables.istable(::Type{<: AtomTable}) = true
 @inline Tables.columnaccess(::Type{<: AtomTable}) = true
 @inline Tables.columns(at::AtomTable) = at
 
-function Tables.getcolumn(at::AtomTable, nm::Symbol)
-    RowProjectionVector(
-        Tables.getcolumn(_atoms(at), nm),
+@inline function Tables.getcolumn(at::AtomTable, nm::Symbol)
+    col = Tables.getcolumn(_atoms(at), nm)
+    RowProjectionVector{eltype(col)}(
+        col,
         map(idx -> _atoms(at)._idx_map[idx], getfield(at, :_idx))
     )
 end
+
 @inline function Base.getproperty(at::AtomTable, nm::Symbol)
     hasfield(typeof(at), nm) && return getfield(at, nm)
     Tables.getcolumn(at, nm)
@@ -52,14 +54,14 @@ function Base.push!(at::AtomTable{T}, t::AtomTuple{T}; kwargs...) where T
     at
 end
 
-function _filter_atoms(f, sys::System{T}) where T
+@inline function _filter_atoms(f, sys::System{T}) where T
     AtomTable(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._atoms),
         :idx
     )))
 end
 
-function Base.filter(f, at::AtomTable)
+@inline function Base.filter(f, at::AtomTable)
     AtomTable(getfield(at, :_sys), collect(Int, _filter_select(
         TableOperations.filter(f, at),
         :idx
@@ -247,12 +249,12 @@ end
 
 @inline Tables.getcolumn(atom::Atom, name::Symbol) = Tables.getcolumn(getfield(atom, :_row), name)
 
-function Base.getproperty(atom::Atom, name::Symbol)
+@inline function Base.getproperty(atom::Atom, name::Symbol)
     hasfield(typeof(atom), name) && return getfield(atom, name)
     getproperty(getfield(atom, :_row), name)
 end
 
-function Base.setproperty!(atom::Atom, name::Symbol, val)
+@inline function Base.setproperty!(atom::Atom, name::Symbol, val)
     hasfield(typeof(atom), name) && return setfield!(atom, name, val)
     setproperty!(getfield(atom, :_row), name, val)
 end
@@ -330,7 +332,7 @@ Returns an `AtomTable` for all of the given system's atoms matching the given cr
 given as `nothing` are ignored. Use `Some(nothing)` if the field should be explicitly checked for
 a value of `nothing`. The returned `DataFrame` contains all public and private atom fields.
 """
-function _atoms(sys::System{T};
+@inline function _atoms(sys::System{T};
     frame_id::MaybeInt = 1,
     molecule_id::Union{MaybeInt, Some{Nothing}} = nothing,
     chain_id::Union{MaybeInt, Some{Nothing}} = nothing,
@@ -491,7 +493,7 @@ automatically assigned a new `idx`.
 # Supported keyword arguments
  - `frame_id::Int = 1`
 """
-function Base.push!(sys::System{T}, atom::AtomTuple{T};
+@inline function Base.push!(sys::System{T}, atom::AtomTuple{T};
     frame_id::Int = 1,
     molecule_id::MaybeInt = nothing,
     chain_id::MaybeInt = nothing,
