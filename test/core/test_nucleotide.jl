@@ -1,5 +1,5 @@
 @testitem "Nucleotide" begin
-    using BiochemicalAlgorithms: _SystemNucleotideTuple, _nucleotides, _atoms, _bonds
+    using BiochemicalAlgorithms: _AtomTable, _BondTable, _SystemNucleotideTuple, _nucleotides, _atoms, _bonds
     using DataFrames
 
     for T in [Float32, Float64]
@@ -230,8 +230,8 @@
 
         # nucleotide atoms
         @test length(collect(_atoms(nuc))) == 0
-        @test Tables.materializer(AtomTable{T})(_atoms(nuc)) ==
-            Tables.materializer(AtomTable{T})(_atoms(sys, nucleotide_id = nuc.idx))
+        @test Tables.materializer(_AtomTable{T})(_atoms(nuc)) ==
+            Tables.materializer(_AtomTable{T})(_atoms(sys, nucleotide_id = nuc.idx))
         @test size(atoms_df(nuc), 1) == 0
         @test atoms_df(nuc) == atoms_df(sys, nucleotide_id = nuc.idx)
         @test length(atoms(nuc)) == 0
@@ -254,8 +254,8 @@
 
         # nucleotide bonds
         @test size(collect(_bonds(nuc)), 1) == 0
-        @test Tables.materializer(BondTable)(_bonds(nuc)) ==
-            Tables.materializer(BondTable)(_bonds(sys, nucleotide_id = nuc.idx))
+        @test Tables.materializer(_BondTable)(_bonds(nuc)) ==
+            Tables.materializer(_BondTable)(_bonds(sys, nucleotide_id = nuc.idx))
         @test size(bonds_df(nuc), 1) == 0
         @test bonds_df(nuc) == bonds_df(sys, nucleotide_id = nuc.idx)
         @test length(bonds(nuc)) == 0

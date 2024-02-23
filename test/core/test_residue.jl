@@ -1,5 +1,5 @@
 @testitem "Residue" begin
-    using BiochemicalAlgorithms: _SystemResidueTuple, _residues, _atoms, _bonds
+    using BiochemicalAlgorithms: _AtomTable, _BondTable, _SystemResidueTuple, _residues, _atoms, _bonds
     using DataFrames
 
     for T in [Float32, Float64]
@@ -248,8 +248,8 @@
 
         # residue atoms
         @test length(collect(_atoms(res))) == 0
-        @test Tables.materializer(AtomTable{T})(_atoms(res)) ==
-            Tables.materializer(AtomTable{T})(_atoms(sys, residue_id = res.idx))
+        @test Tables.materializer(_AtomTable{T})(_atoms(res)) ==
+            Tables.materializer(_AtomTable{T})(_atoms(sys, residue_id = res.idx))
         @test size(atoms_df(res), 1) == 0
         @test atoms_df(res) == atoms_df(sys, residue_id = res.idx)
         @test length(atoms(res)) == 0
@@ -272,8 +272,8 @@
 
         # residue bonds
         @test size(collect(_bonds(res)), 1) == 0
-        @test Tables.materializer(BondTable)(_bonds(res)) ==
-            Tables.materializer(BondTable)(_bonds(sys, residue_id = res.idx))
+        @test Tables.materializer(_BondTable)(_bonds(res)) ==
+            Tables.materializer(_BondTable)(_bonds(sys, residue_id = res.idx))
         @test size(bonds_df(res), 1) == 0
         @test bonds_df(res) == bonds_df(sys, residue_id = res.idx)
         @test length(bonds(res)) == 0

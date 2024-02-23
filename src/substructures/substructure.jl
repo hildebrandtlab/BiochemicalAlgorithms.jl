@@ -5,8 +5,8 @@ export Substructure, filter_atoms
 
     parent::AbstractAtomContainer{T}
     
-    _atoms::AtomTable{T}
-    _bonds::BondTable
+    _atoms::_AtomTable{T}
+    _bonds::_BondTable
     
     properties::Properties
 
@@ -27,9 +27,9 @@ Substructure(name,
                 Substructure{Float32}(name, parent, atoms, bonds, properties)
 
 function filter_atoms(fn, mol::AbstractAtomContainer{T}; name="", adjacent_bonds=false) where T
-    atom_view = Tables.materializer(AtomTable{T})(TableOperations.filter(fn, _atoms(mol)))
+    atom_view = Tables.materializer(_AtomTable{T})(TableOperations.filter(fn, _atoms(mol)))
     idxset = Set(atom_view.idx)
-    bond_view = Tables.materializer(BondTable)(
+    bond_view = Tables.materializer(_BondTable)(
         TableOperations.filter(row ->
             adjacent_bonds ? row.a1 ∈ idxset || row.a2 ∈ idxset
                            : row.a1 ∈ idxset && row.a2 ∈ idxset,

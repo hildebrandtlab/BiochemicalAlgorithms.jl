@@ -1,6 +1,6 @@
 @testitem "Bond" begin
     using DataFrames
-    using BiochemicalAlgorithms: _bonds
+    using BiochemicalAlgorithms: _BondTableRow, _bonds
 
     for T in [Float32, Float64]
         sys = System{T}()
@@ -50,7 +50,7 @@
         @test bond.flags == Flags()
 
         @test bond._sys isa System{T}
-        @test bond._row isa BondTableRow
+        @test bond._row isa _BondTableRow
 
         @test bond2.idx isa Int
         @test bond2.a1 isa Int

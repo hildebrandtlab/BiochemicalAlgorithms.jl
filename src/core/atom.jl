@@ -84,7 +84,7 @@ is automatically assigned a new `idx`.
 """
 @auto_hash_equals struct Atom{T} <: AbstractSystemComponent{T}
     _sys::System{T}
-    _row::AtomTableRow{T}
+    _row::_AtomTableRow{T}
 end
 
 function Atom(
@@ -263,7 +263,7 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Returns an `AtomTableView` for all of the given system's atoms matching the given criteria. Fields
+Returns an `_AtomTableView` for all of the given system's atoms matching the given criteria. Fields
 given as `nothing` are ignored. Use `Some(nothing)` if the field should be explicitly checked for
 a value of `nothing`. The returned `DataFrame` contains all public and private atom fields.
 """

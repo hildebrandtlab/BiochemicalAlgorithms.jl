@@ -9,8 +9,8 @@ export find_sssr, is_ring_atom
 
 function _filter_bonds(ac::AbstractAtomContainer{T}) where {T<:Real}
      # filter out cystein bridges and h bridges (TODO!)
-     new_atoms = Tables.materializer(AtomTable{T})(_atoms(ac))
-     new_bonds = Tables.materializer(BondTable)(
+     new_atoms = Tables.materializer(_AtomTable{T})(_atoms(ac))
+     new_bonds = Tables.materializer(_BondTable)(
         TableOperations.filter(row ->
             !get(row.properties, "DISULPHIDE_BOND", false),
             _bonds(ac)

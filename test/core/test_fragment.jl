@@ -1,5 +1,5 @@
 @testitem "Fragment" begin
-    using BiochemicalAlgorithms: _SystemFragmentTuple, _fragments, _atoms, _bonds
+    using BiochemicalAlgorithms: _AtomTable, _BondTable, _SystemFragmentTuple, _fragments, _atoms, _bonds
     using DataFrames
 
     for T in [Float32, Float64]
@@ -248,8 +248,8 @@
 
         # fragment atoms
         @test length(collect(_atoms(frag))) == 0
-        @test Tables.materializer(AtomTable{T})(_atoms(frag)) == 
-            Tables.materializer(AtomTable{T})(_atoms(sys, fragment_id = frag.idx))
+        @test Tables.materializer(_AtomTable{T})(_atoms(frag)) == 
+            Tables.materializer(_AtomTable{T})(_atoms(sys, fragment_id = frag.idx))
         @test size(atoms_df(frag), 1) == 0
         @test atoms_df(frag) == atoms_df(sys, fragment_id = frag.idx)
         @test length(atoms(frag)) == 0
@@ -272,8 +272,8 @@
 
         # fragment bonds
         @test size(collect(_bonds(frag)), 1) == 0
-        @test Tables.materializer(BondTable)(_bonds(frag)) ==
-            Tables.materializer(BondTable)(_bonds(sys, fragment_id = frag.idx))
+        @test Tables.materializer(_BondTable)(_bonds(frag)) ==
+            Tables.materializer(_BondTable)(_bonds(sys, fragment_id = frag.idx))
         @test size(bonds_df(frag), 1) == 0
         @test bonds_df(frag) == bonds_df(sys, fragment_id = frag.idx)
         @test length(bonds(frag)) == 0

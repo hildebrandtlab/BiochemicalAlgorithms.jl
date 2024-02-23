@@ -80,8 +80,8 @@ Creates a new and empty `System{T}`.
     properties::Properties
     flags::Flags
 
-    _atoms::AtomTable{T}
-    _bonds::BondTable
+    _atoms::_AtomTable{T}
+    _bonds::_BondTable
     _molecules::IndexedDataFrame
     _chains::IndexedDataFrame
     _fragments::IndexedDataFrame
@@ -98,8 +98,8 @@ Creates a new and empty `System{T}`.
             name,
             properties,
             flags,
-            AtomTable{T}(),
-            BondTable(),
+            _AtomTable{T}(),
+            _BondTable(),
             IndexedDataFrame(MoleculeTuple[]),
             IndexedDataFrame(_SystemChainTuple[]),
             IndexedDataFrame(_SystemFragmentTuple[]),

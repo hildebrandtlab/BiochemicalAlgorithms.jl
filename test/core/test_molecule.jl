@@ -1,5 +1,5 @@
 @testitem "Molecule" begin
-    using BiochemicalAlgorithms: _molecules, _atoms, _bonds
+    using BiochemicalAlgorithms: _AtomTable, _BondTable, _molecules, _atoms, _bonds
     using DataFrames
 
     for T in [Float32, Float64]
@@ -86,8 +86,8 @@
 
         # molecule atoms
         @test length(collect(_atoms(mol))) == 0
-        @test Tables.materializer(AtomTable{T})(_atoms(mol)) == 
-            Tables.materializer(AtomTable{T})(_atoms(sys, molecule_id = mol.idx))
+        @test Tables.materializer(_AtomTable{T})(_atoms(mol)) == 
+            Tables.materializer(_AtomTable{T})(_atoms(sys, molecule_id = mol.idx))
         @test size(atoms_df(mol), 1) == 0
         @test atoms_df(mol) == atoms_df(sys, molecule_id = mol.idx)
         @test length(atoms(mol)) == 0
@@ -115,8 +115,8 @@
 
         # molecule bonds
         @test size(collect(_bonds(mol)), 1) == 0
-        @test Tables.materializer(BondTable)(_bonds(mol)) ==
-            Tables.materializer(BondTable)(_bonds(sys, molecule_id = mol.idx))
+        @test Tables.materializer(_BondTable)(_bonds(mol)) ==
+            Tables.materializer(_BondTable)(_bonds(sys, molecule_id = mol.idx))
         @test size(bonds_df(mol), 1) == 0
         @test bonds_df(mol) == bonds_df(sys, molecule_id = mol.idx)
         @test length(bonds(mol)) == 0

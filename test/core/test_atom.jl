@@ -1,7 +1,7 @@
 @testitem "Atom" begin
     using DataFrames
 
-    using BiochemicalAlgorithms: _atoms, _bonds
+    using BiochemicalAlgorithms: _AtomTableRow, _atoms, _bonds
 
     for T in [Float32, Float64]
         at = AtomTuple{T}(1, Elements.H;
@@ -60,7 +60,7 @@
         @test atom.flags == at.flags
 
         @test atom._sys isa System{T}
-        @test atom._row isa AtomTableRow{T}
+        @test atom._row isa _AtomTableRow{T}
 
         @test_throws ErrorException atom.frame_id
         @test_throws ErrorException atom.molecule_id

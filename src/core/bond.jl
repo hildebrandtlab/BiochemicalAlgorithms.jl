@@ -52,7 +52,7 @@ Creates a new `Bond{T}` in the given system.
 """
 @auto_hash_equals struct Bond{T} <: AbstractSystemComponent{T}
     _sys::System{T}
-    _row::BondTableRow
+    _row::_BondTableRow
 end
 
 function Bond(
