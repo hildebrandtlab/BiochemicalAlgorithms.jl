@@ -54,14 +54,14 @@ function Base.push!(at::AtomTable{T}, t::AtomTuple{T}; kwargs...) where T
     at
 end
 
-@inline function _filter_atoms(f, sys::System{T}) where T
+@inline function _filter_atoms(f::Function, sys::System{T}) where T
     AtomTable(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._atoms),
         :idx
     )))
 end
 
-@inline function Base.filter(f, at::AtomTable)
+@inline function Base.filter(f::Function, at::AtomTable)
     AtomTable(getfield(at, :_sys), collect(Int, _filter_select(
         TableOperations.filter(f, at),
         :idx
@@ -528,10 +528,11 @@ end
 end
 
 function get_full_name(
-        a::Atom{T}, 
-        type::FullNameType.T = FullNameType.ADD_VARIANT_EXTENSIONS) where {T<:Real}
+    a::Atom{T},
+    type::FullNameType.T = FullNameType.ADD_VARIANT_EXTENSIONS
+) where {T<:Real}
 
-    # determine the parent`s name
+    # determine the parent's name
     f = parent_fragment(a)
 
     parent_name = ""
@@ -540,21 +541,20 @@ function get_full_name(
         # look for a molecule containing the atom
         m = parent_molecule(a)
         parent_name = strip(m.name)
-        parent_name *= ":"
     else
         # retrieve the fragment name
-        parent_name = get_full_name(f, type) * ":";
+        parent_name = get_full_name(f, type)
     end
 
-	# retrieve the atom name
-	name = strip(a.name)
+    # retrieve the atom name
+    name = strip(a.name)
 
-	# add the parent name only if non-empty
-    if (parent_name != ":")
-        name = parent_name * name;
-	end
+    # add the parent name only if non-empty
+    if !isempty(parent_name)
+        name = string(parent_name, ":", name)
+    end
 
-	name
+    name
 end
 
 @inline distance(a1::Atom, a2::Atom) = distance(a1.r, a2.r)
@@ -562,7 +562,7 @@ end
 """
     $(TYPEDSIGNATURES)
 
-	Decides if two atoms are bound to each other.
+    Decides if two atoms are bound to each other.
     Hydrogen bonds (has_flag(bond, :TYPE__HYDROGEN)) are ignored.
 """
 function is_bound_to(a1::Atom, a2::Atom)
@@ -585,7 +585,7 @@ end
 """
     $(TYPEDSIGNATURES)
 
-	Decides if two atoms are geminal.
+    Decides if two atoms are geminal.
     
     Two atoms are geminal if they do not share a common bond but both have a
     bond to a third atom. For example the two hydrogen atoms in water are geminal. 

@@ -140,7 +140,7 @@ end
 
 @inline _row_by_idx(at::_AtomTable{T}, idx::Int) where T = _AtomTableRow{T}(getfield(at, :_idx_map)[idx], at)
 
-function Base.getproperty(atr::_AtomTableRow{T}, nm::Symbol) where T
+@inline function Base.getproperty(atr::_AtomTableRow{T}, nm::Symbol) where T
     nm === :idx           && return _getproperty(atr, :idx)::Int
     nm === :number        && return _getproperty(atr, :number)::Int
     nm === :element       && return _getproperty(atr, :element)::ElementType
