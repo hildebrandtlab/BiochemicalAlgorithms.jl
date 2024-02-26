@@ -10,21 +10,24 @@ export Substructure, filter_atoms
     
     properties::Properties
 
-    function Substructure{T,A}(name,
-                             parent, 
-                             atoms, 
-                             bonds, 
-                             properties = parent.properties) where {T<:Real, A<:AbstractAtomContainer{T}}
+    function Substructure{T,A}(
+        name::String,
+        parent::A,
+        atoms::AtomTable{T},
+        bonds::BondTable{T},
+        properties::Properties = parent.properties
+    ) where {T<:Real, A<:AbstractAtomContainer{T}}
         new(name, parent, atoms, bonds, properties)
     end
 end
 
-Substructure(name,
-             parent,
-             atoms,
-             bonds,
-             properties = parent.properties) = 
-                Substructure{Float32, typeof(parent)}(name, parent, atoms, bonds, properties)
+@inline Substructure(
+    name::String,
+    parent::A,
+    atoms::AtomTable{T},
+    bonds::BondTable{T},
+    properties::Properties = parent.properties
+) where {T, A} = Substructure{Float32, typeof(parent)}(name, parent, atoms, bonds, properties)
 
 function filter_atoms(fn, mol::AbstractAtomContainer{T}; name="", adjacent_bonds=false) where T
     atom_view = filter(fn, atoms(mol))
@@ -60,10 +63,10 @@ end
 $(TYPEDSIGNATURES)
 
 Returns an `AtomTable` for all of the given system's atoms matching the given criteria (value or
-`missing`). Fields given as `nothing` are ignored. The returned `DataFrame` contains all public and
+`missing`). Fields given as `nothing` are ignored. The returned table contains all public and
 private atom fields.
 """
-function _atoms(substruct::Substructure{T};
+@inline function _atoms(substruct::Substructure{T};
     frame_id::MaybeInt = 1,
     molecule_id::Union{MaybeInt, Some{Nothing}} = nothing,
     chain_id::Union{MaybeInt, Some{Nothing}} = nothing,
@@ -82,40 +85,40 @@ function _atoms(substruct::Substructure{T};
     )
 end
 
-function _bonds(substruct::Substructure; kwargs...)
+@inline function _bonds(substruct::Substructure; kwargs...)
     aidx = Set(_filter_select(_atoms(substruct; kwargs...), :idx))
     filter(row -> row.a1 in aidx || row.a2.idx, substruct._bonds)
 end
 
-function _molecules(substruct::Substructure; kwargs...)
+@inline function _molecules(substruct::Substructure; kwargs...)
     midx = Set(_filter_select(_atoms(substruct; kwargs...), :molecule_id))
     @rsubset(
         _molecules(substruct.parent), :idx in midx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
-function _chains(substruct::Substructure; kwargs...)
+@inline function _chains(substruct::Substructure; kwargs...)
     cidx = Set(_filter_select(_atoms(substruct; kwargs...), :chain_id))
     @rsubset(
         _chains(substruct.parent), :idx in cidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
-function _fragments(substruct::Substructure; kwargs...)
+@inline function _fragments(substruct::Substructure; kwargs...)
     fidx = Set(_filter_select(_atoms(substruct; kwargs...), :fragment_id))
     @rsubset(
         _fragments(substruct.parent), :idx in fidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
-function _nucleotides(substruct::Substructure; kwargs...)
+@inline function _nucleotides(substruct::Substructure; kwargs...)
     nidx = Set(_filter_select(_atoms(substruct; kwargs...), :nucleotide_id))
     @rsubset(
         _nucleotides(substruct.parent), :idx in nidx; view = true
     )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
 end
 
-function _residues(substruct::Substructure; kwargs...)
+@inline function _residues(substruct::Substructure; kwargs...)
     ridx = Set(_filter_select(_atoms(substruct; kwargs...), :residue_id))
     @rsubset(
         _residues(substruct.parent), :idx in ridx; view = true
@@ -156,11 +159,11 @@ end
     collect(eachchain(substruct; kwargs...))
 end
 
-function atoms_df(ac::Substructure{T}; kwargs...) where {T<:Real}
+@inline function atoms_df(ac::Substructure{T}; kwargs...) where {T<:Real}
     DataFrame(_atoms(ac; kwargs...))
 end
 
-function bonds_df(ac::Substructure{T}; kwargs...) where {T<:Real}
+@inline function bonds_df(ac::Substructure{T}; kwargs...) where {T<:Real}
     DataFrame(_bonds(ac; kwargs...))
 end
 
