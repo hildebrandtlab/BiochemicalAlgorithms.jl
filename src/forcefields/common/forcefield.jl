@@ -171,7 +171,7 @@ end
    Please note that changes to the options or the topology require a call to ```setup!````
    prior to the call to ```update!````.
 """
-function update!(ff::ForceField{T}) where {T<:Real}
+@inline function update!(ff::ForceField{T}) where {T<:Real}
     map(update!, ff.components)
 end
 

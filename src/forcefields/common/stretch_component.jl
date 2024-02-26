@@ -12,13 +12,12 @@ end
 @auto_hash_equals mutable struct QuadraticStretchComponent{T<:Real} <: AbstractForceFieldComponent{T}
     name::String
     ff::ForceField{T}
-    cache::Dict{Symbol, Any}
     energy::Dict{String, T}
     unassigned_stretches::Vector{Tuple{Atom{T}, Atom{T}}}
     stretches::Vector{QuadraticBondStretch{T}}
 
     function QuadraticStretchComponent{T}(ff::ForceField{T}) where {T<:Real}
-        new("QuadraticBondStretch", ff, Dict{Symbol, Any}(), Dict{String, T}(), [])
+        new("QuadraticBondStretch", ff, Dict{String, T}(), [])
     end
 end
 
@@ -47,7 +46,7 @@ function setup!(qsc::QuadraticStretchComponent{T}) where {T}
         Tuple(k) => stretch_combinations[k] 
         for k in keys(stretch_combinations)
     )
-    stretches = Vector{QuadraticBondStretch}(undef, nbonds(ff.system))
+    stretches = Vector{QuadraticBondStretch{T}}(undef, nbonds(ff.system))
 
     # iterate over all bonds in the system
     for (i, bond) in enumerate(eachbond(ff.system))
@@ -59,7 +58,7 @@ function setup!(qsc::QuadraticStretchComponent{T}) where {T}
 
         if has_flag(bond, :TYPE__HYDROGEN)
             # skip hydrogen bonds
-            stretches[i] = QuadraticBondStretch(one(T), zero(T), a1, a2)
+            stretches[i] = QuadraticBondStretch(one(T), zero(T), a1, a1.r, a2, a2.r)
         end
 
         qbs = coalesce(

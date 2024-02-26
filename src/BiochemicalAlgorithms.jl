@@ -4,6 +4,7 @@ using AutoHashEquals
 using CellListMap
 using DataFrames
 using DataFramesMeta
+using DataStructures
 using DocStringExtensions
 using Graphs, GraphDataFrameBridge
 using Unitful, UnitfulAtomic

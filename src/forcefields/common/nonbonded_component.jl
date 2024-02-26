@@ -102,19 +102,37 @@ end
     switching_function::CubicSwitchingFunction{T}
 end
 
+@auto_hash_equals mutable struct NonBondedComponentCache{T}
+    bond_cache::Set{Pair{Int64, Int64}}
+    es_switching_function::CubicSwitchingFunction{T}
+    geminal_cache::Set{Pair{Int64, Int64}}
+    hydrogen_bond_combinations::Dict{@NamedTuple{I::String, J::String}, @NamedTuple{A::T, B::T}}
+    lj_combinations::Dict{@NamedTuple{I::String, J::String}, @NamedTuple{A_ij::T, B_ij::T}}
+    nonbonded_cutoff::T
+    periodic_box::Vector{T}
+    scaling_es_1_4::T
+    scaling_vdw_1_4::T
+    vdw_switching_function::CubicSwitchingFunction{T}
+    vicinal_cache::Set{Pair{Int64, Int64}}
+
+    function NonBondedComponentCache{T}() where T
+        new()
+    end
+end
+
 @auto_hash_equals mutable struct NonBondedComponent{T<:Real} <: AbstractForceFieldComponent{T}
     name::String
     ff::ForceField{T}
-    cache::Dict{Symbol, Any}
+    cache::NonBondedComponentCache{T}
     energy::Dict{String, T}
-    unassigned_lj_interactions::Vector{Tuple{Atom, Atom}}
+    unassigned_lj_interactions::Vector{Tuple{Atom{T}, Atom{T}}}
 
-    lj_interactions::Vector{LennardJonesInteraction{T, 12, 6}}
-    hydrogen_bonds::Vector{LennardJonesInteraction{T, 12, 10}}
-    electrostatic_interactions::Vector{ElecrostaticInteraction{T}}
+    lj_interactions::Deque{LennardJonesInteraction{T, 12, 6}}
+    hydrogen_bonds::Deque{LennardJonesInteraction{T, 12, 10}}
+    electrostatic_interactions::Deque{ElecrostaticInteraction{T}}
 
     function NonBondedComponent{T}(ff::ForceField{T}) where {T<:Real}
-        new("NonBonded", ff, Dict{Symbol, Any}(), Dict{String, T}(), [])
+        new("NonBonded", ff, NonBondedComponentCache{T}(), Dict{String, T}(), Tuple{Atom{T},Atom{T}}[])
     end
 end
 
@@ -203,18 +221,18 @@ function _setup_vdw!(nbc::NonBondedComponent{T}) where {T<:Real}
     lj_combinations.A_ij = ϵ .* r_6.^2
     lj_combinations.B_ij = T(2.0) * ϵ .* r_6
     
-    lj_combinations_cache = Dict(
-        (I=r.I, J=r.J,) => (A_ij=r.A_ij, B_ij=r.B_ij) 
-            for r in eachrow(lj_combinations)
+    lj_combinations_cache = Dict{@NamedTuple{I::String, J::String}, @NamedTuple{A_ij::T, B_ij::T}}(
+        (I=r.I, J=r.J) => (A_ij=r.A_ij, B_ij=r.B_ij)
+        for r in eachrow(lj_combinations)
     )
 
-    vdw_cutoff       = nbc.ff.options[:vdw_cutoff]
-    vdw_cuton        = nbc.ff.options[:vdw_cuton]
+    vdw_cutoff::T = nbc.ff.options[:vdw_cutoff]
+    vdw_cuton::T  = nbc.ff.options[:vdw_cuton]
 
     # build the switching function as a closure
     vdw_switching_function = CubicSwitchingFunction{T}(vdw_cutoff, vdw_cuton)
   
-    scaling_vdw_1_4 = nbc.ff.options[:scaling_vdw_1_4]
+    scaling_vdw_1_4::T = nbc.ff.options[:scaling_vdw_1_4]
     if (scaling_vdw_1_4 == T(0.0))
         @warn "NonBondedComponent(): illegal - 1-4 vdW scaling factor: must be non-zero!"
         @warn "Resetting to 1.0."
@@ -225,14 +243,9 @@ function _setup_vdw!(nbc::NonBondedComponent{T}) where {T<:Real}
     end
 
     # remember those parts that stay constant when only the system is updated
-    nbc.cache[:lj_combinations] = lj_combinations_cache
-
-    nbc.cache[:vdw_cutoff] = vdw_cutoff
-    nbc.cache[:vdw_cuton]  = vdw_cuton
-
-    nbc.cache[:vdw_switching_function] = vdw_switching_function
-
-    nbc.cache[:scaling_vdw_1_4] = scaling_vdw_1_4
+    nbc.cache.lj_combinations = lj_combinations_cache
+    nbc.cache.vdw_switching_function = vdw_switching_function
+    nbc.cache.scaling_vdw_1_4 = scaling_vdw_1_4
 end
 
 function _setup_hydrogenbonds!(nbc::NonBondedComponent{T}) where {T<:Real}
@@ -254,22 +267,22 @@ function _setup_hydrogenbonds!(nbc::NonBondedComponent{T}) where {T<:Real}
     hydrogen_bonds_df.A .*= T(hbond_A_factor)
     hydrogen_bonds_df.B .*= T(hbond_B_factor)
 
-    hydrogen_bond_combinations_cache = Dict(
+    hydrogen_bond_combinations_cache = Dict{@NamedTuple{I::String, J::String}, @NamedTuple{A::T, B::T}}(
         (I=r.I, J=r.J,) => (A=r.A, B=r.B) 
             for r in eachrow(hydrogen_bonds_df)
     )
 
     # remember those parts that stay constant when only the system is updated
-    nbc.cache[:hydrogen_bond_combinations] = hydrogen_bond_combinations_cache
+    nbc.cache.hydrogen_bond_combinations = hydrogen_bond_combinations_cache
 end
 
 function _setup_electrostatic_interactions!(nbc::NonBondedComponent{T}) where {T<:Real}
-    es_cutoff        = nbc.ff.options[:electrostatic_cutoff]
-    es_cuton         = nbc.ff.options[:electrostatic_cuton]  
+    es_cutoff::T = nbc.ff.options[:electrostatic_cutoff]
+    es_cuton::T  = nbc.ff.options[:electrostatic_cuton]  
 
     es_switching_function  = CubicSwitchingFunction{T}(es_cutoff, es_cuton)
    
-    scaling_es_1_4 = nbc.ff.options[:scaling_electrostatic_1_4]
+    scaling_es_1_4::T = nbc.ff.options[:scaling_electrostatic_1_4]
     if (scaling_es_1_4 == T(0.0))
         @warn "NonBondedComponent(): illegal - 1-4 electrostatic scaling factor: must be non-zero!"
         @warn "Resetting to 1.0."
@@ -280,12 +293,8 @@ function _setup_electrostatic_interactions!(nbc::NonBondedComponent{T}) where {T
     end
 
     # remember those parts that stay constant when only the system is updated
-    nbc.cache[:es_cutoff] = es_cutoff
-    nbc.cache[:es_cuton]  = es_cuton
-
-    nbc.cache[:es_switching_function] = es_switching_function
-
-    nbc.cache[:scaling_es_1_4] = scaling_es_1_4
+    nbc.cache.es_switching_function = es_switching_function
+    nbc.cache.scaling_es_1_4 = scaling_es_1_4
 end
 
 function setup!(nbc::NonBondedComponent{T}) where {T<:Real}
@@ -294,13 +303,13 @@ function setup!(nbc::NonBondedComponent{T}) where {T<:Real}
     _setup_electrostatic_interactions!(nbc)
 
     # the cutoffs for the nonbonded pair list and the switching function
-    nonbonded_cutoff = nbc.ff.options[:nonbonded_cutoff]
+    nonbonded_cutoff::T = nbc.ff.options[:nonbonded_cutoff]::T
 
     # do we need to construct a periodic box?
-    periodic_box = [
-        nbc.ff.options[:periodic_box_width], 
-        nbc.ff.options[:periodic_box_height],
-        nbc.ff.options[:periodic_box_depth]
+    periodic_box::Vector{T} = [
+        nbc.ff.options[:periodic_box_width]::T, 
+        nbc.ff.options[:periodic_box_height]::T,
+        nbc.ff.options[:periodic_box_depth]::T
     ]
 
     # cache the is_bound_to-, geminal-, and vicinal-relationships
@@ -319,64 +328,56 @@ function setup!(nbc::NonBondedComponent{T}) where {T<:Real}
     nh_2 = compute_neighborhood(2)
     nh_3 = compute_neighborhood(3)
 
-    bond_cache    = to_set(setdiff.(nh_1, nh_0))
-    geminal_cache = to_set(setdiff.(nh_2, nh_1))
-    vicinal_cache = to_set(setdiff.(nh_3, nh_2))
-
     # remember those parts that stay constant when only the system is updated
-    nbc.cache[:nonbonded_cutoff] = nonbonded_cutoff
-    nbc.cache[:periodic_box]     = periodic_box
+    nbc.cache.nonbonded_cutoff = nonbonded_cutoff
+    nbc.cache.periodic_box     = periodic_box
 
-    nbc.cache[:bond_cache]    = bond_cache
-    nbc.cache[:geminal_cache] = geminal_cache
-    nbc.cache[:vicinal_cache] = vicinal_cache
+    nbc.cache.bond_cache    = to_set(setdiff.(nh_1, nh_0))
+    nbc.cache.geminal_cache = to_set(setdiff.(nh_2, nh_1))
+    nbc.cache.vicinal_cache = to_set(setdiff.(nh_3, nh_2))
 end
 
 function update!(nbc::NonBondedComponent{T}) where {T<:Real}
     ff = nbc.ff
 
-    periodic_box = nbc.cache[:periodic_box]
-    nonbonded_cutoff = nbc.cache[:nonbonded_cutoff]
+    periodic_box = nbc.cache.periodic_box
+    nonbonded_cutoff = nbc.cache.nonbonded_cutoff
 
-    scaling_vdw_1_4 = nbc.cache[:scaling_vdw_1_4]
-    scaling_es_1_4  = nbc.cache[:scaling_es_1_4]
+    scaling_vdw_1_4 = nbc.cache.scaling_vdw_1_4
+    scaling_es_1_4  = nbc.cache.scaling_es_1_4
 
-    vdw_switching_function = nbc.cache[:vdw_switching_function]
-    es_switching_function  = nbc.cache[:es_switching_function]
+    vdw_switching_function = nbc.cache.vdw_switching_function
+    es_switching_function  = nbc.cache.es_switching_function
 
-    lj_combinations = nbc.cache[:lj_combinations]
+    lj_combinations = nbc.cache.lj_combinations
 
-    hydrogen_bond_combinations = nbc.cache[:hydrogen_bond_combinations]
+    hydrogen_bond_combinations = nbc.cache.hydrogen_bond_combinations
 
-    bond_cache    = nbc.cache[:bond_cache]
-    geminal_cache = nbc.cache[:geminal_cache]
-    vicinal_cache = nbc.cache[:vicinal_cache]
+    bond_cache    = nbc.cache.bond_cache
+    geminal_cache = nbc.cache.geminal_cache
+    vicinal_cache = nbc.cache.vicinal_cache
 
-    check_bond(a1, a2)    = (a1 => a2) ∈ bond_cache
-    check_geminal(a1, a2) = (a1 => a2) ∈ geminal_cache
-    check_vicinal(a1, a2) = (a1 => a2) ∈ vicinal_cache
-
-    neighbors = ((ff.options[:periodic_boundary_conditions]) 
-        ? neighborlist(atoms(ff.system).r, unitcell=periodic_box, nonbonded_cutoff)
-        : neighborlist(atoms(ff.system).r, nonbonded_cutoff)
-    )
-
-    distance_dependent_dielectric = ff.options[:distance_dependent_dielectric]
-
-    lj_interactions = Vector{LennardJonesInteraction{T, 12, 6}}()
-    hydrogen_bonds  = Vector{LennardJonesInteraction{T, 12, 10}}()
-    electrostatic_interactions = Vector{ElecrostaticInteraction{T}}()
-
-    hint = Int(round(1.2 * natoms(ff.system)))
-    sizehint!(lj_interactions, hint)
-    sizehint!(electrostatic_interactions, hint)
+    check_bond(a1::Int, a2::Int)    = (a1 => a2) ∈ bond_cache
+    check_geminal(a1::Int, a2::Int) = (a1 => a2) ∈ geminal_cache
+    check_vicinal(a1::Int, a2::Int) = (a1 => a2) ∈ vicinal_cache
 
     atom_cache::AtomTable{T} = atoms(ff.system)
+    neighbors::Vector{Tuple{Int, Int, T}} = ff.options[:periodic_boundary_conditions]::Bool ?
+        neighborlist(atom_cache.r, unitcell=periodic_box, nonbonded_cutoff) :
+        neighborlist(atom_cache.r, nonbonded_cutoff)
+
+    distance_dependent_dielectric = ff.options[:distance_dependent_dielectric]::Bool
+
+    hint = Int(round(1.2 * natoms(ff.system)))
+    lj_interactions = Deque{LennardJonesInteraction{T, 12, 6}}(hint)
+    hydrogen_bonds  = Deque{LennardJonesInteraction{T, 12, 10}}(hint)
+    electrostatic_interactions = Deque{ElecrostaticInteraction{T}}(hint)
+
     idx_cache    = atom_cache.idx
     charge_cache = atom_cache.charge
     type_cache   = atom_cache.atom_type
 
-    for lj_candidate in neighbors
+    for lj_candidate::Tuple{Int, Int, T} in neighbors
         lj_1 = lj_candidate[1]
         lj_2 = lj_candidate[2]
 
@@ -399,18 +400,16 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
         q1q2 = charge_cache[lj_1]*charge_cache[lj_2]
 
         if q1q2 ≠ zero(T)
-            push!(
-                electrostatic_interactions,
-                ElecrostaticInteraction{T}(
-                    q1q2,
-                    T(lj_candidate[3]),
-                    vicinal_pair ? scaling_es_1_4 : T(1.0),
-                    distance_dependent_dielectric,
-                    atom_1, atom_1.r,
-                    atom_2, atom_2.r,
-                    es_switching_function
-                )
+            es = ElecrostaticInteraction{T}(
+                q1q2,
+                lj_candidate[3],
+                vicinal_pair ? scaling_es_1_4 : T(1.0),
+                distance_dependent_dielectric,
+                atom_1, atom_1.r,
+                atom_2, atom_2.r,
+                es_switching_function
             )
+            push!(electrostatic_interactions, es)
         end
 
         # first, figure out if the atoms are part of a torsion

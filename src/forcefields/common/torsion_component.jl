@@ -18,7 +18,6 @@ end
 @auto_hash_equals mutable struct TorsionComponent{T<:Real} <: AbstractForceFieldComponent{T}
     name::String
     ff::ForceField{T}
-    cache::Dict{Symbol, Any}
     energy::Dict{String, T}
 
     unassigned_torsions::Vector{Tuple{Atom{T}, Atom{T}, Atom{T}, Atom{T}, Bool}}
@@ -27,7 +26,7 @@ end
     improper_torsions::Vector{CosineTorsion{T}}
 
     function TorsionComponent{T}(ff::ForceField{T}) where {T<:Real}
-        new("Torsion", ff, Dict{Symbol, Any}(), Dict{String, Any}(), [])
+        new("Torsion", ff, Dict{String, Any}(), [])
     end
 end
 
@@ -55,7 +54,7 @@ end
 
 function _try_assign_torsion!(
         tc::TorsionComponent{T}, 
-        torsions::Vector{CosineTorsion},
+        torsions::Vector{CosineTorsion{T}},
         torsion_combinations::Dict{K, V},
         a1::Atom{T}, 
         a2::Atom{T}, 
@@ -108,10 +107,10 @@ function _try_assign_torsion!(
         else
             push!(torsions, 
                 CosineTorsion(
-                    T.(V_factor  * pts.V),
-                    T.(ϕ₀_factor * pts.phi0),
-                    Int.(pts.f),
-                    Int.(pts.div),
+                    V_factor  .* getproperty.(pts, :V),
+                    ϕ₀_factor .* getproperty.(pts, :phi0),
+                    getproperty.(pts, :f),
+                    getproperty.(pts, :div),
                     a1, a1.r,
                     a2, a2.r,
                     a3, a3.r,
@@ -138,20 +137,13 @@ function _setup_improper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
     # extract the parameter sections containing all possible improper torsion atoms
     impropers = extract_section(ff.parameters, "ResidueImproperTorsions").data
 
-    # and again, remember those parts that stay constant when only the system is updated
-    tc.cache[:improper_V_factor]  = T(V_factor)
-    tc.cache[:improper_ϕ₀_factor] = T(ϕ₀_factor)
-
-    tc.cache[:impropers] = impropers
-
+    _parse_combi_tuple(t) = (n = t.n, div = t.div, V = t.V, phi0 = t.phi0, f = t.f)
     torsion_dict = Dict(
-        Tuple(k) => torsion_combinations[k] 
+        Tuple(k) => [_parse_combi_tuple(r) for r in eachrow(torsion_combinations[k])]
         for k in keys(torsion_combinations)
     )
 
-    tc.cache[:improper_torsion_combinations] = torsion_dict
-
-    improper_torsions = Vector{CosineTorsion}()
+    improper_torsions = Vector{CosineTorsion{T}}()
 
     # check for each potential improper torsion atom (every atom having three bonds)
     # whether it is contained in the list of impropers
@@ -196,18 +188,13 @@ function _setup_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
 
     V_factor, ϕ₀_factor, torsion_combinations = _get_torsion_data(ff, "Torsions")
 
-    # remember those parts that stay constant when only the system is updated
-    tc.cache[:proper_V_factor]  = T(V_factor)
-    tc.cache[:proper_ϕ₀_factor] = T(ϕ₀_factor)
-
-    torsion_dict = Dict(
-        Tuple(k) => torsion_combinations[k] 
+    _parse_combi_tuple(t) = (n = t.n, div = t.div, V = t.V, phi0 = t.phi0, f = t.f)
+    torsion_dict = Dict{NTuple{4, String}, Vector{@NamedTuple{n::String, div::Int, V::T, phi0::T, f::Int}}}(
+        Tuple(k) => [_parse_combi_tuple(r) for r in eachrow(torsion_combinations[k])]
         for k in keys(torsion_combinations)
     )
 
-    tc.cache[:proper_torsion_combinations] = torsion_dict
-
-    proper_torsions = Vector{CosineTorsion}()
+    proper_torsions = Vector{CosineTorsion{T}}()
 
     for atom::Atom{T} in eachatom(ff.system)
         bs = eachbond(atom)
@@ -266,7 +253,7 @@ function _setup_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
     tc.proper_torsions = proper_torsions
 end
 
-function update!(tc::TorsionComponent{T}) where {T<:Real}
+function update!(::TorsionComponent{T}) where {T<:Real}
     nothing
 end
 
