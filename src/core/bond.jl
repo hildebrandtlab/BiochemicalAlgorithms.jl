@@ -53,14 +53,14 @@ function Base.push!(bt::BondTable, t::BondTuple; kwargs...)
     bt
 end
 
-@inline function _filter_bonds(f, sys::System{T}) where T
+@inline function _filter_bonds(f::Function, sys::System{T}) where T
     BondTable(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._bonds),
         :idx
     )))
 end
 
-@inline function Base.filter(f, bt::BondTable)
+@inline function Base.filter(f::Function, bt::BondTable)
     BondTable(getfield(bt, :_sys), collect(Int, _filter_select(
         TableOperations.filter(f, bt),
         :idx

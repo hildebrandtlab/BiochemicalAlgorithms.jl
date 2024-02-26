@@ -83,7 +83,7 @@ end
     nm === :order      && return _getproperty(btr, :order)::BondOrderType
     nm === :properties && return _getproperty(btr, :properties)::Properties
     nm === :flags      && return _getproperty(btr, :flags)::Flags
-    getindex(getfield(getfield(atr, :_tab), nm), getfield(atr, :_row))
+    getindex(getfield(getfield(btr, :_tab), nm), getfield(btr, :_row))
 end
 
 @inline function _getproperty(btr::_BondTableRow, nm::Symbol)
