@@ -1,5 +1,5 @@
 @testitem "Protein" begin
-    using BiochemicalAlgorithms: _AtomTable, _BondTable, _proteins, _atoms, _bonds
+    using BiochemicalAlgorithms: _AtomTable, _BondTable, _MoleculeTableRow, _proteins, _atoms, _bonds
     using DataFrames
 
     for T in [Float32, Float64]
@@ -37,7 +37,7 @@
         @test prot.flags == Flags()
 
         @test prot._sys isa System{T}
-        @test prot._row isa DataFrameRow
+        @test prot._row isa _MoleculeTableRow
 
         @test prot2.name == "something"
         @test prot2.properties == Properties(:a => 1)
@@ -59,21 +59,15 @@
         @test protein_by_idx(sys, prot.idx) isa Protein{T}
         @test protein_by_idx(sys, prot.idx) == prot
 
-        # _proteins
-        df = _proteins(sys)
-        @test df isa AbstractDataFrame
-        @test size(df) == (2, length(fieldnames(ProteinTuple)))
-        @test copy(df[1, :]) isa ProteinTuple
-
         # proteins_df
         df = proteins_df(sys)
-        @test df isa AbstractDataFrame
+        @test df isa DataFrame
         @test size(df) == (2, length(fieldnames(ProteinTuple)))
         @test copy(df[1, :]) isa ProteinTuple
 
         # proteins
         mv = proteins(sys)
-        @test mv isa Vector{Protein{T}}
+        @test mv isa ProteinTable{T}
         @test length(mv) == 2
 
         # eachprotein

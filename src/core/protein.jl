@@ -1,7 +1,16 @@
-export Protein, ProteinTuple, protein_by_idx, proteins, proteins_df, eachprotein, nproteins,
+export
+    Protein,
+    ProteinTable,
+    ProteinTuple,
+    protein_by_idx,
+    proteins,
+    proteins_df,
+    eachprotein,
+    nproteins,
     parent_protein
 
 # TODO implement rules to distinguish from molecules
+const ProteinTable{T} = MoleculeTable{T}
 const Protein{T} = Molecule{T}
 const ProteinTuple = MoleculeTuple
 _proteins(sys::System) = _molecules(sys)

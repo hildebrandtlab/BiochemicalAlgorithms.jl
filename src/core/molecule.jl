@@ -1,7 +1,77 @@
-export AbstractMolecule, Molecule, molecule_by_idx, molecules, molecules_df, eachmolecule, nmolecules,
+export
+    AbstractMolecule,
+    Molecule,
+    MoleculeTable,
+    molecule_by_idx,
+    molecules,
+    molecules_df,
+    eachmolecule,
+    nmolecules,
     parent_molecule
 
-"""
+@auto_hash_equals struct MoleculeTable{T} <: Tables.AbstractColumns
+    _sys::System{T}
+    _idx::Vector{Int}
+end
+
+@inline _molecules(mt::MoleculeTable) = getproperty(getfield(mt, :_sys), :_molecules)
+
+@inline Tables.istable(::Type{<: MoleculeTable}) = true
+@inline Tables.columnaccess(::Type{<: MoleculeTable}) = true
+@inline Tables.columns(mt::MoleculeTable) = mt
+
+@inline function Tables.getcolumn(mt::MoleculeTable, nm::Symbol)
+    col = Tables.getcolumn(_molecules(mt), nm)
+    RowProjectionVector{eltype(col)}(
+        col,
+        map(idx -> _molecules(mt)._idx_map[idx], getfield(mt, :_idx))
+    )
+end
+
+@inline function Base.getproperty(mt::MoleculeTable, nm::Symbol)
+    hasfield(typeof(mt), nm) && return getfield(mt, nm)
+    Tables.getcolumn(mt, nm)
+end
+
+@inline Tables.getcolumn(mt::MoleculeTable, i::Int) = Tables.getcolumn(mt, Tables.columnnames(mt)[i])
+@inline Tables.columnnames(mt::MoleculeTable) = Tables.columnnames(_molecules(mt))
+@inline Tables.schema(mt::MoleculeTable) = Tables.schema(_molecules(mt))
+
+@inline Base.size(mt::MoleculeTable) = (length(getfield(mt, :_idx)), length(_molecule_table_cols))
+@inline Base.size(mt::MoleculeTable, dim) = size(mt)[dim]
+@inline Base.length(mt::MoleculeTable) = size(mt, 1)
+
+function Base.push!(mt::MoleculeTable, t::MoleculeTuple)
+    sys = getfield(mt, :_sys)
+    push!(sys._molecules, t)
+    push!(getfield(mt, :_idx), sys._curr_idx)
+    mt
+end
+
+@inline function _filter_molecules(f::Function, sys::System{T}) where T
+    MoleculeTable(sys, collect(Int, _filter_select(
+        TableOperations.filter(f, sys._molecules),
+        :idx
+    )))
+end
+
+@inline function Base.filter(f::Function, mt::MoleculeTable)
+    MoleculeTable(getfield(mt, :_sys), collect(Int, _filter_select(
+        TableOperations.filter(f, mt),
+        :idx
+    )))
+end
+
+@inline function Base.iterate(mt::MoleculeTable, st = 1)
+    st > length(mt) ?
+        nothing :
+        (molecule_by_idx(getfield(mt, :_sys), getfield(mt, :_idx)[st]), st + 1)
+end
+@inline Base.eltype(::MoleculeTable{T}) where T = Molecule{T}
+@inline Base.getindex(mt::MoleculeTable{T}, i::Int) where T = molecule_by_idx(getfield(mt, :_sys), getfield(mt, :_idx)[i])
+@inline Base.keys(mt::MoleculeTable) = LinearIndices((length(mt),))
+
+    """
     $(TYPEDEF)
 
 Abstract base type for all molecules.
@@ -41,7 +111,7 @@ Creates a new `Molecule{T}` in the given system.
 """
 @auto_hash_equals struct Molecule{T} <: AbstractMolecule{T}
     _sys::System{T}
-    _row::DataFrameRow
+    _row::_MoleculeTableRow
 end
 
 function Molecule(
@@ -51,26 +121,29 @@ function Molecule(
     flags::Flags = Flags()
 ) where T
     idx = _next_idx(sys)
-    push!(sys._molecules, (idx = idx, name = name, properties = properties, flags = flags))
+    push!(sys._molecules, MoleculeTuple(
+        idx = idx,
+        name = name,
+        properties = properties,
+        flags = flags
+    ))
     molecule_by_idx(sys, idx)
 end
 
-function Molecule(name::String = "", properties::Properties = Properties(), flags::Flags = Flags())
+@inline function Molecule(name::String = "", properties::Properties = Properties(), flags::Flags = Flags())
     Molecule(default_system(), name, properties, flags)
 end
 
-function Base.getproperty(mol::Molecule, name::Symbol)
-    gp = () -> getproperty(getfield(mol, :_row), name)
-    name === :idx        && return gp()::Int
-    name === :name       && return gp()::String
-    name === :properties && return gp()::Properties
-    name === :flags      && return gp()::Flags
-    getfield(mol, name)
+@inline Tables.getcolumn(mol::Molecule, name::Symbol) = Tables.getcolumn(getfield(mol, :_row), name)
+
+@inline function Base.getproperty(mol::Molecule, name::Symbol)
+    hasfield(typeof(mol), name) && return getfield(mol, name)
+    getproperty(getfield(mol, :_row), name)
 end
 
-function Base.setproperty!(mol::Molecule, name::Symbol, val)
-    in(name, fieldnames(MoleculeTuple)) && return setproperty!(getfield(mol, :_row), name, val)
-    setfield!(mol, name, val)
+@inline function Base.setproperty!(mol::Molecule, name::Symbol, val)
+    hasfield(typeof(mol), name) && return setfield!(mol, name, val)
+    setproperty!(getfield(mol, :_row), name, val)
 end
 
 @inline Base.show(io::IO, ::MIME"text/plain", mol::Molecule) = show(io, getfield(mol, :_row))
@@ -102,35 +175,35 @@ Returns the `Molecule{T}` associated with the given `idx` in `sys`. Throws a `Ke
 molecule exists.
 """
 @inline function molecule_by_idx(sys::System{T}, idx::Int) where T
-    Molecule{T}(sys, DataFrameRow(sys._molecules.df, _row_by_idx(sys._molecules, idx), :))
+    Molecule{T}(sys, _row_by_idx(sys._molecules, idx))
 end
 
 """
     $(TYPEDSIGNATURES)
 
-Returns a raw `DataFrame` for all of the given system's molecules. The returned `DataFrame`
+Returns a `MoleculeTable` for all of the given system's molecules. The returned table
 contains all public and private molecule fields.
 """
-@inline function _molecules(sys::System)
-    sys._molecules.df
+@inline function _molecules(sys::System{T}) where T
+    MoleculeTable{T}(sys, sys._molecules.idx)
 end
 
 """
     $(TYPEDSIGNATURES)
 
-Returns a `Vector{Molecule{T}}` containing all molecules of the given system.
+Returns a `MoleculeTable{T}` containing all molecules of the given system.
 """
 @inline function molecules(sys::System)
-    collect(eachmolecule(sys))
+    _molecules(sys)
 end
 
 """
     $(TYPEDSIGNATURES)
 
-Returns a `SubDataFrame` containing all molecules of the given system.
+Returns a `DataFrame` containing all molecules of the given system.
 """
 @inline function molecules_df(sys::System{T}) where T
-    view(_molecules(sys), :, :)
+    DataFrame(_molecules(sys))
 end
 
 """
@@ -139,7 +212,7 @@ end
 Returns a `Molecule{T}` generator for all molecules of the given system.
 """
 @inline function eachmolecule(sys::System{T}) where T
-    (Molecule{T}(sys, row) for row in eachrow(_molecules(sys)))
+    (mol for mol in _molecules(sys))
 end
 
 """
@@ -148,7 +221,7 @@ end
 Returns the number of molecules in the given system.
 """
 function nmolecules(sys::System)
-    nrow(_molecules(sys))
+    length(sys._molecules)
 end
 
 #=

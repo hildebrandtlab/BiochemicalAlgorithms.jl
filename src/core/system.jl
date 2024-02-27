@@ -82,7 +82,7 @@ Creates a new and empty `System{T}`.
 
     _atoms::_AtomTable{T}
     _bonds::_BondTable
-    _molecules::IndexedDataFrame
+    _molecules::_MoleculeTable
     _chains::IndexedDataFrame
     _fragments::IndexedDataFrame
     _nucleotides::IndexedDataFrame
@@ -100,7 +100,7 @@ Creates a new and empty `System{T}`.
             flags,
             _AtomTable{T}(),
             _BondTable(),
-            IndexedDataFrame(MoleculeTuple[]),
+            _MoleculeTable(),
             IndexedDataFrame(_SystemChainTuple[]),
             IndexedDataFrame(_SystemFragmentTuple[]),
             IndexedDataFrame(_SystemNucleotideTuple[]),

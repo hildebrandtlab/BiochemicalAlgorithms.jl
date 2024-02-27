@@ -1,5 +1,5 @@
 @testitem "Molecule" begin
-    using BiochemicalAlgorithms: _AtomTable, _BondTable, _molecules, _atoms, _bonds
+    using BiochemicalAlgorithms: _AtomTable, _BondTable, _MoleculeTableRow, _molecules, _atoms, _bonds
     using DataFrames
 
     for T in [Float32, Float64]
@@ -37,7 +37,7 @@
         @test mol.flags == Flags()
 
         @test mol._sys isa System{T}
-        @test mol._row isa DataFrameRow
+        @test mol._row isa _MoleculeTableRow
 
         @test mol2.name == "something"
         @test mol2.properties == Properties(:a => 1)
@@ -59,21 +59,9 @@
         @test molecule_by_idx(sys, mol.idx) isa Molecule{T}
         @test molecule_by_idx(sys, mol.idx) == mol
 
-        # _molecules
-        df = _molecules(sys)
-        @test df isa AbstractDataFrame
-        @test size(df) == (2, length(fieldnames(MoleculeTuple)))
-        @test copy(df[1, :]) isa MoleculeTuple
-
-        # molecules_df
-        df = molecules_df(sys)
-        @test df isa AbstractDataFrame
-        @test size(df) == (2, length(fieldnames(MoleculeTuple)))
-        @test copy(df[1, :]) isa MoleculeTuple
-
         # molecules
         mv = molecules(sys)
-        @test mv isa Vector{Molecule{T}}
+        @test mv isa MoleculeTable{T}
         @test length(mv) == 2
 
         # eachmolecule
