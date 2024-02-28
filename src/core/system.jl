@@ -86,18 +86,6 @@ Returns the next available `idx` for the given system.
     sys._curr_idx += 1
 end
 
-"""
-    $(TYPEDSIGNATURES)
-
-Returns the row number corresponding to the given `idx` in `df`. Throws a `KeyError` if no such
-row exists.
-"""
-@inline function _row_by_idx(df::DataFrame, idx::Int)
-    rn = DataFramesMeta.@with df findfirst(:idx .== idx)::MaybeInt
-    isnothing(rn) && throw(KeyError(idx))
-    rn::Int
-end
-
 Base.show(io::IO, ::MIME"text/plain", sys::System) = show(io, sys)
 Base.show(io::IO, sys::System) = print(io, 
     "System with ", natoms(sys), " atoms", isempty(sys.name) ? "" : " ($(sys.name))")

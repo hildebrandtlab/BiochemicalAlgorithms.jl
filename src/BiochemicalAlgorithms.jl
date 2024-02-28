@@ -3,7 +3,6 @@ module BiochemicalAlgorithms
 using AutoHashEquals
 using CellListMap
 using DataFrames
-using DataFramesMeta
 using DataStructures
 using DocStringExtensions
 using Graphs, GraphDataFrameBridge
