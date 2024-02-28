@@ -29,40 +29,31 @@ RigidTransform(r::Matrix3, t::Vector3) = RigidTransform{Float32}(r, t)
 ### Functions
 
 function translate!(m::AbstractMolecule{T}, t::Vector3{T}) where {T<:Real}
-    DataFramesMeta.@with atoms_df(m) begin
-       :r .= Ref(t) .+ :r
-    end
+    atoms(m).r .+= Ref(t)
     m
 end
 
 function rigid_transform!(m::AbstractMolecule{T}, transform::RigidTransform{T}) where {T<:Real}
-    DataFramesMeta.@with atoms_df(m) begin
-        :r .= Ref(transform.rotation) .* :r .+ Ref(transform.translation)
-    end
+    r = atoms(m).r
+    r .= Ref(transform.rotation) .* r .+ Ref(transform.translation)
     m
 end
 
 function compute_rmsd(f::AbstractAtomBijection{T}) where {T<:Real}
-    r_BA = Vector{Vector3{T}}(undef, size(f.atoms_A, 1))
-    DataFramesMeta.@with f.atoms_A r_BA .= :r
-    DataFramesMeta.@with f.atoms_B r_BA .-= :r
+    r_BA = f.atoms_A.r .- f.atoms_B.r
     sqrt(mean(map(r -> transpose(r) * r, r_BA)))
 end
 
 function compute_rmsd(A::AbstractAtomContainer, B::AbstractAtomContainer)
-    sqrt(mean(squared_norm.(atoms_df(A).r .- atoms_df(B).r)))
+    sqrt(mean(squared_norm.(atoms(A).r .- atoms(B).r)))
 end
 
 function compute_rmsd_minimizer(f::AbstractAtomBijection{T}) where {T<:Real}
-    r_A = Vector{Vector3{T}}(undef, size(f.atoms_A, 1))
-    DataFramesMeta.@with f.atoms_A r_A .= :r
-    mean_A = mean(r_A)
+    mean_A = mean(f.atoms_A.r)
 
-    r_B = Vector{Vector3{T}}(undef, size(f.atoms_B, 1))
-    DataFramesMeta.@with f.atoms_B r_B .= :r
-    mean_B = mean(r_B)
+    mean_B = mean(f.atoms_B.r)
 
-    R = mapreduce(t -> t[1] * transpose(t[2]), +, zip(r_B .- Ref(mean_B), r_A .- Ref(mean_A)))
+    R = mapreduce(t -> t[1] * transpose(t[2]), +, zip(f.atoms_B.r .- Ref(mean_B), f.atoms_A.r .- Ref(mean_A)))
 
     C = Hermitian(transpose(R) * R)
     μ, a = eigen(C)
@@ -73,8 +64,10 @@ end
 compute_rmsd_minimizer(f) = compute_rmsd_minimizer{Float32}(f)
 
 function map_rigid!(A::AbstractMolecule{T}, B::AbstractMolecule{T}; heavy_atoms_only::Bool = false) where {T<:Real}
-    atoms_A = atoms_df(A)
-    heavy_atoms_only && (atoms_A = atoms_A[atoms_A.element .!== Elements.H, :])
+    atoms_A = atoms(A)
+    if heavy_atoms_only
+        atoms_A = filter(atom -> atom.element != Elements.H)
+    end
 
     U = compute_rmsd_minimizer(TrivialAtomBijection(atoms_A, B))
 
