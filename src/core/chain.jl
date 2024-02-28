@@ -115,6 +115,7 @@ function Chain(
     chain_by_idx(sys, idx)
 end
 
+@inline Tables.rows(ct::ChainTable) = ct
 @inline Tables.getcolumn(chain::Chain, name::Symbol) = Tables.getcolumn(getfield(chain, :_row), name)
 
 @inline function Base.getproperty(chain::Chain, name::Symbol)

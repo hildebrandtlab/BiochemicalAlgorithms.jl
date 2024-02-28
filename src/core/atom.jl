@@ -247,6 +247,7 @@ end
     Atom(default_system(), t; kwargs...)::Atom{Float32}
 end
 
+@inline Tables.rows(at::AtomTable) = at
 @inline Tables.getcolumn(atom::Atom, name::Symbol) = Tables.getcolumn(getfield(atom, :_row), name)
 
 @inline function Base.getproperty(atom::Atom, name::Symbol)

@@ -134,6 +134,7 @@ end
     Molecule(default_system(), name, properties, flags)
 end
 
+@inline Tables.rows(mt::MoleculeTable) = mt
 @inline Tables.getcolumn(mol::Molecule, name::Symbol) = Tables.getcolumn(getfield(mol, :_row), name)
 
 @inline function Base.getproperty(mol::Molecule, name::Symbol)

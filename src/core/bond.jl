@@ -145,6 +145,7 @@ end
     Bond(default_system(), a1, a2, order, properties, flags)
 end
 
+@inline Tables.rows(bt::BondTable) = bt
 @inline Tables.getcolumn(bond::Bond, name::Symbol) = Tables.getcolumn(getfield(bond, :_row), name)
 
 @inline function Base.getproperty(bond::Bond, name::Symbol)
