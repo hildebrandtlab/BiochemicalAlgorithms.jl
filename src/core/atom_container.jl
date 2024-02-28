@@ -13,5 +13,5 @@ function Base.push!(ac::AbstractAtomContainer, bond::BondTuple)
     ac
 end
 
-frame_ids(ac::AbstractAtomContainer{T}) where {T<:Real} = unique(_atoms(ac).frame_id)
+frame_ids(ac::AbstractAtomContainer{T}) where {T<:Real} = unique(atoms(ac).frame_id)
 nframes(ac::AbstractAtomContainer{T}) where {T<:Real} = length(frame_ids(ac))

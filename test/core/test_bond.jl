@@ -1,6 +1,6 @@
 @testitem "Bond" begin
     using DataFrames
-    using BiochemicalAlgorithms: _BondTableRow, _bonds
+    using BiochemicalAlgorithms: _BondTableRow
 
     for T in [Float32, Float64]
         sys = System{T}()

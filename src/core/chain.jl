@@ -155,17 +155,6 @@ chain exists.
 end
 
 """
-    $(TYPEDSIGNATURES)
-
-Returns a raw `ChainTable` for all of the given system's chains matching the given criteria. Fields
-given as `nothing` are ignored. The returned table contains all public and private chain fields.
-"""
-@inline function _chains(sys::System{T}; molecule_id::MaybeInt = nothing) where T
-    isnothing(molecule_id) && return ChainTable{T}(sys, sys._chains.idx)
-    _filter_chains(chain -> chain.molecule_id == molecule_id, sys)
-end
-
-"""
     chains(::Molecule)
     chains(::Protein)
     chains(::System)
@@ -176,8 +165,9 @@ Returns a `ChainTable{T}` containing all chains of the given atom container.
  - `molecule_id::MaybeInt = nothing`: \
 Any value other than `nothing` limits the result to chains belonging to the molecule with the given ID.
 """
-@inline function chains(sys::System; kwargs...)
-    _chains(sys; kwargs...)
+@inline function chains(sys::System{T}; molecule_id::MaybeInt = nothing) where T
+    isnothing(molecule_id) && return ChainTable{T}(sys, sys._chains.idx)
+    _filter_chains(chain -> chain.molecule_id == molecule_id, sys)
 end
 
 """
@@ -188,7 +178,7 @@ end
 Returns a `DataFrame` containing all chains of the given atom container.
 """
 @inline function chains_df(sys::System; kwargs...)
-    DataFrame(_chains(sys; kwargs...))
+    DataFrame(chains(sys; kwargs...))
 end
 
 """
@@ -199,7 +189,7 @@ end
 Returns a `Chain{T}` generator for all chains of the given atom container.
 """
 @inline function eachchain(sys::System{T}; kwargs...) where T
-    (chain for chain in _chains(sys; kwargs...))
+    (chain for chain in chains(sys; kwargs...))
 end
 
 """
@@ -210,13 +200,12 @@ end
 Returns the number of chains in the given atom container.
 """
 @inline function nchains(sys::System; kwargs...)
-    length(_chains(sys; kwargs...))
+    length(chains(sys; kwargs...))
 end
 
 #=
     Molecule chains
 =#
-@inline _chains(mol::Molecule) = _chains(parent(mol); molecule_id = mol.idx)
 @inline chains(mol::Molecule) = chains(parent(mol), molecule_id = mol.idx)
 @inline chains_df(mol::Molecule) = chains_df(parent(mol), molecule_id = mol.idx)
 @inline eachchain(mol::Molecule) = eachchain(parent(mol), molecule_id = mol.idx)
@@ -238,7 +227,6 @@ end
 #=
     Chain atoms
 =#
-@inline _atoms(chain::Chain; kwargs...) = _atoms(parent(chain); chain_id = chain.idx, kwargs...)
 @inline atoms(chain::Chain; kwargs...) = atoms(parent(chain); chain_id = chain.idx, kwargs...)
 @inline atoms_df(chain::Chain; kwargs...) = atoms_df(parent(chain); chain_id = chain.idx, kwargs...)
 @inline eachatom(chain::Chain; kwargs...) = eachatom(parent(chain); chain_id = chain.idx, kwargs...)
@@ -247,7 +235,6 @@ end
 #=
     Chain bonds
 =#
-@inline _bonds(chain::Chain; kwargs...) = _bonds(parent(chain); chain_id = chain.idx, kwargs...)
 @inline bonds(chain::Chain; kwargs...) = bonds(parent(chain); chain_id = chain.idx, kwargs...)
 @inline bonds_df(chain::Chain; kwargs...) = bonds_df(parent(chain); chain_id = chain.idx, kwargs...)
 @inline eachbond(chain::Chain; kwargs...) = eachbond(parent(chain); chain_id = chain.idx, kwargs...)

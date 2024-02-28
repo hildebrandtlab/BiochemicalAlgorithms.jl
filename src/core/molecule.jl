@@ -182,20 +182,10 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Returns a `MoleculeTable` for all of the given system's molecules. The returned table
-contains all public and private molecule fields.
-"""
-@inline function _molecules(sys::System{T}) where T
-    MoleculeTable{T}(sys, sys._molecules.idx)
-end
-
-"""
-    $(TYPEDSIGNATURES)
-
 Returns a `MoleculeTable{T}` containing all molecules of the given system.
 """
-@inline function molecules(sys::System)
-    _molecules(sys)
+@inline function molecules(sys::System{T}) where T
+    MoleculeTable{T}(sys, sys._molecules.idx)
 end
 
 """
@@ -204,7 +194,7 @@ end
 Returns a `DataFrame` containing all molecules of the given system.
 """
 @inline function molecules_df(sys::System{T}) where T
-    DataFrame(_molecules(sys))
+    DataFrame(molecules(sys))
 end
 
 """
@@ -213,7 +203,7 @@ end
 Returns a `Molecule{T}` generator for all molecules of the given system.
 """
 @inline function eachmolecule(sys::System{T}) where T
-    (mol for mol in _molecules(sys))
+    (mol for mol in molecules(sys))
 end
 
 """
@@ -228,7 +218,6 @@ end
 #=
     Molecule atoms
 =#
-@inline _atoms(mol::Molecule; kwargs...) = _atoms(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline atoms(mol::Molecule; kwargs...) = atoms(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline atoms_df(mol::Molecule; kwargs...) = atoms_df(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline eachatom(mol::Molecule; kwargs...) = eachatom(parent(mol); molecule_id = mol.idx, kwargs...)
@@ -242,7 +231,6 @@ end
 #=
     Molecule bonds
 =#
-@inline _bonds(mol::Molecule; kwargs...) = _bonds(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline bonds(mol::Molecule; kwargs...) = bonds(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline bonds_df(mol::Molecule; kwargs...) = bonds_df(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline eachbond(mol::Molecule; kwargs...) = eachbond(parent(mol); molecule_id = mol.idx, kwargs...)

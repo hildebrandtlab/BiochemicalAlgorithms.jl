@@ -322,18 +322,36 @@ Any value other than `nothing` limits the result to atoms matching this frame ID
     name::String;
     frame_id::MaybeInt = 1
 ) where T
-    idx = filter(atom -> atom.name == name, _atoms(ac; frame_id = frame_id)).idx
+    idx = filter(atom -> atom.name == name, atoms(ac; frame_id = frame_id)).idx
     isempty(idx) ? nothing : atom_by_idx(parent(ac), first(idx))
 end
 
 """
-    $(TYPEDSIGNATURES)
+    atoms(::Chain)
+    atoms(::Fragment)
+    atoms(::Molecule)
+    atoms(::Nucleotide)
+    atoms(::Protein)
+    atoms(::Residue)
+    atoms(::System)
 
-Returns an `AtomTable` for all of the given system's atoms matching the given criteria. Fields
-given as `nothing` are ignored. Use `Some(nothing)` if the field should be explicitly checked for
-a value of `nothing`. The returned `DataFrame` contains all public and private atom fields.
+Returns an `AtomTable{T}` containing all atoms of the given atom container.
+
+# Supported keyword arguments
+ - `frame_id::MaybeInt = 1`: \
+Any value other than `nothing` limits the result to atoms matching this frame ID.
+ - `molecule_id::Union{MaybeInt, Some{Nothing}} = nothing`: \
+Any value other than `nothing` limits the results to atoms belonging to the given molecule ID.
+ - `chain_id::Union{MaybeInt, Some{Nothing}} = nothing`: \
+Any value other than `nothing` limits the results to atoms belonging to the given chain ID.
+- `fragment_id::Union{MaybeInt, Some{Nothing}} = nothing`: \
+Any value other than `nothing` limits the results to atoms belonging to the given fragment ID.
+- `nucleotide_id::Union{MaybeInt, Some{Nothing}} = nothing`: \
+Any value other than `nothing` limits the results to atoms belonging to the given nucleotide ID.
+- `residue_id::Union{MaybeInt, Some{Nothing}} = nothing`: \
+Any value other than `nothing` limits the results to atoms belonging to the given residue ID.
 """
-@inline function _atoms(sys::System{T};
+@inline function atoms(sys::System{T};
     frame_id::MaybeInt = 1,
     molecule_id::Union{MaybeInt, Some{Nothing}} = nothing,
     chain_id::Union{MaybeInt, Some{Nothing}} = nothing,
@@ -353,25 +371,6 @@ a value of `nothing`. The returned `DataFrame` contains all public and private a
 end
 
 """
-    atoms(::Chain)
-    atoms(::Fragment)
-    atoms(::Molecule)
-    atoms(::Nucleotide)
-    atoms(::Protein)
-    atoms(::Residue)
-    atoms(::System)
-
-Returns an `AtomTable{T}` containing all atoms of the given atom container.
-
-# Supported keyword arguments
- - `frame_id::MaybeInt = 1`: \
-Any value other than `nothing` limits the result to atoms matching this frame ID.
-"""
-@inline function atoms(sys::System; kwargs...)
-    _atoms(sys; kwargs...)
-end
-
-"""
     atoms_df(::Chain)
     atoms_df(::Fragment)
     atoms_df(::Molecule)
@@ -387,7 +386,7 @@ Returns a `DataFrame` containing all atoms of the given atom container.
 Any value other than `nothing` limits the result to atoms matching this frame ID.
 """
 @inline function atoms_df(sys::System{T}; kwargs...) where T
-    DataFrame(_atoms(sys; kwargs...))
+    DataFrame(atoms(sys; kwargs...))
 end
 
 """
@@ -413,7 +412,7 @@ end
 ```
 """
 @inline function eachatom(sys::System{T}; kwargs...) where T
-    (atom for atom in _atoms(sys; kwargs...))
+    (atom for atom in atoms(sys; kwargs...))
 end
 
 """
@@ -432,19 +431,7 @@ Returns the number of atoms in the given atom container.
 Any value other than `nothing` limits the result to atoms matching this frame ID.
 """
 @inline function natoms(sys::System; kwargs...)
-    length(_atoms(sys; kwargs...))
-end
-
-"""
-    $(TYPEDSIGNATURES)
-
-Returns a `BondTable` containing all of the given atom's bonds.
-"""
-@inline function _bonds(atom::Atom)
-    _filter_bonds(
-        bond -> bond.a1 == atom.idx || bond.a2 == atom.idx,
-        parent(atom)
-    )
+    length(atoms(sys; kwargs...))
 end
 
 """
@@ -453,7 +440,10 @@ end
 Returns a `BondTable{T}` containing all bonds of the given atom.
 """
 @inline function bonds(atom::Atom)
-    _bonds(atom)
+    _filter_bonds(
+        bond -> bond.a1 == atom.idx || bond.a2 == atom.idx,
+        parent(atom)
+    )
 end
 
 """
@@ -462,7 +452,7 @@ end
 Returns a `SubDataFrame` containing all bonds of the given atom.
 """
 @inline function bonds_df(atom::Atom)
-    DataFrame(_bonds(atom))
+    DataFrame(bonds(atom))
 end
 
 """
@@ -471,7 +461,7 @@ end
 Returns a `Bond{T}` generator for all bonds of the given atom.
 """
 @inline function eachbond(atom::Atom{T}) where T
-    (bond for bond in _bonds(atom))
+    (bond for bond in bonds(atom))
 end
 
 """
@@ -480,7 +470,7 @@ end
 Returns the number of bonds of the given atom.
 """
 @inline function nbonds(atom::Atom)
-    length(_bonds(atom))
+    length(bonds(atom))
 end
 
 """

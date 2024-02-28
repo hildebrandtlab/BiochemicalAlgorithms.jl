@@ -1,5 +1,4 @@
 @testitem "Nucleotide" begin
-    using BiochemicalAlgorithms: _AtomTable, _BondTable, _NucleotideTableRow, _atoms, _bonds, _nucleotides
     using DataFrames
 
     for T in [Float32, Float64]
@@ -45,7 +44,7 @@
         @test nuc.flags == Flags()
 
         @test nuc._sys isa System{T}
-        @test nuc._row isa _NucleotideTableRow
+        @test nuc._row isa BiochemicalAlgorithms._NucleotideTableRow
         
         @test nuc.molecule_id isa Int
         @test nuc.molecule_id == mol.idx
@@ -161,8 +160,6 @@
 
         # chain/molecule nucleotides
         mol3 = Molecule(sys)
-        @test size(_nucleotides(mol3), 1) == 0
-        @test _nucleotides(mol3) == _nucleotides(sys, molecule_id = mol3.idx)
         @test size(nucleotides_df(mol3), 1) == 0
         @test nucleotides_df(mol3) == nucleotides_df(sys, molecule_id = mol3.idx)
         @test size(nucleotides(mol3), 1) == 0
@@ -173,8 +170,6 @@
         @test nnucleotides(mol3) == nnucleotides(sys, molecule_id = mol3.idx)
 
         chain3 = Chain(mol3)
-        @test size(_nucleotides(chain3), 1) == 0
-        @test _nucleotides(chain3) == _nucleotides(sys, chain_id = chain3.idx)
         @test size(nucleotides_df(chain3), 1) == 0
         @test nucleotides_df(chain3) == nucleotides_df(sys, chain_id = chain3.idx)
         @test size(nucleotides(chain3), 1) == 0
@@ -185,8 +180,6 @@
         @test nnucleotides(chain3) == nnucleotides(sys, chain_id = chain3.idx)
 
         Nucleotide(chain3, 1)
-        @test size(_nucleotides(mol3), 1) == 1
-        @test size(_nucleotides(mol3)) == size(_nucleotides(sys, molecule_id = mol3.idx))
         @test size(nucleotides_df(mol3), 1) == 1
         @test size(nucleotides_df(mol3)) == size(nucleotides_df(sys, molecule_id = mol3.idx))
         @test size(nucleotides(mol3), 1) == 1
@@ -196,8 +189,6 @@
         @test nnucleotides(mol3) == 1
         @test nnucleotides(mol3) == nnucleotides(sys, molecule_id = mol3.idx)
 
-        @test size(_nucleotides(chain3), 1) == 1
-        @test size(_nucleotides(chain3)) == size(_nucleotides(sys, chain_id = chain3.idx))
         @test size(nucleotides_df(chain3), 1) == 1
         @test size(nucleotides_df(chain3)) == size(nucleotides_df(sys, chain_id = chain3.idx))
         @test size(nucleotides(chain3), 1) == 1
@@ -208,9 +199,6 @@
         @test nnucleotides(chain3) == nnucleotides(sys, chain_id = chain3.idx)
 
         # nucleotide atoms
-        @test length(collect(_atoms(nuc))) == 0
-        @test Tables.materializer(_AtomTable{T})(_atoms(nuc)) ==
-            Tables.materializer(_AtomTable{T})(_atoms(sys, nucleotide_id = nuc.idx))
         @test size(atoms_df(nuc), 1) == 0
         @test atoms_df(nuc) == atoms_df(sys, nucleotide_id = nuc.idx)
         @test length(atoms(nuc)) == 0
@@ -221,7 +209,6 @@
         @test natoms(nuc) == natoms(sys, nucleotide_id = nuc.idx)
 
         @test push!(nuc, AtomTuple{T}(1, Elements.H)) === nuc
-        @test length(collect(_atoms(nuc))) == 1
         @test size(atoms_df(nuc), 1) == 1
         @test size(atoms_df(nuc)) == size(atoms_df(sys, nucleotide_id = nuc.idx))
         @test length(atoms(nuc)) == 1
@@ -232,9 +219,6 @@
         @test natoms(nuc) == natoms(sys, nucleotide_id = nuc.idx)
 
         # nucleotide bonds
-        @test size(collect(_bonds(nuc)), 1) == 0
-        @test Tables.materializer(_BondTable)(_bonds(nuc)) ==
-            Tables.materializer(_BondTable)(_bonds(sys, nucleotide_id = nuc.idx))
         @test size(bonds_df(nuc), 1) == 0
         @test bonds_df(nuc) == bonds_df(sys, nucleotide_id = nuc.idx)
         @test length(bonds(nuc)) == 0
@@ -249,8 +233,6 @@
             Atom(nuc, 2, Elements.C).idx,
             BondOrder.Single
         )) === nuc
-        @test size(collect(_bonds(nuc)), 1) == 1
-        @test size(collect(_bonds(nuc))) == size(collect(_bonds(sys, nucleotide_id = nuc.idx)))
         @test size(bonds_df(nuc), 1) == 1
         @test size(bonds_df(nuc)) == size(bonds_df(sys, nucleotide_id = nuc.idx))
         @test length(bonds(nuc)) == 1

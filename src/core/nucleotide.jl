@@ -157,12 +157,20 @@ nucleotide exists.
 end
 
 """
-    $(TYPEDSIGNATURES)
+    nucleotides(::Chain)
+    nucleotides(::Molecule)
+    nucleotides(::Protein)
+    nucleotides(::System)
 
-Returns a `NucleotideTable` for all of the given system's nucleotides matching the given criteria. Fields
-given as `nothing` are ignored. The returned table contains all public and private nucleotide fields.
+Returns a `NucleotideTable{T}` containing all nucleotides of the given atom container.
+
+# Supported keyword arguments
+ - `molecule_id::MaybeInt = nothing`: \
+Any value other than `nothing` limits the result to nucleotides belonging to the molecule with the given ID.
+- `chain_id::MaybeInt = nothing`: \
+Any value other than `nothing` limits the result to nucleotides belonging to the chain with the given ID.
 """
-function _nucleotides(sys::System{T};
+function nucleotides(sys::System{T};
     molecule_id::MaybeInt = nothing,
     chain_id::MaybeInt = nothing
 ) where T
@@ -175,18 +183,6 @@ function _nucleotides(sys::System{T};
 end
 
 """
-    nucleotides(::Chain)
-    nucleotides(::Molecule)
-    nucleotides(::Protein)
-    nucleotides(::System)
-
-Returns a `NucleotideTable{T}` containing all nucleotides of the given atom container.
-"""
-@inline function nucleotides(sys::System; kwargs...)
-    _nucleotides(sys; kwargs...)
-end
-
-"""
     nucleotides_df(::Chain)
     nucleotides_df(::Molecule)
     nucleotides_df(::Protein)
@@ -195,7 +191,7 @@ end
 Returns a `DataFrame` containing all nucleotides of the given atom container.
 """
 @inline function nucleotides_df(sys::System; kwargs...)
-    DataFrame(_nucleotides(sys; kwargs...))
+    DataFrame(nucleotides(sys; kwargs...))
 end
 
 """
@@ -207,7 +203,7 @@ end
 Returns a `Nucleotide{T}` generator for all nucleotides of the given atom container.
 """
 @inline function eachnucleotide(sys::System{T}; kwargs...) where T
-    (nuc for nuc in _nucleotides(sys; kwargs...))
+    (nuc for nuc in nucleotides(sys; kwargs...))
 end
 
 """
@@ -219,13 +215,12 @@ end
 Returns the number of nucleotides in the given atom container.
 """
 @inline function nnucleotides(sys::System; kwargs...)
-    length(_nucleotides(sys; kwargs...))
+    length(nucleotides(sys; kwargs...))
 end
 
 #=
     Nucleotides
 =#
-@inline _nucleotides(mol::Molecule; kwargs...) = _nucleotides(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline nucleotides(mol::Molecule; kwargs...) = nucleotides(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline nucleotides_df(mol::Molecule; kwargs...) = nucleotides_df(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline eachnucleotide(mol::Molecule; kwargs...) = eachnucleotide(parent(mol); molecule_id = mol.idx, kwargs...)
@@ -234,7 +229,6 @@ end
 #=
     Chain nucleotides
 =#
-@inline _nucleotides(chain::Chain; kwargs...) = _nucleotides(parent(chain); chain_id = chain.idx, kwargs...)
 @inline nucleotides(chain::Chain; kwargs...) = nucleotides(parent(chain); chain_id = chain.idx, kwargs...)
 @inline nucleotides_df(chain::Chain; kwargs...) = nucleotides_df(parent(chain); chain_id = chain.idx, kwargs...)
 @inline eachnucleotide(chain::Chain; kwargs...) = eachnucleotide(parent(chain); chain_id = chain.idx, kwargs...)
@@ -250,7 +244,6 @@ end
 #=
     Nucleotide atoms
 =#
-@inline _atoms(nuc::Nucleotide; kwargs...) = _atoms(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 @inline atoms(nuc::Nucleotide; kwargs...) = atoms(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 @inline atoms_df(nuc::Nucleotide; kwargs...) = atoms_df(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 @inline eachatom(nuc::Nucleotide; kwargs...) = eachatom(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
@@ -265,7 +258,6 @@ end
 #=
     Nucleotide bonds
 =#
-@inline _bonds(nuc::Nucleotide; kwargs...) = _bonds(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 @inline bonds(nuc::Nucleotide; kwargs...) = bonds(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 @inline bonds_df(nuc::Nucleotide; kwargs...) = bonds_df(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 @inline eachbond(nuc::Nucleotide; kwargs...) = eachbond(parent(nuc); nucleotide_id = nuc.idx, kwargs...)

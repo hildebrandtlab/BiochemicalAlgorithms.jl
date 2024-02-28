@@ -13,7 +13,6 @@ export
 const ProteinTable{T} = MoleculeTable{T}
 const Protein{T} = Molecule{T}
 const ProteinTuple = MoleculeTuple
-_proteins(sys::System) = _molecules(sys)
 protein_by_idx(sys::System, idx::Int) = molecule_by_idx(sys, idx)
 proteins(sys::System) = molecules(sys)
 proteins_df(sys::System) = molecules_df(sys)

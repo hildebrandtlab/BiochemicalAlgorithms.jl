@@ -1,8 +1,6 @@
 @testitem "Chain" begin
     using DataFrames
 
-    using BiochemicalAlgorithms: _ChainTableRow, _atoms, _bonds, _chains
-
     for T in [Float32, Float64]
         sys = System{T}()
         mol = Molecule(sys)
@@ -41,7 +39,7 @@
         @test chain.flags == Flags()
 
         @test chain._sys isa System{T}
-        @test chain._row isa _ChainTableRow
+        @test chain._row isa BiochemicalAlgorithms._ChainTableRow
         
         @test chain.molecule_id isa Int
         @test chain.molecule_id == mol.idx
@@ -116,8 +114,6 @@
 
         # molecule chains
         mol3 = Molecule(sys)
-        @test size(_chains(mol3), 1) == 0
-        @test _chains(mol3) == _chains(sys, molecule_id = mol3.idx)
         @test size(chains_df(mol3), 1) == 0
         @test chains_df(mol3) == chains_df(sys, molecule_id = mol3.idx)
         @test length(chains(mol3)) == 0
@@ -128,8 +124,6 @@
         @test nchains(mol3) == nchains(sys, molecule_id = mol3.idx)
 
         push!(mol3, ChainTuple())
-        @test size(_chains(mol3), 1) == 1
-        @test size(_chains(mol3)) == size(_chains(sys, molecule_id = mol3.idx))
         @test size(chains_df(mol3), 1) == 1
         @test size(chains_df(mol3)) == size(chains_df(sys, molecule_id = mol3.idx))
         @test length(chains(mol3)) == 1
@@ -140,8 +134,6 @@
         @test nchains(mol3) == nchains(sys, molecule_id = mol3.idx)
 
         # chain atoms
-        @test size(_atoms(chain), 1) == 0
-        @test _atoms(chain) == _atoms(sys, chain_id = chain.idx)
         @test size(atoms_df(chain), 1) == 0
         @test atoms_df(chain) == atoms_df(sys, chain_id = chain.idx)
         @test length(atoms(chain)) == 0
@@ -153,8 +145,6 @@
 
         frag = Fragment(chain, 1)
         push!(frag, AtomTuple{T}(1, Elements.H))
-        @test size(_atoms(chain), 1) == 1
-        @test size(_atoms(chain)) == size(_atoms(sys, chain_id = chain.idx))
         @test size(atoms_df(chain), 1) == 1
         @test size(atoms_df(chain)) == size(atoms_df(sys, chain_id = chain.idx))
         @test length(atoms(chain)) == 1
@@ -166,8 +156,6 @@
 
         nuc = Nucleotide(chain, 1)
         push!(nuc, AtomTuple{T}(2, Elements.C))
-        @test size(_atoms(chain), 1) == 2
-        @test size(_atoms(chain)) == size(_atoms(sys, chain_id = chain.idx))
         @test size(atoms_df(chain), 1) == 2
         @test size(atoms_df(chain)) == size(atoms_df(sys, chain_id = chain.idx))
         @test length(atoms(chain)) == 2
@@ -179,8 +167,6 @@
 
         res = Residue(chain, 1, AminoAcid('A'))
         push!(res, AtomTuple{T}(3, Elements.O))
-        @test size(_atoms(chain), 1) == 3
-        @test size(_atoms(chain)) == size(_atoms(sys, chain_id = chain.idx))
         @test size(atoms_df(chain), 1) == 3
         @test size(atoms_df(chain)) == size(atoms_df(sys, chain_id = chain.idx))
         @test length(atoms(chain)) == 3
@@ -201,8 +187,6 @@
         @test parent_chain(Atom(res, 3, Elements.O)) === chain
 
         # chain bonds
-        @test size(_bonds(chain), 1) == 0
-        @test _bonds(chain) == _bonds(sys, chain_id = chain.idx)
         @test size(bonds_df(chain), 1) == 0
         @test bonds_df(chain) == bonds_df(sys, chain_id = chain.idx)
         @test length(bonds(chain)) == 0
@@ -217,8 +201,6 @@
             Atom(frag, 2, Elements.C).idx,
             BondOrder.Single
         )) === chain
-        @test size(_bonds(chain), 1) == 1
-        @test size(_bonds(chain)) == size(_bonds(sys, chain_id = chain.idx))
         @test size(bonds_df(chain), 1) == 1
         @test size(bonds_df(chain)) == size(bonds_df(sys, chain_id = chain.idx))
         @test length(bonds(chain)) == 1
@@ -233,8 +215,6 @@
             Atom(nuc, 2, Elements.C).idx,
             BondOrder.Single
         )) === chain
-        @test size(_bonds(chain), 1) == 2
-        @test size(_bonds(chain)) == size(_bonds(sys, chain_id = chain.idx))
         @test size(bonds_df(chain), 1) == 2
         @test size(bonds_df(chain)) == size(bonds_df(sys, chain_id = chain.idx))
         @test length(bonds(chain)) == 2
@@ -249,8 +229,6 @@
             Atom(res, 2, Elements.C).idx,
             BondOrder.Single
         )) === chain
-        @test size(_bonds(chain), 1) == 3
-        @test size(_bonds(chain)) == size(_bonds(sys, chain_id = chain.idx))
         @test size(bonds_df(chain), 1) == 3
         @test size(bonds_df(chain)) == size(bonds_df(sys, chain_id = chain.idx))
         @test length(bonds(chain)) == 3

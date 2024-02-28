@@ -1,7 +1,7 @@
 @testitem "Atom" begin
     using DataFrames
 
-    using BiochemicalAlgorithms: _AtomTableRow, _atoms, _bonds
+    using BiochemicalAlgorithms: _AtomTableRow
 
     for T in [Float32, Float64]
         at = AtomTuple{T}(1, Elements.H;
@@ -227,7 +227,6 @@
         @test is_vicinal(d, a)
 
         # atom bonds
-        @test size(collect(_bonds(atom)), 1) == 0
         @test size(bonds_df(atom), 1) == 0
         @test length(bonds(atom)) == 0
         @test length(collect(eachbond(atom))) == 0
@@ -238,7 +237,6 @@
             Atom(sys, 2, Elements.C).idx,
             BondOrder.Single
         )) === sys
-        @test size(collect(_bonds(atom)), 1) == 1
         @test size(bonds_df(atom), 1) == 1
         @test length(bonds(atom)) == 1
         @test length(collect(eachbond(atom))) == 1
@@ -249,7 +247,6 @@
             atom.idx,
             BondOrder.Double
         )) === sys
-        @test size(collect(_bonds(atom)), 1) == 2
         @test size(bonds_df(atom), 1) == 2
         @test length(bonds(atom)) == 2
         @test length(collect(eachbond(atom))) == 2
@@ -260,7 +257,6 @@
             Atom(sys, 5, Elements.C).idx,
             BondOrder.Double
         )) === sys
-        @test size(collect(_bonds(atom)), 1) == 2
         @test size(bonds_df(atom), 1) == 2
         @test length(bonds(atom)) == 2
         @test length(collect(eachbond(atom))) == 2

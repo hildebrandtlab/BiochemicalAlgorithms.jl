@@ -176,22 +176,6 @@ bond exists.
 end
 
 """
-    $(TYPEDSIGNATURES)
-
-Returns a `BondTable` for all of the given system's bonds associated with at least one atom
-matching the given criteria. Fields given as `nothing` are ignored. Use `Some(nothing)` if the field
-should be explicitly checked for a value of `nothing`. See [`_atoms`](@ref).
-"""
-function _bonds(sys::System; kwargs...)
-    # FIXME this implementation currently ignores bonds with _two_ invalid atom IDs
-    aidx = Set(_filter_select(_atoms(sys; kwargs...), :idx))
-    _filter_bonds(
-        bond -> bond.a1 in aidx || bond.a2 in aidx,
-        sys
-    )
-end
-
-"""
     bonds(::Chain)
     bonds(::Fragment)
     bonds(::Molecule)
@@ -204,12 +188,15 @@ Returns a `BondTable{T}` containing all bonds of the given atom container where 
 associated atom is contained in the same container.
 
 # Supported keyword arguments
- - `frame_id::MaybeInt = 1`: \
-Any value other than `nothing` also limits the result to bonds where at least on atom matches \
-this frame ID.
+See [`atoms`](@ref)
 """
-@inline function bonds(sys::System; kwargs...)
-    _bonds(sys; kwargs...)
+function bonds(sys::System; kwargs...)
+    # FIXME this implementation currently ignores bonds with _two_ invalid atom IDs
+    aidx = Set(_filter_select(atoms(sys; kwargs...), :idx))
+    _filter_bonds(
+        bond -> bond.a1 in aidx || bond.a2 in aidx,
+        sys
+    )
 end
 
 """
@@ -225,12 +212,10 @@ Returns a `DataFrame` containing all bonds of the given atom container where at 
 associated atom is contained in the same container.
 
 # Supported keyword arguments
- - `frame_id::MaybeInt = 1`: \
-Any value other than `nothing` also limits the result to bonds where at least on atom matches \
-this frame ID.
+See [`atoms`](@ref)
 """
 @inline function bonds_df(sys::System; kwargs...)
-    DataFrame(_bonds(sys; kwargs...))
+    DataFrame(bonds(sys; kwargs...))
 end
 
 """
@@ -246,12 +231,10 @@ Returns a `Bond{T}` generator for all bonds of the given atom container where at
 associated atom is contained in the same container.
 
 # Supported keyword arguments
- - `frame_id::MaybeInt = 1`: \
-Any value other than `nothing` also limits the result to bonds where at least on atom matches \
-this frame ID.
+See [`atoms`](@ref)
 """
 function eachbond(sys::System{T}; kwargs...) where T
-    (bond for bond in _bonds(sys; kwargs...))
+    (bond for bond in bonds(sys; kwargs...))
 end
 
 """
@@ -267,12 +250,10 @@ Returns the number of bonds in the given atom container where at least one assoc
 is contained in the same container.
 
 # Supported keyword arguments
- - `frame_id::MaybeInt = 1`: \
-Any value other than `nothing` also limits the result to bonds where at least on atom matches \
-this frame ID.
+See [`atoms`](@ref)
 """
 function nbonds(sys::System{T}; kwargs...) where T
-    length(_bonds(sys; kwargs...))
+    length(bonds(sys; kwargs...))
 end
 
 """

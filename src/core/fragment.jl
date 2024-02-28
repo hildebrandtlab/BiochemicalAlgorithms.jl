@@ -166,12 +166,20 @@ fragment exists.
 end
 
 """
-    $(TYPEDSIGNATURES)
+    fragments(::Chain)
+    fragments(::Molecule)
+    fragments(::Protein)
+    fragments(::System)
 
-Returns a `Fragment` for all of the given system's fragments matching the given criteria. Fields
-given as `nothing` are ignored. The returned table contains all public and private fragment fields.
+Returns a `FragmentTable{T}` containing all fragments of the given atom container.
+
+# Supported keyword arguments
+ - `molecule_id::MaybeInt = nothing`: \
+Any value other than `nothing` limits the result to fragments belonging to the molecule with the given ID.
+- `chain_id::MaybeInt = nothing`: \
+Any value other than `nothing` limits the result to fragments belonging to the chain with the given ID.
 """
-function _fragments(sys::System{T};
+function fragments(sys::System{T};
     molecule_id::MaybeInt = nothing,
     chain_id::MaybeInt = nothing
 ) where T
@@ -184,18 +192,6 @@ function _fragments(sys::System{T};
 end
 
 """
-    fragments(::Chain)
-    fragments(::Molecule)
-    fragments(::Protein)
-    fragments(::System)
-
-Returns a `FragmentTable{T}` containing all fragments of the given atom container.
-"""
-@inline function fragments(sys::System; kwargs...)
-    _fragments(sys; kwargs...)
-end
-
-"""
     fragments_df(::Chain)
     fragments_df(::Molecule)
     fragments_df(::Protein)
@@ -204,7 +200,7 @@ end
 Returns a `DataFrame` containing all fragments of the given atom container.
 """
 @inline function fragments_df(sys::System; kwargs...)
-    DataFrame(_fragments(sys; kwargs...))
+    DataFrame(fragments(sys; kwargs...))
 end
 
 """
@@ -216,7 +212,7 @@ end
 Returns a `Fragment{T}` generator for all fragments of the given atom container.
 """
 @inline function eachfragment(sys::System{T}; kwargs...) where T
-    (frag for frag in _fragments(sys; kwargs...))
+    (frag for frag in fragments(sys; kwargs...))
 end
 
 """
@@ -228,13 +224,12 @@ end
 Returns the number of fragments in the given atom container.
 """
 @inline function nfragments(sys::System; kwargs...)
-    length(_fragments(sys; kwargs...))
+    length(fragments(sys; kwargs...))
 end
 
 #=
     Molecule fragments
 =#
-@inline _fragments(mol::Molecule; kwargs...) = _fragments(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline fragments(mol::Molecule; kwargs...) = fragments(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline fragments_df(mol::Molecule; kwargs...) = fragments_df(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline eachfragment(mol::Molecule; kwargs...) = eachfragment(parent(mol); molecule_id = mol.idx, kwargs...)
@@ -243,7 +238,6 @@ end
 #=
     Chain fragments
 =#
-@inline _fragments(chain::Chain; kwargs...) = _fragments(parent(chain); chain_id = chain.idx, kwargs...)
 @inline fragments(chain::Chain; kwargs...) = fragments(parent(chain); chain_id = chain.idx, kwargs...)
 @inline fragments_df(chain::Chain; kwargs...) = fragments_df(parent(chain); chain_id = chain.idx, kwargs...)
 @inline eachfragment(chain::Chain; kwargs...) = eachfragment(parent(chain); chain_id = chain.idx, kwargs...)
@@ -268,7 +262,6 @@ end
 #=
     Fragment atoms
 =#
-@inline _atoms(frag::Fragment; kwargs...) = _atoms(parent(frag); fragment_id = frag.idx, kwargs...)
 @inline atoms(frag::Fragment; kwargs...) = atoms(parent(frag); fragment_id = frag.idx, kwargs...)
 @inline atoms_df(frag::Fragment; kwargs...) = atoms_df(parent(frag); fragment_id = frag.idx, kwargs...)
 @inline eachatom(frag::Fragment; kwargs...) = eachatom(parent(frag); fragment_id = frag.idx, kwargs...)
@@ -283,7 +276,6 @@ end
 #=
     Fragment bonds
 =#
-@inline _bonds(frag::Fragment; kwargs...) = _bonds(parent(frag); fragment_id = frag.idx, kwargs...)
 @inline bonds(frag::Fragment; kwargs...) = bonds(parent(frag); fragment_id = frag.idx, kwargs...)
 @inline bonds_df(frag::Fragment; kwargs...) = bonds_df(parent(frag); fragment_id = frag.idx, kwargs...)
 @inline eachbond(frag::Fragment; kwargs...) = eachbond(parent(frag); fragment_id = frag.idx, kwargs...)

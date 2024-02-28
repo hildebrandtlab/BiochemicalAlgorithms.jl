@@ -156,12 +156,20 @@ residue exists.
 end
 
 """
-    $(TYPEDSIGNATURES)
+    residues(::Chain)
+    residues(::Molecule)
+    residues(::Protein)
+    residues(::System)
 
-Returns a `ResidueTable` for all of the given system's residues matching the given criteria. Fields given
-as `nothing` are ignored. The returned table contains all public and private residue fields.
+Returns a `ResidueTable{T}` containing all residues of the given atom container.
+
+# Supported keyword arguments
+ - `molecule_id::MaybeInt = nothing`: \
+Any value other than `nothing` limits the result to residues belonging to the molecule with the given ID.
+- `chain_id::MaybeInt = nothing`: \
+Any value other than `nothing` limits the result to residues belonging to the chain with the given ID.
 """
-function _residues(sys::System{T};
+function residues(sys::System{T};
     molecule_id::MaybeInt = nothing,
     chain_id::MaybeInt = nothing
 ) where T
@@ -174,18 +182,6 @@ function _residues(sys::System{T};
 end
 
 """
-    residues(::Chain)
-    residues(::Molecule)
-    residues(::Protein)
-    residues(::System)
-
-Returns a `ResidueTable{T}` containing all residues of the given atom container.
-"""
-@inline function residues(sys::System; kwargs...)
-    _residues(sys; kwargs...)
-end
-
-"""
     residues_df(::Chain)
     residues_df(::Molecule)
     residues_df(::Protein)
@@ -194,7 +190,7 @@ end
 Returns a `DataFrame{T}` containing all residues of the given atom container.
 """
 @inline function residues_df(sys::System; kwargs...)
-    DataFrame(_residues(sys; kwargs...))
+    DataFrame(residues(sys; kwargs...))
 end
 
 """
@@ -206,7 +202,7 @@ end
 Returns a `Residue{T}` generator for all residues of the given atom container.
 """
 @inline function eachresidue(sys::System{T}; kwargs...) where T
-    (res for res in _residues(sys; kwargs...))
+    (res for res in residues(sys; kwargs...))
 end
 
 """
@@ -218,13 +214,12 @@ end
 Returns the number of residues in the given atom container.
 """
 @inline function nresidues(sys::System; kwargs...)
-    length(_residues(sys; kwargs...))
+    length(residues(sys; kwargs...))
 end
 
 #=
     Molecule residues
 =#
-@inline _residues(mol::Molecule; kwargs...) = _residues(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline residues(mol::Molecule; kwargs...) = residues(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline residues_df(mol::Molecule; kwargs...) = residues_df(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline eachresidue(mol::Molecule; kwargs...) = eachresidue(parent(mol); molecule_id = mol.idx, kwargs...)
@@ -233,7 +228,6 @@ end
 #=
     Chain residues
 =#
-@inline _residues(chain::Chain; kwargs...) = _residues(parent(chain); chain_id = chain.idx, kwargs...)
 @inline residues(chain::Chain; kwargs...) = residues(parent(chain); chain_id = chain.idx, kwargs...)
 @inline residues_df(chain::Chain; kwargs...) = residues_df(parent(chain); chain_id = chain.idx, kwargs...)
 @inline eachresidue(chain::Chain; kwargs...) = eachresidue(parent(chain); chain_id = chain.idx, kwargs...)
@@ -258,7 +252,6 @@ end
 #=
     Residue atoms
 =#
-@inline _atoms(res::Residue; kwargs...) = _atoms(parent(res); residue_id = res.idx, kwargs...)
 @inline atoms(res::Residue; kwargs...) = atoms(parent(res); residue_id = res.idx, kwargs...)
 @inline atoms_df(res::Residue; kwargs...) = atoms_df(parent(res); residue_id = res.idx, kwargs...)
 @inline eachatom(res::Residue; kwargs...) = eachatom(parent(res); residue_id = res.idx, kwargs...)
@@ -273,7 +266,6 @@ end
 #=
     Residue bonds
 =#
-@inline _bonds(res::Residue; kwargs...) = _bonds(parent(res); residue_id = res.idx, kwargs...)
 @inline bonds(res::Residue; kwargs...) = bonds(parent(res); residue_id = res.idx, kwargs...)
 @inline bonds_df(res::Residue; kwargs...) = bonds_df(parent(res); residue_id = res.idx, kwargs...)
 @inline eachbond(res::Residue; kwargs...) = eachbond(parent(res); residue_id = res.idx, kwargs...)

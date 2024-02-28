@@ -1,5 +1,4 @@
 @testitem "Molecule" begin
-    using BiochemicalAlgorithms: _AtomTable, _BondTable, _MoleculeTableRow, _molecules, _atoms, _bonds
     using DataFrames
 
     for T in [Float32, Float64]
@@ -37,7 +36,7 @@
         @test mol.flags == Flags()
 
         @test mol._sys isa System{T}
-        @test mol._row isa _MoleculeTableRow
+        @test mol._row isa BiochemicalAlgorithms._MoleculeTableRow
 
         @test mol2.name == "something"
         @test mol2.properties == Properties(:a => 1)
@@ -73,9 +72,6 @@
         @test nmolecules(sys) == 2
 
         # molecule atoms
-        @test length(collect(_atoms(mol))) == 0
-        @test Tables.materializer(_AtomTable{T})(_atoms(mol)) == 
-            Tables.materializer(_AtomTable{T})(_atoms(sys, molecule_id = mol.idx))
         @test size(atoms_df(mol), 1) == 0
         @test atoms_df(mol) == atoms_df(sys, molecule_id = mol.idx)
         @test length(atoms(mol)) == 0
@@ -86,7 +82,6 @@
         @test natoms(mol) == natoms(sys, molecule_id = mol.idx)
 
         @test push!(mol, AtomTuple{T}(1, Elements.H)) === mol
-        @test length(collect(_atoms(mol))) == 1
         @test size(atoms_df(mol), 1) == 1
         @test size(atoms_df(mol)) == size(atoms_df(sys, molecule_id = mol.idx))
         @test length(atoms(mol)) == 1
@@ -102,9 +97,6 @@
         @test parent_molecule(Atom(mol, 2, Elements.C)) === mol
 
         # molecule bonds
-        @test size(collect(_bonds(mol)), 1) == 0
-        @test Tables.materializer(_BondTable)(_bonds(mol)) ==
-            Tables.materializer(_BondTable)(_bonds(sys, molecule_id = mol.idx))
         @test size(bonds_df(mol), 1) == 0
         @test bonds_df(mol) == bonds_df(sys, molecule_id = mol.idx)
         @test length(bonds(mol)) == 0
@@ -119,8 +111,6 @@
             Atom(mol, 2, Elements.C).idx,
             BondOrder.Single)
         ) === mol
-        @test size(collect(_bonds(mol)), 1) == 1
-        @test size(collect(_bonds(mol))) == size(collect(_bonds(sys, molecule_id = mol.idx)))
         @test size(bonds_df(mol), 1) == 1
         @test size(bonds_df(mol)) == size(bonds_df(sys, molecule_id = mol.idx))
         @test length(bonds(mol)) == 1
