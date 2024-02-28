@@ -1,4 +1,74 @@
-export Chain, chain_by_idx, chains, chains_df, eachchain, nchains, parent_chain
+export
+    Chain,
+    ChainTable,
+    chain_by_idx,
+    chains,
+    chains_df,
+    eachchain,
+    nchains,
+    parent_chain
+
+@auto_hash_equals struct ChainTable{T} <: Tables.AbstractColumns
+    _sys::System{T}
+    _idx::Vector{Int}
+end
+
+@inline _chains(ct::ChainTable) = getproperty(getfield(ct, :_sys), :_chains)
+
+@inline Tables.istable(::Type{<: ChainTable}) = true
+@inline Tables.columnaccess(::Type{<: ChainTable}) = true
+@inline Tables.columns(ct::ChainTable) = ct
+
+@inline function Tables.getcolumn(ct::ChainTable, nm::Symbol)
+    col = Tables.getcolumn(_chains(ct), nm)
+    RowProjectionVector{eltype(col)}(
+        col,
+        map(idx -> _chains(ct)._idx_map[idx], getfield(ct, :_idx))
+    )
+end
+
+@inline function Base.getproperty(ct::ChainTable, nm::Symbol)
+    hasfield(typeof(ct), nm) && return getfield(ct, nm)
+    Tables.getcolumn(ct, nm)
+end
+
+@inline Tables.getcolumn(ct::ChainTable, i::Int) = Tables.getcolumn(ct, Tables.columnnames(ct)[i])
+@inline Tables.columnnames(ct::ChainTable) = Tables.columnnames(_chains(ct))
+@inline Tables.schema(ct::ChainTable) = Tables.schema(_chains(ct))
+
+@inline Base.size(ct::ChainTable) = (length(getfield(ct, :_idx)), length(_chain_table_cols))
+@inline Base.size(ct::ChainTable, dim) = size(ct)[dim]
+@inline Base.length(ct::ChainTable) = size(ct, 1)
+
+function Base.push!(ct::ChainTable, t::ChainTuple, molecule_id::Int)
+    sys = getfield(ct, :_sys)
+    push!(sys._chains, t, molecule_id)
+    push!(getfield(ct, :_idx), sys._curr_idx)
+    ct
+end
+
+@inline function _filter_chains(f::Function, sys::System{T}) where T
+    ChainTable{T}(sys, collect(Int, _filter_select(
+        TableOperations.filter(f, sys._chains),
+        :idx
+    )))
+end
+
+@inline function Base.filter(f::Function, ct::ChainTable)
+    ChainTable(getfield(ct, :_sys), collect(Int, _filter_select(
+        TableOperations.filter(f, ct),
+        :idx
+    )))
+end
+
+@inline function Base.iterate(ct::ChainTable, st = 1)
+    st > length(ct) ?
+        nothing :
+        (chain_by_idx(getfield(ct, :_sys), getfield(ct, :_idx)[st]), st + 1)
+end
+@inline Base.eltype(::ChainTable{T}) where T = Chain{T}
+@inline Base.getindex(ct::ChainTable{T}, i::Int) where T = chain_by_idx(getfield(ct, :_sys), getfield(ct, :_idx)[i])
+@inline Base.keys(ct::ChainTable) = LinearIndices((length(ct),))
 
 """
     $(TYPEDEF)
@@ -24,7 +94,7 @@ Creates a new `Chain{T}` in the given molecule.
 """
 @auto_hash_equals struct Chain{T} <: AbstractAtomContainer{T}
     _sys::System{T}
-    _row::DataFrameRow
+    _row::_ChainTableRow
 end
 
 function Chain(
@@ -35,22 +105,26 @@ function Chain(
 ) where T
     sys = parent(mol)
     idx = _next_idx(sys)
-    push!(sys._chains, (idx, name, properties, flags, mol.idx))
+    push!(sys._chains, ChainTuple(
+            idx = idx,
+            name = name,
+            properties = properties,
+            flags = flags
+        ), mol.idx
+    )
     chain_by_idx(sys, idx)
 end
 
-function Base.getproperty(chain::Chain, name::Symbol)
-    gp = () -> getproperty(getfield(chain, :_row), name)
-    name === :idx        && return gp()::Int
-    name === :name       && return gp()::String
-    name === :properties && return gp()::Properties
-    name === :flags      && return gp()::Flags
-    getfield(chain, name)
+@inline Tables.getcolumn(chain::Chain, name::Symbol) = Tables.getcolumn(getfield(chain, :_row), name)
+
+@inline function Base.getproperty(chain::Chain, name::Symbol)
+    hasfield(typeof(chain), name) && return getfield(chain, name)
+    getproperty(getfield(chain, :_row), name)
 end
 
-function Base.setproperty!(chain::Chain, name::Symbol, val)
-    in(name, fieldnames(ChainTuple)) && return setproperty!(getfield(chain, :_row), name, val)
-    setfield!(chain, name, val)
+@inline function Base.setproperty!(chain::Chain, name::Symbol, val)
+    hasfield(typeof(chain), name) && return setfield!(chain, name, val)
+    setproperty!(getfield(chain, :_row), name, val)
 end
 
 @inline Base.show(io::IO, ::MIME"text/plain", chain::Chain) = show(io, getfield(chain, :_row))
@@ -76,23 +150,18 @@ Returns the `Chain{T}` associated with the given `idx` in `sys`. Throws a `KeyEr
 chain exists.
 """
 @inline function chain_by_idx(sys::System{T}, idx::Int) where T
-    Chain{T}(sys, DataFrameRow(sys._chains.df, _row_by_idx(sys._chains, idx), :))
+    Chain{T}(sys, _row_by_idx(sys._chains, idx))
 end
 
 """
     $(TYPEDSIGNATURES)
 
-Returns a raw `DataFrame` for all of the given system's chains matching the given criteria. Fields
-given as `nothing` are ignored. The returned `DataFrame` contains all public and private chain fields.
+Returns a raw `ChainTable` for all of the given system's chains matching the given criteria. Fields
+given as `nothing` are ignored. The returned table contains all public and private chain fields.
 """
-function _chains(sys::System; molecule_id::MaybeInt = nothing)
-    isnothing(molecule_id) && return sys._chains.df
-
-    get(
-        groupby(sys._chains.df, :molecule_id),
-        (molecule_id = molecule_id,),
-        DataFrame(_SystemChainTuple[])
-    )
+@inline function _chains(sys::System{T}; molecule_id::MaybeInt = nothing) where T
+    isnothing(molecule_id) && return ChainTable{T}(sys, sys._chains.idx)
+    _filter_chains(chain -> chain.molecule_id == molecule_id, sys)
 end
 
 """
@@ -100,10 +169,14 @@ end
     chains(::Protein)
     chains(::System)
 
-Returns a `Vector{Chain{T}}` containing all chains of the given atom container.
+Returns a `ChainTable{T}` containing all chains of the given atom container.
+
+# Supported keyword arguments
+ - `molecule_id::MaybeInt = nothing`: \
+Any value other than `nothing` limits the result to chains belonging to the molecule with the given ID.
 """
 @inline function chains(sys::System; kwargs...)
-    collect(eachchain(sys; kwargs...))
+    _chains(sys; kwargs...)
 end
 
 """
@@ -111,10 +184,10 @@ end
     chains_df(::Protein)
     chains_df(::System)
 
-Returns a `SubDataFrame` containing all chains of the given atom container.
+Returns a `DataFrame` containing all chains of the given atom container.
 """
 @inline function chains_df(sys::System; kwargs...)
-    view(_chains(sys; kwargs...), :, 1:length(fieldnames(ChainTuple)))
+    DataFrame(_chains(sys; kwargs...))
 end
 
 """
@@ -125,7 +198,7 @@ end
 Returns a `Chain{T}` generator for all chains of the given atom container.
 """
 @inline function eachchain(sys::System{T}; kwargs...) where T
-    (Chain{T}(sys, row) for row in eachrow(_chains(sys; kwargs...)))
+    (chain for chain in _chains(sys; kwargs...))
 end
 
 """
@@ -136,7 +209,7 @@ end
 Returns the number of chains in the given atom container.
 """
 @inline function nchains(sys::System; kwargs...)
-    nrow(_chains(sys; kwargs...))
+    length(_chains(sys; kwargs...))
 end
 
 #=
@@ -157,10 +230,7 @@ assigned a new `idx`.
 """
 @inline function Base.push!(mol::Molecule, chain::ChainTuple)
     sys = parent(mol)
-    push!(sys._chains, (; chain...,
-        idx = _next_idx(sys),
-        molecule_id = mol.idx
-    ))
+    push!(sys._chains, (; chain..., idx = _next_idx(sys)), mol.idx)
     mol
 end
 

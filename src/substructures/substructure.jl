@@ -51,7 +51,7 @@ function Base.copy(substruct::Substructure{T}) where T
     sys._bonds = _bond_table(deepcopy(substruct._bonds))
 
     sys._molecules   = _molecule_table(deepcopy(_molecules(substruct)))
-    sys._chains      = IndexedDataFrame(copy(_chains(substruct)))
+    sys._chains      = _chain_table(deepcopy(_chains(substruct)))
     sys._fragments   = IndexedDataFrame(copy(_fragments(substruct)))
     sys._nucleotides = IndexedDataFrame(copy(_nucleotides(substruct)))
     sys._residues    = IndexedDataFrame(copy(_residues(substruct)))
@@ -97,9 +97,7 @@ end
 
 @inline function _chains(substruct::Substructure; kwargs...)
     cidx = Set(_filter_select(_atoms(substruct; kwargs...), :chain_id))
-    @rsubset(
-        _chains(substruct.parent), :idx in cidx; view = true
-    )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
+    filter(row -> row.idx in cidx, chains(substruct.parent))
 end
 
 @inline function _fragments(substruct::Substructure; kwargs...)
@@ -149,12 +147,11 @@ end
 end
 
 @inline function eachchain(substruct::Substructure{T}; kwargs...) where T
-    sys = substruct.parent isa System{T} ? substruct.parent : parent_system(substruct.parent)
-    (Chain{T}(sys, row) for row in eachrow(_chains(substruct; kwargs...)))
+    (chain for chain in _chains(substruct; kwargs...))
 end
 
 @inline function chains(substruct::Substructure{T}; kwargs...) where T
-    collect(eachchain(substruct; kwargs...))
+    _chains(substruct; kwargs...)
 end
 
 @inline function atoms_df(ac::Substructure{T}; kwargs...) where {T<:Real}

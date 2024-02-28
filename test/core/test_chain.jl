@@ -1,6 +1,8 @@
-using BiochemicalAlgorithms: _SystemChainTuple, _chains
+@testitem "Chain" begin
+    using DataFrames
 
-@testset "Chain" begin
+    using BiochemicalAlgorithms: _ChainTableRow, _atoms, _bonds, _chains
+
     for T in [Float32, Float64]
         sys = System{T}()
         mol = Molecule(sys)
@@ -27,7 +29,7 @@ using BiochemicalAlgorithms: _SystemChainTuple, _chains
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(chain, :_row)) == 5
+        @test length(getfield(chain, :_row)) == 4
 
         # getproperty
         @test chain.idx isa Int
@@ -39,16 +41,15 @@ using BiochemicalAlgorithms: _SystemChainTuple, _chains
         @test chain.flags == Flags()
 
         @test chain._sys isa System{T}
-        @test chain._row isa DataFrameRow
+        @test chain._row isa _ChainTableRow
         
-        @test_throws ErrorException chain.molecule_id
-        @test chain._row.molecule_id isa Int
-        @test chain._row.molecule_id == mol.idx
+        @test chain.molecule_id isa Int
+        @test chain.molecule_id == mol.idx
 
         @test chain2.name == "something"
         @test chain2.properties == Properties(:a => 1)
         @test chain2.flags == Flags([:A, :B])
-        @test chain2._row.molecule_id == mol2.idx
+        @test chain2.molecule_id == mol2.idx
 
         # setproperty!
         chain.name = "something else"
@@ -61,24 +62,15 @@ using BiochemicalAlgorithms: _SystemChainTuple, _chains
         @test length(chain.flags) == 1
         @test :C in chain.flags
 
-        @test_throws ErrorException chain.molecule_id = 0
+        chain3 = Chain(Molecule(System{T}()))
+        chain3.molecule_id = 999
+        @test chain3.molecule_id == 999
 
         # chain_by_idx
-        @test_throws chain_by_idx(sys, -1)
+        @test_throws KeyError chain_by_idx(sys, -1)
         @test chain_by_idx(sys, chain.idx) isa Chain{T}
         @test chain_by_idx(sys, chain.idx) == chain
         
-        # _chains
-        df = _chains(sys)
-        @test df isa AbstractDataFrame
-        @test size(df) == (2, length(fieldnames(_SystemChainTuple)))
-        @test copy(df[1, 1:length(fieldnames(ChainTuple))]) isa ChainTuple
-        @test size(_chains(sys), 1) == 2
-        @test size(_chains(sys, molecule_id = -1), 1) == 0
-        @test size(_chains(sys, molecule_id = mol.idx), 1) == 1
-        @test size(_chains(sys, molecule_id = mol2.idx), 1) == 1
-        @test size(_chains(sys, molecule_id = nothing), 1) == 2
-
         # chains_df
         df = chains_df(sys)
         @test df isa AbstractDataFrame
@@ -92,7 +84,7 @@ using BiochemicalAlgorithms: _SystemChainTuple, _chains
 
         # chains
         cv = chains(sys)
-        @test cv isa Vector{Chain{T}}
+        @test cv isa ChainTable{T}
         @test length(cv) == 2
         @test length(chains(sys)) == 2
         @test length(chains(sys, molecule_id = -1)) == 0
