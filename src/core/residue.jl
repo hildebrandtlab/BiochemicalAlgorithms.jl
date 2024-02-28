@@ -1,4 +1,74 @@
-export Residue, residue_by_idx, residues, residues_df, eachresidue, nresidues, parent_residue
+export
+    Residue,
+    ResidueTable,
+    residue_by_idx,
+    residues,
+    residues_df,
+    eachresidue,
+    nresidues,
+    parent_residue
+
+@auto_hash_equals struct ResidueTable{T} <: Tables.AbstractColumns
+    _sys::System{T}
+    _idx::Vector{Int}
+end
+
+@inline _residues(rt::ResidueTable) = getproperty(getfield(rt, :_sys), :_residues)
+
+@inline Tables.istable(::Type{<: ResidueTable}) = true
+@inline Tables.columnaccess(::Type{<: ResidueTable}) = true
+@inline Tables.columns(rt::ResidueTable) = rt
+
+@inline function Tables.getcolumn(rt::ResidueTable, nm::Symbol)
+    col = Tables.getcolumn(_residues(rt), nm)
+    RowProjectionVector{eltype(col)}(
+        col,
+        map(idx -> _residues(rt)._idx_map[idx], getfield(rt, :_idx))
+    )
+end
+
+@inline function Base.getproperty(rt::ResidueTable, nm::Symbol)
+    hasfield(typeof(rt), nm) && return getfield(rt, nm)
+    Tables.getcolumn(rt, nm)
+end
+
+@inline Tables.getcolumn(rt::ResidueTable, i::Int) = Tables.getcolumn(rt, Tables.columnnames(rt)[i])
+@inline Tables.columnnames(rt::ResidueTable) = Tables.columnnames(_residues(rt))
+@inline Tables.schema(rt::ResidueTable) = Tables.schema(_residues(rt))
+
+@inline Base.size(rt::ResidueTable) = (length(getfield(rt, :_idx)), length(_residue_table_cols))
+@inline Base.size(rt::ResidueTable, dim) = size(rt)[dim]
+@inline Base.length(rt::ResidueTable) = size(rt, 1)
+
+function Base.push!(rt::ResidueTable, t::ResidueTuple, molecule_id::Int, chain_id::Int)
+    sys = getfield(rt, :_sys)
+    push!(sys._residues, t, molecule_id, chain_id)
+    push!(getfield(rt, :_idx), sys._curr_idx)
+    rt
+end
+
+@inline function _filter_residues(f::Function, sys::System{T}) where T
+    ResidueTable{T}(sys, collect(Int, _filter_select(
+        TableOperations.filter(f, sys._residues),
+        :idx
+    )))
+end
+
+@inline function Base.filter(f::Function, rt::ResidueTable)
+    ResidueTable(getfield(rt, :_sys), collect(Int, _filter_select(
+        TableOperations.filter(f, rt),
+        :idx
+    )))
+end
+
+@inline function Base.iterate(rt::ResidueTable, st = 1)
+    st > length(rt) ?
+        nothing :
+        (residue_by_idx(getfield(rt, :_sys), getfield(rt, :_idx)[st]), st + 1)
+end
+@inline Base.eltype(::ResidueTable{T}) where T = Residue{T}
+@inline Base.getindex(rt::ResidueTable{T}, i::Int) where T = residue_by_idx(getfield(rt, :_sys), getfield(rt, :_idx)[i])
+@inline Base.keys(rt::ResidueTable) = LinearIndices((length(rt),))
 
 """
     $(TYPEDEF)
@@ -26,7 +96,7 @@ Creates a new `Residue{T}` in the given chain.
 """
 @auto_hash_equals struct Residue{T} <: AbstractAtomContainer{T}
     _sys::System{T}
-    _row::DataFrameRow
+    _row::_ResidueTableRow
 end
 
 function Residue(
@@ -38,23 +108,26 @@ function Residue(
 ) where T
     sys = parent(chain)
     idx = _next_idx(sys)
-    push!(sys._residues, (idx, number, type, properties, flags, chain._row.molecule_id, chain.idx))
+    push!(sys._residues, ResidueTuple(number, type;
+            idx = idx,
+            properties = properties,
+            flags = flags
+        ), chain._row.molecule_id, chain.idx
+    )
     residue_by_idx(sys, idx)
 end
 
-function Base.getproperty(res::Residue, name::Symbol)
-    gp = () -> getproperty(getfield(res, :_row), name)
-    name === :idx        && return gp()::Int
-    name === :number     && return gp()::Int
-    name === :type       && return gp()::AminoAcid
-    name === :properties && return gp()::Properties
-    name === :flags      && return gp()::Flags
-    getfield(res, name)
+@inline Tables.rows(rt::ResidueTable) = rt
+@inline Tables.getcolumn(res::Residue, name::Symbol) = Tables.getcolumn(getfield(res, :_row), name)
+
+@inline function Base.getproperty(res::Residue, name::Symbol)
+    hasfield(typeof(res), name) && return getfield(res, name)
+    getproperty(getfield(res, :_row), name)
 end
 
-function Base.setproperty!(res::Residue, name::Symbol, val)
-    in(name, fieldnames(ResidueTuple)) && return setproperty!(getfield(res, :_row), name, val)
-    setfield!(res, name, val)
+@inline function Base.setproperty!(res::Residue, name::Symbol, val)
+    hasfield(typeof(res), name) && return setfield!(res, name, val)
+    setproperty!(getfield(res, :_row), name, val)
 end
 
 # TODO hide internals
@@ -79,29 +152,24 @@ Returns the `Residue{T}` associated with the given `idx` in `sys`. Throws a `Key
 residue exists.
 """
 @inline function residue_by_idx(sys::System{T}, idx::Int) where T
-    Residue{T}(sys, DataFrameRow(sys._residues.df, _row_by_idx(sys._residues, idx), :))
+    Residue{T}(sys, _row_by_idx(sys._residues, idx))
 end
 
 """
     $(TYPEDSIGNATURES)
 
-Returns a raw `DataFrame` for all of the given system's residues matching the given criteria. Fields given
-as `nothing` are ignored. The returned `DataFrame` contains all public and private residue fields.
+Returns a `ResidueTable` for all of the given system's residues matching the given criteria. Fields given
+as `nothing` are ignored. The returned table contains all public and private residue fields.
 """
 function _residues(sys::System{T};
     molecule_id::MaybeInt = nothing,
     chain_id::MaybeInt = nothing
 ) where T
-    isnothing(molecule_id) && isnothing(chain_id) && return sys._residues.df
-
-    cols = Tuple{Symbol, Int}[]
-    isnothing(molecule_id) || push!(cols, (:molecule_id, molecule_id))
-    isnothing(chain_id)    || push!(cols, (:chain_id, chain_id))
-
-    get(
-        groupby(sys._residues.df, getindex.(cols, 1)),
-        ntuple(i -> cols[i][2], length(cols)),
-        DataFrame(_SystemResidueTuple[])
+    isnothing(molecule_id) && isnothing(chain_id) && return ResidueTable{T}(sys, sys._residues.idx)
+    _filter_residues(res ->
+        (isnothing(molecule_id) || res.molecule_id == something(molecule_id)) &&
+        (isnothing(chain_id)    || res.chain_id    == something(chain_id)),
+        sys
     )
 end
 
@@ -111,10 +179,10 @@ end
     residues(::Protein)
     residues(::System)
 
-Returns a `Vector{Residue{T}}` containing all residues of the given atom container.
+Returns a `ResidueTable{T}` containing all residues of the given atom container.
 """
 @inline function residues(sys::System; kwargs...)
-    collect(eachresidue(sys; kwargs...))
+    _residues(sys; kwargs...)
 end
 
 """
@@ -123,10 +191,10 @@ end
     residues_df(::Protein)
     residues_df(::System)
 
-Returns a `SubDataFrame{T}` containing all residues of the given atom container.
+Returns a `DataFrame{T}` containing all residues of the given atom container.
 """
 @inline function residues_df(sys::System; kwargs...)
-    view(_residues(sys; kwargs...), :, 1:length(fieldnames(ResidueTuple)))
+    DataFrame(_residues(sys; kwargs...))
 end
 
 """
@@ -138,7 +206,7 @@ end
 Returns a `Residue{T}` generator for all residues of the given atom container.
 """
 @inline function eachresidue(sys::System{T}; kwargs...) where T
-    (Residue{T}(sys, row) for row in eachrow(_residues(sys; kwargs...)))
+    (res for res in _residues(sys; kwargs...))
 end
 
 """
@@ -150,7 +218,7 @@ end
 Returns the number of residues in the given atom container.
 """
 @inline function nresidues(sys::System; kwargs...)
-    nrow(_residues(sys; kwargs...))
+    length(_residues(sys; kwargs...))
 end
 
 #=
@@ -179,11 +247,11 @@ assigned a new `idx`.
 """
 @inline function Base.push!(chain::Chain, res::ResidueTuple)
     sys = parent(chain)
-    push!(sys._residues, (; res...,
-        idx = _next_idx(sys),
-        molecule_id = chain._row.molecule_id,
-        chain_id = chain.idx
-    ))
+    push!(sys._residues,
+        (; res..., idx = _next_idx(sys)),
+        chain._row.molecule_id,
+        chain.idx
+    )
     chain
 end
 

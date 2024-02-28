@@ -2,20 +2,6 @@ using AutoHashEquals
 export System, default_system, parent_system
 
 """
-    const _SystemResidueTuple{T} = NamedTuple{...}
-
-System-specific extension of `ResidueTuple{T}`. See [`ResidueTuple`](@ref).
-
-# Additional fields
- - `molecule_id::Int`
- - `chain_id::Int`
-"""
-const _SystemResidueTuple = NamedTuple{
-    (fieldnames(ResidueTuple)..., :molecule_id, :chain_id),
-    Tuple{fieldtypes(ResidueTuple)..., Int, Int}
-}
-
-"""
     $(TYPEDEF)
 
 Mutable representation of a biomolecular system.
@@ -45,7 +31,7 @@ Creates a new and empty `System{T}`.
     _chains::_ChainTable
     _fragments::_FragmentTable
     _nucleotides::_NucleotideTable
-    _residues::IndexedDataFrame
+    _residues::_ResidueTable
     _curr_idx::Int
 
     function System{T}(
@@ -63,7 +49,7 @@ Creates a new and empty `System{T}`.
             _ChainTable(),
             _FragmentTable(),
             _NucleotideTable(),
-            IndexedDataFrame(_SystemResidueTuple[]),
+            _ResidueTable(),
             0
         )
     end

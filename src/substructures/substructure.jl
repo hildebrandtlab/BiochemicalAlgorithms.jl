@@ -54,7 +54,7 @@ function Base.copy(substruct::Substructure{T}) where T
     sys._chains      = _chain_table(deepcopy(_chains(substruct)))
     sys._fragments   = _fragment_table(deepcopy(_fragments(substruct)))
     sys._nucleotides = _nucleotide_table(deepcopy(_nucleotides(substruct)))
-    sys._residues    = IndexedDataFrame(copy(_residues(substruct)))
+    sys._residues    = _residue_table(deepcopy(_residues(substruct)))
 
     sys
 end
@@ -112,9 +112,7 @@ end
 
 @inline function _residues(substruct::Substructure; kwargs...)
     ridx = Set(_filter_select(_atoms(substruct; kwargs...), :residue_id))
-    @rsubset(
-        _residues(substruct.parent), :idx in ridx; view = true
-    )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
+    filter(row -> row.idx in ridx, residues(substruct.parent))
 end
 
 @inline function eachatom(substruct::Substructure{T}; kwargs...) where T

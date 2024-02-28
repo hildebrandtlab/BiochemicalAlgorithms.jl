@@ -1,5 +1,5 @@
 @testitem "Residue" begin
-    using BiochemicalAlgorithms: _AtomTable, _BondTable, _SystemResidueTuple, _residues, _atoms, _bonds
+    using BiochemicalAlgorithms: _AtomTable, _BondTable, _ResidueTableRow, _atoms, _bonds, _residues
     using DataFrames
 
     for T in [Float32, Float64]
@@ -31,7 +31,7 @@
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(res, :_row)) == 7
+        @test length(getfield(res, :_row)) == 5
 
         # getproperty
         @test res.idx isa Int
@@ -45,22 +45,19 @@
         @test res.flags == Flags()
 
         @test res._sys isa System{T}
-        @test res._row isa DataFrameRow
+        @test res._row isa _ResidueTableRow
         
-        @test_throws ErrorException res.molecule_id
-        @test_throws ErrorException res.chain_id
-
-        @test res._row.molecule_id isa Int
-        @test res._row.molecule_id == mol.idx
-        @test res._row.chain_id isa Int
-        @test res._row.chain_id == chain.idx
+        @test res.molecule_id isa Int
+        @test res.molecule_id == mol.idx
+        @test res.chain_id isa Int
+        @test res.chain_id == chain.idx
 
         @test res2.number == 1
         @test res2.type == AminoAcid('D')
         @test res2.properties == Properties(:a => 1)
         @test res2.flags == Flags([:A, :B])
-        @test res2._row.molecule_id == mol2.idx
-        @test res2._row.chain_id == chain2.idx
+        @test res2.molecule_id == mol2.idx
+        @test res2.chain_id == chain2.idx
 
         # setproperty!
         res.number = 0
@@ -75,34 +72,16 @@
         @test length(res.flags) == 1
         @test :C in res.flags
 
-        @test_throws ErrorException res.molecule_id = 0
-        @test_throws ErrorException res.chain_id = 0
+        res3 = Nucleotide(Chain(Molecule(System{T}())), 1)
+        res3.molecule_id = 999
+        @test res3.molecule_id == 999
+        res3.chain_id = 998
+        @test res3.chain_id == 998
 
         # residue_by_idx
         @test_throws KeyError residue_by_idx(sys, -1)
         @test residue_by_idx(sys, res.idx) isa Residue{T}
         @test residue_by_idx(sys, res.idx) == res
-
-        # _residues
-        df = _residues(sys)
-        @test df isa AbstractDataFrame
-        @test size(df) == (2, length(fieldnames(_SystemResidueTuple)))
-        @test copy(df[1, 1:length(fieldnames(ResidueTuple))]) isa ResidueTuple
-        @test size(_residues(sys), 1) == 2
-        @test size(_residues(sys, molecule_id = -1), 1) == 0
-        @test size(_residues(sys, molecule_id = mol.idx), 1) == 1
-        @test size(_residues(sys, molecule_id = mol2.idx), 1) == 1
-        @test size(_residues(sys, molecule_id = nothing), 1) == 2
-        @test size(_residues(sys, chain_id = -1), 1) == 0
-        @test size(_residues(sys, chain_id = chain.idx), 1) == 1
-        @test size(_residues(sys, chain_id = chain2.idx), 1) == 1
-        @test size(_residues(sys, chain_id = nothing), 1) == 2
-        @test size(_residues(sys, molecule_id = -1, chain_id = chain.idx), 1) == 0
-        @test size(_residues(sys, molecule_id = mol.idx, chain_id = -1), 1) == 0
-        @test size(_residues(sys, molecule_id = mol.idx, chain_id = chain.idx), 1) == 1
-        @test size(_residues(sys, molecule_id = mol.idx, chain_id = nothing), 1) == 1
-        @test size(_residues(sys, molecule_id = nothing, chain_id = chain.idx), 1) == 1
-        @test size(_residues(sys, molecule_id = nothing, chain_id = nothing), 1) == 2
 
         # residues_df
         df = residues_df(sys)
@@ -127,7 +106,7 @@
 
         # residues
         fv = residues(sys)
-        @test fv isa Vector{Residue{T}}
+        @test fv isa ResidueTable{T}
         @test length(fv) == 2
         @test length(residues(sys)) == 2
         @test length(residues(sys, molecule_id = -1)) == 0
