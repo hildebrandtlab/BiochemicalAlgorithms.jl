@@ -115,14 +115,6 @@ end
     filter(row -> row.idx in ridx, residues(substruct.parent))
 end
 
-@inline function atoms_df(ac::Substructure{T}; kwargs...) where {T<:Real}
-    DataFrame(atoms(ac; kwargs...))
-end
-
-@inline function bonds_df(ac::Substructure{T}; kwargs...) where {T<:Real}
-    DataFrame(bonds(ac; kwargs...))
-end
-
 @inline function natoms(substruct::Substructure; kwargs...)
     length(atoms(substruct; kwargs...))
 end

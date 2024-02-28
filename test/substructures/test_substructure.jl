@@ -1,7 +1,4 @@
 @testitem "Substructure" begin
-    using DataFrames
-    using Tables, TableOperations
-
     # read a simple molecule
     mol = molecules(load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json")))[1]
 
@@ -24,10 +21,6 @@
 
     @test s isa Substructure
     @test s.name == "aspirin substructure"
-    @test atoms_df(s) isa DataFrame
-    @test size(atoms_df(s)) == (9,13)
-    @test bonds_df(s) isa DataFrame
-    @test size(bonds_df(s)) == (8,6)
     @test natoms(s) == 9
     @test nbonds(s) == 8
     @test length(s.properties) == 3
