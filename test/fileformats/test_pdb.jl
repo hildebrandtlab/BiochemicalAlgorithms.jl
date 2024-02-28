@@ -35,12 +35,12 @@
     @test nmolecules(sys) == 1
     @test nchains(sys) == countchains(orig)
     @test nfragments(sys) == countresidues(orig)
-    for chain in eachchain(sys)
+    for chain in chains(sys)
         orig_chain = get(orig_model.chains, chain.name, nothing)
         @test !isnothing(orig_chain)
         @test natoms(chain) == countatoms(orig_chain)
         @test nfragments(chain) == countresidues(orig_chain)
-        for frag in eachfragment(chain)
+        for frag in fragments(chain)
             # reconstruct BioStructures naming for residues
             orig_name = strip("$(get_property(frag, :is_hetero_fragment, false) ? "H_" : "")\
                 $(frag.number)$(get_property(frag, :insertion_code, ""))")

@@ -4,7 +4,6 @@ export
     chain_by_idx,
     chains,
     chains_df,
-    eachchain,
     nchains,
     parent_chain
 
@@ -182,17 +181,6 @@ Returns a `DataFrame` containing all chains of the given atom container.
 end
 
 """
-    eachchain(::Molecule)
-    eachchain(::Protein)
-    eachchain(::System)
-
-Returns a `Chain{T}` generator for all chains of the given atom container.
-"""
-@inline function eachchain(sys::System{T}; kwargs...) where T
-    (chain for chain in chains(sys; kwargs...))
-end
-
-"""
     nchains(::Molecule)
     nchains(::Protein)
     nchains(::System)
@@ -208,7 +196,6 @@ end
 =#
 @inline chains(mol::Molecule) = chains(parent(mol), molecule_id = mol.idx)
 @inline chains_df(mol::Molecule) = chains_df(parent(mol), molecule_id = mol.idx)
-@inline eachchain(mol::Molecule) = eachchain(parent(mol), molecule_id = mol.idx)
 @inline nchains(mol::Molecule) = nchains(parent(mol), molecule_id = mol.idx)
 
 """
@@ -229,7 +216,6 @@ end
 =#
 @inline atoms(chain::Chain; kwargs...) = atoms(parent(chain); chain_id = chain.idx, kwargs...)
 @inline atoms_df(chain::Chain; kwargs...) = atoms_df(parent(chain); chain_id = chain.idx, kwargs...)
-@inline eachatom(chain::Chain; kwargs...) = eachatom(parent(chain); chain_id = chain.idx, kwargs...)
 @inline natoms(chain::Chain; kwargs...) = natoms(parent(chain); chain_id = chain.idx, kwargs...)
 
 #=
@@ -237,5 +223,4 @@ end
 =#
 @inline bonds(chain::Chain; kwargs...) = bonds(parent(chain); chain_id = chain.idx, kwargs...)
 @inline bonds_df(chain::Chain; kwargs...) = bonds_df(parent(chain); chain_id = chain.idx, kwargs...)
-@inline eachbond(chain::Chain; kwargs...) = eachbond(parent(chain); chain_id = chain.idx, kwargs...)
 @inline nbonds(chain::Chain; kwargs...) = nbonds(parent(chain); chain_id = chain.idx, kwargs...)

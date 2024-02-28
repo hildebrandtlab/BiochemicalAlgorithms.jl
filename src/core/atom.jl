@@ -5,7 +5,6 @@ export
     atom_by_name,
     atoms,
     atoms_df,
-    eachatom,
     natoms,
     has_property,
     get_property,
@@ -390,32 +389,6 @@ Any value other than `nothing` limits the result to atoms matching this frame ID
 end
 
 """
-    eachatom(::Chain)
-    eachatom(::Fragment)
-    eachatom(::Molecule)
-    eachatom(::Nucleotide)
-    eachatom(::Protein)
-    eachatom(::Residue)
-    eachatom(::System)
-
-Returns an `Atom{T}` generator for all atoms of the given atom container.
-
-# Supported keyword arguments
- - `frame_id::MaybeInt = 1`: \
-Any value other than `nothing` limits the result to atoms matching this frame ID.
-
-# Example
-```julia
-for atom in eachatom(sys)
-    println(atom.name)
-end
-```
-"""
-@inline function eachatom(sys::System{T}; kwargs...) where T
-    (atom for atom in atoms(sys; kwargs...))
-end
-
-"""
     natoms(::Chain)
     natoms(::Fragment)
     natoms(::Molecule)
@@ -453,15 +426,6 @@ Returns a `SubDataFrame` containing all bonds of the given atom.
 """
 @inline function bonds_df(atom::Atom)
     DataFrame(bonds(atom))
-end
-
-"""
-    eachbond(::Atom)
-
-Returns a `Bond{T}` generator for all bonds of the given atom.
-"""
-@inline function eachbond(atom::Atom{T}) where T
-    (bond for bond in bonds(atom))
 end
 
 """

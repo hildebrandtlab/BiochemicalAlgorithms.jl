@@ -79,7 +79,7 @@ function count_hits_(scheme::DBNameMapping, frag::Fragment{T}) where {T<:Real}
     hits = 0
     res_name_suffix = get_suffix_(frag)
 
-    for atom in eachatom(frag)
+    for atom in atoms(frag)
         hit, res_name, _ = do_match_(res_name, res_name_suffix, atom.name, scheme.mappings)
         if hit
             hits += 1
@@ -108,7 +108,7 @@ function normalize_fragments_!(frags::FragmentTable{T}, mapping::Dict{String, St
         res_name = frag.name
         res_name_suffix = get_suffix_(frag)
 
-        for atom in eachatom(frag)
+        for atom in atoms(frag)
             hit, new_res_name, atom_name = do_match_(res_name, res_name_suffix, atom.name, mapping)
 
             if hit

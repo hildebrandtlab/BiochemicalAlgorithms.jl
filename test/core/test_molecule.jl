@@ -63,10 +63,6 @@
         @test mv isa MoleculeTable{T}
         @test length(mv) == 2
 
-        # eachmolecule
-        @test first(eachmolecule(sys)) isa Molecule{T}
-        @test length(eachmolecule(sys)) == 2
-
         # nmolecules
         @test nmolecules(sys) isa Int
         @test nmolecules(sys) == 2
@@ -76,8 +72,6 @@
         @test atoms_df(mol) == atoms_df(sys, molecule_id = mol.idx)
         @test length(atoms(mol)) == 0
         @test atoms(mol) == atoms(sys, molecule_id = mol.idx)
-        @test length(collect(eachatom(mol))) == 0
-        @test length(collect(eachatom(mol))) == length(collect(eachatom(sys, molecule_id = mol.idx)))
         @test natoms(mol) == 0
         @test natoms(mol) == natoms(sys, molecule_id = mol.idx)
 
@@ -86,12 +80,10 @@
         @test size(atoms_df(mol)) == size(atoms_df(sys, molecule_id = mol.idx))
         @test length(atoms(mol)) == 1
         @test atoms(mol) == atoms(sys, molecule_id = mol.idx)
-        @test length(collect(eachatom(mol))) == 1
-        @test length(collect(eachatom(mol))) == length(collect(eachatom(sys, molecule_id = mol.idx)))
         @test natoms(mol) == 1
         @test natoms(mol) == natoms(sys, molecule_id = mol.idx)
 
-        for atom in eachatom(mol)
+        for atom in atoms(mol)
             @test parent_molecule(atom) === mol
         end
         @test parent_molecule(Atom(mol, 2, Elements.C)) === mol
@@ -101,8 +93,6 @@
         @test bonds_df(mol) == bonds_df(sys, molecule_id = mol.idx)
         @test length(bonds(mol)) == 0
         @test bonds(mol) == bonds(sys, molecule_id = mol.idx)
-        @test length(collect(eachbond(mol))) == 0
-        @test length(collect(eachbond(mol))) == length(collect(eachbond(sys, molecule_id = mol.idx)))
         @test nbonds(mol) == 0
         @test nbonds(mol) == nbonds(sys, molecule_id = mol.idx)
 
@@ -115,8 +105,6 @@
         @test size(bonds_df(mol)) == size(bonds_df(sys, molecule_id = mol.idx))
         @test length(bonds(mol)) == 1
         @test bonds(mol) == bonds(sys, molecule_id = mol.idx)
-        @test length(collect(eachbond(mol))) == 1
-        @test length(collect(eachbond(mol))) == length(collect(eachbond(sys, molecule_id = mol.idx)))
         @test nbonds(mol) == 1
         @test nbonds(mol) == nbonds(sys, molecule_id = mol.idx)
     end

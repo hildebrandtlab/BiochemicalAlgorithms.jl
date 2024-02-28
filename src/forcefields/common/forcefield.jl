@@ -84,7 +84,7 @@ function assign_typenames_and_charges!(ff::ForceField{T}) where {T<:Real}
     # clear the list of unassigned_atoms
     empty!(ff.unassigned_atoms)
 
-    for atom in eachatom(ff.system)
+    for atom in atoms(ff.system)
         if !_try_assign!(
                 ff.atom_type_templates, 
                 get_full_name(atom), 

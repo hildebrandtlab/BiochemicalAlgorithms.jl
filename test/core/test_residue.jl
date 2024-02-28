@@ -123,23 +123,6 @@
         @test length(residues(sys, molecule_id = nothing, chain_id = chain.idx)) == 1
         @test length(residues(sys, molecule_id = nothing, chain_id = nothing)) == 2
 
-        # eachresidue
-        @test length(eachresidue(sys)) == 2
-        @test length(eachresidue(sys, molecule_id = -1)) == 0
-        @test length(eachresidue(sys, molecule_id = mol.idx)) == 1
-        @test length(eachresidue(sys, molecule_id = mol2.idx)) == 1
-        @test length(eachresidue(sys, molecule_id = nothing)) == 2
-        @test length(eachresidue(sys, chain_id = -1)) == 0
-        @test length(eachresidue(sys, chain_id = chain.idx)) == 1
-        @test length(eachresidue(sys, chain_id = chain2.idx)) == 1
-        @test length(eachresidue(sys, chain_id = nothing)) == 2
-        @test length(eachresidue(sys, molecule_id = -1, chain_id = chain.idx)) == 0
-        @test length(eachresidue(sys, molecule_id = mol.idx, chain_id = -1)) == 0
-        @test length(eachresidue(sys, molecule_id = mol.idx, chain_id = chain.idx)) == 1
-        @test length(eachresidue(sys, molecule_id = mol.idx, chain_id = nothing)) == 1
-        @test length(eachresidue(sys, molecule_id = nothing, chain_id = chain.idx)) == 1
-        @test length(eachresidue(sys, molecule_id = nothing, chain_id = nothing)) == 2
-
         # nresidues + push!
         @test nresidues(sys) isa Int
         @test nresidues(sys) == 2
@@ -182,8 +165,6 @@
         @test residues_df(mol3) == residues_df(sys, molecule_id = mol3.idx)
         @test size(residues(mol3), 1) == 0
         @test residues(mol3) == residues(sys, molecule_id = mol3.idx)
-        @test length(eachresidue(mol3)) == 0
-        @test length(eachresidue(mol3)) == length(eachresidue(sys, molecule_id = mol3.idx))
         @test nresidues(mol3) == 0
         @test nresidues(mol3) == nresidues(sys, molecule_id = mol3.idx)
 
@@ -192,8 +173,6 @@
         @test residues_df(chain3) == residues_df(sys, chain_id = chain3.idx)
         @test size(residues(chain3), 1) == 0
         @test residues(chain3) == residues(sys, chain_id = chain3.idx)
-        @test length(eachresidue(chain3)) == 0
-        @test length(eachresidue(chain3)) == length(eachresidue(sys, chain_id = chain3.idx))
         @test nresidues(chain3) == 0
         @test nresidues(chain3) == nresidues(sys, chain_id = chain3.idx)
 
@@ -202,8 +181,6 @@
         @test size(residues_df(mol3)) == size(residues_df(sys, molecule_id = mol3.idx))
         @test size(residues(mol3), 1) == 1
         @test residues(mol3) == residues(sys, molecule_id = mol3.idx)
-        @test length(eachresidue(mol3)) == 1
-        @test length(eachresidue(mol3)) == length(eachresidue(sys, molecule_id = mol3.idx))
         @test nresidues(mol3) == 1
         @test nresidues(mol3) == nresidues(sys, molecule_id = mol3.idx)
 
@@ -211,8 +188,6 @@
         @test size(residues_df(chain3)) == size(residues_df(sys, chain_id = chain3.idx))
         @test size(residues(chain3), 1) == 1
         @test residues(chain3) == residues(sys, chain_id = chain3.idx)
-        @test length(eachresidue(chain3)) == 1
-        @test length(eachresidue(chain3)) == length(eachresidue(sys, chain_id = chain3.idx))
         @test nresidues(chain3) == 1
         @test nresidues(chain3) == nresidues(sys, chain_id = chain3.idx)
 
@@ -221,8 +196,6 @@
         @test atoms_df(res) == atoms_df(sys, residue_id = res.idx)
         @test length(atoms(res)) == 0
         @test atoms(res) == atoms(sys, residue_id = res.idx)
-        @test length(collect(eachatom(res))) == 0
-        @test length(collect(eachatom(res))) == length(collect(eachatom(sys, residue_id = res.idx)))
         @test natoms(res) == 0
         @test natoms(res) == natoms(sys, residue_id = res.idx)
 
@@ -231,8 +204,6 @@
         @test size(atoms_df(res)) == size(atoms_df(sys, residue_id = res.idx))
         @test length(atoms(res)) == 1
         @test atoms(res) == atoms(sys, residue_id = res.idx)
-        @test length(collect(eachatom(res))) == 1
-        @test length(collect(eachatom(res))) == length(collect(eachatom(sys, residue_id = res.idx)))
         @test natoms(res) == 1
         @test natoms(res) == natoms(sys, residue_id = res.idx)
 
@@ -241,8 +212,6 @@
         @test bonds_df(res) == bonds_df(sys, residue_id = res.idx)
         @test length(bonds(res)) == 0
         @test bonds(res) == bonds(sys, residue_id = res.idx)
-        @test length(collect(eachbond(res))) == 0
-        @test length(collect(eachbond(res))) == length(collect(eachbond(sys, residue_id = res.idx)))
         @test nbonds(res) == 0
         @test nbonds(res) == nbonds(sys, residue_id = res.idx)
 
@@ -255,8 +224,6 @@
         @test size(bonds_df(res)) == size(bonds_df(sys, residue_id = res.idx))
         @test length(bonds(res)) == 1
         @test bonds(res) == bonds(sys, residue_id = res.idx)
-        @test length(collect(eachbond(res))) == 1
-        @test length(collect(eachbond(res))) == length(collect(eachbond(sys, residue_id = res.idx)))
         @test nbonds(res) == 1
         @test nbonds(res) == nbonds(sys, residue_id = res.idx)
     end

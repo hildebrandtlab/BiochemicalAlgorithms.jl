@@ -147,7 +147,7 @@ function _setup_improper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
 
     # check for each potential improper torsion atom (every atom having three bonds)
     # whether it is contained in the list of impropers
-    for atom in eachatom(ff.system)
+    for atom in atoms(ff.system)
         bs = bonds(atom)
         if length(bs) == 3
             if get_full_name(atom) ∈ impropers.name
@@ -196,8 +196,8 @@ function _setup_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
 
     proper_torsions = Vector{CosineTorsion{T}}()
 
-    for atom::Atom{T} in eachatom(ff.system)
-        bs = eachbond(atom)
+    for atom::Atom{T} in atoms(ff.system)
+        bs = bonds(atom)
 
         for bond_1 in bs
             if has_flag(bond_1, :TYPE__HYDROGEN)
@@ -222,7 +222,7 @@ function _setup_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
                     a1::Atom{T} = ((bond_2.a1 == atom.idx) ? atom_by_idx(parent_system(atom), bond_2.a2)
                                                            : atom_by_idx(parent_system(atom), bond_2.a1))
 
-                    for bond_3 in eachbond(atom_by_idx(parent_system(atom), bond_1.a2))
+                    for bond_3 in bonds(atom_by_idx(parent_system(atom), bond_1.a2))
                         if has_flag(bond_3, :TYPE__HYDROGEN)
                             continue
                         end

@@ -137,7 +137,7 @@ function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB) where {T<:Re
     # up, we precompute the bonds into a dictionary
     bond_cache = Set{Tuple{Int, Int}}()
 
-    for bond in eachbond(m)
+    for bond in bonds(m)
         push!(bond_cache, (bond.a1, bond.a2))
         push!(bond_cache, (bond.a2, bond.a1))
     end

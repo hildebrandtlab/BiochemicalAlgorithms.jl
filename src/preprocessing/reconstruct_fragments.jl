@@ -46,7 +46,7 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
 
     # Get a copy of the atom names occurring in the current fragment....
     name_to_atom = Dict(
-        a.name => a for a in eachatom(f)
+        a.name => a for a in atoms(f)
     )
 
     # And add the atoms from the template missing in the reference

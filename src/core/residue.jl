@@ -4,7 +4,6 @@ export
     residue_by_idx,
     residues,
     residues_df,
-    eachresidue,
     nresidues,
     parent_residue
 
@@ -194,18 +193,6 @@ Returns a `DataFrame{T}` containing all residues of the given atom container.
 end
 
 """
-    eachresidue(::Chain)
-    eachresidue(::Molecule)
-    eachresidue(::Protein)
-    eachresidue(::System)
-
-Returns a `Residue{T}` generator for all residues of the given atom container.
-"""
-@inline function eachresidue(sys::System{T}; kwargs...) where T
-    (res for res in residues(sys; kwargs...))
-end
-
-"""
     nresidues(::Chain)
     nresidues(::Molecule)
     nresidues(::Protein)
@@ -222,7 +209,6 @@ end
 =#
 @inline residues(mol::Molecule; kwargs...) = residues(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline residues_df(mol::Molecule; kwargs...) = residues_df(parent(mol); molecule_id = mol.idx, kwargs...)
-@inline eachresidue(mol::Molecule; kwargs...) = eachresidue(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline nresidues(mol::Molecule; kwargs...) = nresidues(parent(mol); molecule_id = mol.idx, kwargs...)
 
 #=
@@ -230,7 +216,6 @@ end
 =#
 @inline residues(chain::Chain; kwargs...) = residues(parent(chain); chain_id = chain.idx, kwargs...)
 @inline residues_df(chain::Chain; kwargs...) = residues_df(parent(chain); chain_id = chain.idx, kwargs...)
-@inline eachresidue(chain::Chain; kwargs...) = eachresidue(parent(chain); chain_id = chain.idx, kwargs...)
 @inline nresidues(chain::Chain; kwargs...) = nresidues(parent(chain); chain_id = chain.idx, kwargs...)
 
 """
@@ -254,7 +239,6 @@ end
 =#
 @inline atoms(res::Residue; kwargs...) = atoms(parent(res); residue_id = res.idx, kwargs...)
 @inline atoms_df(res::Residue; kwargs...) = atoms_df(parent(res); residue_id = res.idx, kwargs...)
-@inline eachatom(res::Residue; kwargs...) = eachatom(parent(res); residue_id = res.idx, kwargs...)
 @inline natoms(res::Residue; kwargs...) = natoms(parent(res); residue_id = res.idx, kwargs...)
 
 @inline function Base.push!(res::Residue{T}, atom::AtomTuple{T}; kwargs...) where T
@@ -268,5 +252,4 @@ end
 =#
 @inline bonds(res::Residue; kwargs...) = bonds(parent(res); residue_id = res.idx, kwargs...)
 @inline bonds_df(res::Residue; kwargs...) = bonds_df(parent(res); residue_id = res.idx, kwargs...)
-@inline eachbond(res::Residue; kwargs...) = eachbond(parent(res); residue_id = res.idx, kwargs...)
 @inline nbonds(res::Residue; kwargs...) = nbonds(parent(res); residue_id = res.idx, kwargs...)

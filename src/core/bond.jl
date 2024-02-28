@@ -4,7 +4,6 @@ export
     bond_by_idx,
     bonds,
     bonds_df,
-    eachbond,
     nbonds,
     get_partner,
     get_partners,
@@ -216,25 +215,6 @@ See [`atoms`](@ref)
 """
 @inline function bonds_df(sys::System; kwargs...)
     DataFrame(bonds(sys; kwargs...))
-end
-
-"""
-    eachbond(::Chain)
-    eachbond(::Fragment)
-    eachbond(::Molecule)
-    eachbond(::Nucleotide)
-    eachbond(::Protein)
-    eachbond(::Residue)
-    eachbond(::System)
-
-Returns a `Bond{T}` generator for all bonds of the given atom container where at least one
-associated atom is contained in the same container.
-
-# Supported keyword arguments
-See [`atoms`](@ref)
-"""
-function eachbond(sys::System{T}; kwargs...) where T
-    (bond for bond in bonds(sys; kwargs...))
 end
 
 """

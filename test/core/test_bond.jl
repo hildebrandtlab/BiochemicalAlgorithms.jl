@@ -103,14 +103,6 @@
         @test length(bonds(sys, frame_id = 3)) == 0
         @test length(bonds(sys, frame_id = nothing)) == 3
 
-        # eachbond
-        @test first(eachbond(sys)) isa Bond{T}
-        @test length(collect(eachbond(sys))) == 2
-        @test length(collect(eachbond(sys, frame_id = 1))) == 2
-        @test length(collect(eachbond(sys, frame_id = 2))) == 1
-        @test length(collect(eachbond(sys, frame_id = 3))) == 0
-        @test length(collect(eachbond(sys, frame_id = nothing))) == 3
-
         # nbonds
         @test nbonds(sys) isa Int
         @test nbonds(sys) == 2

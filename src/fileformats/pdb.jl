@@ -163,7 +163,7 @@ function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:R
 
     # add all remaining atoms to the system
     grp_atoms = groupby(atoms, [:chain_id, :fragment_id, :inscode])
-    for frag in eachfragment(mol)
+    for frag in fragments(mol)
         for atom in eachrow(grp_atoms[(
             chain_id = parent_chain(frag).name,
             fragment_id = frag.number,
@@ -236,7 +236,7 @@ function Base.convert(::Type{ProteinStructure}, ac::AbstractAtomContainer{T}) wh
     for (i, frame_id) in enumerate(sys_frame_ids)
         struc[i] = Model(i, struc)
        
-        for a in eachatom(ac; frame_id=frame_id)
+        for a in atoms(ac; frame_id=frame_id)
             unsafe_addatomtomodel!(
                 struc[i],
                 _to_atom_record(a)

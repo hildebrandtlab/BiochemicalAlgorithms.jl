@@ -4,7 +4,6 @@ export
     nucleotide_by_idx,
     nucleotides,
     nucleotides_df,
-    eachnucleotide,
     nnucleotides,
     parent_nucleotide
 
@@ -195,18 +194,6 @@ Returns a `DataFrame` containing all nucleotides of the given atom container.
 end
 
 """
-    eachnucleotide(::Chain)
-    eachnucleotide(::Molecule)
-    eachnucleotide(::Protein)
-    eachnucleotide(::System)
-
-Returns a `Nucleotide{T}` generator for all nucleotides of the given atom container.
-"""
-@inline function eachnucleotide(sys::System{T}; kwargs...) where T
-    (nuc for nuc in nucleotides(sys; kwargs...))
-end
-
-"""
     nnucleotides(::Chain)
     nnucleotides(::Molecule)
     nnucleotides(::Protein)
@@ -223,7 +210,6 @@ end
 =#
 @inline nucleotides(mol::Molecule; kwargs...) = nucleotides(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline nucleotides_df(mol::Molecule; kwargs...) = nucleotides_df(parent(mol); molecule_id = mol.idx, kwargs...)
-@inline eachnucleotide(mol::Molecule; kwargs...) = eachnucleotide(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline nnucleotides(mol::Molecule; kwargs...) = nnucleotides(parent(mol); molecule_id = mol.idx, kwargs...)
 
 #=
@@ -231,7 +217,6 @@ end
 =#
 @inline nucleotides(chain::Chain; kwargs...) = nucleotides(parent(chain); chain_id = chain.idx, kwargs...)
 @inline nucleotides_df(chain::Chain; kwargs...) = nucleotides_df(parent(chain); chain_id = chain.idx, kwargs...)
-@inline eachnucleotide(chain::Chain; kwargs...) = eachnucleotide(parent(chain); chain_id = chain.idx, kwargs...)
 @inline nnucleotides(chain::Chain; kwargs...) = nnucleotides(parent(chain); chain_id = chain.idx, kwargs...)
 
 # FIXME currently not possible due to
@@ -246,7 +231,6 @@ end
 =#
 @inline atoms(nuc::Nucleotide; kwargs...) = atoms(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 @inline atoms_df(nuc::Nucleotide; kwargs...) = atoms_df(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
-@inline eachatom(nuc::Nucleotide; kwargs...) = eachatom(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 @inline natoms(nuc::Nucleotide; kwargs...) = natoms(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 
 @inline function Base.push!(nuc::Nucleotide{T}, atom::AtomTuple{T}; kwargs...) where T
@@ -260,7 +244,6 @@ end
 =#
 @inline bonds(nuc::Nucleotide; kwargs...) = bonds(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 @inline bonds_df(nuc::Nucleotide; kwargs...) = bonds_df(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
-@inline eachbond(nuc::Nucleotide; kwargs...) = eachbond(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 @inline nbonds(nuc::Nucleotide; kwargs...) = nbonds(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 
 # TODO: we should come up with a better test than just checking the name

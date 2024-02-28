@@ -335,7 +335,7 @@ FragmentDB(path::String = ball_data_path("fragments/Fragments.db.json")) = Fragm
 
 function label_terminal_fragments!(ac::AbstractAtomContainer{T}) where {T<:Real}
     # iterate over all chains and label their terminals
-    for chain in eachchain(ac)
+    for chain in chains(ac)
         if nfragments(chain) > 0
             # first, the n- and c-terminals
             amino_acids = filter(is_amino_acid, fragments(chain))

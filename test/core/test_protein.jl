@@ -69,21 +69,11 @@
         @test mv isa ProteinTable{T}
         @test length(mv) == 2
 
-        # eachprotein
-        @test first(eachprotein(sys)) isa Protein{T}
-        @test length(eachprotein(sys)) == 2
-
-        # nproteins
-        @test nproteins(sys) isa Int
-        @test nproteins(sys) == 2
-
         # protein atoms
         @test size(atoms_df(prot), 1) == 0
         @test atoms_df(prot) == atoms_df(sys, molecule_id = prot.idx)
         @test length(atoms(prot)) == 0
         @test atoms(prot) == atoms(sys, molecule_id = prot.idx)
-        @test length(collect(eachatom(prot))) == 0
-        @test length(collect(eachatom(prot))) == length(collect(eachatom(sys, molecule_id = prot.idx)))
         @test natoms(prot) == 0
         @test natoms(prot) == natoms(sys, molecule_id = prot.idx)
 
@@ -92,12 +82,10 @@
         @test size(atoms_df(prot)) == size(atoms_df(sys, molecule_id = prot.idx))
         @test length(atoms(prot)) == 1
         @test atoms(prot) == atoms(sys, molecule_id = prot.idx)
-        @test length(collect(eachatom(prot))) == 1
-        @test length(collect(eachatom(prot))) == length(collect(eachatom(sys, molecule_id = prot.idx)))
         @test natoms(prot) == 1
         @test natoms(prot) == natoms(sys, molecule_id = prot.idx)
 
-        for atom in eachatom(prot)
+        for atom in atoms(prot)
             @test parent_protein(atom) === prot
         end
         @test parent_protein(Atom(prot, 2, Elements.C)) === prot
@@ -107,8 +95,6 @@
         @test bonds_df(prot) == bonds_df(sys, molecule_id = prot.idx)
         @test length(bonds(prot)) == 0
         @test bonds(prot) == bonds(sys, molecule_id = prot.idx)
-        @test length(collect(eachbond(prot))) == 0
-        @test length(collect(eachbond(prot))) == length(collect(eachbond(sys, molecule_id = prot.idx)))
         @test nbonds(prot) == 0
         @test nbonds(prot) == nbonds(sys, molecule_id = prot.idx)
 
@@ -121,8 +107,6 @@
         @test size(bonds_df(prot)) == size(bonds_df(sys, molecule_id = prot.idx))
         @test length(bonds(prot)) == 1
         @test bonds(prot) == bonds(sys, molecule_id = prot.idx)
-        @test length(collect(eachbond(prot))) == 1
-        @test length(collect(eachbond(prot))) == length(collect(eachbond(sys, molecule_id = prot.idx)))
         @test nbonds(prot) == 1
         @test nbonds(prot) == nbonds(sys, molecule_id = prot.idx)
     end

@@ -123,23 +123,6 @@
         @test length(nucleotides(sys, molecule_id = nothing, chain_id = chain.idx)) == 1
         @test length(nucleotides(sys, molecule_id = nothing, chain_id = nothing)) == 2
 
-        # eachnucleotide
-        @test length(eachnucleotide(sys)) == 2
-        @test length(eachnucleotide(sys, molecule_id = -1)) == 0
-        @test length(eachnucleotide(sys, molecule_id = mol.idx)) == 1
-        @test length(eachnucleotide(sys, molecule_id = mol2.idx)) == 1
-        @test length(eachnucleotide(sys, molecule_id = nothing)) == 2
-        @test length(eachnucleotide(sys, chain_id = -1)) == 0
-        @test length(eachnucleotide(sys, chain_id = chain.idx)) == 1
-        @test length(eachnucleotide(sys, chain_id = chain2.idx)) == 1
-        @test length(eachnucleotide(sys, chain_id = nothing)) == 2
-        @test length(eachnucleotide(sys, molecule_id = -1, chain_id = chain.idx)) == 0
-        @test length(eachnucleotide(sys, molecule_id = mol.idx, chain_id = -1)) == 0
-        @test length(eachnucleotide(sys, molecule_id = mol.idx, chain_id = chain.idx)) == 1
-        @test length(eachnucleotide(sys, molecule_id = mol.idx, chain_id = nothing)) == 1
-        @test length(eachnucleotide(sys, molecule_id = nothing, chain_id = chain.idx)) == 1
-        @test length(eachnucleotide(sys, molecule_id = nothing, chain_id = nothing)) == 2
-
         # nnucleotides
         @test nnucleotides(sys) isa Int
         @test nnucleotides(sys) == 2
@@ -164,8 +147,6 @@
         @test nucleotides_df(mol3) == nucleotides_df(sys, molecule_id = mol3.idx)
         @test size(nucleotides(mol3), 1) == 0
         @test nucleotides(mol3) == nucleotides(sys, molecule_id = mol3.idx)
-        @test length(eachnucleotide(mol3)) == 0
-        @test length(eachnucleotide(mol3)) == length(eachnucleotide(sys, molecule_id = mol3.idx))
         @test nnucleotides(mol3) == 0
         @test nnucleotides(mol3) == nnucleotides(sys, molecule_id = mol3.idx)
 
@@ -174,8 +155,6 @@
         @test nucleotides_df(chain3) == nucleotides_df(sys, chain_id = chain3.idx)
         @test size(nucleotides(chain3), 1) == 0
         @test nucleotides(chain3) == nucleotides(sys, chain_id = chain3.idx)
-        @test length(eachnucleotide(chain3)) == 0
-        @test length(eachnucleotide(chain3)) == length(eachnucleotide(sys, chain_id = chain3.idx))
         @test nnucleotides(chain3) == 0
         @test nnucleotides(chain3) == nnucleotides(sys, chain_id = chain3.idx)
 
@@ -184,8 +163,6 @@
         @test size(nucleotides_df(mol3)) == size(nucleotides_df(sys, molecule_id = mol3.idx))
         @test size(nucleotides(mol3), 1) == 1
         @test nucleotides(mol3) == nucleotides(sys, molecule_id = mol3.idx)
-        @test length(eachnucleotide(mol3)) == 1
-        @test length(eachnucleotide(mol3)) == length(eachnucleotide(sys, molecule_id = mol3.idx))
         @test nnucleotides(mol3) == 1
         @test nnucleotides(mol3) == nnucleotides(sys, molecule_id = mol3.idx)
 
@@ -193,8 +170,6 @@
         @test size(nucleotides_df(chain3)) == size(nucleotides_df(sys, chain_id = chain3.idx))
         @test size(nucleotides(chain3), 1) == 1
         @test nucleotides(chain3) == nucleotides(sys, chain_id = chain3.idx)
-        @test length(eachnucleotide(chain3)) == 1
-        @test length(eachnucleotide(chain3)) == length(eachnucleotide(sys, chain_id = chain3.idx))
         @test nnucleotides(chain3) == 1
         @test nnucleotides(chain3) == nnucleotides(sys, chain_id = chain3.idx)
 
@@ -203,8 +178,6 @@
         @test atoms_df(nuc) == atoms_df(sys, nucleotide_id = nuc.idx)
         @test length(atoms(nuc)) == 0
         @test atoms(nuc) == atoms(sys, nucleotide_id = nuc.idx)
-        @test length(collect(eachatom(nuc))) == 0
-        @test length(collect(eachatom(nuc))) == length(collect(eachatom(sys, nucleotide_id = nuc.idx)))
         @test natoms(nuc) == 0
         @test natoms(nuc) == natoms(sys, nucleotide_id = nuc.idx)
 
@@ -213,8 +186,6 @@
         @test size(atoms_df(nuc)) == size(atoms_df(sys, nucleotide_id = nuc.idx))
         @test length(atoms(nuc)) == 1
         @test atoms(nuc) == atoms(sys, nucleotide_id = nuc.idx)
-        @test length(collect(eachatom(nuc))) == 1
-        @test length(collect(eachatom(nuc))) == length(collect(eachatom(sys, nucleotide_id = nuc.idx)))
         @test natoms(nuc) == 1
         @test natoms(nuc) == natoms(sys, nucleotide_id = nuc.idx)
 
@@ -223,8 +194,6 @@
         @test bonds_df(nuc) == bonds_df(sys, nucleotide_id = nuc.idx)
         @test length(bonds(nuc)) == 0
         @test bonds(nuc) == bonds(sys, nucleotide_id = nuc.idx)
-        @test length(collect(eachbond(nuc))) == 0
-        @test length(collect(eachbond(nuc))) == length(collect(eachbond(sys, nucleotide_id = nuc.idx)))
         @test nbonds(nuc) == 0
         @test nbonds(nuc) == nbonds(sys, nucleotide_id = nuc.idx)
 
@@ -237,8 +206,6 @@
         @test size(bonds_df(nuc)) == size(bonds_df(sys, nucleotide_id = nuc.idx))
         @test length(bonds(nuc)) == 1
         @test bonds(nuc) == bonds(sys, nucleotide_id = nuc.idx)
-        @test length(collect(eachbond(nuc))) == 1
-        @test length(collect(eachbond(nuc))) == length(collect(eachbond(sys, nucleotide_id = nuc.idx)))
         @test nbonds(nuc) == 1
         @test nbonds(nuc) == nbonds(sys, nucleotide_id = nuc.idx)
     end

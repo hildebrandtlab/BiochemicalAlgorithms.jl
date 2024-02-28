@@ -4,7 +4,6 @@ export
     fragment_by_idx,
     fragments,
     fragments_df,
-    eachfragment,
     get_full_name,
     get_previous,
     get_next,
@@ -204,18 +203,6 @@ Returns a `DataFrame` containing all fragments of the given atom container.
 end
 
 """
-    eachfragment(::Chain)
-    eachfragment(::Molecule)
-    eachfragment(::Protein)
-    eachfragment(::System)
-
-Returns a `Fragment{T}` generator for all fragments of the given atom container.
-"""
-@inline function eachfragment(sys::System{T}; kwargs...) where T
-    (frag for frag in fragments(sys; kwargs...))
-end
-
-"""
     nfragments(::Chain)
     nfragments(::Molecule)
     nfragments(::Protein)
@@ -232,7 +219,6 @@ end
 =#
 @inline fragments(mol::Molecule; kwargs...) = fragments(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline fragments_df(mol::Molecule; kwargs...) = fragments_df(parent(mol); molecule_id = mol.idx, kwargs...)
-@inline eachfragment(mol::Molecule; kwargs...) = eachfragment(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline nfragments(mol::Molecule; kwargs...) = nfragments(parent(mol); molecule_id = mol.idx, kwargs...)
 
 #=
@@ -240,7 +226,6 @@ end
 =#
 @inline fragments(chain::Chain; kwargs...) = fragments(parent(chain); chain_id = chain.idx, kwargs...)
 @inline fragments_df(chain::Chain; kwargs...) = fragments_df(parent(chain); chain_id = chain.idx, kwargs...)
-@inline eachfragment(chain::Chain; kwargs...) = eachfragment(parent(chain); chain_id = chain.idx, kwargs...)
 @inline nfragments(chain::Chain; kwargs...) = nfragments(parent(chain); chain_id = chain.idx, kwargs...)
 
 """
@@ -264,7 +249,6 @@ end
 =#
 @inline atoms(frag::Fragment; kwargs...) = atoms(parent(frag); fragment_id = frag.idx, kwargs...)
 @inline atoms_df(frag::Fragment; kwargs...) = atoms_df(parent(frag); fragment_id = frag.idx, kwargs...)
-@inline eachatom(frag::Fragment; kwargs...) = eachatom(parent(frag); fragment_id = frag.idx, kwargs...)
 @inline natoms(frag::Fragment; kwargs...) = natoms(parent(frag); fragment_id = frag.idx, kwargs...)
 
 @inline function Base.push!(frag::Fragment{T}, atom::AtomTuple{T}; kwargs...) where T
@@ -278,7 +262,6 @@ end
 =#
 @inline bonds(frag::Fragment; kwargs...) = bonds(parent(frag); fragment_id = frag.idx, kwargs...)
 @inline bonds_df(frag::Fragment; kwargs...) = bonds_df(parent(frag); fragment_id = frag.idx, kwargs...)
-@inline eachbond(frag::Fragment; kwargs...) = eachbond(parent(frag); fragment_id = frag.idx, kwargs...)
 @inline nbonds(frag::Fragment; kwargs...) = nbonds(parent(frag); fragment_id = frag.idx, kwargs...)
 
 @inline function is_amino_acid(frag::Fragment)
@@ -298,7 +281,7 @@ end
             # find the first amino acid in the chain of this fragment
             c = parent_chain(frag)
 
-            for f in eachfragment(c)
+            for f in fragments(c)
                 if is_amino_acid(f)
                     return f == frag
                 end
@@ -317,7 +300,7 @@ end
             # find the last amino acid in the chain of this fragment
             c = parent_chain(frag)
 
-            for f in Iterators.reverse(eachfragment(c))
+            for f in Iterators.reverse(fragments(c))
                 if is_amino_acid(f)
                     return f == frag
                 end
@@ -337,7 +320,7 @@ end
             # find the first nucleotide in the chain of this fragment
             c = parent_chain(frag)
 
-            for f in eachfragment(c)
+            for f in fragments(c)
                 if is_nucleotide(f)
                     return f == frag
                 end

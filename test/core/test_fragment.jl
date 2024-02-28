@@ -123,23 +123,6 @@
         @test length(fragments(sys, molecule_id = nothing, chain_id = chain.idx)) == 1
         @test length(fragments(sys, molecule_id = nothing, chain_id = nothing)) == 2
 
-        # eachfragment
-        @test length(eachfragment(sys)) == 2
-        @test length(eachfragment(sys, molecule_id = -1)) == 0
-        @test length(eachfragment(sys, molecule_id = mol.idx)) == 1
-        @test length(eachfragment(sys, molecule_id = mol2.idx)) == 1
-        @test length(eachfragment(sys, molecule_id = nothing)) == 2
-        @test length(eachfragment(sys, chain_id = -1)) == 0
-        @test length(eachfragment(sys, chain_id = chain.idx)) == 1
-        @test length(eachfragment(sys, chain_id = chain2.idx)) == 1
-        @test length(eachfragment(sys, chain_id = nothing)) == 2
-        @test length(eachfragment(sys, molecule_id = -1, chain_id = chain.idx)) == 0
-        @test length(eachfragment(sys, molecule_id = mol.idx, chain_id = -1)) == 0
-        @test length(eachfragment(sys, molecule_id = mol.idx, chain_id = chain.idx)) == 1
-        @test length(eachfragment(sys, molecule_id = mol.idx, chain_id = nothing)) == 1
-        @test length(eachfragment(sys, molecule_id = nothing, chain_id = chain.idx)) == 1
-        @test length(eachfragment(sys, molecule_id = nothing, chain_id = nothing)) == 2
-
         # nfragments + push!
         @test nfragments(sys) isa Int
         @test nfragments(sys) == 2
@@ -182,8 +165,6 @@
         @test fragments_df(mol3) == fragments_df(sys, molecule_id = mol3.idx)
         @test size(fragments(mol3), 1) == 0
         @test fragments(mol3) == fragments(sys, molecule_id = mol3.idx)
-        @test length(eachfragment(mol3)) == 0
-        @test length(eachfragment(mol3)) == length(eachfragment(sys, molecule_id = mol3.idx))
         @test nfragments(mol3) == 0
         @test nfragments(mol3) == nfragments(sys, molecule_id = mol3.idx)
 
@@ -192,8 +173,6 @@
         @test fragments_df(chain3) == fragments_df(sys, chain_id = chain3.idx)
         @test size(fragments(chain3), 1) == 0
         @test fragments(chain3) == fragments(sys, chain_id = chain3.idx)
-        @test length(eachfragment(chain3)) == 0
-        @test length(eachfragment(chain3)) == length(eachfragment(sys, chain_id = chain3.idx))
         @test nfragments(chain3) == 0
         @test nfragments(chain3) == nfragments(sys, chain_id = chain3.idx)
 
@@ -202,8 +181,6 @@
         @test size(fragments_df(mol3)) == size(fragments_df(sys, molecule_id = mol3.idx))
         @test size(fragments(mol3), 1) == 1
         @test fragments(mol3) == fragments(sys, molecule_id = mol3.idx)
-        @test length(eachfragment(mol3)) == 1
-        @test length(eachfragment(mol3)) == length(eachfragment(sys, molecule_id = mol3.idx))
         @test nfragments(mol3) == 1
         @test nfragments(mol3) == nfragments(sys, molecule_id = mol3.idx)
 
@@ -211,8 +188,6 @@
         @test size(fragments_df(chain3)) == size(fragments_df(sys, chain_id = chain3.idx))
         @test size(fragments(chain3), 1) == 1
         @test fragments(chain3) == fragments(sys, chain_id = chain3.idx)
-        @test length(eachfragment(chain3)) == 1
-        @test length(eachfragment(chain3)) == length(eachfragment(sys, chain_id = chain3.idx))
         @test nfragments(chain3) == 1
         @test nfragments(chain3) == nfragments(sys, chain_id = chain3.idx)
 
@@ -221,8 +196,6 @@
         @test atoms_df(frag) == atoms_df(sys, fragment_id = frag.idx)
         @test length(atoms(frag)) == 0
         @test atoms(frag) == atoms(sys, fragment_id = frag.idx)
-        @test length(collect(eachatom(frag))) == 0
-        @test length(collect(eachatom(frag))) == length(collect(eachatom(sys, fragment_id = frag.idx)))
         @test natoms(frag) == 0
         @test natoms(frag) == natoms(sys, fragment_id = frag.idx)
 
@@ -231,8 +204,6 @@
         @test size(atoms_df(frag)) == size(atoms_df(sys, fragment_id = frag.idx))
         @test length(atoms(frag)) == 1
         @test atoms(frag) == atoms(sys, fragment_id = frag.idx)
-        @test length(collect(eachatom(frag))) == 1
-        @test length(collect(eachatom(frag))) == length(collect(eachatom(sys, fragment_id = frag.idx)))
         @test natoms(frag) == 1
         @test natoms(frag) == natoms(sys, fragment_id = frag.idx)
 
@@ -241,8 +212,6 @@
         @test bonds_df(frag) == bonds_df(sys, fragment_id = frag.idx)
         @test length(bonds(frag)) == 0
         @test bonds(frag) == bonds(sys, fragment_id = frag.idx)
-        @test length(collect(eachbond(frag))) == 0
-        @test length(collect(eachbond(frag))) == length(collect(eachbond(sys, fragment_id = frag.idx)))
         @test nbonds(frag) == 0
         @test nbonds(frag) == nbonds(sys, fragment_id = frag.idx)
 
@@ -255,8 +224,6 @@
         @test size(bonds_df(frag)) == size(bonds_df(sys, fragment_id = frag.idx))
         @test length(bonds(frag)) == 1
         @test bonds(frag) == bonds(sys, fragment_id = frag.idx)
-        @test length(collect(eachbond(frag))) == 1
-        @test length(collect(eachbond(frag))) == length(collect(eachbond(sys, fragment_id = frag.idx)))
         @test nbonds(frag) == 1
         @test nbonds(frag) == nbonds(sys, fragment_id = frag.idx)
     end

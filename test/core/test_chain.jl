@@ -90,13 +90,6 @@
         @test length(chains(sys, molecule_id = mol2.idx)) == 1
         @test length(chains(sys, molecule_id = nothing)) == 2
 
-        # eachchain
-        @test length(eachchain(sys)) == 2
-        @test length(eachchain(sys, molecule_id = -1)) == 0
-        @test length(eachchain(sys, molecule_id = mol.idx)) == 1
-        @test length(eachchain(sys, molecule_id = mol2.idx)) == 1
-        @test length(eachchain(sys, molecule_id = nothing)) == 2
-
         # nchains + push!
         @test nchains(sys) isa Int
         @test nchains(sys) == 2
@@ -118,8 +111,6 @@
         @test chains_df(mol3) == chains_df(sys, molecule_id = mol3.idx)
         @test length(chains(mol3)) == 0
         @test chains(mol3) == chains(sys, molecule_id = mol3.idx)
-        @test length(eachchain(mol3)) == 0
-        @test length(eachchain(mol3)) == length(eachchain(sys, molecule_id = mol3.idx))
         @test nchains(mol3) == 0
         @test nchains(mol3) == nchains(sys, molecule_id = mol3.idx)
 
@@ -128,8 +119,6 @@
         @test size(chains_df(mol3)) == size(chains_df(sys, molecule_id = mol3.idx))
         @test length(chains(mol3)) == 1
         @test chains(mol3) == chains(sys, molecule_id = mol3.idx)
-        @test length(eachchain(mol3)) == 1
-        @test length(eachchain(mol3)) == length(eachchain(sys, molecule_id = mol3.idx))
         @test nchains(mol3) == 1
         @test nchains(mol3) == nchains(sys, molecule_id = mol3.idx)
 
@@ -138,8 +127,6 @@
         @test atoms_df(chain) == atoms_df(sys, chain_id = chain.idx)
         @test length(atoms(chain)) == 0
         @test atoms(chain) == atoms(sys, chain_id = chain.idx)
-        @test length(eachatom(chain)) == 0
-        @test length(eachatom(chain)) == length(eachatom(sys, chain_id = chain.idx))
         @test natoms(chain) == 0
         @test natoms(chain) == natoms(sys, chain_id = chain.idx)
 
@@ -149,8 +136,6 @@
         @test size(atoms_df(chain)) == size(atoms_df(sys, chain_id = chain.idx))
         @test length(atoms(chain)) == 1
         @test atoms(chain) == atoms(sys, chain_id = chain.idx)
-        @test length(eachatom(chain)) == 1
-        @test length(eachatom(chain)) == length(eachatom(sys, chain_id = chain.idx))
         @test natoms(chain) == 1
         @test natoms(chain) == natoms(sys, chain_id = chain.idx)
 
@@ -160,8 +145,6 @@
         @test size(atoms_df(chain)) == size(atoms_df(sys, chain_id = chain.idx))
         @test length(atoms(chain)) == 2
         @test atoms(chain) == atoms(sys, chain_id = chain.idx)
-        @test length(eachatom(chain)) == 2
-        @test length(eachatom(chain)) == length(eachatom(sys, chain_id = chain.idx))
         @test natoms(chain) == 2
         @test natoms(chain) == natoms(sys, chain_id = chain.idx)
 
@@ -171,12 +154,10 @@
         @test size(atoms_df(chain)) == size(atoms_df(sys, chain_id = chain.idx))
         @test length(atoms(chain)) == 3
         @test atoms(chain) == atoms(sys, chain_id = chain.idx)
-        @test length(eachatom(chain)) == 3
-        @test length(eachatom(chain)) == length(eachatom(sys, chain_id = chain.idx))
         @test natoms(chain) == 3
         @test natoms(chain) == natoms(sys, chain_id = chain.idx)
 
-        for atom in eachatom(chain)
+        for atom in atoms(chain)
             @test parent_chain(atom) === chain
         end
         @test parent_chain(frag) === chain
@@ -191,8 +172,6 @@
         @test bonds_df(chain) == bonds_df(sys, chain_id = chain.idx)
         @test length(bonds(chain)) == 0
         @test bonds(chain) == bonds(sys, chain_id = chain.idx)
-        @test length(eachbond(chain)) == 0
-        @test length(eachbond(chain)) == length(eachbond(sys, chain_id = chain.idx))
         @test nbonds(chain) == 0
         @test nbonds(chain) == nbonds(sys, chain_id = chain.idx)
 
@@ -205,8 +184,6 @@
         @test size(bonds_df(chain)) == size(bonds_df(sys, chain_id = chain.idx))
         @test length(bonds(chain)) == 1
         @test bonds(chain) == bonds(sys, chain_id = chain.idx)
-        @test length(eachbond(chain)) == 1
-        @test length(eachbond(chain)) == length(eachbond(sys, chain_id = chain.idx))
         @test nbonds(chain) == 1
         @test nbonds(chain) == nbonds(sys, chain_id = chain.idx)
 
@@ -219,8 +196,6 @@
         @test size(bonds_df(chain)) == size(bonds_df(sys, chain_id = chain.idx))
         @test length(bonds(chain)) == 2
         @test bonds(chain) == bonds(sys, chain_id = chain.idx)
-        @test length(eachbond(chain)) == 2
-        @test length(eachbond(chain)) == length(eachbond(sys, chain_id = chain.idx))
         @test nbonds(chain) == 2
         @test nbonds(chain) == nbonds(sys, chain_id = chain.idx)
 
@@ -233,8 +208,6 @@
         @test size(bonds_df(chain)) == size(bonds_df(sys, chain_id = chain.idx))
         @test length(bonds(chain)) == 3
         @test bonds(chain) == bonds(sys, chain_id = chain.idx)
-        @test length(eachbond(chain)) == 3
-        @test length(eachbond(chain)) == length(eachbond(sys, chain_id = chain.idx))
         @test nbonds(chain) == 3
         @test nbonds(chain) == nbonds(sys, chain_id = chain.idx)
     end

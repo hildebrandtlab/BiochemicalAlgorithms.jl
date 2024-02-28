@@ -165,7 +165,7 @@ end
 
 function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_atom::Bool, atom_nr::Int) where {T<:Real}
     # prevent adding hydrogens to, e.g., aromatic Carboxy group
-    if nbonds(atom) == 1 && first(eachbond(atom)).order == BondOrder.Aromatic
+    if nbonds(atom) == 1 && first(bonds(atom)).order == BondOrder.Aromatic
         return 0, atom_nr
     end
     
@@ -195,7 +195,7 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
     
     # linear compounds
     if (h_to_add == 1 && nr_bonds == 1 && sum_bond_orders > 2)
-        partner_atom = get_partner(first(eachbond(atom)), atom)
+        partner_atom = get_partner(first(bonds(atom)), atom)
     
         diff = normalize(partner_atom.r - atom.r)
     
@@ -224,7 +224,7 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
             return 1+added_h, atom_nr
         else
             # h_to_add == 1
-            bv = atom.r - get_partner(first(eachbond(atom)), atom).r
+            bv = atom.r - get_partner(first(bonds(atom)), atom).r
             axis = _get_normal(bv)
 
             rotation = AngleAxis{T}(deg2rad(106), axis...)
@@ -293,7 +293,7 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
             if (h_to_add == 1)
                 if nbonds(atom) == 3
                     # maybe another Hydrogen was already added?
-                    for bond in eachbond(atom)
+                    for bond in bonds(atom)
                         partner = get_partner(bond, atom)
 
                         if partner.element != Elements.H
@@ -331,8 +331,8 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
         end
 		
         # does the atom have at least one bond that is not a single bond?
-        if any(map(b -> b.order > BondOrder.Single, eachbond(a)))
-            bv = normalize(get_partner(first(eachbond(atom)), atom).r - atom.r)
+        if any(map(b -> b.order > BondOrder.Single, bonds(a)))
+            bv = normalize(get_partner(first(bonds(atom)), atom).r - atom.r)
 
 			# e.g. (C[-H][-H]=O) or (H-N=O)
 			if ((con == 4 && h_to_add == 2) ||
@@ -407,7 +407,7 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
 
 			if (h_to_add == 2)
 				# add second bond
-                bv = normalize(get_partner(first(eachbond(atom)), atom).r - atom.r)
+                bv = normalize(get_partner(first(bonds(atom)), atom).r - atom.r)
 
                 if isnan(bv[1])
                     bv = Vector3{T}(0, 1, 0)

@@ -5,7 +5,6 @@ export
     molecule_by_idx,
     molecules,
     molecules_df,
-    eachmolecule,
     nmolecules,
     parent_molecule
 
@@ -200,15 +199,6 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Returns a `Molecule{T}` generator for all molecules of the given system.
-"""
-@inline function eachmolecule(sys::System{T}) where T
-    (mol for mol in molecules(sys))
-end
-
-"""
-    $(TYPEDSIGNATURES)
-
 Returns the number of molecules in the given system.
 """
 function nmolecules(sys::System)
@@ -220,7 +210,6 @@ end
 =#
 @inline atoms(mol::Molecule; kwargs...) = atoms(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline atoms_df(mol::Molecule; kwargs...) = atoms_df(parent(mol); molecule_id = mol.idx, kwargs...)
-@inline eachatom(mol::Molecule; kwargs...) = eachatom(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline natoms(mol::Molecule; kwargs...) = natoms(parent(mol); molecule_id = mol.idx, kwargs...)
 
 @inline function Base.push!(mol::Molecule{T}, atom::AtomTuple{T}; kwargs...) where T
@@ -233,5 +222,4 @@ end
 =#
 @inline bonds(mol::Molecule; kwargs...) = bonds(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline bonds_df(mol::Molecule; kwargs...) = bonds_df(parent(mol); molecule_id = mol.idx, kwargs...)
-@inline eachbond(mol::Molecule; kwargs...) = eachbond(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline nbonds(mol::Molecule; kwargs...) = nbonds(parent(mol); molecule_id = mol.idx, kwargs...)

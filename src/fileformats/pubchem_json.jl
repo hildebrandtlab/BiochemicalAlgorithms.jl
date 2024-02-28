@@ -1,7 +1,7 @@
 export load_pubchem_json
 
 using BiochemicalAlgorithms: Molecule, AtomTuple, BondTuple, BondOrder, BondOrderType, Bond,
-    Elements, ElementType, Vector3, Properties, System, eachatom, parent_system
+    Elements, ElementType, Vector3, Properties, System, atoms, parent_system
 
 using StructTypes
 using JSON3
@@ -537,7 +537,7 @@ function parse_atoms!(mol::Molecule, compound::PCCompound, T=Float32)
 end
 
 function parse_bonds!(mol::Molecule, compound::PCCompound, T=Float32)
-    aidx = Dict(a.number => a.idx for a in eachatom(parent_system(mol)))
+    aidx = Dict(a.number => a.idx for a in atoms(parent_system(mol)))
     if !isnothing(compound.bonds)
         for i in eachindex(compound.bonds.aid1)
             aid1 = compound.bonds.aid1[i] 

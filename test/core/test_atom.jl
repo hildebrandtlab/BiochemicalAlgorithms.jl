@@ -167,16 +167,6 @@
         @test size(atoms_df(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
             nucleotide_id = 14, residue_id = 15), 1) == 1
 
-        # eachatom
-        @test length(collect(eachatom(sys))) == 1
-        @test first(eachatom(sys)) isa Atom{T}
-        @test length(collect(eachatom(sys, frame_id = 1))) == 1
-        @test length(collect(eachatom(sys, frame_id = 2))) == 0
-        @test length(collect(eachatom(sys, frame_id = 10))) == 2
-        @test length(collect(eachatom(sys, frame_id = nothing))) == 3
-        @test length(collect(eachatom(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
-            nucleotide_id = 14, residue_id = 15))) == 1
-
         # natoms + push!
         @test natoms(sys) isa Int
         @test natoms(sys) == 1
@@ -229,7 +219,6 @@
         # atom bonds
         @test size(bonds_df(atom), 1) == 0
         @test length(bonds(atom)) == 0
-        @test length(collect(eachbond(atom))) == 0
         @test nbonds(atom) == 0
 
         @test push!(sys, BondTuple(
@@ -239,7 +228,6 @@
         )) === sys
         @test size(bonds_df(atom), 1) == 1
         @test length(bonds(atom)) == 1
-        @test length(collect(eachbond(atom))) == 1
         @test nbonds(atom) == 1
 
         @test push!(sys, BondTuple(
@@ -249,7 +237,6 @@
         )) === sys
         @test size(bonds_df(atom), 1) == 2
         @test length(bonds(atom)) == 2
-        @test length(collect(eachbond(atom))) == 2
         @test nbonds(atom) == 2
 
         @test push!(sys, BondTuple(
@@ -259,7 +246,6 @@
         )) === sys
         @test size(bonds_df(atom), 1) == 2
         @test length(bonds(atom)) == 2
-        @test length(collect(eachbond(atom))) == 2
         @test nbonds(atom) == 2
     end
 end

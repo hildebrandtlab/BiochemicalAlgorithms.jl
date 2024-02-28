@@ -40,7 +40,6 @@ atom_by_idx
 atom_by_name
 atoms
 atoms_df
-eachatom
 is_bound_to
 is_geminal
 is_vicinal
@@ -55,7 +54,6 @@ BondTuple
 bond_by_idx
 bonds
 bonds_df
-eachbond
 nbonds
 Base.push!(::System{T}, ::BondTuple) where T
 ```
@@ -64,7 +62,6 @@ Base.push!(::System{T}, ::BondTuple) where T
 ```@docs
 Molecule
 MoleculeTuple
-eachmolecule
 molecule_by_idx
 molecules
 molecules_df
@@ -79,7 +76,6 @@ ChainTuple
 chain_by_idx
 chains
 chains_df
-eachchain
 nchains
 parent_chain
 Base.push!(::Molecule, ::ChainTuple)
@@ -89,7 +85,6 @@ Base.push!(::Molecule, ::ChainTuple)
 ```@docs
 Fragment
 FragmentTuple
-eachfragment
 fragment_by_idx
 fragments
 fragments_df
@@ -102,7 +97,6 @@ Base.push!(::Chain, ::FragmentTuple)
 ```@docs
 Nucleotide
 NucleotideTuple
-eachnucleotide
 nnucleotides
 nucleotide_by_idx
 nucleotides
@@ -114,7 +108,6 @@ parent_nucleotide
 ```@docs
 Residue
 ResidueTuple
-eachresidue
 nresidues
 parent_residue
 residue_by_idx
