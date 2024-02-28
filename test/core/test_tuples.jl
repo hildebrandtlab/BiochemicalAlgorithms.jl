@@ -1,49 +1,51 @@
-@testset "AtomTuple" begin
-    # short ctor
-    at = AtomTuple(1, Elements.H)
-    @test at isa AtomTuple{Float32}
-    @test at.idx == 0
-    @test at.number == 1
-    @test at.element == Elements.H
-    @test at.name == ""
-    @test at.atom_type == ""
-    @test at.r == zeros(Vector3{Float32})
-    @test at.v == zeros(Vector3{Float32})
-    @test at.F == zeros(Vector3{Float32})
-    @test at.formal_charge == 0
-    @test at.charge == zero(Float32)
-    @test at.radius == zero(Float32)
-    @test at.properties == Properties()
-    @test at.flags == Flags()
+@testitem "AtomTuple" begin
+    let
+        # short ctor
+        at = AtomTuple(1, Elements.H)
+        @test at isa AtomTuple{Float32}
+        @test at.idx == 0
+        @test at.number == 1
+        @test at.element == Elements.H
+        @test at.name == ""
+        @test at.atom_type == ""
+        @test at.r == zeros(Vector3{Float32})
+        @test at.v == zeros(Vector3{Float32})
+        @test at.F == zeros(Vector3{Float32})
+        @test at.formal_charge == 0
+        @test at.charge == zero(Float32)
+        @test at.radius == zero(Float32)
+        @test at.properties == Properties()
+        @test at.flags == Flags()
 
-    # full ctor
-    at = AtomTuple(10, Elements.C;
-        idx = 9,
-        name = "something",
-        atom_type = "heavy atom",
-        r = ones(Vector3{Float32}),
-        v = 2 .* ones(Vector3{Float32}),
-        F = 3 .* ones(Vector3{Float32}),
-        formal_charge = 11,
-        charge = Float32(12),
-        radius = Float32(13),
-        properties = Properties(:a => 14),
-        flags = Flags([:A])
-    )
-    @test at isa AtomTuple{Float32}
-    @test at.idx == 9
-    @test at.number == 10
-    @test at.element == Elements.C
-    @test at.name == "something"
-    @test at.atom_type == "heavy atom"
-    @test at.r == ones(Vector3{Float32})
-    @test at.v == 2 .* ones(Vector3{Float32})
-    @test at.F == 3 .* ones(Vector3{Float32})
-    @test at.formal_charge == 11
-    @test at.charge == Float32(12)
-    @test at.radius == Float32(13)
-    @test at.properties == Properties(:a => 14)
-    @test at.flags == Flags([:A])
+        # full ctor
+        at = AtomTuple(10, Elements.C;
+            idx = 9,
+            name = "something",
+            atom_type = "heavy atom",
+            r = ones(Vector3{Float32}),
+            v = 2 .* ones(Vector3{Float32}),
+            F = 3 .* ones(Vector3{Float32}),
+            formal_charge = 11,
+            charge = Float32(12),
+            radius = Float32(13),
+            properties = Properties(:a => 14),
+            flags = Flags([:A])
+        )
+        @test at isa AtomTuple{Float32}
+        @test at.idx == 9
+        @test at.number == 10
+        @test at.element == Elements.C
+        @test at.name == "something"
+        @test at.atom_type == "heavy atom"
+        @test at.r == ones(Vector3{Float32})
+        @test at.v == 2 .* ones(Vector3{Float32})
+        @test at.F == 3 .* ones(Vector3{Float32})
+        @test at.formal_charge == 11
+        @test at.charge == Float32(12)
+        @test at.radius == Float32(13)
+        @test at.properties == Properties(:a => 14)
+        @test at.flags == Flags([:A])
+    end
 
     for T in [Float32, Float64]
         # short ctor
@@ -94,7 +96,7 @@
     end
 end
 
-@testset "BondTuple" begin
+@testitem "BondTuple" begin
     # short ctor
     bt = BondTuple(10, 100, BondOrder.Single)
     @test bt isa BondTuple
@@ -120,7 +122,7 @@ end
     @test bt.flags == Flags([:A])
 end
 
-@testset "MoleculeTuple" begin
+@testitem "MoleculeTuple" begin
     # short ctor
     mt = MoleculeTuple()
     @test mt isa MoleculeTuple
@@ -143,7 +145,7 @@ end
     @test mt.flags == Flags([:A])
 end
 
-@testset "ChainTuple" begin
+@testitem "ChainTuple" begin
     # short ctor
     ct = ChainTuple()
     @test ct isa ChainTuple
@@ -166,7 +168,7 @@ end
     @test ct.flags == Flags([:A])
 end
 
-@testset "FragmentTuple" begin
+@testitem "FragmentTuple" begin
     # short ctor
     ft = FragmentTuple(1)
     @test ft isa FragmentTuple
@@ -192,7 +194,7 @@ end
     @test ft.flags == Flags([:A])
 end
 
-@testset "NucleotideTuple" begin
+@testitem "NucleotideTuple" begin
     # short ctor
     nt = NucleotideTuple(1)
     @test nt isa NucleotideTuple
@@ -217,7 +219,7 @@ end
     @test nt.flags == Flags([:A])
 end
 
-@testset "ResidueTuple" begin
+@testitem "ResidueTuple" begin
     # short ctor
     rt = ResidueTuple(1, AminoAcid('A'))
     @test rt isa ResidueTuple
