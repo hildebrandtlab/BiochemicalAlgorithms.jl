@@ -1,5 +1,74 @@
-export Nucleotide, nucleotide_by_idx, nucleotides, nucleotides_df, eachnucleotide, nnucleotides,
+export
+    Nucleotide,
+    NucleotideTable,
+    nucleotide_by_idx,
+    nucleotides,
+    nucleotides_df,
+    eachnucleotide,
+    nnucleotides,
     parent_nucleotide
+
+@auto_hash_equals struct NucleotideTable{T} <: Tables.AbstractColumns
+    _sys::System{T}
+    _idx::Vector{Int}
+end
+
+@inline _nucleotides(nt::NucleotideTable) = getproperty(getfield(nt, :_sys), :_nucleotides)
+
+@inline Tables.istable(::Type{<: NucleotideTable}) = true
+@inline Tables.columnaccess(::Type{<: NucleotideTable}) = true
+@inline Tables.columns(nt::NucleotideTable) = nt
+
+@inline function Tables.getcolumn(nt::NucleotideTable, nm::Symbol)
+    col = Tables.getcolumn(_nucleotides(nt), nm)
+    RowProjectionVector{eltype(col)}(
+        col,
+        map(idx -> _nucleotides(nt)._idx_map[idx], getfield(nt, :_idx))
+    )
+end
+
+@inline function Base.getproperty(nt::NucleotideTable, nm::Symbol)
+    hasfield(typeof(nt), nm) && return getfield(nt, nm)
+    Tables.getcolumn(nt, nm)
+end
+
+@inline Tables.getcolumn(nt::NucleotideTable, i::Int) = Tables.getcolumn(nt, Tables.columnnames(nt)[i])
+@inline Tables.columnnames(nt::NucleotideTable) = Tables.columnnames(_nucleotides(nt))
+@inline Tables.schema(nt::NucleotideTable) = Tables.schema(_nucleotides(nt))
+
+@inline Base.size(nt::NucleotideTable) = (length(getfield(nt, :_idx)), length(_nucleotide_table_cols))
+@inline Base.size(nt::NucleotideTable, dim) = size(nt)[dim]
+@inline Base.length(nt::NucleotideTable) = size(nt, 1)
+
+function Base.push!(nt::NucleotideTable, t::NucleotideTuple, molecule_id::Int, chain_id::Int)
+    sys = getfield(nt, :_sys)
+    push!(sys._nucleotides, t, molecule_id, chain_id)
+    push!(getfield(nt, :_idx), sys._curr_idx)
+    nt
+end
+
+@inline function _filter_nucleotides(f::Function, sys::System{T}) where T
+    NucleotideTable{T}(sys, collect(Int, _filter_select(
+        TableOperations.filter(f, sys._nucleotides),
+        :idx
+    )))
+end
+
+@inline function Base.filter(f::Function, nt::NucleotideTable)
+    NucleotideTable(getfield(nt, :_sys), collect(Int, _filter_select(
+        TableOperations.filter(f, nt),
+        :idx
+    )))
+end
+
+@inline function Base.iterate(nt::NucleotideTable, st = 1)
+    st > length(nt) ?
+        nothing :
+        (nucleotide_by_idx(getfield(nt, :_sys), getfield(nt, :_idx)[st]), st + 1)
+end
+@inline Base.eltype(::NucleotideTable{T}) where T = Nucleotide{T}
+@inline Base.getindex(nt::NucleotideTable{T}, i::Int) where T = nucleotide_by_idx(getfield(nt, :_sys), getfield(nt, :_idx)[i])
+@inline Base.keys(nt::NucleotideTable) = LinearIndices((length(nt),))
 
 """
     $(TYPEDEF)
@@ -27,7 +96,7 @@ Creates a new `Nucleotide{T}` in the given chain.
 """
 @auto_hash_equals struct Nucleotide{T} <: AbstractAtomContainer{T}
     _sys::System{T}
-    _row::DataFrameRow
+    _row::_NucleotideTableRow
 end
 
 function Nucleotide(
@@ -39,23 +108,27 @@ function Nucleotide(
 ) where T
     sys = parent(chain)
     idx = _next_idx(sys)
-    push!(sys._nucleotides, (idx, number, name, properties, flags, chain._row.molecule_id, chain.idx))
+    push!(sys._nucleotides, NucleotideTuple(number;
+            idx = idx,
+            name = name,
+            properties = properties,
+            flags = flags
+        ), chain._row.molecule_id, chain.idx
+    )
     nucleotide_by_idx(sys, idx)
 end
 
-function Base.getproperty(nuc::Nucleotide, name::Symbol)
-    gp = () -> getproperty(getfield(nuc, :_row), name)
-    name === :idx        && return gp()::Int
-    name === :number     && return gp()::Int
-    name === :name       && return gp()::String
-    name === :properties && return gp()::Properties
-    name === :flags      && return gp()::Flags
-    getfield(nuc, name)
+@inline Tables.rows(nt::NucleotideTable) = nt
+@inline Tables.getcolumn(nuc::Nucleotide, name::Symbol) = Tables.getcolumn(getfield(nuc, :_row), name)
+
+@inline function Base.getproperty(nuc::Nucleotide, name::Symbol)
+    hasfield(typeof(nuc), name) && return getfield(nuc, name)
+    getproperty(getfield(nuc, :_row), name)
 end
 
-function Base.setproperty!(nuc::Nucleotide, name::Symbol, val)
-    in(name, fieldnames(NucleotideTuple)) && return setproperty!(getfield(nuc, :_row), name, val)
-    setfield!(nuc, name, val)
+@inline function Base.setproperty!(nuc::Nucleotide, name::Symbol, val)
+    hasfield(typeof(nuc), name) && return setfield!(nuc, name, val)
+    setproperty!(getfield(nuc, :_row), name, val)
 end
 
 # TODO hide internals
@@ -80,29 +153,24 @@ Returns the `Nucleotide{T}` associated with the given `idx` in `sys`. Throws a `
 nucleotide exists.
 """
 @inline function nucleotide_by_idx(sys::System{T}, idx::Int) where T
-    Nucleotide{T}(sys, DataFrameRow(sys._nucleotides.df, _row_by_idx(sys._nucleotides, idx), :))
+    Nucleotide{T}(sys, _row_by_idx(sys._nucleotides, idx))
 end
 
 """
     $(TYPEDSIGNATURES)
 
-Returns a raw `DataFrame` for all of the given system's nucleotides matching the given criteria. Fields
-given as `nothing` are ignored. The returned `DataFrame` contains all public and private nucleotide fields.
+Returns a `NucleotideTable` for all of the given system's nucleotides matching the given criteria. Fields
+given as `nothing` are ignored. The returned table contains all public and private nucleotide fields.
 """
 function _nucleotides(sys::System{T};
     molecule_id::MaybeInt = nothing,
     chain_id::MaybeInt = nothing
 ) where T
-    isnothing(molecule_id) && isnothing(chain_id) && return sys._nucleotides.df
-
-    cols = Tuple{Symbol, Int}[]
-    isnothing(molecule_id) || push!(cols, (:molecule_id, molecule_id))
-    isnothing(chain_id)    || push!(cols, (:chain_id, chain_id))
-
-    get(
-        groupby(sys._nucleotides.df, getindex.(cols, 1)),
-        ntuple(i -> cols[i][2], length(cols)),
-        DataFrame(_SystemNucleotideTuple[])
+    isnothing(molecule_id) && isnothing(chain_id) && return NucleotideTable{T}(sys, sys._nucleotides.idx)
+    _filter_nucleotides(nuc ->
+        (isnothing(molecule_id) || nuc.molecule_id == something(molecule_id)) &&
+        (isnothing(chain_id)    || nuc.chain_id    == something(chain_id)),
+        sys
     )
 end
 
@@ -112,10 +180,10 @@ end
     nucleotides(::Protein)
     nucleotides(::System)
 
-Returns a `Vector{Nucleotide{T}}` containing all nucleotides of the given atom container.
+Returns a `NucleotideTable{T}` containing all nucleotides of the given atom container.
 """
 @inline function nucleotides(sys::System; kwargs...)
-    collect(eachnucleotide(sys; kwargs...))
+    _nucleotides(sys; kwargs...)
 end
 
 """
@@ -124,10 +192,10 @@ end
     nucleotides_df(::Protein)
     nucleotides_df(::System)
 
-Returns a `SubDataFrame` containing all nucleotides of the given atom container.
+Returns a `DataFrame` containing all nucleotides of the given atom container.
 """
 @inline function nucleotides_df(sys::System; kwargs...)
-    view(_nucleotides(sys; kwargs...), :, 1:length(fieldnames(NucleotideTuple)))
+    DataFrame(_nucleotides(sys; kwargs...))
 end
 
 """
@@ -139,7 +207,7 @@ end
 Returns a `Nucleotide{T}` generator for all nucleotides of the given atom container.
 """
 @inline function eachnucleotide(sys::System{T}; kwargs...) where T
-    (Nucleotide{T}(sys, row) for row in eachrow(_nucleotides(sys; kwargs...)))
+    (nuc for nuc in _nucleotides(sys; kwargs...))
 end
 
 """
@@ -151,7 +219,7 @@ end
 Returns the number of nucleotides in the given atom container.
 """
 @inline function nnucleotides(sys::System; kwargs...)
-    nrow(_nucleotides(sys; kwargs...))
+    length(_nucleotides(sys; kwargs...))
 end
 
 #=

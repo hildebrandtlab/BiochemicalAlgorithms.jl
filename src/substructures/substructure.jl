@@ -53,7 +53,7 @@ function Base.copy(substruct::Substructure{T}) where T
     sys._molecules   = _molecule_table(deepcopy(_molecules(substruct)))
     sys._chains      = _chain_table(deepcopy(_chains(substruct)))
     sys._fragments   = _fragment_table(deepcopy(_fragments(substruct)))
-    sys._nucleotides = IndexedDataFrame(copy(_nucleotides(substruct)))
+    sys._nucleotides = _nucleotide_table(deepcopy(_nucleotides(substruct)))
     sys._residues    = IndexedDataFrame(copy(_residues(substruct)))
 
     sys
@@ -107,9 +107,7 @@ end
 
 @inline function _nucleotides(substruct::Substructure; kwargs...)
     nidx = Set(_filter_select(_atoms(substruct; kwargs...), :nucleotide_id))
-    @rsubset(
-        _nucleotides(substruct.parent), :idx in nidx; view = true
-    )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
+    filter(row -> row.idx in nidx, nucleotides(substruct.parent))
 end
 
 @inline function _residues(substruct::Substructure; kwargs...)

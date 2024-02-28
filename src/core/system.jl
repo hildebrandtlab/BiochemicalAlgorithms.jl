@@ -2,20 +2,6 @@ using AutoHashEquals
 export System, default_system, parent_system
 
 """
-    const _SystemNucleotideTuple{T} = NamedTuple{...}
-
-System-specific extension of `NucleotideTuple{T}`. See [`NucleotideTuple`](@ref).
-
-# Additional fields
- - `molecule_id::Int`
- - `chain_id::Int`
-"""
-const _SystemNucleotideTuple = NamedTuple{
-    (fieldnames(NucleotideTuple)..., :molecule_id, :chain_id),
-    Tuple{fieldtypes(NucleotideTuple)..., Int, Int}
-}
-
-"""
     const _SystemResidueTuple{T} = NamedTuple{...}
 
 System-specific extension of `ResidueTuple{T}`. See [`ResidueTuple`](@ref).
@@ -58,7 +44,7 @@ Creates a new and empty `System{T}`.
     _molecules::_MoleculeTable
     _chains::_ChainTable
     _fragments::_FragmentTable
-    _nucleotides::IndexedDataFrame
+    _nucleotides::_NucleotideTable
     _residues::IndexedDataFrame
     _curr_idx::Int
 
@@ -76,7 +62,7 @@ Creates a new and empty `System{T}`.
             _MoleculeTable(),
             _ChainTable(),
             _FragmentTable(),
-            IndexedDataFrame(_SystemNucleotideTuple[]),
+            _NucleotideTable(),
             IndexedDataFrame(_SystemResidueTuple[]),
             0
         )

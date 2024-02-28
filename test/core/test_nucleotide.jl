@@ -1,5 +1,5 @@
 @testitem "Nucleotide" begin
-    using BiochemicalAlgorithms: _AtomTable, _BondTable, _SystemNucleotideTuple, _nucleotides, _atoms, _bonds
+    using BiochemicalAlgorithms: _AtomTable, _BondTable, _NucleotideTableRow, _atoms, _bonds, _nucleotides
     using DataFrames
 
     for T in [Float32, Float64]
@@ -31,7 +31,7 @@
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(nuc, :_row)) == 7
+        @test length(getfield(nuc, :_row)) == 5
 
         # getproperty
         @test nuc.idx isa Int
@@ -45,22 +45,19 @@
         @test nuc.flags == Flags()
 
         @test nuc._sys isa System{T}
-        @test nuc._row isa DataFrameRow
+        @test nuc._row isa _NucleotideTableRow
         
-        @test_throws ErrorException nuc.molecule_id
-        @test_throws ErrorException nuc.chain_id
-
-        @test nuc._row.molecule_id isa Int
-        @test nuc._row.molecule_id == mol.idx
-        @test nuc._row.chain_id isa Int
-        @test nuc._row.chain_id == chain.idx
+        @test nuc.molecule_id isa Int
+        @test nuc.molecule_id == mol.idx
+        @test nuc.chain_id isa Int
+        @test nuc.chain_id == chain.idx
 
         @test nuc2.number == 1
         @test nuc2.name == "something"
         @test nuc2.properties == Properties(:a => 1)
         @test nuc2.flags == Flags([:A, :B])
-        @test nuc2._row.molecule_id == mol2.idx
-        @test nuc2._row.chain_id == chain2.idx
+        @test nuc2.molecule_id == mol2.idx
+        @test nuc2.chain_id == chain2.idx
 
         # setproperty!
         nuc.number = 0
@@ -75,34 +72,16 @@
         @test length(nuc.flags) == 1
         @test :C in nuc.flags
 
-        @test_throws ErrorException nuc.molecule_id = 0
-        @test_throws ErrorException nuc.chain_id = 0
+        nuc3 = Nucleotide(Chain(Molecule(System{T}())), 1)
+        nuc3.molecule_id = 999
+        @test nuc3.molecule_id == 999
+        nuc3.chain_id = 998
+        @test nuc3.chain_id == 998
 
         # nucleotide_by_idx
         @test_throws KeyError nucleotide_by_idx(sys, -1)
         @test nucleotide_by_idx(sys, nuc.idx) isa Nucleotide{T}
         @test nucleotide_by_idx(sys, nuc.idx) == nuc
-
-        # _nucleotides
-        df = _nucleotides(sys)
-        @test df isa AbstractDataFrame
-        @test size(df) == (2, length(fieldnames(_SystemNucleotideTuple)))
-        @test copy(df[1, 1:length(fieldnames(NucleotideTuple))]) isa NucleotideTuple
-        @test size(_nucleotides(sys), 1) == 2
-        @test size(_nucleotides(sys, molecule_id = -1), 1) == 0
-        @test size(_nucleotides(sys, molecule_id = mol.idx), 1) == 1
-        @test size(_nucleotides(sys, molecule_id = mol2.idx), 1) == 1
-        @test size(_nucleotides(sys, molecule_id = nothing), 1) == 2
-        @test size(_nucleotides(sys, chain_id = -1), 1) == 0
-        @test size(_nucleotides(sys, chain_id = chain.idx), 1) == 1
-        @test size(_nucleotides(sys, chain_id = chain2.idx), 1) == 1
-        @test size(_nucleotides(sys, chain_id = nothing), 1) == 2
-        @test size(_nucleotides(sys, molecule_id = -1, chain_id = chain.idx), 1) == 0
-        @test size(_nucleotides(sys, molecule_id = mol.idx, chain_id = -1), 1) == 0
-        @test size(_nucleotides(sys, molecule_id = mol.idx, chain_id = chain.idx), 1) == 1
-        @test size(_nucleotides(sys, molecule_id = mol.idx, chain_id = nothing), 1) == 1
-        @test size(_nucleotides(sys, molecule_id = nothing, chain_id = chain.idx), 1) == 1
-        @test size(_nucleotides(sys, molecule_id = nothing, chain_id = nothing), 1) == 2
 
         # nucleotides_df
         df = nucleotides_df(sys)
@@ -127,7 +106,7 @@
 
         # nucleotides
         fv = nucleotides(sys)
-        @test fv isa Vector{Nucleotide{T}}
+        @test fv isa NucleotideTable{T}
         @test length(fv) == 2
         @test length(nucleotides(sys)) == 2
         @test length(nucleotides(sys, molecule_id = -1)) == 0
