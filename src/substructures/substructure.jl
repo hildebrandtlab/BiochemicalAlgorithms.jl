@@ -50,11 +50,11 @@ function Base.copy(substruct::Substructure{T}) where T
     sys._atoms = _atom_table(T, deepcopy(substruct._atoms))
     sys._bonds = _bond_table(deepcopy(substruct._bonds))
 
-    sys._molecules   = _molecule_table(deepcopy(_molecules(substruct)))
-    sys._chains      = _chain_table(deepcopy(_chains(substruct)))
-    sys._fragments   = _fragment_table(deepcopy(_fragments(substruct)))
-    sys._nucleotides = _nucleotide_table(deepcopy(_nucleotides(substruct)))
-    sys._residues    = _residue_table(deepcopy(_residues(substruct)))
+    sys._molecules   = _molecule_table(deepcopy(molecules(substruct)))
+    sys._chains      = _chain_table(deepcopy(chains(substruct)))
+    sys._fragments   = _fragment_table(deepcopy(fragments(substruct)))
+    sys._nucleotides = _nucleotide_table(deepcopy(nucleotides(substruct)))
+    sys._residues    = _residue_table(deepcopy(residues(substruct)))
 
     sys
 end
@@ -66,7 +66,7 @@ Returns an `AtomTable` for all of the given system's atoms matching the given cr
 `missing`). Fields given as `nothing` are ignored. The returned table contains all public and
 private atom fields.
 """
-@inline function _atoms(substruct::Substructure{T};
+@inline function atoms(substruct::Substructure{T};
     frame_id::MaybeInt = 1,
     molecule_id::Union{MaybeInt, Some{Nothing}} = nothing,
     chain_id::Union{MaybeInt, Some{Nothing}} = nothing,
@@ -85,86 +85,54 @@ private atom fields.
     )
 end
 
-@inline function _bonds(substruct::Substructure; kwargs...)
-    aidx = Set(_filter_select(_atoms(substruct; kwargs...), :idx))
+@inline function bonds(substruct::Substructure; kwargs...)
+    aidx = Set(_filter_select(atoms(substruct; kwargs...), :idx))
     filter(row -> row.a1 in aidx || row.a2.idx, substruct._bonds)
 end
 
-@inline function _molecules(substruct::Substructure; kwargs...)
-    midx = Set(_filter_select(_atoms(substruct; kwargs...), :molecule_id))
+@inline function molecules(substruct::Substructure; kwargs...)
+    midx = Set(_filter_select(atoms(substruct; kwargs...), :molecule_id))
     filter(row -> row.idx in midx, molecules(substruct.parent))
 end
 
-@inline function _chains(substruct::Substructure; kwargs...)
-    cidx = Set(_filter_select(_atoms(substruct; kwargs...), :chain_id))
+@inline function chains(substruct::Substructure; kwargs...)
+    cidx = Set(_filter_select(atoms(substruct; kwargs...), :chain_id))
     filter(row -> row.idx in cidx, chains(substruct.parent))
 end
 
-@inline function _fragments(substruct::Substructure; kwargs...)
-    fidx = Set(_filter_select(_atoms(substruct; kwargs...), :fragment_id))
+@inline function fragments(substruct::Substructure; kwargs...)
+    fidx = Set(_filter_select(atoms(substruct; kwargs...), :fragment_id))
     filter(row -> row.idx in fidx, fragments(substruct.parent))
 end
 
-@inline function _nucleotides(substruct::Substructure; kwargs...)
-    nidx = Set(_filter_select(_atoms(substruct; kwargs...), :nucleotide_id))
+@inline function nucleotides(substruct::Substructure; kwargs...)
+    nidx = Set(_filter_select(atoms(substruct; kwargs...), :nucleotide_id))
     filter(row -> row.idx in nidx, nucleotides(substruct.parent))
 end
 
-@inline function _residues(substruct::Substructure; kwargs...)
-    ridx = Set(_filter_select(_atoms(substruct; kwargs...), :residue_id))
+@inline function residues(substruct::Substructure; kwargs...)
+    ridx = Set(_filter_select(atoms(substruct; kwargs...), :residue_id))
     filter(row -> row.idx in ridx, residues(substruct.parent))
 end
 
-@inline function eachatom(substruct::Substructure{T}; kwargs...) where T
-    (atom for atom in _atoms(substruct; kwargs...))
-end
-
-@inline function atoms(substruct::Substructure; kwargs...)
-    _atoms(substruct; kwargs...)
-end
-
-@inline function eachbond(substruct::Substructure{T}; kwargs...) where T
-    (bond for bond in _bonds(substruct; kwargs...))
-end
-
-@inline function bonds(substruct::Substructure; kwargs...)
-    _bonds(substruct; kwargs...)
-end
-
-@inline function eachfragment(substruct::Substructure{T}; kwargs...) where T
-    (frag for frag in _fragments(substruct; kwargs...))
-end
-
-@inline function fragments(substruct::Substructure{T}; kwargs...) where T
-    _fragments(substruct; kwargs...)
-end
-
-@inline function eachchain(substruct::Substructure{T}; kwargs...) where T
-    (chain for chain in _chains(substruct; kwargs...))
-end
-
-@inline function chains(substruct::Substructure{T}; kwargs...) where T
-    _chains(substruct; kwargs...)
-end
-
 @inline function atoms_df(ac::Substructure{T}; kwargs...) where {T<:Real}
-    DataFrame(_atoms(ac; kwargs...))
+    DataFrame(atoms(ac; kwargs...))
 end
 
 @inline function bonds_df(ac::Substructure{T}; kwargs...) where {T<:Real}
-    DataFrame(_bonds(ac; kwargs...))
+    DataFrame(bonds(ac; kwargs...))
 end
 
 @inline function natoms(substruct::Substructure; kwargs...)
-    length(_atoms(substruct; kwargs...))
+    length(atoms(substruct; kwargs...))
 end
 
 @inline function nbonds(substruct::Substructure; kwargs...)
-    length(_bonds(substruct; kwargs...))
+    length(bonds(substruct; kwargs...))
 end
 
 @inline function nfragments(substruct::Substructure; kwargs...)
-    length(_fragments(substruct; kwargs...))
+    length(fragments(substruct; kwargs...))
 end
 
 @inline Base.parent(substruct::Substructure) = parent(substruct.parent)
