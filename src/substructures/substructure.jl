@@ -52,7 +52,7 @@ function Base.copy(substruct::Substructure{T}) where T
 
     sys._molecules   = _molecule_table(deepcopy(_molecules(substruct)))
     sys._chains      = _chain_table(deepcopy(_chains(substruct)))
-    sys._fragments   = IndexedDataFrame(copy(_fragments(substruct)))
+    sys._fragments   = _fragment_table(deepcopy(_fragments(substruct)))
     sys._nucleotides = IndexedDataFrame(copy(_nucleotides(substruct)))
     sys._residues    = IndexedDataFrame(copy(_residues(substruct)))
 
@@ -102,9 +102,7 @@ end
 
 @inline function _fragments(substruct::Substructure; kwargs...)
     fidx = Set(_filter_select(_atoms(substruct; kwargs...), :fragment_id))
-    @rsubset(
-        _fragments(substruct.parent), :idx in fidx; view = true
-    )::SubDataFrame{DataFrame, DataFrames.Index, <:AbstractVector{Int}}
+    filter(row -> row.idx in fidx, fragments(substruct.parent))
 end
 
 @inline function _nucleotides(substruct::Substructure; kwargs...)
@@ -138,12 +136,11 @@ end
 end
 
 @inline function eachfragment(substruct::Substructure{T}; kwargs...) where T
-    sys = substruct.parent isa System{T} ? substruct.parent : parent_system(substruct.parent)
-    (Fragment{T}(sys, row) for row in eachrow(_fragments(substruct; kwargs...)))
+    (frag for frag in _fragments(substruct; kwargs...))
 end
 
 @inline function fragments(substruct::Substructure{T}; kwargs...) where T
-    collect(eachfragment(substruct; kwargs...))
+    _fragments(substruct; kwargs...)
 end
 
 @inline function eachchain(substruct::Substructure{T}; kwargs...) where T
@@ -171,7 +168,7 @@ end
 end
 
 @inline function nfragments(substruct::Substructure; kwargs...)
-    nrow(_fragments(substruct; kwargs...))
+    length(_fragments(substruct; kwargs...))
 end
 
 @inline Base.parent(substruct::Substructure) = parent(substruct.parent)

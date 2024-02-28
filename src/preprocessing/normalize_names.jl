@@ -89,7 +89,7 @@ function count_hits_(scheme::DBNameMapping, frag::Fragment{T}) where {T<:Real}
     hits
 end
 
-function count_hits_(scheme::DBNameMapping, frags::AbstractVector{Fragment{T}}) where {T<:Real}
+function count_hits_(scheme::DBNameMapping, frags::FragmentTable{T}) where {T<:Real}
     if length(frags) == 0
         return
     end
@@ -103,7 +103,7 @@ function count_hits_(scheme::DBNameMapping, frags::AbstractVector{Fragment{T}}) 
     hits
 end
 
-function normalize_fragments_!(frags::Vector{Fragment{T}}, mapping::Dict{String, String}) where {T<:Real}
+function normalize_fragments_!(frags::FragmentTable{T}, mapping::Dict{String, String}) where {T<:Real}
     for frag in frags
         res_name = frag.name
         res_name_suffix = get_suffix_(frag)

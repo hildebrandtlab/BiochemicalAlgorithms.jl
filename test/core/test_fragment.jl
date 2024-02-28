@@ -1,5 +1,5 @@
 @testitem "Fragment" begin
-    using BiochemicalAlgorithms: _AtomTable, _BondTable, _SystemFragmentTuple, _fragments, _atoms, _bonds
+    using BiochemicalAlgorithms: _AtomTable, _BondTable, _FragmentTableRow, _atoms, _bonds, _fragments
     using DataFrames
 
     for T in [Float32, Float64]
@@ -31,7 +31,7 @@
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(frag, :_row)) == 7
+        @test length(getfield(frag, :_row)) == 5
 
         # getproperty
         @test frag.idx isa Int
@@ -45,22 +45,19 @@
         @test frag.flags == Flags()
 
         @test frag._sys isa System{T}
-        @test frag._row isa DataFrameRow
+        @test frag._row isa _FragmentTableRow
         
-        @test_throws ErrorException frag.molecule_id
-        @test_throws ErrorException frag.chain_id
-
-        @test frag._row.molecule_id isa Int
-        @test frag._row.molecule_id == mol.idx
-        @test frag._row.chain_id isa Int
-        @test frag._row.chain_id == chain.idx
+        @test frag.molecule_id isa Int
+        @test frag.molecule_id == mol.idx
+        @test frag.chain_id isa Int
+        @test frag.chain_id == chain.idx
 
         @test frag2.number == 1
         @test frag2.name == "something"
         @test frag2.properties == Properties(:a => 1)
         @test frag2.flags == Flags([:A, :B])
-        @test frag2._row.molecule_id == mol2.idx
-        @test frag2._row.chain_id == chain2.idx
+        @test frag2.molecule_id == mol2.idx
+        @test frag2.chain_id == chain2.idx
 
         # setproperty!
         frag.number = 0
@@ -75,34 +72,16 @@
         @test length(frag.flags) == 1
         @test :C in frag.flags
 
-        @test_throws ErrorException frag.molecule_id = 0
-        @test_throws ErrorException frag.chain_id = 0
+        frag3 = Fragment(Chain(Molecule(System{T}())), 1)
+        frag3.molecule_id = 999
+        @test frag3.molecule_id == 999
+        frag3.chain_id = 998
+        @test frag3.chain_id == 998
 
         # fragment_by_idx
         @test_throws KeyError fragment_by_idx(sys, -1)
         @test fragment_by_idx(sys, frag.idx) isa Fragment{T}
         @test fragment_by_idx(sys, frag.idx) == frag
-
-        # _fragments
-        df = _fragments(sys)
-        @test df isa AbstractDataFrame
-        @test size(df) == (2, length(fieldnames(_SystemFragmentTuple)))
-        @test copy(df[1, 1:length(fieldnames(FragmentTuple))]) isa FragmentTuple
-        @test size(_fragments(sys), 1) == 2
-        @test size(_fragments(sys, molecule_id = -1), 1) == 0
-        @test size(_fragments(sys, molecule_id = mol.idx), 1) == 1
-        @test size(_fragments(sys, molecule_id = mol2.idx), 1) == 1
-        @test size(_fragments(sys, molecule_id = nothing), 1) == 2
-        @test size(_fragments(sys, chain_id = -1), 1) == 0
-        @test size(_fragments(sys, chain_id = chain.idx), 1) == 1
-        @test size(_fragments(sys, chain_id = chain2.idx), 1) == 1
-        @test size(_fragments(sys, chain_id = nothing), 1) == 2
-        @test size(_fragments(sys, molecule_id = -1, chain_id = chain.idx), 1) == 0
-        @test size(_fragments(sys, molecule_id = mol.idx, chain_id = -1), 1) == 0
-        @test size(_fragments(sys, molecule_id = mol.idx, chain_id = chain.idx), 1) == 1
-        @test size(_fragments(sys, molecule_id = mol.idx, chain_id = nothing), 1) == 1
-        @test size(_fragments(sys, molecule_id = nothing, chain_id = chain.idx), 1) == 1
-        @test size(_fragments(sys, molecule_id = nothing, chain_id = nothing), 1) == 2
 
         # fragments_df
         df = fragments_df(sys)
@@ -127,7 +106,7 @@
 
         # fragments
         fv = fragments(sys)
-        @test fv isa Vector{Fragment{T}}
+        @test fv isa FragmentTable{T}
         @test length(fv) == 2
         @test length(fragments(sys)) == 2
         @test length(fragments(sys, molecule_id = -1)) == 0

@@ -8,7 +8,6 @@ Pages = ["system.md"]
 ```
 
 ```@docs
-_SystemFragmentTuple
 _SystemNucleotideTuple
 _SystemResidueTuple
 _atoms
