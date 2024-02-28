@@ -98,11 +98,10 @@ function _molgraph_to_atom((i, a)::Tuple{Int, SmilesAtom}, T)
 end
 
 function _molgraph_to_bond((i, (e, b))::Tuple{Int, Tuple{Any, SDFileBond}}, mol)
-    df = atoms_df(mol)
-
+    at = atoms(mol)
     (
-        a1 = df[df.number .== e[1], :idx][1],
-        a2 = df[df.number .== e[2], :idx][1],
+        a1 = only(filter(atom -> atom.number == e[1], at)).idx,
+        a2 = only(filter(atom -> atom.number == e[2], at)).idx,
         order = b.order,
         properties = Properties(
             :notation => b.notation,
@@ -112,11 +111,10 @@ function _molgraph_to_bond((i, (e, b))::Tuple{Int, Tuple{Any, SDFileBond}}, mol)
 end
 
 function _molgraph_to_bond((i, (e, b))::Tuple{Int, Tuple{Any, SmilesBond}}, mol)
-    df = atoms_df(mol)
-
+    at = atoms(mol)
     (
-        a1 = df[df.number .== e[1], :idx][1],
-        a2 = df[df.number .== e[2], :idx][1],
+        a1 = only(filter(atom -> atom.number == e[1], at)).idx,
+        a2 = only(filter(atom -> atom.number == e[2], at)).idx,
         order = b.order,
         properties = Properties(
             :is_aromatic => b.isaromatic,
