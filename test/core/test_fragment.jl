@@ -1,6 +1,4 @@
 @testitem "Fragment" begin
-    using DataFrames
-
     for T in [Float32, Float64]
         sys = System{T}()
         mol = Molecule(sys)
@@ -82,27 +80,6 @@
         @test fragment_by_idx(sys, frag.idx) isa Fragment{T}
         @test fragment_by_idx(sys, frag.idx) == frag
 
-        # fragments_df
-        df = fragments_df(sys)
-        @test df isa AbstractDataFrame
-        @test size(df) == (2, length(fieldnames(FragmentTuple)))
-        @test copy(df[1, :]) isa FragmentTuple
-        @test size(fragments_df(sys), 1) == 2
-        @test size(fragments_df(sys, molecule_id = -1), 1) == 0
-        @test size(fragments_df(sys, molecule_id = mol.idx), 1) == 1
-        @test size(fragments_df(sys, molecule_id = mol2.idx), 1) == 1
-        @test size(fragments_df(sys, molecule_id = nothing), 1) == 2
-        @test size(fragments_df(sys, chain_id = -1), 1) == 0
-        @test size(fragments_df(sys, chain_id = chain.idx), 1) == 1
-        @test size(fragments_df(sys, chain_id = chain2.idx), 1) == 1
-        @test size(fragments_df(sys, chain_id = nothing), 1) == 2
-        @test size(fragments_df(sys, molecule_id = -1, chain_id = chain.idx), 1) == 0
-        @test size(fragments_df(sys, molecule_id = mol.idx, chain_id = -1), 1) == 0
-        @test size(fragments_df(sys, molecule_id = mol.idx, chain_id = chain.idx), 1) == 1
-        @test size(fragments_df(sys, molecule_id = mol.idx, chain_id = nothing), 1) == 1
-        @test size(fragments_df(sys, molecule_id = nothing, chain_id = chain.idx), 1) == 1
-        @test size(fragments_df(sys, molecule_id = nothing, chain_id = nothing), 1) == 2
-
         # fragments
         fv = fragments(sys)
         @test fv isa FragmentTable{T}
@@ -161,55 +138,41 @@
 
         # chain/molecule fragments
         mol3 = Molecule(sys)
-        @test size(fragments_df(mol3), 1) == 0
-        @test fragments_df(mol3) == fragments_df(sys, molecule_id = mol3.idx)
         @test size(fragments(mol3), 1) == 0
         @test fragments(mol3) == fragments(sys, molecule_id = mol3.idx)
         @test nfragments(mol3) == 0
         @test nfragments(mol3) == nfragments(sys, molecule_id = mol3.idx)
 
         chain3 = Chain(mol3)
-        @test size(fragments_df(chain3), 1) == 0
-        @test fragments_df(chain3) == fragments_df(sys, chain_id = chain3.idx)
         @test size(fragments(chain3), 1) == 0
         @test fragments(chain3) == fragments(sys, chain_id = chain3.idx)
         @test nfragments(chain3) == 0
         @test nfragments(chain3) == nfragments(sys, chain_id = chain3.idx)
 
         push!(chain3, FragmentTuple(1))
-        @test size(fragments_df(mol3), 1) == 1
-        @test size(fragments_df(mol3)) == size(fragments_df(sys, molecule_id = mol3.idx))
         @test size(fragments(mol3), 1) == 1
         @test fragments(mol3) == fragments(sys, molecule_id = mol3.idx)
         @test nfragments(mol3) == 1
         @test nfragments(mol3) == nfragments(sys, molecule_id = mol3.idx)
 
-        @test size(fragments_df(chain3), 1) == 1
-        @test size(fragments_df(chain3)) == size(fragments_df(sys, chain_id = chain3.idx))
         @test size(fragments(chain3), 1) == 1
         @test fragments(chain3) == fragments(sys, chain_id = chain3.idx)
         @test nfragments(chain3) == 1
         @test nfragments(chain3) == nfragments(sys, chain_id = chain3.idx)
 
         # fragment atoms
-        @test size(atoms_df(frag), 1) == 0
-        @test atoms_df(frag) == atoms_df(sys, fragment_id = frag.idx)
         @test length(atoms(frag)) == 0
         @test atoms(frag) == atoms(sys, fragment_id = frag.idx)
         @test natoms(frag) == 0
         @test natoms(frag) == natoms(sys, fragment_id = frag.idx)
 
         @test push!(frag, AtomTuple{T}(1, Elements.H)) === frag
-        @test size(atoms_df(frag), 1) == 1
-        @test size(atoms_df(frag)) == size(atoms_df(sys, fragment_id = frag.idx))
         @test length(atoms(frag)) == 1
         @test atoms(frag) == atoms(sys, fragment_id = frag.idx)
         @test natoms(frag) == 1
         @test natoms(frag) == natoms(sys, fragment_id = frag.idx)
 
         # fragment bonds
-        @test size(bonds_df(frag), 1) == 0
-        @test bonds_df(frag) == bonds_df(sys, fragment_id = frag.idx)
         @test length(bonds(frag)) == 0
         @test bonds(frag) == bonds(sys, fragment_id = frag.idx)
         @test nbonds(frag) == 0
@@ -220,8 +183,6 @@
             Atom(frag, 2, Elements.C).idx,
             BondOrder.Single
         )) === frag
-        @test size(bonds_df(frag), 1) == 1
-        @test size(bonds_df(frag)) == size(bonds_df(sys, fragment_id = frag.idx))
         @test length(bonds(frag)) == 1
         @test bonds(frag) == bonds(sys, fragment_id = frag.idx)
         @test nbonds(frag) == 1

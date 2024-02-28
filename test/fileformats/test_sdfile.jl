@@ -36,10 +36,12 @@
 end
     
 @testitem "Writing" begin
+    using DataFrames
+
     function _compare_without_system(m1::AbstractMolecule, m2::AbstractMolecule)
         result =       m1.name == m2.name &&
-                 atoms_df(m1)  == atoms_df(m2) &&
-                 bonds_df(m1)  == bonds_df(m2) &&
+                 DataFrame(atoms(m1))  == DataFrame(atoms(m2)) &&
+                 DataFrame(bonds(m1))  == DataFrame(bonds(m2)) &&
                  m1.properties == m2.properties
     
         result

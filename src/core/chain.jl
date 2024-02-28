@@ -3,7 +3,6 @@ export
     ChainTable,
     chain_by_idx,
     chains,
-    chains_df,
     nchains,
     parent_chain
 
@@ -170,17 +169,6 @@ Any value other than `nothing` limits the result to chains belonging to the mole
 end
 
 """
-    chains_df(::Molecule)
-    chains_df(::Protein)
-    chains_df(::System)
-
-Returns a `DataFrame` containing all chains of the given atom container.
-"""
-@inline function chains_df(sys::System; kwargs...)
-    DataFrame(chains(sys; kwargs...))
-end
-
-"""
     nchains(::Molecule)
     nchains(::Protein)
     nchains(::System)
@@ -195,7 +183,6 @@ end
     Molecule chains
 =#
 @inline chains(mol::Molecule) = chains(parent(mol), molecule_id = mol.idx)
-@inline chains_df(mol::Molecule) = chains_df(parent(mol), molecule_id = mol.idx)
 @inline nchains(mol::Molecule) = nchains(parent(mol), molecule_id = mol.idx)
 
 """
@@ -215,12 +202,10 @@ end
     Chain atoms
 =#
 @inline atoms(chain::Chain; kwargs...) = atoms(parent(chain); chain_id = chain.idx, kwargs...)
-@inline atoms_df(chain::Chain; kwargs...) = atoms_df(parent(chain); chain_id = chain.idx, kwargs...)
 @inline natoms(chain::Chain; kwargs...) = natoms(parent(chain); chain_id = chain.idx, kwargs...)
 
 #=
     Chain bonds
 =#
 @inline bonds(chain::Chain; kwargs...) = bonds(parent(chain); chain_id = chain.idx, kwargs...)
-@inline bonds_df(chain::Chain; kwargs...) = bonds_df(parent(chain); chain_id = chain.idx, kwargs...)
 @inline nbonds(chain::Chain; kwargs...) = nbonds(parent(chain); chain_id = chain.idx, kwargs...)

@@ -3,15 +3,12 @@ export
     BondTable,
     bond_by_idx,
     bonds,
-    bonds_df,
     nbonds,
     get_partner,
     get_partners,
     bond_length,
     non_hydrogen_bonds,
-    hydrogen_bonds,
-    non_hydrogen_bonds_df,
-    hydrogen_bonds_df
+    hydrogen_bonds
 
 @auto_hash_equals struct BondTable{T} <: Tables.AbstractColumns
     _sys::System{T}
@@ -199,25 +196,6 @@ function bonds(sys::System; kwargs...)
 end
 
 """
-    bonds_df(::Chain)
-    bonds_df(::Fragment)
-    bonds_df(::Molecule)
-    bonds_df(::Nucleotide)
-    bonds_df(::Protein)
-    bonds_df(::Residue)
-    bonds_df(::System)
-
-Returns a `DataFrame` containing all bonds of the given atom container where at least one
-associated atom is contained in the same container.
-
-# Supported keyword arguments
-See [`atoms`](@ref)
-"""
-@inline function bonds_df(sys::System; kwargs...)
-    DataFrame(bonds(sys; kwargs...))
-end
-
-"""
     nbonds(::Chain)
     nbonds(::Fragment)
     nbonds(::Molecule)
@@ -269,6 +247,3 @@ end
 
 @inline non_hydrogen_bonds(ac) = filter(b -> !haskey(b.properties, :TYPE__HYDROGEN), bonds(ac))
 @inline hydrogen_bonds(ac) = filter(b -> has_key(b.properties, :TYPE__HYDROGEN), bonds(ac))
-
-@inline non_hydrogen_bonds_df(ac) = filter(b->:TYPE__HYDROGEN ∉ keys(b.properties), bonds_df(ac))
-@inline hydrogen_bonds_df(ac) = filter(b->:TYPE__HYDROGEN ∈ keys(b.properties), bonds_df(ac))

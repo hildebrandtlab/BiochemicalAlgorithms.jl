@@ -1,7 +1,4 @@
 @testitem "Bond" begin
-    using DataFrames
-    using BiochemicalAlgorithms: _BondTableRow
-
     for T in [Float32, Float64]
         sys = System{T}()
         atom1 = Atom(sys, 1, Elements.H)
@@ -50,7 +47,7 @@
         @test bond.flags == Flags()
 
         @test bond._sys isa System{T}
-        @test bond._row isa _BondTableRow
+        @test bond._row isa BiochemicalAlgorithms._BondTableRow
 
         @test bond2.idx isa Int
         @test bond2.a1 isa Int
@@ -83,16 +80,6 @@
         @test_throws KeyError bond_by_idx(sys, -1)
         @test bond_by_idx(sys, bond.idx) isa Bond{T}
         @test bond_by_idx(sys, bond.idx) == bond
-
-        # bonds_df
-        df = bonds_df(sys)
-        @test df isa DataFrame
-        @test size(df) == (2, length(fieldnames(BondTuple)))
-        @test copy(df[1, :]) isa BondTuple
-        @test size(bonds_df(sys, frame_id = 1), 1) == 2
-        @test size(bonds_df(sys, frame_id = 2), 1) == 1
-        @test size(bonds_df(sys, frame_id = 3), 1) == 0
-        @test size(bonds_df(sys, frame_id = nothing), 1) == 3
 
         # bonds
         bv = bonds(sys)

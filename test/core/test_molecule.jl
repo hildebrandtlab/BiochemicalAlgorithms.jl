@@ -1,6 +1,4 @@
 @testitem "Molecule" begin
-    using DataFrames
-
     for T in [Float32, Float64]
         sys = System{T}()
 
@@ -68,16 +66,12 @@
         @test nmolecules(sys) == 2
 
         # molecule atoms
-        @test size(atoms_df(mol), 1) == 0
-        @test atoms_df(mol) == atoms_df(sys, molecule_id = mol.idx)
         @test length(atoms(mol)) == 0
         @test atoms(mol) == atoms(sys, molecule_id = mol.idx)
         @test natoms(mol) == 0
         @test natoms(mol) == natoms(sys, molecule_id = mol.idx)
 
         @test push!(mol, AtomTuple{T}(1, Elements.H)) === mol
-        @test size(atoms_df(mol), 1) == 1
-        @test size(atoms_df(mol)) == size(atoms_df(sys, molecule_id = mol.idx))
         @test length(atoms(mol)) == 1
         @test atoms(mol) == atoms(sys, molecule_id = mol.idx)
         @test natoms(mol) == 1
@@ -89,8 +83,6 @@
         @test parent_molecule(Atom(mol, 2, Elements.C)) === mol
 
         # molecule bonds
-        @test size(bonds_df(mol), 1) == 0
-        @test bonds_df(mol) == bonds_df(sys, molecule_id = mol.idx)
         @test length(bonds(mol)) == 0
         @test bonds(mol) == bonds(sys, molecule_id = mol.idx)
         @test nbonds(mol) == 0
@@ -101,8 +93,6 @@
             Atom(mol, 2, Elements.C).idx,
             BondOrder.Single)
         ) === mol
-        @test size(bonds_df(mol), 1) == 1
-        @test size(bonds_df(mol)) == size(bonds_df(sys, molecule_id = mol.idx))
         @test length(bonds(mol)) == 1
         @test bonds(mol) == bonds(sys, molecule_id = mol.idx)
         @test nbonds(mol) == 1

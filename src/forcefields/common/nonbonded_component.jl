@@ -313,7 +313,7 @@ function setup!(nbc::NonBondedComponent{T}) where {T<:Real}
     ]
 
     # cache the is_bound_to-, geminal-, and vicinal-relationships
-    mg = MetaGraph(non_hydrogen_bonds_df(nbc.ff.system), :a1, :a2)
+    mg = MetaGraph(DataFrame(non_hydrogen_bonds(nbc.ff.system)), :a1, :a2)
 
     nh_0 = Set.(map(v -> mg.vprops[v][:name], vertices(mg)))
 

@@ -1,6 +1,4 @@
 @testitem "Protein" begin
-    using DataFrames
-
     for T in [Float32, Float64]
         sys = System{T}()
 
@@ -58,28 +56,18 @@
         @test protein_by_idx(sys, prot.idx) isa Protein{T}
         @test protein_by_idx(sys, prot.idx) == prot
 
-        # proteins_df
-        df = proteins_df(sys)
-        @test df isa DataFrame
-        @test size(df) == (2, length(fieldnames(ProteinTuple)))
-        @test copy(df[1, :]) isa ProteinTuple
-
         # proteins
         mv = proteins(sys)
         @test mv isa ProteinTable{T}
         @test length(mv) == 2
 
         # protein atoms
-        @test size(atoms_df(prot), 1) == 0
-        @test atoms_df(prot) == atoms_df(sys, molecule_id = prot.idx)
         @test length(atoms(prot)) == 0
         @test atoms(prot) == atoms(sys, molecule_id = prot.idx)
         @test natoms(prot) == 0
         @test natoms(prot) == natoms(sys, molecule_id = prot.idx)
 
         @test push!(prot, AtomTuple{T}(1, Elements.H)) === prot
-        @test size(atoms_df(prot), 1) == 1
-        @test size(atoms_df(prot)) == size(atoms_df(sys, molecule_id = prot.idx))
         @test length(atoms(prot)) == 1
         @test atoms(prot) == atoms(sys, molecule_id = prot.idx)
         @test natoms(prot) == 1
@@ -91,8 +79,6 @@
         @test parent_protein(Atom(prot, 2, Elements.C)) === prot
 
         # protein bonds
-        @test size(bonds_df(prot), 1) == 0
-        @test bonds_df(prot) == bonds_df(sys, molecule_id = prot.idx)
         @test length(bonds(prot)) == 0
         @test bonds(prot) == bonds(sys, molecule_id = prot.idx)
         @test nbonds(prot) == 0
@@ -103,8 +89,6 @@
             Atom(prot, 2, Elements.C).idx,
             BondOrder.Single)
         ) === prot
-        @test size(bonds_df(prot), 1) == 1
-        @test size(bonds_df(prot)) == size(bonds_df(sys, molecule_id = prot.idx))
         @test length(bonds(prot)) == 1
         @test bonds(prot) == bonds(sys, molecule_id = prot.idx)
         @test nbonds(prot) == 1

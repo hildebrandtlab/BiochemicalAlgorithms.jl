@@ -1,8 +1,4 @@
 @testitem "Atom" begin
-    using DataFrames
-
-    using BiochemicalAlgorithms: _AtomTableRow
-
     for T in [Float32, Float64]
         at = AtomTuple{T}(1, Elements.H;
             name = "my fancy atom",
@@ -60,7 +56,7 @@
         @test atom.flags == at.flags
 
         @test atom._sys isa System{T}
-        @test atom._row isa _AtomTableRow{T}
+        @test atom._row isa BiochemicalAlgorithms._AtomTableRow{T}
 
         @test atom.frame_id isa Int
         @test atom.frame_id == 1
@@ -155,18 +151,6 @@
         @test length(atoms(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
             nucleotide_id = 14, residue_id = 15)) == 1
 
-        # atoms_df
-        df = atoms_df(sys)
-        @test df isa DataFrame
-        @test size(df) == (1, length(fieldnames(AtomTuple{T})))
-        @test copy(df[1, :]) isa AtomTuple{T}
-        @test size(atoms_df(sys, frame_id = 1), 1) == 1
-        @test size(atoms_df(sys, frame_id = 2), 1) == 0
-        @test size(atoms_df(sys, frame_id = 10), 1) == 2
-        @test size(atoms_df(sys, frame_id = nothing), 1) == 3
-        @test size(atoms_df(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
-            nucleotide_id = 14, residue_id = 15), 1) == 1
-
         # natoms + push!
         @test natoms(sys) isa Int
         @test natoms(sys) == 1
@@ -217,7 +201,6 @@
         @test is_vicinal(d, a)
 
         # atom bonds
-        @test size(bonds_df(atom), 1) == 0
         @test length(bonds(atom)) == 0
         @test nbonds(atom) == 0
 
@@ -226,7 +209,6 @@
             Atom(sys, 2, Elements.C).idx,
             BondOrder.Single
         )) === sys
-        @test size(bonds_df(atom), 1) == 1
         @test length(bonds(atom)) == 1
         @test nbonds(atom) == 1
 
@@ -235,7 +217,6 @@
             atom.idx,
             BondOrder.Double
         )) === sys
-        @test size(bonds_df(atom), 1) == 2
         @test length(bonds(atom)) == 2
         @test nbonds(atom) == 2
 
@@ -244,7 +225,6 @@
             Atom(sys, 5, Elements.C).idx,
             BondOrder.Double
         )) === sys
-        @test size(bonds_df(atom), 1) == 2
         @test length(bonds(atom)) == 2
         @test nbonds(atom) == 2
     end

@@ -3,7 +3,6 @@ export
     ResidueTable,
     residue_by_idx,
     residues,
-    residues_df,
     nresidues,
     parent_residue
 
@@ -181,18 +180,6 @@ function residues(sys::System{T};
 end
 
 """
-    residues_df(::Chain)
-    residues_df(::Molecule)
-    residues_df(::Protein)
-    residues_df(::System)
-
-Returns a `DataFrame{T}` containing all residues of the given atom container.
-"""
-@inline function residues_df(sys::System; kwargs...)
-    DataFrame(residues(sys; kwargs...))
-end
-
-"""
     nresidues(::Chain)
     nresidues(::Molecule)
     nresidues(::Protein)
@@ -208,14 +195,12 @@ end
     Molecule residues
 =#
 @inline residues(mol::Molecule; kwargs...) = residues(parent(mol); molecule_id = mol.idx, kwargs...)
-@inline residues_df(mol::Molecule; kwargs...) = residues_df(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline nresidues(mol::Molecule; kwargs...) = nresidues(parent(mol); molecule_id = mol.idx, kwargs...)
 
 #=
     Chain residues
 =#
 @inline residues(chain::Chain; kwargs...) = residues(parent(chain); chain_id = chain.idx, kwargs...)
-@inline residues_df(chain::Chain; kwargs...) = residues_df(parent(chain); chain_id = chain.idx, kwargs...)
 @inline nresidues(chain::Chain; kwargs...) = nresidues(parent(chain); chain_id = chain.idx, kwargs...)
 
 """
@@ -238,7 +223,6 @@ end
     Residue atoms
 =#
 @inline atoms(res::Residue; kwargs...) = atoms(parent(res); residue_id = res.idx, kwargs...)
-@inline atoms_df(res::Residue; kwargs...) = atoms_df(parent(res); residue_id = res.idx, kwargs...)
 @inline natoms(res::Residue; kwargs...) = natoms(parent(res); residue_id = res.idx, kwargs...)
 
 @inline function Base.push!(res::Residue{T}, atom::AtomTuple{T}; kwargs...) where T
@@ -251,5 +235,4 @@ end
     Residue bonds
 =#
 @inline bonds(res::Residue; kwargs...) = bonds(parent(res); residue_id = res.idx, kwargs...)
-@inline bonds_df(res::Residue; kwargs...) = bonds_df(parent(res); residue_id = res.idx, kwargs...)
 @inline nbonds(res::Residue; kwargs...) = nbonds(parent(res); residue_id = res.idx, kwargs...)

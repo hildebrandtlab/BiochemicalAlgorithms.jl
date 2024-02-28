@@ -1,6 +1,4 @@
 @testitem "Residue" begin
-    using DataFrames
-
     for T in [Float32, Float64]
         sys = System{T}()
         mol = Molecule(sys)
@@ -82,27 +80,6 @@
         @test residue_by_idx(sys, res.idx) isa Residue{T}
         @test residue_by_idx(sys, res.idx) == res
 
-        # residues_df
-        df = residues_df(sys)
-        @test df isa AbstractDataFrame
-        @test size(df) == (2, length(fieldnames(ResidueTuple)))
-        @test copy(df[1, :]) isa ResidueTuple
-        @test size(residues_df(sys), 1) == 2
-        @test size(residues_df(sys, molecule_id = -1), 1) == 0
-        @test size(residues_df(sys, molecule_id = mol.idx), 1) == 1
-        @test size(residues_df(sys, molecule_id = mol2.idx), 1) == 1
-        @test size(residues_df(sys, molecule_id = nothing), 1) == 2
-        @test size(residues_df(sys, chain_id = -1), 1) == 0
-        @test size(residues_df(sys, chain_id = chain.idx), 1) == 1
-        @test size(residues_df(sys, chain_id = chain2.idx), 1) == 1
-        @test size(residues_df(sys, chain_id = nothing), 1) == 2
-        @test size(residues_df(sys, molecule_id = -1, chain_id = chain.idx), 1) == 0
-        @test size(residues_df(sys, molecule_id = mol.idx, chain_id = -1), 1) == 0
-        @test size(residues_df(sys, molecule_id = mol.idx, chain_id = chain.idx), 1) == 1
-        @test size(residues_df(sys, molecule_id = mol.idx, chain_id = nothing), 1) == 1
-        @test size(residues_df(sys, molecule_id = nothing, chain_id = chain.idx), 1) == 1
-        @test size(residues_df(sys, molecule_id = nothing, chain_id = nothing), 1) == 2
-
         # residues
         fv = residues(sys)
         @test fv isa ResidueTable{T}
@@ -161,55 +138,41 @@
 
         # chain/molecule residues
         mol3 = Molecule(sys)
-        @test size(residues_df(mol3), 1) == 0
-        @test residues_df(mol3) == residues_df(sys, molecule_id = mol3.idx)
         @test size(residues(mol3), 1) == 0
         @test residues(mol3) == residues(sys, molecule_id = mol3.idx)
         @test nresidues(mol3) == 0
         @test nresidues(mol3) == nresidues(sys, molecule_id = mol3.idx)
 
         chain3 = Chain(mol3)
-        @test size(residues_df(chain3), 1) == 0
-        @test residues_df(chain3) == residues_df(sys, chain_id = chain3.idx)
         @test size(residues(chain3), 1) == 0
         @test residues(chain3) == residues(sys, chain_id = chain3.idx)
         @test nresidues(chain3) == 0
         @test nresidues(chain3) == nresidues(sys, chain_id = chain3.idx)
 
         push!(chain3, ResidueTuple(1, AminoAcid('A')))
-        @test size(residues_df(mol3), 1) == 1
-        @test size(residues_df(mol3)) == size(residues_df(sys, molecule_id = mol3.idx))
         @test size(residues(mol3), 1) == 1
         @test residues(mol3) == residues(sys, molecule_id = mol3.idx)
         @test nresidues(mol3) == 1
         @test nresidues(mol3) == nresidues(sys, molecule_id = mol3.idx)
 
-        @test size(residues_df(chain3), 1) == 1
-        @test size(residues_df(chain3)) == size(residues_df(sys, chain_id = chain3.idx))
         @test size(residues(chain3), 1) == 1
         @test residues(chain3) == residues(sys, chain_id = chain3.idx)
         @test nresidues(chain3) == 1
         @test nresidues(chain3) == nresidues(sys, chain_id = chain3.idx)
 
         # residue atoms
-        @test size(atoms_df(res), 1) == 0
-        @test atoms_df(res) == atoms_df(sys, residue_id = res.idx)
         @test length(atoms(res)) == 0
         @test atoms(res) == atoms(sys, residue_id = res.idx)
         @test natoms(res) == 0
         @test natoms(res) == natoms(sys, residue_id = res.idx)
 
         @test push!(res, AtomTuple{T}(1, Elements.H)) === res
-        @test size(atoms_df(res), 1) == 1
-        @test size(atoms_df(res)) == size(atoms_df(sys, residue_id = res.idx))
         @test length(atoms(res)) == 1
         @test atoms(res) == atoms(sys, residue_id = res.idx)
         @test natoms(res) == 1
         @test natoms(res) == natoms(sys, residue_id = res.idx)
 
         # residue bonds
-        @test size(bonds_df(res), 1) == 0
-        @test bonds_df(res) == bonds_df(sys, residue_id = res.idx)
         @test length(bonds(res)) == 0
         @test bonds(res) == bonds(sys, residue_id = res.idx)
         @test nbonds(res) == 0
@@ -220,8 +183,6 @@
             Atom(res, 2, Elements.C).idx,
             BondOrder.Single
         )) === res
-        @test size(bonds_df(res), 1) == 1
-        @test size(bonds_df(res)) == size(bonds_df(sys, residue_id = res.idx))
         @test length(bonds(res)) == 1
         @test bonds(res) == bonds(sys, residue_id = res.idx)
         @test nbonds(res) == 1

@@ -4,7 +4,6 @@ export
     atom_by_idx,
     atom_by_name,
     atoms,
-    atoms_df,
     natoms,
     has_property,
     get_property,
@@ -370,25 +369,6 @@ Any value other than `nothing` limits the results to atoms belonging to the give
 end
 
 """
-    atoms_df(::Chain)
-    atoms_df(::Fragment)
-    atoms_df(::Molecule)
-    atoms_df(::Nucleotide)
-    atoms_df(::Protein)
-    atoms_df(::Residue)
-    atoms_df(::System)
-
-Returns a `DataFrame` containing all atoms of the given atom container.
-
-# Supported keyword arguments
- - `frame_id::MaybeInt = 1`: \
-Any value other than `nothing` limits the result to atoms matching this frame ID.
-"""
-@inline function atoms_df(sys::System{T}; kwargs...) where T
-    DataFrame(atoms(sys; kwargs...))
-end
-
-"""
     natoms(::Chain)
     natoms(::Fragment)
     natoms(::Molecule)
@@ -417,15 +397,6 @@ Returns a `BondTable{T}` containing all bonds of the given atom.
         bond -> bond.a1 == atom.idx || bond.a2 == atom.idx,
         parent(atom)
     )
-end
-
-"""
-    bonds_df(::Atom)
-
-Returns a `SubDataFrame` containing all bonds of the given atom.
-"""
-@inline function bonds_df(atom::Atom)
-    DataFrame(bonds(atom))
 end
 
 """

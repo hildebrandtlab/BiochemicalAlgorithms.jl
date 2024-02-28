@@ -3,7 +3,6 @@ export
     FragmentTable,
     fragment_by_idx,
     fragments,
-    fragments_df,
     get_full_name,
     get_previous,
     get_next,
@@ -191,18 +190,6 @@ function fragments(sys::System{T};
 end
 
 """
-    fragments_df(::Chain)
-    fragments_df(::Molecule)
-    fragments_df(::Protein)
-    fragments_df(::System)
-
-Returns a `DataFrame` containing all fragments of the given atom container.
-"""
-@inline function fragments_df(sys::System; kwargs...)
-    DataFrame(fragments(sys; kwargs...))
-end
-
-"""
     nfragments(::Chain)
     nfragments(::Molecule)
     nfragments(::Protein)
@@ -218,14 +205,12 @@ end
     Molecule fragments
 =#
 @inline fragments(mol::Molecule; kwargs...) = fragments(parent(mol); molecule_id = mol.idx, kwargs...)
-@inline fragments_df(mol::Molecule; kwargs...) = fragments_df(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline nfragments(mol::Molecule; kwargs...) = nfragments(parent(mol); molecule_id = mol.idx, kwargs...)
 
 #=
     Chain fragments
 =#
 @inline fragments(chain::Chain; kwargs...) = fragments(parent(chain); chain_id = chain.idx, kwargs...)
-@inline fragments_df(chain::Chain; kwargs...) = fragments_df(parent(chain); chain_id = chain.idx, kwargs...)
 @inline nfragments(chain::Chain; kwargs...) = nfragments(parent(chain); chain_id = chain.idx, kwargs...)
 
 """
@@ -248,7 +233,6 @@ end
     Fragment atoms
 =#
 @inline atoms(frag::Fragment; kwargs...) = atoms(parent(frag); fragment_id = frag.idx, kwargs...)
-@inline atoms_df(frag::Fragment; kwargs...) = atoms_df(parent(frag); fragment_id = frag.idx, kwargs...)
 @inline natoms(frag::Fragment; kwargs...) = natoms(parent(frag); fragment_id = frag.idx, kwargs...)
 
 @inline function Base.push!(frag::Fragment{T}, atom::AtomTuple{T}; kwargs...) where T
@@ -261,7 +245,6 @@ end
     Fragment bonds
 =#
 @inline bonds(frag::Fragment; kwargs...) = bonds(parent(frag); fragment_id = frag.idx, kwargs...)
-@inline bonds_df(frag::Fragment; kwargs...) = bonds_df(parent(frag); fragment_id = frag.idx, kwargs...)
 @inline nbonds(frag::Fragment; kwargs...) = nbonds(parent(frag); fragment_id = frag.idx, kwargs...)
 
 @inline function is_amino_acid(frag::Fragment)
