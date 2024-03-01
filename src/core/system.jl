@@ -97,7 +97,6 @@ Base.show(io::IO, sys::System) = print(io,
     parent(::Fragment)
     parent(::Molecule)
     parent(::Nucleotide)
-    parent(::Protein)
     parent(::Residue)
     parent(::System)
 
@@ -112,7 +111,6 @@ Base.parent(s::System) = s
     parent_system(::Fragment)
     parent_system(::Molecule)
     parent_system(::Nucleotide)
-    parent_system(::Protein)
     parent_system(::Residue)
     parent_system(::System)
 

@@ -147,7 +147,6 @@ end
 """
     nucleotides(::Chain)
     nucleotides(::Molecule)
-    nucleotides(::Protein)
     nucleotides(::System)
 
 Returns a `NucleotideTable{T}` containing all nucleotides of the given atom container.
@@ -173,7 +172,6 @@ end
 """
     nnucleotides(::Chain)
     nnucleotides(::Molecule)
-    nnucleotides(::Protein)
     nnucleotides(::System)
 
 Returns the number of nucleotides in the given atom container.

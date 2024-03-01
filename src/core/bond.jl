@@ -173,7 +173,6 @@ end
     bonds(::Fragment)
     bonds(::Molecule)
     bonds(::Nucleotide)
-    bonds(::Protein)
     bonds(::Residue)
     bonds(::System)
 
@@ -197,7 +196,6 @@ end
     nbonds(::Fragment)
     nbonds(::Molecule)
     nbonds(::Nucleotide)
-    nbonds(::Protein)
     nbonds(::Residue)
     nbonds(::System)
 

@@ -148,7 +148,6 @@ end
 """
     residues(::Chain)
     residues(::Molecule)
-    residues(::Protein)
     residues(::System)
 
 Returns a `ResidueTable{T}` containing all residues of the given atom container.
@@ -174,7 +173,6 @@ end
 """
     nresidues(::Chain)
     nresidues(::Molecule)
-    nresidues(::Protein)
     nresidues(::System)
 
 Returns the number of residues in the given atom container.

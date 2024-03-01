@@ -139,7 +139,6 @@ end
 
 """
     chains(::Molecule)
-    chains(::Protein)
     chains(::System)
 
 Returns a `ChainTable{T}` containing all chains of the given atom container.
@@ -155,7 +154,6 @@ end
 
 """
     nchains(::Molecule)
-    nchains(::Protein)
     nchains(::System)
 
 Returns the number of chains in the given atom container.
@@ -172,7 +170,6 @@ end
 
 """
     push!(::Molecule{T}, chain::Chain{T})
-    push!(::Protein{T}, chain::Chain{T})
 
 Creates a copy of the given chain in the given molecule. The new chain is automatically assigned a
 new `idx`.

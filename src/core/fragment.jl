@@ -156,7 +156,6 @@ end
 """
     fragments(::Chain)
     fragments(::Molecule)
-    fragments(::Protein)
     fragments(::System)
 
 Returns a `FragmentTable{T}` containing all fragments of the given atom container.
@@ -182,7 +181,6 @@ end
 """
     nfragments(::Chain)
     nfragments(::Molecule)
-    nfragments(::Protein)
     nfragments(::System)
 
 Returns the number of fragments in the given atom container.

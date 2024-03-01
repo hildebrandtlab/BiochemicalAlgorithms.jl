@@ -230,7 +230,6 @@ end
     atoms(::Fragment)
     atoms(::Molecule)
     atoms(::Nucleotide)
-    atoms(::Protein)
     atoms(::Residue)
     atoms(::System)
 
@@ -274,7 +273,6 @@ end
     natoms(::Fragment)
     natoms(::Molecule)
     natoms(::Nucleotide)
-    natoms(::Protein)
     natoms(::Residue)
     natoms(::System)
 
@@ -313,7 +311,6 @@ end
     push!(::Fragment{T}, atom::Atom{T})
     push!(::Molecule{T}, atom::Atom{T})
     push!(::Nucleotide{T}, atom::Atom{T})
-    push!(::Protein{T}, atom::Atom{T})
     push!(::Residue{T}, atom::Atom{T})
     push!(::System{T}, atom::Atom{T})
 
