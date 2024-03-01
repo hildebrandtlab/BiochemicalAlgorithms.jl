@@ -1,4 +1,44 @@
-const _atom_table_cols = fieldnames(AtomTuple)
+@auto_hash_equals struct _Atom{T <: Real}
+    idx::Int
+    number::Int
+    element::ElementType
+    name::String
+    atom_type::String
+    r::Vector3{T}
+    v::Vector3{T}
+    F::Vector3{T}
+    formal_charge::Int
+    charge::T
+    radius::T
+    properties::Properties
+    flags::Flags
+
+    function _Atom{T}(
+        number::Int,
+        element::ElementType;
+        idx::Int = 0,
+        name::String = "",
+        atom_type::String = "",
+        r::Vector3{T} = Vector3{T}(0, 0, 0),
+        v::Vector3{T} = Vector3{T}(0, 0, 0),
+        F::Vector3{T} = Vector3{T}(0, 0, 0),
+        formal_charge::Int = 0,
+        charge::T = zero(T),
+        radius::T = zero(T),
+        properties::Properties = Properties(),
+        flags::Flags = Flags()
+    ) where T
+        new(idx, number, element, name, atom_type, r, v, F, formal_charge, charge, radius, properties, flags)
+    end
+end
+
+@inline _Atom(
+    number::Int,
+    element::ElementType;
+    kwargs...
+) = _Atom{Float32}(number, element; kwargs...)
+
+const _atom_table_cols = fieldnames(_Atom)
 const _atom_table_cols_set = Set(_atom_table_cols)
 const _atom_table_cols_priv = Set([:frame_id, :molecule_id, :chain_id, :fragment_id, :nucleotide_id, :residue_id])
 
@@ -67,13 +107,13 @@ end
 
 @inline Tables.getcolumn(at::_AtomTable, i::Int) = getfield(at, Tables.columnnames(at)[i])
 @inline Tables.columnnames(::_AtomTable) = _atom_table_cols
-@inline Tables.schema(::_AtomTable{T}) where T = Tables.Schema(fieldnames(AtomTuple{T}), fieldtypes(AtomTuple{T}))
+@inline Tables.schema(::_AtomTable{T}) where T = Tables.Schema(fieldnames(_Atom{T}), fieldtypes(_Atom{T}))
 
 @inline Base.size(at::_AtomTable) = (length(at.idx), length(_atom_table_cols))
 @inline Base.size(at::_AtomTable, dim) = size(at)[dim]
 @inline Base.length(at::_AtomTable) = size(at, 1)
 
-function Base.push!(at::_AtomTable{T}, t::AtomTuple{T};
+function Base.push!(at::_AtomTable{T}, t::_Atom{T};
     frame_id::Int = 1,
     molecule_id::MaybeInt = nothing,
     chain_id::MaybeInt = nothing,
@@ -97,7 +137,7 @@ end
 function _atom_table(::Type{T}, itr) where T
     at = _AtomTable{T}()
     for a in itr
-        push!(at, AtomTuple{T}(a.number, a.element;
+        push!(at, _Atom{T}(a.number, a.element;
                 idx = a.idx,
                 name = a.name,
                 atom_type = a.atom_type,

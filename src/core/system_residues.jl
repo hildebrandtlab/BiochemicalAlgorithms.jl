@@ -1,4 +1,22 @@
-const _residue_table_cols = fieldnames(ResidueTuple)
+@auto_hash_equals struct _Residue
+    idx::Int
+    number::Int
+    type::AminoAcid
+    properties::Properties
+    flags::Flags
+
+    function _Residue(
+        number::Int,
+        type::AminoAcid;
+        idx::Int = 0,
+        properties::Properties = Properties(),
+        flags::Flags = Flags()
+    )
+        new(idx, number, type, properties, flags)
+    end
+end
+
+const _residue_table_cols = fieldnames(_Residue)
 const _residue_table_cols_set = Set(_residue_table_cols)
 const _residue_table_cols_priv = Set([:molecule_id, :chain_id])
 
@@ -43,13 +61,13 @@ end
 
 @inline Tables.getcolumn(rt::_ResidueTable, i::Int) = getfield(rt, Tables.columnnames(rt)[i])
 @inline Tables.columnnames(::_ResidueTable) = _residue_table_cols
-@inline Tables.schema(::_ResidueTable) = Tables.Schema(fieldnames(ResidueTuple), fieldtypes(ResidueTuple))
+@inline Tables.schema(::_ResidueTable) = Tables.Schema(fieldnames(_Residue), fieldtypes(_Residue))
 
 @inline Base.size(rt::_ResidueTable) = (length(rt.idx), length(_residue_table_cols))
 @inline Base.size(rt::_ResidueTable, dim) = size(rt)[dim]
 @inline Base.length(rt::_ResidueTable) = size(rt, 1)
 
-function Base.push!(rt::_ResidueTable, t::ResidueTuple, molecule_id::Int, chain_id::Int)
+function Base.push!(rt::_ResidueTable, t::_Residue, molecule_id::Int, chain_id::Int)
     getfield(rt, :_idx_map)[t.idx] = length(rt.idx) + 1
     for fn in _residue_table_cols
         push!(getfield(rt, Symbol(fn)), getfield(t, Symbol(fn)))
@@ -62,7 +80,7 @@ end
 function _residue_table(itr)
     rt = _ResidueTable()
     for r in itr
-        push!(rt, ResidueTuple(r.number, r.type;
+        push!(rt, _Residue(r.number, r.type;
                 idx = r.idx,
                 properties = r.properties,
                 flags = r.flags

@@ -1,4 +1,20 @@
-const _molecule_table_cols = fieldnames(MoleculeTuple)
+@auto_hash_equals struct _Molecule
+    idx::Int
+    name::String
+    properties::Properties
+    flags::Flags
+
+    function _Molecule(;
+        idx::Int = 0,
+        name::String = "",
+        properties::Properties = Properties(),
+        flags::Flags = Flags()
+    )
+        new(idx, name, properties, flags)
+    end
+end
+
+const _molecule_table_cols = fieldnames(_Molecule)
 const _molecule_table_cols_set = Set(_molecule_table_cols)
 
 @auto_hash_equals struct _MoleculeTable <: Tables.AbstractColumns
@@ -32,13 +48,13 @@ end
 
 @inline Tables.getcolumn(mt::_MoleculeTable, i::Int) = getfield(mt, Tables.columnnames(mt)[i])
 @inline Tables.columnnames(::_MoleculeTable) = _molecule_table_cols
-@inline Tables.schema(::_MoleculeTable) = Tables.Schema(fieldnames(MoleculeTuple), fieldtypes(MoleculeTuple))
+@inline Tables.schema(::_MoleculeTable) = Tables.Schema(fieldnames(_Molecule), fieldtypes(_Molecule))
 
 @inline Base.size(mt::_MoleculeTable) = (length(mt.idx), length(_molecule_table_cols))
 @inline Base.size(mt::_MoleculeTable, dim) = size(mt)[dim]
 @inline Base.length(mt::_MoleculeTable) = size(mt, 1)
 
-function Base.push!(mt::_MoleculeTable, t::MoleculeTuple)
+function Base.push!(mt::_MoleculeTable, t::_Molecule)
     getfield(mt, :_idx_map)[t.idx] = length(mt.idx) + 1
     for fn in _molecule_table_cols
         push!(getfield(mt, Symbol(fn)), getfield(t, Symbol(fn)))
@@ -49,7 +65,7 @@ end
 function _molecule_table(itr)
     mt = _MoleculeTable()
     for m in itr
-        push!(mt, MoleculeTuple(
+        push!(mt, _Molecule(;
             idx = m.idx,
             name = m.name,
             properties = m.properties,

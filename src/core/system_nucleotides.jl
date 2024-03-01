@@ -1,4 +1,22 @@
-const _nucleotide_table_cols = fieldnames(NucleotideTuple)
+@auto_hash_equals struct _Nucleotide
+    idx::Int
+    number::Int
+    name::String
+    properties::Properties
+    flags::Flags
+
+    function _Nucleotide(
+        number::Int;
+        idx::Int = 0,
+        name::String = "",
+        properties::Properties = Properties(),
+        flags::Flags = Flags()
+    )
+        new(idx, number, name, properties, flags)
+    end
+end
+
+const _nucleotide_table_cols = fieldnames(_Nucleotide)
 const _nucleotide_table_cols_set = Set(_nucleotide_table_cols)
 const _nucleotide_table_cols_priv = Set([:molecule_id, :chain_id])
 
@@ -43,13 +61,13 @@ end
 
 @inline Tables.getcolumn(nt::_NucleotideTable, i::Int) = getfield(nt, Tables.columnnames(nt)[i])
 @inline Tables.columnnames(::_NucleotideTable) = _nucleotide_table_cols
-@inline Tables.schema(::_NucleotideTable) = Tables.Schema(fieldnames(NucleotideTuple), fieldtypes(NucleotideTuple))
+@inline Tables.schema(::_NucleotideTable) = Tables.Schema(fieldnames(_Nucleotide), fieldtypes(_Nucleotide))
 
 @inline Base.size(nt::_NucleotideTable) = (length(nt.idx), length(_nucleotide_table_cols))
 @inline Base.size(nt::_NucleotideTable, dim) = size(nt)[dim]
 @inline Base.length(nt::_NucleotideTable) = size(nt, 1)
 
-function Base.push!(nt::_NucleotideTable, t::NucleotideTuple, molecule_id::Int, chain_id::Int)
+function Base.push!(nt::_NucleotideTable, t::_Nucleotide, molecule_id::Int, chain_id::Int)
     getfield(nt, :_idx_map)[t.idx] = length(nt.idx) + 1
     for fn in _nucleotide_table_cols
         push!(getfield(nt, Symbol(fn)), getfield(t, Symbol(fn)))
@@ -62,7 +80,7 @@ end
 function _nucleotide_table(itr)
     nt = _NucleotideTable()
     for n in itr
-        push!(nt, NucleotideTuple(n.number;
+        push!(nt, _Nucleotide(n.number;
                 idx = n.idx,
                 name = n.name,
                 properties = n.properties,

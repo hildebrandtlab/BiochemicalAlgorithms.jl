@@ -1,6 +1,6 @@
 @testitem "Atom" begin
     for T in [Float32, Float64]
-        at = AtomTuple{T}(1, Elements.H;
+        at = BiochemicalAlgorithms._Atom{T}(1, Elements.H;
             name = "my fancy atom",
             atom_type = "heavy",
             r = Vector3{T}(1, 2, 4),
@@ -12,15 +12,36 @@
         sys = System{T}()
 
         # constructors + parent
-        atom = Atom(sys, at)
+        atom = Atom(sys, at.number, at.element;
+            name = at.name,
+            atom_type = at.atom_type,
+            r = at.r,
+            v = at.v,
+            formal_charge = at.formal_charge,
+            charge = at.charge,
+            radius = at.radius
+        )
         @test atom isa Atom{T}
         @test parent(atom) === sys
         @test parent_system(atom) === sys
-        T == Float32 && @test parent(Atom(at)) === default_system()
-        T == Float32 && @test parent_system(Atom(at)) === default_system()
+        T == Float32 && @test parent(Atom(at.number, at.element)) === default_system()
+        T == Float32 && @test parent_system(Atom(at.number, at.element)) === default_system()
 
-        atom2 = Atom(sys, at, frame_id = 10, molecule_id = 11, chain_id = 12, fragment_id = 13, 
-            nucleotide_id = 14, residue_id = 15)
+        atom2 = Atom(sys, at.number, at.element;
+            name = at.name,
+            atom_type = at.atom_type,
+            r = at.r,
+            v = at.v,
+            formal_charge = at.formal_charge,
+            charge = at.charge,
+            radius = at.radius,
+            frame_id = 10,
+            molecule_id = 11,
+            chain_id = 12,
+            fragment_id = 13,
+            nucleotide_id = 14,
+            residue_id = 15
+        )
 
         #=
             Make sure we test for the correct number of fields.
@@ -109,7 +130,7 @@
         @test :A in atom.flags
         @test :B in atom.flags
 
-        atom3 = Atom(System{T}(), at.number, at.element, at.name; frame_id = 10)
+        atom3 = Atom(System{T}(), at.number, at.element; name = at.name, frame_id = 10)
         atom3.frame_id = 999
         @test atom3.frame_id == 999
         atom3.molecule_id = 998
@@ -137,7 +158,7 @@
         @test isnothing(atom_by_name(sys, atom2.name))
         @test atom_by_name(sys, atom2.name; frame_id = 10) == atom2
         mol = Molecule(sys)
-        atom3 = Atom(mol, at.number, at.element, at.name; frame_id = 10)
+        atom3 = Atom(mol, at.number, at.element; name = at.name, frame_id = 10)
         @test atom_by_name(mol, atom3.name; frame_id = 10) == atom3
 
         # atoms
@@ -161,17 +182,17 @@
         @test natoms(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
             nucleotide_id = 14, residue_id = 15) == 1
 
-        @test push!(sys, at) === sys
+        @test push!(sys, atom) === sys
         @test natoms(sys) == 2
-        @test push!(sys, at, frame_id = 100, molecule_id = 101, chain_id = 102, fragment_id = 103, 
+        @test push!(sys, atom, frame_id = 100, molecule_id = 101, chain_id = 102, fragment_id = 103, 
             nucleotide_id = 104, residue_id = 105) === sys
         @test natoms(sys) == 2
         @test natoms(sys, frame_id = 100) == 1
 
         # test is_geminal, is_vicinal
-        a = Atom(sys, at)
-        b = Atom(sys, at)
-        c = Atom(sys, at)
+        a = Atom(sys, at.number, at.element)
+        b = Atom(sys, at.number, at.element)
+        c = Atom(sys, at.number, at.element)
 
         @test !is_geminal(a, a)
         @test !is_geminal(a, b)
@@ -183,10 +204,10 @@
         @test is_geminal(a, c)
         @test is_geminal(c, a)
 
-        a = Atom(sys, at)
-        b = Atom(sys, at)
-        c = Atom(sys, at)
-        d = Atom(sys, at)
+        a = Atom(sys, at.number, at.element)
+        b = Atom(sys, at.number, at.element)
+        c = Atom(sys, at.number, at.element)
+        d = Atom(sys, at.number, at.element)
 
         @test !is_vicinal(a, a)
         @test !is_vicinal(a, b)
@@ -204,7 +225,8 @@
         @test length(bonds(atom)) == 0
         @test nbonds(atom) == 0
 
-        @test push!(sys, BondTuple(
+        @test parent(Bond(
+            sys,
             atom.idx,
             Atom(sys, 2, Elements.C).idx,
             BondOrder.Single
@@ -212,7 +234,8 @@
         @test length(bonds(atom)) == 1
         @test nbonds(atom) == 1
 
-        @test push!(sys, BondTuple(
+        @test parent(Bond(
+            sys,
             Atom(sys, 3, Elements.C).idx,
             atom.idx,
             BondOrder.Double
@@ -220,7 +243,8 @@
         @test length(bonds(atom)) == 2
         @test nbonds(atom) == 2
 
-        @test push!(sys, BondTuple(
+        @test parent(Bond(
+            sys,
             Atom(sys, 4, Elements.C).idx,
             Atom(sys, 5, Elements.C).idx,
             BondOrder.Double

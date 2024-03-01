@@ -45,13 +45,6 @@ end
 @inline Base.size(at::AtomTable, dim) = size(at)[dim]
 @inline Base.length(at::AtomTable) = size(at, 1)
 
-function Base.push!(at::AtomTable{T}, t::AtomTuple{T}; kwargs...) where T
-    sys = getfield(at, :_sys)
-    push!(sys, t; kwargs...)
-    push!(getfield(at, :_idx), sys._curr_idx)
-    at
-end
-
 @inline function _filter_atoms(f::Function, sys::System{T}) where T
     AtomTable(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._atoms),
@@ -115,75 +108,26 @@ Atom(
 )
 ```
 Creates a new `Atom{Float32}` in the default system.
-
-```julia
-Atom(
-    ac::AbstractAtomContainer{T},
-    number::Int,
-    element::ElementType,
-    name::String = "",
-    atom_type::String = "",
-    r::Vector3{T} = Vector3{T}(0, 0, 0),
-    v::Vector3{T} = Vector3{T}(0, 0, 0),
-    F::Vector3{T} = Vector3{T}(0, 0, 0),
-    formal_charge::Int = 0,
-    charge::T = zero(T),
-    radius::T = zero(T),
-    properties::Properties = Properties(),
-    flags::Flags = Flags();
-    # keyword arguments
-    frame_id::Int = 1
-)
-```
-Creates a new `Atom{T}` in the given atom container (e.g., `System{T}` or `Molecule{T}`).
-
-    Atom(a::AtomTuple{T}; frame_id::Int = 1)
-    Atom(sys::System{T}, a::AtomTuple{T}; frame_id::Int = 1)
-
-Constructor variants that create a new system atom based on the given `AtomTuple{T}`. The new atom
-is automatically assigned a new `idx`.
 """
 @auto_hash_equals struct Atom{T} <: AbstractSystemComponent{T}
     _sys::System{T}
     _row::_AtomTableRow{T}
 end
 
-function Atom(
+@inline function Atom(
     sys::System{T},
     number::Int,
-    element::ElementType,
-    name::String = "",
-    atom_type::String = "",
-    r::Vector3{T} = Vector3{T}(0, 0, 0),
-    v::Vector3{T} = Vector3{T}(0, 0, 0),
-    F::Vector3{T} = Vector3{T}(0, 0, 0),
-    formal_charge::Int = 0,
-    charge::T = zero(T),
-    radius::T = zero(T),
-    properties::Properties = Properties(),
-    flags::Flags = Flags();
+    element::ElementType;
     frame_id::Int = 1,
-    # private kwargs
     molecule_id::MaybeInt = nothing,
     chain_id::MaybeInt = nothing,
     fragment_id::MaybeInt = nothing,
     nucleotide_id::MaybeInt = nothing,
-    residue_id::MaybeInt = nothing
+    residue_id::MaybeInt = nothing,
+    kwargs...
 ) where T
     idx = _next_idx(sys)
-    push!(sys._atoms, AtomTuple{T}(number, element;
-            idx = idx,
-            name = name,
-            atom_type = atom_type,
-            r = r,
-            v = v,
-            F = F,
-            formal_charge = formal_charge,
-            charge = charge,
-            radius = radius,
-            properties = properties,
-            flags = flags
-        );
+    push!(sys._atoms, _Atom{T}(number, element; idx = idx, kwargs...);
         frame_id = frame_id,
         molecule_id = molecule_id,
         chain_id = chain_id,
@@ -191,58 +135,15 @@ function Atom(
         nucleotide_id = nucleotide_id,
         residue_id = residue_id
     )
-    atom_by_idx(sys, idx)::Atom{T}
+    atom_by_idx(sys, idx)
 end
 
-function Atom(
-    ac::AbstractAtomContainer{T},
+@inline function Atom(
     number::Int,
-    element::ElementType,
-    name::String = "",
-    atom_type::String = "",
-    r::Vector3{T} = Vector3{T}(0, 0, 0),
-    v::Vector3{T} = Vector3{T}(0, 0, 0),
-    F::Vector3{T} = Vector3{T}(0, 0, 0),
-    formal_charge::Int = 0,
-    charge::T = zero(T),
-    radius::T = zero(T),
-    properties::Properties = Properties(),
-    flags::Flags = Flags();
-    frame_id::Int = 1
-) where T
-    push!(ac, 
-         (idx=0, number=number, element=element, name=name, 
-          atom_type=atom_type, r=r, v=v, F=F, formal_charge=formal_charge, 
-          charge=charge, radius=radius, properties=properties, flags=flags)::AtomTuple{T};
-          frame_id=frame_id)
-    atom_by_idx(ac._sys, ac._sys._curr_idx)::Atom{T}
-end
-
-function Atom(
-    number::Int,
-    element::ElementType,
-    name::String = "",
-    atom_type::String = "",
-    r::Vector3{Float32} = Vector3{Float32}(0, 0, 0),
-    v::Vector3{Float32} = Vector3{Float32}(0, 0, 0),
-    F::Vector3{Float32} = Vector3{Float32}(0, 0, 0),
-    formal_charge::Int = 0,
-    charge::Float32 = 0.0f32,
-    radius::Float32 = 0.0f32,
-    properties::Properties = Properties(),
-    flags::Flags = Flags();
+    element::ElementType;
     kwargs...
 )
-    Atom(default_system(), number, element, name, atom_type, r, v, F, formal_charge, charge, radius,
-        properties, flags; kwargs...)::Atom{Float32}
-end
-
-@inline function Atom(sys::System{T}, atom::AtomTuple{T}; kwargs...) where T
-    Atom(sys, ntuple(i -> atom[i+1], length(atom) - 1)...; kwargs...)::Atom{T}
-end
-
-@inline function Atom(t::AtomTuple{Float32}; kwargs...)
-    Atom(default_system(), t; kwargs...)::Atom{Float32}
+    Atom(default_system(), number, element; kwargs...)
 end
 
 @inline Tables.rows(at::AtomTable) = at
@@ -266,33 +167,33 @@ end
 @inline parent_system(atom::Atom) = parent(atom)
 
 @inline function parent_molecule(atom::Atom) 
-    isnothing(atom._row.molecule_id) ?
+    isnothing(atom.molecule_id) ?
         nothing :
-        molecule_by_idx(parent(atom), atom._row.molecule_id)
+        molecule_by_idx(parent(atom), atom.molecule_id)
 end
 
 @inline function parent_chain(atom::Atom)
-    isnothing(atom._row.chain_id) ?
+    isnothing(atom.chain_id) ?
         nothing :
-        chain_by_idx(atom._sys, atom._row.chain_id)
+        chain_by_idx(atom._sys, atom.chain_id)
 end
 
 @inline function parent_fragment(atom::Atom)
-    isnothing(atom._row.fragment_id) ?
+    isnothing(atom.fragment_id) ?
         nothing :
-        fragment_by_idx(parent(atom), atom._row.fragment_id)
+        fragment_by_idx(parent(atom), atom.fragment_id)
 end
 
 @inline function parent_nucleotide(atom::Atom)
-    isnothing(atom._row.nucleotide_id) ?
+    isnothing(atom.nucleotide_id) ?
         nothing :
-        nucleotide_by_idx(parent(atom), atom._row.nucleotide_id)
+        nucleotide_by_idx(parent(atom), atom.nucleotide_id)
 end
 
 @inline function parent_residue(atom::Atom)
-    isnothing(atom._row.residue_id) ?
+    isnothing(atom.residue_id) ?
         nothing :
-        residue_by_idx(parent(atom), atom._row.residue_id)
+        residue_by_idx(parent(atom), atom.residue_id)
 end
 
 """
@@ -409,20 +310,20 @@ Returns the number of bonds of the given atom.
 end
 
 """
-    push!(::Fragment{T}, atom::AtomTuple{T})
-    push!(::Molecule{T}, atom::AtomTuple{T})
-    push!(::Nucleotide{T}, atom::AtomTuple{T})
-    push!(::Protein{T}, atom::AtomTuple{T})
-    push!(::Residue{T}, atom::AtomTuple{T})
-    push!(::System{T}, atom::AtomTuple{T})
+    push!(::Fragment{T}, atom::Atom{T})
+    push!(::Molecule{T}, atom::Atom{T})
+    push!(::Nucleotide{T}, atom::Atom{T})
+    push!(::Protein{T}, atom::Atom{T})
+    push!(::Residue{T}, atom::Atom{T})
+    push!(::System{T}, atom::Atom{T})
 
-Creates a new atom in the given atom container, based on the given tuple. The new atom is
-automatically assigned a new `idx`.
+Creates a copy of the given atom in the given atom container. The new atom is automatically
+assigned a new `idx`.
 
 # Supported keyword arguments
  - `frame_id::Int = 1`
 """
-@inline function Base.push!(sys::System{T}, atom::AtomTuple{T};
+@inline function Base.push!(sys::System{T}, atom::Atom{T};
     frame_id::Int = 1,
     molecule_id::MaybeInt = nothing,
     chain_id::MaybeInt = nothing,
@@ -430,8 +331,17 @@ automatically assigned a new `idx`.
     nucleotide_id::MaybeInt = nothing,
     residue_id::MaybeInt = nothing
 ) where T
-    push!(sys._atoms,
-        (; atom..., idx = _next_idx(sys));
+    Atom(sys, atom.number, atom.element;
+        name = atom.name,
+        atom_type = atom.atom_type,
+        r = atom.r,
+        v = atom.v,
+        F = atom.F,
+        formal_charge = atom.formal_charge,
+        charge = atom.charge,
+        radius = atom.radius,
+        properties = atom.properties,
+        flags = atom.flags,
         frame_id = frame_id,
         molecule_id = molecule_id,
         chain_id = chain_id,

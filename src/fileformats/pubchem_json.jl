@@ -1,6 +1,6 @@
 export load_pubchem_json
 
-using BiochemicalAlgorithms: Molecule, AtomTuple, BondTuple, BondOrder, BondOrderType, Bond,
+using BiochemicalAlgorithms: Molecule, Atom, Bond, BondOrder, BondOrderType, Bond,
     Elements, ElementType, Vector3, Properties, System, atoms, parent_system
 
 using StructTypes
@@ -513,24 +513,22 @@ function parse_atoms!(mol::Molecule, compound::PCCompound, T=Float32)
     if !isnothing(compound.atoms) && !isnothing(compound.coords)
         conformers = convert_coordinates(compound.coords)
 
-            for i in eachindex(compound.atoms.aid)
-                for j in eachindex(conformers)
-                    # Note: the atom will be assigned an id in add_atom!
-                    atom = AtomTuple{T}(
-                        compound.atoms.aid[i],
-                        isnothing(compound.atoms.element)
-                            ? Elements.Unknown
-                            : ElementType(Int(compound.atoms.element[i]));
-                        atom_type = isnothing(compound.atoms.label)
-                            ? ""
-                            : compound.atoms.label[i].value, # does the label contain the atom type?
-                        r = T.(conformers[j][i]),
-                        formal_charge = isnothing(compound.atoms.charge)
-                            ? 0
-                            : Int(compound.atoms.charge[i]),
-                    )
-
-                push!(mol, atom; frame_id = j)
+        for i in eachindex(compound.atoms.aid)
+            for j in eachindex(conformers)
+                Atom(mol,
+                    compound.atoms.aid[i],
+                    isnothing(compound.atoms.element)
+                        ? Elements.Unknown
+                        : ElementType(Int(compound.atoms.element[i]));
+                    atom_type = isnothing(compound.atoms.label)
+                        ? ""
+                        : compound.atoms.label[i].value, # does the label contain the atom type?
+                    r = T.(conformers[j][i]),
+                    formal_charge = isnothing(compound.atoms.charge)
+                        ? 0
+                        : Int(compound.atoms.charge[i]),
+                    frame_id = j
+                )
             end
         end
     end
@@ -562,14 +560,12 @@ function parse_bonds!(mol::Molecule, compound::PCCompound, T=Float32)
                 properties[:PCBondAnnotation_for_conformer] = annotations
             end
            
-            b = BondTuple(
+            Bond(mol,
                 aidx[aid1],
                 aidx[aid2],
                 (order <= 4) ? BondOrderType(order) : BondOrder.Unknown;
                 properties = properties
             )
-
-            push!(mol, b)
         end
     end
 end
@@ -597,7 +593,7 @@ function load_pubchem_json(fname::String, T=Float32)
     sys = System{T}()
     for compound in pb.PC_Compounds
         # for now, use the file name as the name for the molecule
-        mol = Molecule(sys, fname * "_" * string(compound.id.id.cid))
+        mol = Molecule(sys; name = fname * "_" * string(compound.id.id.cid))
         parse_atoms!(mol, compound, T)
         parse_bonds!(mol, compound, T)
         parse_props!(mol, compound)

@@ -19,10 +19,18 @@
             parent(frag_ds) === default_system()
             parent_system(frag_ds) === default_system()
 
-            Fragment(chain_ds, 1, "something", Properties(:a => "b"), Flags([:A]))
+            Fragment(chain_ds, 1;
+                name = "something",
+                properties = Properties(:a => "b"),
+                flags = Flags([:A])
+            )
         end
 
-        frag2 = Fragment(chain2, 1, "something", Properties(:a => 1), Flags([:A, :B]))
+        frag2 = Fragment(chain2, 1;
+            name = "something",
+            properties = Properties(:a => 1),
+            flags = Flags([:A, :B])
+        )
 
         #=
             Make sure we test for the correct number of fields.
@@ -118,7 +126,7 @@
         @test nfragments(sys, molecule_id = nothing, chain_id = chain.idx) == 1
         @test nfragments(sys, molecule_id = nothing, chain_id = nothing) == 2
 
-        @test push!(chain, FragmentTuple(1)) === chain
+        @test Fragment(chain, 1).chain_id == chain.idx
         @test nfragments(sys) isa Int
         @test nfragments(sys) == 3
         @test nfragments(sys, molecule_id = -1) == 0
@@ -149,7 +157,7 @@
         @test nfragments(chain3) == 0
         @test nfragments(chain3) == nfragments(sys, chain_id = chain3.idx)
 
-        push!(chain3, FragmentTuple(1))
+        Fragment(chain3, 1)
         @test size(fragments(mol3), 1) == 1
         @test fragments(mol3) == fragments(sys, molecule_id = mol3.idx)
         @test nfragments(mol3) == 1
@@ -166,7 +174,7 @@
         @test natoms(frag) == 0
         @test natoms(frag) == natoms(sys, fragment_id = frag.idx)
 
-        @test push!(frag, AtomTuple{T}(1, Elements.H)) === frag
+        @test Atom(frag, 1, Elements.H).fragment_id == frag.idx
         @test length(atoms(frag)) == 1
         @test atoms(frag) == atoms(sys, fragment_id = frag.idx)
         @test natoms(frag) == 1
@@ -178,11 +186,7 @@
         @test nbonds(frag) == 0
         @test nbonds(frag) == nbonds(sys, fragment_id = frag.idx)
 
-        @test push!(frag, BondTuple(
-            Atom(frag, 1, Elements.H).idx,
-            Atom(frag, 2, Elements.C).idx,
-            BondOrder.Single
-        )) === frag
+        Bond(frag, Atom(frag, 1, Elements.H).idx, Atom(frag, 2, Elements.C).idx, BondOrder.Single)
         @test length(bonds(frag)) == 1
         @test bonds(frag) == bonds(sys, fragment_id = frag.idx)
         @test nbonds(frag) == 1

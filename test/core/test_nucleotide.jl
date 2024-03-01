@@ -19,10 +19,18 @@
             parent(nuc_ds) === default_system()
             parent_system(nuc_ds) === default_system()
 
-            Nucleotide(chain_ds, 1, "something", Properties(:a => "b"), Flags([:A]))
+            Nucleotide(chain_ds, 1;
+                name = "something",
+                properties = Properties(:a => "b"),
+                flags = Flags([:A])
+            )
         end
 
-        nuc2 = Nucleotide(chain2, 1, "something", Properties(:a => 1), Flags([:A, :B]))
+        nuc2 = Nucleotide(chain2, 1;
+            name = "something",
+            properties = Properties(:a => 1),
+            flags = Flags([:A, :B])
+        )
 
         #=
             Make sure we test for the correct number of fields.
@@ -148,7 +156,7 @@
         @test natoms(nuc) == 0
         @test natoms(nuc) == natoms(sys, nucleotide_id = nuc.idx)
 
-        @test push!(nuc, AtomTuple{T}(1, Elements.H)) === nuc
+        @test Atom(nuc, 1, Elements.H).nucleotide_id == nuc.idx
         @test length(atoms(nuc)) == 1
         @test atoms(nuc) == atoms(sys, nucleotide_id = nuc.idx)
         @test natoms(nuc) == 1
@@ -160,11 +168,7 @@
         @test nbonds(nuc) == 0
         @test nbonds(nuc) == nbonds(sys, nucleotide_id = nuc.idx)
 
-        @test push!(nuc, BondTuple(
-            Atom(nuc, 1, Elements.H).idx,
-            Atom(nuc, 2, Elements.C).idx,
-            BondOrder.Single
-        )) === nuc
+        Bond(nuc, Atom(nuc, 1, Elements.H).idx, Atom(nuc, 2, Elements.C).idx, BondOrder.Single)
         @test length(bonds(nuc)) == 1
         @test bonds(nuc) == bonds(sys, nucleotide_id = nuc.idx)
         @test nbonds(nuc) == 1

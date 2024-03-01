@@ -42,13 +42,6 @@ end
 @inline Base.size(bt::BondTable, dim) = size(bt)[dim]
 @inline Base.length(bt::BondTable) = size(bt, 1)
 
-function Base.push!(bt::BondTable, t::BondTuple; kwargs...)
-    sys = getfield(bt, :_sys)
-    push!(sys, t; kwargs...)
-    push!(getfield(bt, :_idx), sys._curr_idx)
-    bt
-end
-
 @inline function _filter_bonds(f::Function, sys::System{T}) where T
     BondTable(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._bonds),
@@ -114,31 +107,35 @@ Creates a new `Bond{T}` in the given system.
     _row::_BondTableRow
 end
 
-function Bond(
+@inline function Bond(
     sys::System{T}, 
     a1::Int, 
     a2::Int, 
-    order::BondOrderType, 
-    properties::Properties = Properties(),
-    flags::Flags = Flags()
+    order::BondOrderType;
+    kwargs...
 ) where T
     idx = _next_idx(sys)
-    push!(sys._bonds, BondTuple(a1, a2, order;
-        idx = idx,
-        properties = properties,
-        flags = flags
-    ))
+    push!(sys._bonds, _Bond(a1, a2, order; idx = idx, kwargs...))
     bond_by_idx(sys, idx)
 end
 
 @inline function Bond(
     a1::Int,
     a2::Int,
-    order::BondOrderType,
-    properties::Properties = Properties(),
-    flags::Flags = Flags()
+    order::BondOrderType;
+    kwargs...
 )
-    Bond(default_system(), a1, a2, order, properties, flags)
+    Bond(default_system(), a1, a2, order; kwargs...)
+end
+
+@inline function Bond(
+    ac::AbstractAtomContainer,
+    a1::Int,
+    a2::Int,
+    order::BondOrderType;
+    kwargs...
+)
+    Bond(parent(ac), a1, a2, order; kwargs...)
 end
 
 @inline Tables.rows(bt::BondTable) = bt
@@ -215,14 +212,22 @@ function nbonds(sys::System{T}; kwargs...) where T
 end
 
 """
-    push!(ac::AbstractAtomContainer, bond::BondTuple)
+    push!(ac::AbstractAtomContainer, bond::Bond{T})
 
-Creates a new bond in the system associated with the given atom container, based on the given tuple.
+Creates a copy of the given bond in the system associated with the given atom container.
 The new bond is automatically assigned a new `idx`.
 """
-function Base.push!(sys::System{T}, bond::BondTuple) where T
-    push!(sys._bonds, (; bond..., idx = _next_idx(sys)))
+@inline function Base.push!(sys::System{T}, bond::Bond{T}) where T
+    Bond(sys, bond.a1, bond.a2, bond.order;
+        properties = bond.properties,
+        flags = bond.flags
+    )
     sys
+end
+
+@inline function Base.push!(ac::AbstractAtomContainer{T}, bond::Bond{T}) where T
+    push!(parent(ac), bond)
+    ac
 end
 
 function get_partner(bond, atom)

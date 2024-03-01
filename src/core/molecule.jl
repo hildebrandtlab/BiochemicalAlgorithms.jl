@@ -39,13 +39,6 @@ end
 @inline Base.size(mt::MoleculeTable, dim) = size(mt)[dim]
 @inline Base.length(mt::MoleculeTable) = size(mt, 1)
 
-function Base.push!(mt::MoleculeTable, t::MoleculeTuple)
-    sys = getfield(mt, :_sys)
-    push!(sys._molecules, t)
-    push!(getfield(mt, :_idx), sys._curr_idx)
-    mt
-end
-
 @inline function _filter_molecules(f::Function, sys::System{T}) where T
     MoleculeTable(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._molecules),
@@ -112,24 +105,17 @@ Creates a new `Molecule{T}` in the given system.
     _row::_MoleculeTableRow
 end
 
-function Molecule(
-    sys::System{T},
-    name::String = "",
-    properties::Properties = Properties(),
-    flags::Flags = Flags()
+@inline function Molecule(
+    sys::System{T};
+    kwargs...
 ) where T
     idx = _next_idx(sys)
-    push!(sys._molecules, MoleculeTuple(
-        idx = idx,
-        name = name,
-        properties = properties,
-        flags = flags
-    ))
+    push!(sys._molecules, _Molecule(; idx = idx, kwargs...))
     molecule_by_idx(sys, idx)
 end
 
-@inline function Molecule(name::String = "", properties::Properties = Properties(), flags::Flags = Flags())
-    Molecule(default_system(), name, properties, flags)
+@inline function Molecule(; kwargs...)
+    Molecule(default_system(); kwargs...)
 end
 
 @inline Tables.rows(mt::MoleculeTable) = mt
@@ -201,7 +187,11 @@ end
 @inline atoms(mol::Molecule; kwargs...) = atoms(parent(mol); molecule_id = mol.idx, kwargs...)
 @inline natoms(mol::Molecule; kwargs...) = natoms(parent(mol); molecule_id = mol.idx, kwargs...)
 
-@inline function Base.push!(mol::Molecule{T}, atom::AtomTuple{T}; kwargs...) where T
+@inline function Atom(mol::Molecule, number::Int, element::ElementType; kwargs...)
+    Atom(parent(mol), number, element; molecule_id = mol.idx, kwargs...)
+end
+
+@inline function Base.push!(mol::Molecule{T}, atom::Atom{T}; kwargs...) where T
     push!(parent(mol), atom; molecule_id = mol.idx, kwargs...)
     mol
 end

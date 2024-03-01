@@ -38,13 +38,6 @@ end
 @inline Base.size(rt::ResidueTable, dim) = size(rt)[dim]
 @inline Base.length(rt::ResidueTable) = size(rt, 1)
 
-function Base.push!(rt::ResidueTable, t::ResidueTuple, molecule_id::Int, chain_id::Int)
-    sys = getfield(rt, :_sys)
-    push!(sys._residues, t, molecule_id, chain_id)
-    push!(getfield(rt, :_idx), sys._curr_idx)
-    rt
-end
-
 @inline function _filter_residues(f::Function, sys::System{T}) where T
     ResidueTable{T}(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._residues),
@@ -97,20 +90,19 @@ Creates a new `Residue{T}` in the given chain.
     _row::_ResidueTableRow
 end
 
-function Residue(
+@inline function Residue(
     chain::Chain{T},
     number::Int,
-    type::AminoAcid,
-    properties::Properties = Properties(),
-    flags::Flags = Flags()
+    type::AminoAcid;
+    kwargs...
 ) where T
     sys = parent(chain)
     idx = _next_idx(sys)
-    push!(sys._residues, ResidueTuple(number, type;
-            idx = idx,
-            properties = properties,
-            flags = flags
-        ), chain._row.molecule_id, chain.idx
+    push!(
+        sys._residues,
+        _Residue(number, type; idx = idx, kwargs...),
+        chain.molecule_id,
+        chain.idx
     )
     residue_by_idx(sys, idx)
 end
@@ -134,8 +126,8 @@ end
 
 @inline Base.parent(res::Residue) = res._sys
 @inline parent_system(res::Residue) = parent(res)
-@inline parent_molecule(res::Residue) = molecule_by_idx(parent(res), res._row.molecule_id)
-@inline parent_chain(res::Residue) = chain_by_idx(parent(res), res._row.chain_id)
+@inline parent_molecule(res::Residue) = molecule_by_idx(parent(res), res.molecule_id)
+@inline parent_chain(res::Residue) = chain_by_idx(parent(res), res.chain_id)
 
 @doc raw"""
     parent_residue(::Atom)
@@ -204,17 +196,15 @@ end
 @inline nresidues(chain::Chain; kwargs...) = nresidues(parent(chain); chain_id = chain.idx, kwargs...)
 
 """
-    push!(::Chain, frag::FragmentTuple)
+    push!(::Chain{T}, res::Residue{T})
 
-Creates a new fragment in the given chain, based on the given tuple. The new residue is automatically
-assigned a new `idx`.
+Creates a copy of the given residue in the given chain. The new residue is automatically assigned a
+new `idx`.
 """
-@inline function Base.push!(chain::Chain, res::ResidueTuple)
-    sys = parent(chain)
-    push!(sys._residues,
-        (; res..., idx = _next_idx(sys)),
-        chain._row.molecule_id,
-        chain.idx
+@inline function Base.push!(chain::Chain{T}, res::Residue{T}) where T
+    Residue(parent(chain), res.number, res.type;
+        properties = res.properties,
+        flags = res.flags
     )
     chain
 end
@@ -225,9 +215,22 @@ end
 @inline atoms(res::Residue; kwargs...) = atoms(parent(res); residue_id = res.idx, kwargs...)
 @inline natoms(res::Residue; kwargs...) = natoms(parent(res); residue_id = res.idx, kwargs...)
 
-@inline function Base.push!(res::Residue{T}, atom::AtomTuple{T}; kwargs...) where T
-    push!(parent(res), atom; molecule_id = res._row.molecule_id, chain_id = res._row.chain_id,
-        residue_id = res.idx, kwargs...)
+@inline function Atom(res::Residue, number::Int, element::ElementType; kwargs...)
+    Atom(parent(res), number, element;
+        molecule_id = res.molecule_id,
+        chain_id = res.chain_id,
+        residue_id = res.idx,
+        kwargs...
+    )
+end
+
+@inline function Base.push!(res::Residue{T}, atom::Atom{T}; kwargs...) where T
+    push!(parent(res), atom;
+        molecule_id = res.molecule_id,
+        chain_id = res.chain_id,
+        residue_id = res.idx,
+        kwargs...
+    )
     res
 end
 

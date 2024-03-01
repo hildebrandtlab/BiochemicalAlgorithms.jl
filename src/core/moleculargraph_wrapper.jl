@@ -56,18 +56,11 @@ function Base.convert(
     graphmol(d)
 end
 
-function _molgraph_to_atom((i, a)::Tuple{Int, SDFileAtom}, T)
-    (
-        number  = i,
-        element = getproperty(Elements, a.symbol),
-        name    = "$(a.symbol)$(i)",
-        atomtype = "",
+@inline function _molgraph_to_atom(mol::Molecule{T}, (i, a)::Tuple{Int, SDFileAtom}) where T
+    Atom(mol, i, getproperty(Elements, a.symbol);
+        name = "$(a.symbol)$(i)",
         r = Vector3{T}(a.coords),
-        v = zeros(Vector3{T}),
-        F = zeros(Vector3{T}),
         formal_charge = a.charge,
-        charge = zero(T),
-        radius = zero(T),
         properties = Properties(
             :multiplicity => a.multiplicity,
             :mass         => a.mass,
@@ -76,18 +69,10 @@ function _molgraph_to_atom((i, a)::Tuple{Int, SDFileAtom}, T)
     )
 end
 
-function _molgraph_to_atom((i, a)::Tuple{Int, SmilesAtom}, T)
-    (
-        number  = i,
-        element = getproperty(Elements, a.symbol),
-        name    = "$(a.symbol)$(i)",
-        atomtype = "",
-        r = zeros(Vector3{T}),
-        v = zeros(Vector3{T}),
-        F = zeros(Vector3{T}),
+@inline function _molgraph_to_atom(mol::Molecule{T}, (i, a)::Tuple{Int, SmilesAtom}) where T
+    Atom(mol, i, getproperty(Elements, a.symbol);
+        name = "$(a.symbol)$(i)",
         formal_charge = a.charge,
-        charge = zero(T),
-        radius = zero(T),
         properties = Properties(
             :multiplicity => a.multiplicity,
             :mass         => a.mass,
@@ -97,12 +82,13 @@ function _molgraph_to_atom((i, a)::Tuple{Int, SmilesAtom}, T)
     )
 end
 
-function _molgraph_to_bond((i, (e, b))::Tuple{Int, Tuple{Any, SDFileBond}}, mol)
+@inline function _molgraph_to_bond(mol::Molecule, (i, (e, b))::Tuple{Int, Tuple{Any, SDFileBond}})
     at = atoms(mol)
-    (
-        a1 = only(filter(atom -> atom.number == e[1], at)).idx,
-        a2 = only(filter(atom -> atom.number == e[2], at)).idx,
-        order = b.order,
+    Bond(
+        mol,
+        only(filter(atom -> atom.number == e[1], at)).idx,
+        only(filter(atom -> atom.number == e[2], at)).idx,
+        BondOrderType(b.order);
         properties = Properties(
             :notation => b.notation,
             :stereo   => b.stereo,
@@ -110,12 +96,13 @@ function _molgraph_to_bond((i, (e, b))::Tuple{Int, Tuple{Any, SDFileBond}}, mol)
     )
 end
 
-function _molgraph_to_bond((i, (e, b))::Tuple{Int, Tuple{Any, SmilesBond}}, mol)
+@inline function _molgraph_to_bond(mol::Molecule, (i, (e, b))::Tuple{Int, Tuple{Any, SmilesBond}})
     at = atoms(mol)
-    (
-        a1 = only(filter(atom -> atom.number == e[1], at)).idx,
-        a2 = only(filter(atom -> atom.number == e[2], at)).idx,
-        order = b.order,
+    Bond(
+        mol,
+        only(filter(atom -> atom.number == e[1], at)).idx,
+        only(filter(atom -> atom.number == e[2], at)).idx,
+        BondOrderType(b.order);
         properties = Properties(
             :is_aromatic => b.isaromatic,
             :direction   => b.direction,
@@ -127,19 +114,10 @@ end
 function Base.convert(
     ::Type{Molecule{T}},
     mg::GraphMol{GMAtom, GMBond};
-    system=default_system()) where {T<:Real, GMAtom, GMBond}
-    
-    d = todict(mg)
-    
-    mol = Molecule(system, "", Dict{Symbol, Any}(Symbol(k) => v for (k, v) in mg.attributes))
-
-    for a in (t -> _molgraph_to_atom(t, T)).(enumerate(mg.nodeattrs))
-        Atom(mol, a...)
-    end
-
-    for b in _molgraph_to_bond.(enumerate(zip(mg.edges, mg.edgeattrs)), Ref(mol))
-        Bond(parent_system(mol), b.a1, b.a2, BondOrderType(b.order), b.properties)
-    end
-    
+    system=default_system()
+) where {T, GMAtom, GMBond}
+    mol = Molecule(system; properties = Properties(Symbol(k) => v for (k, v) in mg.attributes))
+    _molgraph_to_atom.(Ref(mol), enumerate(mg.nodeattrs))
+    _molgraph_to_bond.(Ref(mol), enumerate(zip(mg.edges, mg.edgeattrs)))
     mol
 end

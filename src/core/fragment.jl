@@ -47,13 +47,6 @@ end
 @inline Base.size(ft::FragmentTable, dim) = size(ft)[dim]
 @inline Base.length(ft::FragmentTable) = size(ft, 1)
 
-function Base.push!(ft::FragmentTable, t::FragmentTuple, molecule_id::Int, chain_id::Int)
-    sys = getfield(ft, :_sys)
-    push!(sys._fragments, t, molecule_id, chain_id)
-    push!(getfield(ft, :_idx), sys._curr_idx)
-    ft
-end
-
 @inline function _filter_fragments(f::Function, sys::System{T}) where T
     FragmentTable{T}(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._fragments),
@@ -106,21 +99,18 @@ Creates a new `Fragment{T}` in the given chain.
     _row::_FragmentTableRow
 end
 
-function Fragment(
+@inline function Fragment(
     chain::Chain{T},
-    number::Int,
-    name::String = "",
-    properties::Properties = Properties(),
-    flags::Flags = Flags()
+    number::Int;
+    kwargs...
 ) where T
     sys = parent(chain)
     idx = _next_idx(sys)
-    push!(sys._fragments, FragmentTuple(number;
-            idx = idx,
-            name = name,
-            properties = properties,
-            flags = flags
-        ), chain._row.molecule_id, chain.idx
+    push!(
+        sys._fragments,
+        _Fragment(number; idx = idx, kwargs...),
+        chain.molecule_id,
+        chain.idx
     )
     fragment_by_idx(sys, idx)
 end
@@ -144,8 +134,8 @@ end
 
 @inline Base.parent(frag::Fragment) = frag._sys
 @inline parent_system(frag::Fragment) = parent(frag)
-@inline parent_molecule(frag::Fragment) = molecule_by_idx(parent(frag), frag._row.molecule_id)
-@inline parent_chain(frag::Fragment) = chain_by_idx(parent(frag), frag._row.chain_id)
+@inline parent_molecule(frag::Fragment) = molecule_by_idx(parent(frag), frag.molecule_id)
+@inline parent_chain(frag::Fragment) = chain_by_idx(parent(frag), frag.chain_id)
 
 @doc raw"""
     parent_fragment(::Atom)
@@ -214,17 +204,16 @@ end
 @inline nfragments(chain::Chain; kwargs...) = nfragments(parent(chain); chain_id = chain.idx, kwargs...)
 
 """
-    push!(::Chain, frag::FragmentTuple)
+    push!(::Chain{T}, frag::Fragment{T})
 
-Creates a new fragment in the given chain, based on the given tuple. The new fragment is automatically
-assigned a new `idx`.
+Creates a copy of the given fragment in the given chain. The new fragment is automatically assigned a
+new `idx`.
 """
-@inline function Base.push!(chain::Chain, frag::FragmentTuple)
-    sys = parent(chain)
-    push!(sys._fragments,
-        (; frag..., idx = _next_idx(sys)),
-        chain._row.molecule_id,
-        chain.idx
+@inline function Base.push!(chain::Chain{T}, frag::Fragment{T}) where T
+    Fragment(parent(chain), frag.number;
+        name = frag.number,
+        properties = frag.properties,
+        flags = frag.flags
     )
     chain
 end
@@ -235,9 +224,22 @@ end
 @inline atoms(frag::Fragment; kwargs...) = atoms(parent(frag); fragment_id = frag.idx, kwargs...)
 @inline natoms(frag::Fragment; kwargs...) = natoms(parent(frag); fragment_id = frag.idx, kwargs...)
 
-@inline function Base.push!(frag::Fragment{T}, atom::AtomTuple{T}; kwargs...) where T
-    push!(parent(frag), atom; molecule_id = frag._row.molecule_id, chain_id = frag._row.chain_id,
-        fragment_id = frag.idx, kwargs...)
+@inline function Atom(frag::Fragment, number::Int, element::ElementType; kwargs...)
+    Atom(parent(frag), number, element;
+        molecule_id = frag.molecule_id,
+        chain_id = frag.chain_id,
+        fragment_id = frag.idx,
+        kwargs...
+    )
+end
+
+@inline function Base.push!(frag::Fragment{T}, atom::Atom{T}; kwargs...) where T
+    push!(parent(frag), atom;
+        molecule_id = frag.molecule_id,
+        chain_id = frag.chain_id,
+        fragment_id = frag.idx,
+        kwargs...
+    )
     frag
 end
 

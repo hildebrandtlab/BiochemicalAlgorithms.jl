@@ -19,10 +19,10 @@
             parent(res_ds) === default_system()
             parent_system(res_ds) === default_system()
 
-            Residue(chain_ds, 1, AminoAcid('D'), Properties(:a => "b"), Flags([:A]))
+            Residue(chain_ds, 1, AminoAcid('D'); properties = Properties(:a => "b"), flags = Flags([:A]))
         end
 
-        res2 = Residue(chain2, 1, AminoAcid('D'), Properties(:a => 1), Flags([:A, :B]))
+        res2 = Residue(chain2, 1, AminoAcid('D'); properties = Properties(:a => 1), flags = Flags([:A, :B]))
 
         #=
             Make sure we test for the correct number of fields.
@@ -118,7 +118,7 @@
         @test nresidues(sys, molecule_id = nothing, chain_id = chain.idx) == 1
         @test nresidues(sys, molecule_id = nothing, chain_id = nothing) == 2
 
-        @test push!(chain, ResidueTuple(1, AminoAcid('A'))) === chain
+        @test Residue(chain, 1, AminoAcid('A')).chain_id == chain.idx
         @test nresidues(sys) isa Int
         @test nresidues(sys) == 3
         @test nresidues(sys, molecule_id = -1) == 0
@@ -149,7 +149,7 @@
         @test nresidues(chain3) == 0
         @test nresidues(chain3) == nresidues(sys, chain_id = chain3.idx)
 
-        push!(chain3, ResidueTuple(1, AminoAcid('A')))
+        Residue(chain3, 1, AminoAcid('A'))
         @test size(residues(mol3), 1) == 1
         @test residues(mol3) == residues(sys, molecule_id = mol3.idx)
         @test nresidues(mol3) == 1
@@ -166,7 +166,7 @@
         @test natoms(res) == 0
         @test natoms(res) == natoms(sys, residue_id = res.idx)
 
-        @test push!(res, AtomTuple{T}(1, Elements.H)) === res
+        @test Atom(res, 1, Elements.H).residue_id == res.idx
         @test length(atoms(res)) == 1
         @test atoms(res) == atoms(sys, residue_id = res.idx)
         @test natoms(res) == 1
@@ -178,11 +178,7 @@
         @test nbonds(res) == 0
         @test nbonds(res) == nbonds(sys, residue_id = res.idx)
 
-        @test push!(res, BondTuple(
-            Atom(res, 1, Elements.H).idx,
-            Atom(res, 2, Elements.C).idx,
-            BondOrder.Single
-        )) === res
+        Bond(res, Atom(res, 1, Elements.H).idx, Atom(res, 2, Elements.C).idx, BondOrder.Single)
         @test length(bonds(res)) == 1
         @test bonds(res) == bonds(sys, residue_id = res.idx)
         @test nbonds(res) == 1

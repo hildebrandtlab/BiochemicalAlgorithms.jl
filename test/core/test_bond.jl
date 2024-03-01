@@ -16,10 +16,16 @@
             @test parent(bond_ds) === default_system()
             @test parent_system(bond_ds) === default_system()
 
-            Bond(atom2.idx, atom3.idx, BondOrder.Double, Properties(:a => "b"), Flags([:A]))
+            Bond(atom2.idx, atom3.idx, BondOrder.Double;
+                properties = Properties(:a => "b"),
+                flags = Flags([:A])
+            )
         end
 
-        bond2 = Bond(sys, atom2.idx, atom3.idx, BondOrder.Double, Properties(:a => 1), Flags([:A, :B]))
+        bond2 = Bond(sys, atom2.idx, atom3.idx, BondOrder.Double;
+            properties = Properties(:a => 1),
+            flags = Flags([:A, :B])
+        )
         Bond(
             sys,
             Atom(sys, 1, Elements.H; frame_id = 2).idx,
@@ -99,7 +105,8 @@
         @test nbonds(sys, frame_id = nothing) == 3
 
         # push!
-        @test push!(sys, BondTuple(
+        @test parent(Bond(
+            sys,
             Atom(sys, 1, Elements.H; frame_id = 3).idx,
             Atom(sys, 2, Elements.C; frame_id = 3).idx,
             BondOrder.Quadruple

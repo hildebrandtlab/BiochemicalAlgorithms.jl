@@ -13,10 +13,10 @@
             @test parent(prot_ds) === default_system()
             @test parent_system(prot_ds) === default_system()
 
-            Protein("something", Properties(:a => "b"), Flags([:A]))
+            Protein(; name = "something", properties = Properties(:a => "b"), flags = Flags([:A]))
         end
 
-        prot2 = Protein(sys, "something", Properties(:a => 1), Flags([:A, :B]))
+        prot2 = Protein(sys; name = "something", properties = Properties(:a => 1), flags = Flags([:A, :B]))
 
         #=
             Make sure we test for the correct number of fields.
@@ -67,7 +67,7 @@
         @test natoms(prot) == 0
         @test natoms(prot) == natoms(sys, molecule_id = prot.idx)
 
-        @test push!(prot, AtomTuple{T}(1, Elements.H)) === prot
+        @test Atom(prot, 1, Elements.H).molecule_id === prot.idx
         @test length(atoms(prot)) == 1
         @test atoms(prot) == atoms(sys, molecule_id = prot.idx)
         @test natoms(prot) == 1
@@ -84,11 +84,7 @@
         @test nbonds(prot) == 0
         @test nbonds(prot) == nbonds(sys, molecule_id = prot.idx)
 
-        @test push!(prot, BondTuple(
-            Atom(prot, 1, Elements.H).idx,
-            Atom(prot, 2, Elements.C).idx,
-            BondOrder.Single)
-        ) === prot
+        Bond(prot, Atom(prot, 1, Elements.H).idx, Atom(prot, 2, Elements.C).idx, BondOrder.Single)
         @test length(bonds(prot)) == 1
         @test bonds(prot) == bonds(sys, molecule_id = prot.idx)
         @test nbonds(prot) == 1

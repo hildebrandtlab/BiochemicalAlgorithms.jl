@@ -13,10 +13,10 @@
             @test parent(mol_ds) === default_system()
             @test parent_system(mol_ds) === default_system()
 
-            Molecule("something", Properties(:a => "b"), Flags([:A]))
+            Molecule(; name = "something", properties = Properties(:a => "b"), flags = Flags([:A]))
         end
 
-        mol2 = Molecule(sys, "something", Properties(:a => 1), Flags([:A, :B]))
+        mol2 = Molecule(sys; name = "something", properties = Properties(:a => 1), flags = Flags([:A, :B]))
 
         #=
             Make sure we test for the correct number of fields.
@@ -71,7 +71,7 @@
         @test natoms(mol) == 0
         @test natoms(mol) == natoms(sys, molecule_id = mol.idx)
 
-        @test push!(mol, AtomTuple{T}(1, Elements.H)) === mol
+        @test Atom(mol, 1, Elements.H).molecule_id == mol.idx
         @test length(atoms(mol)) == 1
         @test atoms(mol) == atoms(sys, molecule_id = mol.idx)
         @test natoms(mol) == 1
@@ -88,11 +88,7 @@
         @test nbonds(mol) == 0
         @test nbonds(mol) == nbonds(sys, molecule_id = mol.idx)
 
-        @test push!(mol, BondTuple(
-            Atom(mol, 1, Elements.H).idx,
-            Atom(mol, 2, Elements.C).idx,
-            BondOrder.Single)
-        ) === mol
+        Bond(mol, Atom(mol, 1, Elements.H).idx, Atom(mol, 2, Elements.C).idx, BondOrder.Single)
         @test length(bonds(mol)) == 1
         @test bonds(mol) == bonds(sys, molecule_id = mol.idx)
         @test nbonds(mol) == 1

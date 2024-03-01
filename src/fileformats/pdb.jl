@@ -79,7 +79,7 @@ function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:R
 
     # then, convert to our representation
     sys = System{T}(orig_pdb.name)
-    mol = Molecule(sys, sys.name)
+    mol = Molecule(sys; name = sys.name)
 
     ### convert the atom positions
     r = Vector3{T}.(T.(orig_df.x), T.(orig_df.y), T.(orig_df.z))
@@ -127,12 +127,15 @@ function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:R
 
     # collect fragment information
     for orig_chain in collectchains(orig_pdb)
-        chain = Chain(mol, orig_chain.id)
+        chain = Chain(mol; name = orig_chain.id)
         for orig_frag in collectresidues(orig_chain)
-            Fragment(chain, orig_frag.number, orig_frag.name, Properties([
-                :is_hetero_fragment => orig_frag.het_res,
-                :insertion_code => orig_frag.ins_code
-            ]))
+            Fragment(chain, orig_frag.number;
+                name = orig_frag.name,
+                properties = Properties([
+                    :is_hetero_fragment => orig_frag.het_res,
+                    :insertion_code => orig_frag.ins_code
+                ])
+            )
         end
     end
 
@@ -169,12 +172,13 @@ function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:R
             fragment_id = frag.number,
             inscode = frag.properties[:insertion_code]
         )])
-            push!(frag, AtomTuple{T}(atom.number, atom.element;
+            Atom(frag, atom.number, atom.element;
                 name = atom.name,
                 r = atom.r,
                 properties = atom.properties,
-                flags = atom.flags
-            ), frame_id = atom.frame_id)
+                flags = atom.flags,
+                frame_id = atom.frame_id
+            )
         end
     end
 

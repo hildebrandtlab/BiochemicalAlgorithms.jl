@@ -66,15 +66,9 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
 			new_atom = Atom(
                 f,
                 maximum(atoms(parent_system(f)).number)+1, # does this make sense?
-                tpl_atom.element,
-                tpl_atom.name,
-                "",
-                tpl_atom.r,
-                zero(Vector3{T}),
-                zero(Vector3{T}),
-                0,
-                zero(T),
-                zero(T)
+                tpl_atom.element;
+                name = tpl_atom.name,
+                r = tpl_atom.r
             )
 
             tpl_to_frag[tpl_atom] = new_atom
@@ -128,7 +122,7 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
                         hit, a1, a2 = _get_two_reference_atoms(current, transformed, template)
 
                         @debug """Reference atoms:  $(isnothing(a1) ? "-" : a1.name)""" *
-							   """ / $(isnothing(a2) ? "-" : a2.name)"""
+                               """ / $(isnothing(a2) ? "-" : a2.name)"""
 
                         @debug "mapping atoms: $(get_full_name(f)):$(current.name)/" *
                                "$(get_full_name(f)):$(a1.name)/$(get_full_name(f)):$(a2.name)"
@@ -153,7 +147,7 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
                         end
 
                         @debug "mapping: $(translation), $(rotation)"
-						# Transform the coordinates of the atom we're interest in
+                        # Transform the coordinates of the atom we're interest in
                         tpl_to_frag[next].r = rotation * tpl_to_frag[next].r + translation
 
                         # Remember that we already took care of that guy.
@@ -161,8 +155,7 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
 
                         @debug "$(next.name) is transformed: $(tpl_to_frag[next].r) / $(next.r)"
                         @debug "Distance = $(distance(tpl_to_frag[next].r, next.r))"
-					
-                    end                  
+                    end
                 end
             end
         end

@@ -16,10 +16,10 @@
             parent(chain_ds) === default_system()
             parent_system(chain_ds) === default_system()
 
-            Chain(mol_ds, "something", Properties(:a => "b"), Flags([:A]))
+            Chain(mol_ds; name = "something", properties = Properties(:a => "b"), flags = Flags([:A]))
         end
 
-        chain2 = Chain(mol2, "something", Properties(:a => 1), Flags([:A, :B]))
+        chain2 = Chain(mol2; name = "something", properties = Properties(:a => 1), flags = Flags([:A, :B]))
 
         #=
             Make sure we test for the correct number of fields.
@@ -85,7 +85,7 @@
         @test nchains(sys, molecule_id = mol2.idx) == 1
         @test nchains(sys, molecule_id = nothing) == 2
 
-        @test push!(mol, ChainTuple()) === mol
+        @test Chain(mol).molecule_id == mol.idx
         @test nchains(sys) == 3
         @test nchains(sys, molecule_id = -1) == 0
         @test nchains(sys, molecule_id = mol.idx) == 2
@@ -99,7 +99,7 @@
         @test nchains(mol3) == 0
         @test nchains(mol3) == nchains(sys, molecule_id = mol3.idx)
 
-        push!(mol3, ChainTuple())
+        @test Chain(mol3).molecule_id == mol3.idx
         @test length(chains(mol3)) == 1
         @test chains(mol3) == chains(sys, molecule_id = mol3.idx)
         @test nchains(mol3) == 1
@@ -112,21 +112,21 @@
         @test natoms(chain) == natoms(sys, chain_id = chain.idx)
 
         frag = Fragment(chain, 1)
-        push!(frag, AtomTuple{T}(1, Elements.H))
+        Atom(frag, 1, Elements.H)
         @test length(atoms(chain)) == 1
         @test atoms(chain) == atoms(sys, chain_id = chain.idx)
         @test natoms(chain) == 1
         @test natoms(chain) == natoms(sys, chain_id = chain.idx)
 
         nuc = Nucleotide(chain, 1)
-        push!(nuc, AtomTuple{T}(2, Elements.C))
+        Atom(nuc, 2, Elements.C)
         @test length(atoms(chain)) == 2
         @test atoms(chain) == atoms(sys, chain_id = chain.idx)
         @test natoms(chain) == 2
         @test natoms(chain) == natoms(sys, chain_id = chain.idx)
 
         res = Residue(chain, 1, AminoAcid('A'))
-        push!(res, AtomTuple{T}(3, Elements.O))
+        Atom(res, 3, Elements.O)
         @test length(atoms(chain)) == 3
         @test atoms(chain) == atoms(sys, chain_id = chain.idx)
         @test natoms(chain) == 3
@@ -148,31 +148,19 @@
         @test nbonds(chain) == 0
         @test nbonds(chain) == nbonds(sys, chain_id = chain.idx)
 
-        @test push!(chain, BondTuple(
-            Atom(frag, 1, Elements.H).idx,
-            Atom(frag, 2, Elements.C).idx,
-            BondOrder.Single
-        )) === chain
+        Bond(chain, Atom(frag, 1, Elements.H).idx, Atom(frag, 2, Elements.C).idx, BondOrder.Single)
         @test length(bonds(chain)) == 1
         @test bonds(chain) == bonds(sys, chain_id = chain.idx)
         @test nbonds(chain) == 1
         @test nbonds(chain) == nbonds(sys, chain_id = chain.idx)
 
-        @test push!(chain, BondTuple(
-            Atom(nuc, 1, Elements.H).idx,
-            Atom(nuc, 2, Elements.C).idx,
-            BondOrder.Single
-        )) === chain
+        Bond(chain, Atom(nuc, 1, Elements.H).idx, Atom(nuc, 2, Elements.C).idx, BondOrder.Single)
         @test length(bonds(chain)) == 2
         @test bonds(chain) == bonds(sys, chain_id = chain.idx)
         @test nbonds(chain) == 2
         @test nbonds(chain) == nbonds(sys, chain_id = chain.idx)
 
-        @test push!(chain, BondTuple(
-            Atom(res, 1, Elements.H).idx,
-            Atom(res, 2, Elements.C).idx,
-            BondOrder.Single
-        )) === chain
+        Bond(chain, Atom(res, 1, Elements.H).idx, Atom(res, 2, Elements.C).idx, BondOrder.Single)
         @test length(bonds(chain)) == 3
         @test bonds(chain) == bonds(sys, chain_id = chain.idx)
         @test nbonds(chain) == 3

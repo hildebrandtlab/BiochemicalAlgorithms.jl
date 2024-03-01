@@ -38,13 +38,6 @@ end
 @inline Base.size(nt::NucleotideTable, dim) = size(nt)[dim]
 @inline Base.length(nt::NucleotideTable) = size(nt, 1)
 
-function Base.push!(nt::NucleotideTable, t::NucleotideTuple, molecule_id::Int, chain_id::Int)
-    sys = getfield(nt, :_sys)
-    push!(sys._nucleotides, t, molecule_id, chain_id)
-    push!(getfield(nt, :_idx), sys._curr_idx)
-    nt
-end
-
 @inline function _filter_nucleotides(f::Function, sys::System{T}) where T
     NucleotideTable{T}(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._nucleotides),
@@ -97,21 +90,18 @@ Creates a new `Nucleotide{T}` in the given chain.
     _row::_NucleotideTableRow
 end
 
-function Nucleotide(
+@inline function Nucleotide(
     chain::Chain{T},
-    number::Int,
-    name::String = "",
-    properties::Properties = Properties(),
-    flags::Flags = Flags()
+    number::Int;
+    kwargs...
 ) where T
     sys = parent(chain)
     idx = _next_idx(sys)
-    push!(sys._nucleotides, NucleotideTuple(number;
-            idx = idx,
-            name = name,
-            properties = properties,
-            flags = flags
-        ), chain._row.molecule_id, chain.idx
+    push!(
+        sys._nucleotides,
+        _Nucleotide(number; idx = idx, kwargs...),
+        chain.molecule_id,
+        chain.idx
     )
     nucleotide_by_idx(sys, idx)
 end
@@ -135,8 +125,8 @@ end
 
 @inline Base.parent(nuc::Nucleotide) = nuc._sys
 @inline parent_system(nuc::Nucleotide) = parent(nuc)
-@inline parent_molecule(nuc::Nucleotide) = molecule_by_idx(parent(nuc), nuc._row.molecule_id)
-@inline parent_chain(nuc::Nucleotide) = chain_by_idx(parent(nuc), nuc._row.chain_id)
+@inline parent_molecule(nuc::Nucleotide) = molecule_by_idx(parent(nuc), nuc.molecule_id)
+@inline parent_chain(nuc::Nucleotide) = chain_by_idx(parent(nuc), nuc.chain_id)
 
 @doc raw"""
     parent_nucleotide(::Atom)
@@ -204,12 +194,20 @@ end
 @inline nucleotides(chain::Chain; kwargs...) = nucleotides(parent(chain); chain_id = chain.idx, kwargs...)
 @inline nnucleotides(chain::Chain; kwargs...) = nnucleotides(parent(chain); chain_id = chain.idx, kwargs...)
 
-# FIXME currently not possible due to
-# <https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/issues/26>
-#
-#@inline function Base.push!(chain::Chain{T}, nuc::NucleotideTuple) where T
-#   ...
-#end
+"""
+    push!(::Chain{T}, nuc::Nucleotide{T})
+
+Creates a copy of the given nucleotide in the given chain. The new nucleotide is automatically assigned a
+new `idx`.
+"""
+@inline function Base.push!(chain::Chain{T}, nuc::Nucleotide{T}) where T
+    Nucleotide(parent(chain), nuc.number;
+        name = nuc.name,
+        properties = nuc.properties,
+        flags = nuc.flags
+    )
+    chain
+end
 
 #=
     Nucleotide atoms
@@ -217,9 +215,22 @@ end
 @inline atoms(nuc::Nucleotide; kwargs...) = atoms(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 @inline natoms(nuc::Nucleotide; kwargs...) = natoms(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
 
-@inline function Base.push!(nuc::Nucleotide{T}, atom::AtomTuple{T}; kwargs...) where T
-    push!(parent(nuc), atom; molecule_id = nuc._row.molecule_id, chain_id = nuc._row.chain_id,
-        nucleotide_id = nuc.idx, kwargs...)
+@inline function Atom(nuc::Nucleotide, number::Int, element::ElementType; kwargs...)
+    Atom(parent(nuc), number, element;
+        molecule_id = nuc.molecule_id,
+        chain_id = nuc.chain_id,
+        nucleotide_id = nuc.idx,
+        kwargs...
+    )
+end
+
+@inline function Base.push!(nuc::Nucleotide{T}, atom::Atom{T}; kwargs...) where T
+    push!(parent(nuc), atom;
+        molecule_id = nuc.molecule_id,
+        chain_id = nuc.chain_id,
+        nucleotide_id = nuc.idx,
+        kwargs...
+    )
     nuc
 end
 

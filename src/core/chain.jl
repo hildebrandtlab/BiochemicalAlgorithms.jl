@@ -38,13 +38,6 @@ end
 @inline Base.size(ct::ChainTable, dim) = size(ct)[dim]
 @inline Base.length(ct::ChainTable) = size(ct, 1)
 
-function Base.push!(ct::ChainTable, t::ChainTuple, molecule_id::Int)
-    sys = getfield(ct, :_sys)
-    push!(sys._chains, t, molecule_id)
-    push!(getfield(ct, :_idx), sys._curr_idx)
-    ct
-end
-
 @inline function _filter_chains(f::Function, sys::System{T}) where T
     ChainTable{T}(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._chains),
@@ -95,21 +88,13 @@ Creates a new `Chain{T}` in the given molecule.
     _row::_ChainTableRow
 end
 
-function Chain(
-    mol::Molecule{T},
-    name::String = "",
-    properties::Properties = Properties(),
-    flags::Flags = Flags()
-) where T
+@inline function Chain(
+    mol::Molecule;
+    kwargs...
+)
     sys = parent(mol)
     idx = _next_idx(sys)
-    push!(sys._chains, ChainTuple(
-            idx = idx,
-            name = name,
-            properties = properties,
-            flags = flags
-        ), mol.idx
-    )
+    push!(sys._chains, _Chain(; idx = idx, kwargs...), mol.idx)
     chain_by_idx(sys, idx)
 end
 
@@ -131,7 +116,7 @@ end
 
 @inline Base.parent(chain::Chain) = chain._sys
 @inline parent_system(chain::Chain) = parent(chain)
-@inline parent_molecule(chain::Chain) = molecule_by_idx(parent(chain), chain._row.molecule_id)
+@inline parent_molecule(chain::Chain) = molecule_by_idx(parent(chain), chain.molecule_id)
 
 @doc raw"""
     parent_chain(::Atom)
@@ -186,15 +171,18 @@ end
 @inline nchains(mol::Molecule) = nchains(parent(mol), molecule_id = mol.idx)
 
 """
-    push!(::Molecule, chain::ChainTuple)
-    push!(::Protein, chain::ChainTuple)
+    push!(::Molecule{T}, chain::Chain{T})
+    push!(::Protein{T}, chain::Chain{T})
 
-Creates a new chain in the given molecule, based on the given tuple. The new chain is automatically
-assigned a new `idx`.
+Creates a copy of the given chain in the given molecule. The new chain is automatically assigned a
+new `idx`.
 """
-@inline function Base.push!(mol::Molecule, chain::ChainTuple)
-    sys = parent(mol)
-    push!(sys._chains, (; chain..., idx = _next_idx(sys)), mol.idx)
+@inline function Base.push!(mol::Molecule{T}, chain::Chain{T}) where T
+    Chain(parent(mol);
+        name = chain.name,
+        properties = chain.properties,
+        flags = chain.flags
+    )
     mol
 end
 
@@ -203,6 +191,23 @@ end
 =#
 @inline atoms(chain::Chain; kwargs...) = atoms(parent(chain); chain_id = chain.idx, kwargs...)
 @inline natoms(chain::Chain; kwargs...) = natoms(parent(chain); chain_id = chain.idx, kwargs...)
+
+@inline function Atom(chain::Chain, number::Int, element::ElementType; kwargs...)
+    Atom(parent(chain), number, element;
+        molecule_id = chain.molecule_id,
+        chain_id = chain.idx,
+        kwargs...
+    )
+end
+
+@inline function Base.push!(chain::Chain{T}, atom::Atom{T}; kwargs...) where T
+    push!(parent(chain), atom;
+        molecule_id = chain.molecule_id,
+        chain_id = chain.idx,
+        kwargs...
+    )
+    chain
+end
 
 #=
     Chain bonds
