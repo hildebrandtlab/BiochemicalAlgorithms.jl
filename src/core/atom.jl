@@ -119,21 +119,21 @@ end
     number::Int,
     element::ElementType;
     frame_id::Int = 1,
-    molecule_id::MaybeInt = nothing,
-    chain_id::MaybeInt = nothing,
-    fragment_id::MaybeInt = nothing,
-    nucleotide_id::MaybeInt = nothing,
-    residue_id::MaybeInt = nothing,
+    molecule_idx::MaybeInt = nothing,
+    chain_idx::MaybeInt = nothing,
+    fragment_idx::MaybeInt = nothing,
+    nucleotide_idx::MaybeInt = nothing,
+    residue_idx::MaybeInt = nothing,
     kwargs...
 ) where T
     idx = _next_idx(sys)
     push!(sys._atoms, _Atom{T}(number, element; idx = idx, kwargs...);
         frame_id = frame_id,
-        molecule_id = molecule_id,
-        chain_id = chain_id,
-        fragment_id = fragment_id,
-        nucleotide_id = nucleotide_id,
-        residue_id = residue_id
+        molecule_idx = molecule_idx,
+        chain_idx = chain_idx,
+        fragment_idx = fragment_idx,
+        nucleotide_idx = nucleotide_idx,
+        residue_idx = residue_idx
     )
     atom_by_idx(sys, idx)
 end
@@ -167,33 +167,33 @@ end
 @inline parent_system(atom::Atom) = parent(atom)
 
 @inline function parent_molecule(atom::Atom) 
-    isnothing(atom.molecule_id) ?
+    isnothing(atom.molecule_idx) ?
         nothing :
-        molecule_by_idx(parent(atom), atom.molecule_id)
+        molecule_by_idx(parent(atom), atom.molecule_idx)
 end
 
 @inline function parent_chain(atom::Atom)
-    isnothing(atom.chain_id) ?
+    isnothing(atom.chain_idx) ?
         nothing :
-        chain_by_idx(atom._sys, atom.chain_id)
+        chain_by_idx(atom._sys, atom.chain_idx)
 end
 
 @inline function parent_fragment(atom::Atom)
-    isnothing(atom.fragment_id) ?
+    isnothing(atom.fragment_idx) ?
         nothing :
-        fragment_by_idx(parent(atom), atom.fragment_id)
+        fragment_by_idx(parent(atom), atom.fragment_idx)
 end
 
 @inline function parent_nucleotide(atom::Atom)
-    isnothing(atom.nucleotide_id) ?
+    isnothing(atom.nucleotide_idx) ?
         nothing :
-        nucleotide_by_idx(parent(atom), atom.nucleotide_id)
+        nucleotide_by_idx(parent(atom), atom.nucleotide_idx)
 end
 
 @inline function parent_residue(atom::Atom)
-    isnothing(atom.residue_id) ?
+    isnothing(atom.residue_idx) ?
         nothing :
-        residue_by_idx(parent(atom), atom.residue_id)
+        residue_by_idx(parent(atom), atom.residue_idx)
 end
 
 """
@@ -238,32 +238,32 @@ Returns an `AtomTable{T}` containing all atoms of the given atom container.
 # Supported keyword arguments
  - `frame_id::MaybeInt = 1`: \
 Any value other than `nothing` limits the result to atoms matching this frame ID.
- - `molecule_id::Union{MaybeInt, Some{Nothing}} = nothing`: \
+ - `molecule_idx::Union{MaybeInt, Some{Nothing}} = nothing`: \
 Any value other than `nothing` limits the results to atoms belonging to the given molecule ID.
- - `chain_id::Union{MaybeInt, Some{Nothing}} = nothing`: \
+ - `chain_idx::Union{MaybeInt, Some{Nothing}} = nothing`: \
 Any value other than `nothing` limits the results to atoms belonging to the given chain ID.
-- `fragment_id::Union{MaybeInt, Some{Nothing}} = nothing`: \
+- `fragment_idx::Union{MaybeInt, Some{Nothing}} = nothing`: \
 Any value other than `nothing` limits the results to atoms belonging to the given fragment ID.
-- `nucleotide_id::Union{MaybeInt, Some{Nothing}} = nothing`: \
+- `nucleotide_idx::Union{MaybeInt, Some{Nothing}} = nothing`: \
 Any value other than `nothing` limits the results to atoms belonging to the given nucleotide ID.
-- `residue_id::Union{MaybeInt, Some{Nothing}} = nothing`: \
+- `residue_idx::Union{MaybeInt, Some{Nothing}} = nothing`: \
 Any value other than `nothing` limits the results to atoms belonging to the given residue ID.
 """
 @inline function atoms(sys::System{T};
     frame_id::MaybeInt = 1,
-    molecule_id::Union{MaybeInt, Some{Nothing}} = nothing,
-    chain_id::Union{MaybeInt, Some{Nothing}} = nothing,
-    fragment_id::Union{MaybeInt, Some{Nothing}} = nothing,
-    nucleotide_id::Union{MaybeInt, Some{Nothing}} = nothing,
-    residue_id::Union{MaybeInt, Some{Nothing}} = nothing
+    molecule_idx::Union{MaybeInt, Some{Nothing}} = nothing,
+    chain_idx::Union{MaybeInt, Some{Nothing}} = nothing,
+    fragment_idx::Union{MaybeInt, Some{Nothing}} = nothing,
+    nucleotide_idx::Union{MaybeInt, Some{Nothing}} = nothing,
+    residue_idx::Union{MaybeInt, Some{Nothing}} = nothing
 ) where T
     _filter_atoms(atom ->
-        (isnothing(frame_id)      || atom.frame_id == frame_id) &&
-        (isnothing(molecule_id)   || atom.molecule_id == something(molecule_id)) &&
-        (isnothing(chain_id)      || atom.chain_id == something(chain_id)) &&
-        (isnothing(fragment_id)   || atom.fragment_id == something(fragment_id)) &&
-        (isnothing(nucleotide_id) || atom.nucleotide_id == something(nucleotide_id)) &&
-        (isnothing(residue_id)    || atom.residue_id == something(residue_id)),
+        (isnothing(frame_id)       || atom.frame_id == frame_id) &&
+        (isnothing(molecule_idx)   || atom.molecule_idx == something(molecule_idx)) &&
+        (isnothing(chain_idx)      || atom.chain_idx == something(chain_idx)) &&
+        (isnothing(fragment_idx)   || atom.fragment_idx == something(fragment_idx)) &&
+        (isnothing(nucleotide_idx) || atom.nucleotide_idx == something(nucleotide_idx)) &&
+        (isnothing(residue_idx)    || atom.residue_idx == something(residue_idx)),
         sys
     )
 end
@@ -322,11 +322,11 @@ assigned a new `idx`.
 """
 @inline function Base.push!(sys::System{T}, atom::Atom{T};
     frame_id::Int = 1,
-    molecule_id::MaybeInt = nothing,
-    chain_id::MaybeInt = nothing,
-    fragment_id::MaybeInt = nothing,
-    nucleotide_id::MaybeInt = nothing,
-    residue_id::MaybeInt = nothing
+    molecule_idx::MaybeInt = nothing,
+    chain_idx::MaybeInt = nothing,
+    fragment_idx::MaybeInt = nothing,
+    nucleotide_idx::MaybeInt = nothing,
+    residue_idx::MaybeInt = nothing
 ) where T
     Atom(sys, atom.number, atom.element;
         name = atom.name,
@@ -340,11 +340,11 @@ assigned a new `idx`.
         properties = atom.properties,
         flags = atom.flags,
         frame_id = frame_id,
-        molecule_id = molecule_id,
-        chain_id = chain_id,
-        fragment_id = fragment_id,
-        nucleotide_id = nucleotide_id,
-        residue_id = residue_id
+        molecule_idx = molecule_idx,
+        chain_idx = chain_idx,
+        fragment_idx = fragment_idx,
+        nucleotide_idx = nucleotide_idx,
+        residue_idx = residue_idx
     )
     sys
 end

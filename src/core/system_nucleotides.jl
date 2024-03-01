@@ -18,7 +18,7 @@ end
 
 const _nucleotide_table_cols = fieldnames(_Nucleotide)
 const _nucleotide_table_cols_set = Set(_nucleotide_table_cols)
-const _nucleotide_table_cols_priv = Set([:molecule_id, :chain_id])
+const _nucleotide_table_cols_priv = Set([:molecule_idx, :chain_idx])
 
 @auto_hash_equals struct _NucleotideTable <: Tables.AbstractColumns
     # public columns
@@ -29,8 +29,8 @@ const _nucleotide_table_cols_priv = Set([:molecule_id, :chain_id])
     flags::Vector{Flags}
 
     # private columns
-    molecule_id::Vector{Int}
-    chain_id::Vector{Int}
+    molecule_idx::Vector{Int}
+    chain_idx::Vector{Int}
 
     # internals
     _idx_map::Dict{Int,Int}
@@ -67,13 +67,13 @@ end
 @inline Base.size(nt::_NucleotideTable, dim) = size(nt)[dim]
 @inline Base.length(nt::_NucleotideTable) = size(nt, 1)
 
-function Base.push!(nt::_NucleotideTable, t::_Nucleotide, molecule_id::Int, chain_id::Int)
+function Base.push!(nt::_NucleotideTable, t::_Nucleotide, molecule_idx::Int, chain_idx::Int)
     getfield(nt, :_idx_map)[t.idx] = length(nt.idx) + 1
     for fn in _nucleotide_table_cols
         push!(getfield(nt, Symbol(fn)), getfield(t, Symbol(fn)))
     end
-    push!(getfield(nt, :molecule_id), molecule_id)
-    push!(getfield(nt, :chain_id), chain_id)
+    push!(getfield(nt, :molecule_idx), molecule_idx)
+    push!(getfield(nt, :chain_idx), chain_idx)
     nt
 end
 
@@ -85,9 +85,9 @@ function _nucleotide_table(itr)
                 name = n.name,
                 properties = n.properties,
                 flags = n.flags
-            );
-            molecule_id = Tables.getcolumn(n, :molecule_id),
-            chain_id = Tables.getcolumn(n, :chain_id)
+            ),
+            Tables.getcolumn(n, :molecule_idx),
+            Tables.getcolumn(n, :chain_idx)
        )
     end
     nt
@@ -113,8 +113,8 @@ end
     nm === :name        && return _getproperty(ntr, :name)::String
     nm === :properties  && return _getproperty(ntr, :properties)::Properties
     nm === :flags       && return _getproperty(ntr, :flags)::Flags
-    nm === :molecule_id && return _getproperty(ntr, :molecule_id)::Int
-    nm === :chain_id    && return _getproperty(ntr, :chain_id)::Int
+    nm === :molecule_idx && return _getproperty(ntr, :molecule_idx)::Int
+    nm === :chain_idx    && return _getproperty(ntr, :chain_idx)::Int
     getindex(getfield(getfield(ntr, :_tab), nm), getfield(ntr, :_row))
 end
 

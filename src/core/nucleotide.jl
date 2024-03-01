@@ -100,7 +100,7 @@ end
     push!(
         sys._nucleotides,
         _Nucleotide(number; idx = idx, kwargs...),
-        chain.molecule_id,
+        chain.molecule_idx,
         chain.idx
     )
     nucleotide_by_idx(sys, idx)
@@ -125,8 +125,8 @@ end
 
 @inline Base.parent(nuc::Nucleotide) = nuc._sys
 @inline parent_system(nuc::Nucleotide) = parent(nuc)
-@inline parent_molecule(nuc::Nucleotide) = molecule_by_idx(parent(nuc), nuc.molecule_id)
-@inline parent_chain(nuc::Nucleotide) = chain_by_idx(parent(nuc), nuc.chain_id)
+@inline parent_molecule(nuc::Nucleotide) = molecule_by_idx(parent(nuc), nuc.molecule_idx)
+@inline parent_chain(nuc::Nucleotide) = chain_by_idx(parent(nuc), nuc.chain_idx)
 
 @doc raw"""
     parent_nucleotide(::Atom)
@@ -152,19 +152,19 @@ end
 Returns a `NucleotideTable{T}` containing all nucleotides of the given atom container.
 
 # Supported keyword arguments
- - `molecule_id::MaybeInt = nothing`: \
+ - `molecule_idx::MaybeInt = nothing`: \
 Any value other than `nothing` limits the result to nucleotides belonging to the molecule with the given ID.
-- `chain_id::MaybeInt = nothing`: \
+- `chain_idx::MaybeInt = nothing`: \
 Any value other than `nothing` limits the result to nucleotides belonging to the chain with the given ID.
 """
 function nucleotides(sys::System{T};
-    molecule_id::MaybeInt = nothing,
-    chain_id::MaybeInt = nothing
+    molecule_idx::MaybeInt = nothing,
+    chain_idx::MaybeInt = nothing
 ) where T
-    isnothing(molecule_id) && isnothing(chain_id) && return NucleotideTable{T}(sys, sys._nucleotides.idx)
+    isnothing(molecule_idx) && isnothing(chain_idx) && return NucleotideTable{T}(sys, sys._nucleotides.idx)
     _filter_nucleotides(nuc ->
-        (isnothing(molecule_id) || nuc.molecule_id == something(molecule_id)) &&
-        (isnothing(chain_id)    || nuc.chain_id    == something(chain_id)),
+        (isnothing(molecule_idx) || nuc.molecule_idx == something(molecule_idx)) &&
+        (isnothing(chain_idx)    || nuc.chain_idx    == something(chain_idx)),
         sys
     )
 end
@@ -183,14 +183,14 @@ end
 #=
     Nucleotides
 =#
-@inline nucleotides(mol::Molecule; kwargs...) = nucleotides(parent(mol); molecule_id = mol.idx, kwargs...)
-@inline nnucleotides(mol::Molecule; kwargs...) = nnucleotides(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline nucleotides(mol::Molecule; kwargs...) = nucleotides(parent(mol); molecule_idx = mol.idx, kwargs...)
+@inline nnucleotides(mol::Molecule; kwargs...) = nnucleotides(parent(mol); molecule_idx = mol.idx, kwargs...)
 
 #=
     Chain nucleotides
 =#
-@inline nucleotides(chain::Chain; kwargs...) = nucleotides(parent(chain); chain_id = chain.idx, kwargs...)
-@inline nnucleotides(chain::Chain; kwargs...) = nnucleotides(parent(chain); chain_id = chain.idx, kwargs...)
+@inline nucleotides(chain::Chain; kwargs...) = nucleotides(parent(chain); chain_idx = chain.idx, kwargs...)
+@inline nnucleotides(chain::Chain; kwargs...) = nnucleotides(parent(chain); chain_idx = chain.idx, kwargs...)
 
 """
     push!(::Chain{T}, nuc::Nucleotide{T})
@@ -210,23 +210,23 @@ end
 #=
     Nucleotide atoms
 =#
-@inline atoms(nuc::Nucleotide; kwargs...) = atoms(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
-@inline natoms(nuc::Nucleotide; kwargs...) = natoms(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
+@inline atoms(nuc::Nucleotide; kwargs...) = atoms(parent(nuc); nucleotide_idx = nuc.idx, kwargs...)
+@inline natoms(nuc::Nucleotide; kwargs...) = natoms(parent(nuc); nucleotide_idx = nuc.idx, kwargs...)
 
 @inline function Atom(nuc::Nucleotide, number::Int, element::ElementType; kwargs...)
     Atom(parent(nuc), number, element;
-        molecule_id = nuc.molecule_id,
-        chain_id = nuc.chain_id,
-        nucleotide_id = nuc.idx,
+        molecule_idx = nuc.molecule_idx,
+        chain_idx = nuc.chain_idx,
+        nucleotide_idx = nuc.idx,
         kwargs...
     )
 end
 
 @inline function Base.push!(nuc::Nucleotide{T}, atom::Atom{T}; kwargs...) where T
     push!(parent(nuc), atom;
-        molecule_id = nuc.molecule_id,
-        chain_id = nuc.chain_id,
-        nucleotide_id = nuc.idx,
+        molecule_idx = nuc.molecule_idx,
+        chain_idx = nuc.chain_idx,
+        nucleotide_idx = nuc.idx,
         kwargs...
     )
     nuc
@@ -235,8 +235,8 @@ end
 #=
     Nucleotide bonds
 =#
-@inline bonds(nuc::Nucleotide; kwargs...) = bonds(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
-@inline nbonds(nuc::Nucleotide; kwargs...) = nbonds(parent(nuc); nucleotide_id = nuc.idx, kwargs...)
+@inline bonds(nuc::Nucleotide; kwargs...) = bonds(parent(nuc); nucleotide_idx = nuc.idx, kwargs...)
+@inline nbonds(nuc::Nucleotide; kwargs...) = nbonds(parent(nuc); nucleotide_idx = nuc.idx, kwargs...)
 
 # TODO: we should come up with a better test than just checking the name
 is_nucleotide(name::String) = name ∈ ["A", "C", "G", "T", "U", "I", "DA", "DC", "DG", "DT", "DU", "DI"]

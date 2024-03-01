@@ -184,20 +184,20 @@ end
 #=
     Molecule atoms
 =#
-@inline atoms(mol::Molecule; kwargs...) = atoms(parent(mol); molecule_id = mol.idx, kwargs...)
-@inline natoms(mol::Molecule; kwargs...) = natoms(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline atoms(mol::Molecule; kwargs...) = atoms(parent(mol); molecule_idx = mol.idx, kwargs...)
+@inline natoms(mol::Molecule; kwargs...) = natoms(parent(mol); molecule_idx = mol.idx, kwargs...)
 
 @inline function Atom(mol::Molecule, number::Int, element::ElementType; kwargs...)
-    Atom(parent(mol), number, element; molecule_id = mol.idx, kwargs...)
+    Atom(parent(mol), number, element; molecule_idx = mol.idx, kwargs...)
 end
 
 @inline function Base.push!(mol::Molecule{T}, atom::Atom{T}; kwargs...) where T
-    push!(parent(mol), atom; molecule_id = mol.idx, kwargs...)
+    push!(parent(mol), atom; molecule_idx = mol.idx, kwargs...)
     mol
 end
 
 #=
     Molecule bonds
 =#
-@inline bonds(mol::Molecule; kwargs...) = bonds(parent(mol); molecule_id = mol.idx, kwargs...)
-@inline nbonds(mol::Molecule; kwargs...) = nbonds(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline bonds(mol::Molecule; kwargs...) = bonds(parent(mol); molecule_idx = mol.idx, kwargs...)
+@inline nbonds(mol::Molecule; kwargs...) = nbonds(parent(mol); molecule_idx = mol.idx, kwargs...)

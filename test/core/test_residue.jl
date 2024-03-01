@@ -44,17 +44,17 @@
         @test res._sys isa System{T}
         @test res._row isa BiochemicalAlgorithms._ResidueTableRow
         
-        @test res.molecule_id isa Int
-        @test res.molecule_id == mol.idx
-        @test res.chain_id isa Int
-        @test res.chain_id == chain.idx
+        @test res.molecule_idx isa Int
+        @test res.molecule_idx == mol.idx
+        @test res.chain_idx isa Int
+        @test res.chain_idx == chain.idx
 
         @test res2.number == 1
         @test res2.type == AminoAcid('D')
         @test res2.properties == Properties(:a => 1)
         @test res2.flags == Flags([:A, :B])
-        @test res2.molecule_id == mol2.idx
-        @test res2.chain_id == chain2.idx
+        @test res2.molecule_idx == mol2.idx
+        @test res2.chain_idx == chain2.idx
 
         # setproperty!
         res.number = 0
@@ -70,10 +70,10 @@
         @test :C in res.flags
 
         res3 = Nucleotide(Chain(Molecule(System{T}())), 1)
-        res3.molecule_id = 999
-        @test res3.molecule_id == 999
-        res3.chain_id = 998
-        @test res3.chain_id == 998
+        res3.molecule_idx = 999
+        @test res3.molecule_idx == 999
+        res3.chain_idx = 998
+        @test res3.chain_idx == 998
 
         # residue_by_idx
         @test_throws KeyError residue_by_idx(sys, -1)
@@ -85,103 +85,103 @@
         @test fv isa ResidueTable{T}
         @test length(fv) == 2
         @test length(residues(sys)) == 2
-        @test length(residues(sys, molecule_id = -1)) == 0
-        @test length(residues(sys, molecule_id = mol.idx)) == 1
-        @test length(residues(sys, molecule_id = mol2.idx)) == 1
-        @test length(residues(sys, molecule_id = nothing)) == 2
-        @test length(residues(sys, chain_id = -1)) == 0
-        @test length(residues(sys, chain_id = chain.idx)) == 1
-        @test length(residues(sys, chain_id = chain2.idx)) == 1
-        @test length(residues(sys, chain_id = nothing)) == 2
-        @test length(residues(sys, molecule_id = -1, chain_id = chain.idx)) == 0
-        @test length(residues(sys, molecule_id = mol.idx, chain_id = -1)) == 0
-        @test length(residues(sys, molecule_id = mol.idx, chain_id = chain.idx)) == 1
-        @test length(residues(sys, molecule_id = mol.idx, chain_id = nothing)) == 1
-        @test length(residues(sys, molecule_id = nothing, chain_id = chain.idx)) == 1
-        @test length(residues(sys, molecule_id = nothing, chain_id = nothing)) == 2
+        @test length(residues(sys, molecule_idx = -1)) == 0
+        @test length(residues(sys, molecule_idx = mol.idx)) == 1
+        @test length(residues(sys, molecule_idx = mol2.idx)) == 1
+        @test length(residues(sys, molecule_idx = nothing)) == 2
+        @test length(residues(sys, chain_idx = -1)) == 0
+        @test length(residues(sys, chain_idx = chain.idx)) == 1
+        @test length(residues(sys, chain_idx = chain2.idx)) == 1
+        @test length(residues(sys, chain_idx = nothing)) == 2
+        @test length(residues(sys, molecule_idx = -1, chain_idx = chain.idx)) == 0
+        @test length(residues(sys, molecule_idx = mol.idx, chain_idx = -1)) == 0
+        @test length(residues(sys, molecule_idx = mol.idx, chain_idx = chain.idx)) == 1
+        @test length(residues(sys, molecule_idx = mol.idx, chain_idx = nothing)) == 1
+        @test length(residues(sys, molecule_idx = nothing, chain_idx = chain.idx)) == 1
+        @test length(residues(sys, molecule_idx = nothing, chain_idx = nothing)) == 2
 
         # nresidues + push!
         @test nresidues(sys) isa Int
         @test nresidues(sys) == 2
-        @test nresidues(sys, molecule_id = -1) == 0
-        @test nresidues(sys, molecule_id = mol.idx) == 1
-        @test nresidues(sys, molecule_id = mol2.idx) == 1
-        @test nresidues(sys, molecule_id = nothing) == 2
-        @test nresidues(sys, chain_id = -1) == 0
-        @test nresidues(sys, chain_id = chain.idx) == 1
-        @test nresidues(sys, chain_id = chain2.idx) == 1
-        @test nresidues(sys, chain_id = nothing) == 2
-        @test nresidues(sys, molecule_id = -1, chain_id = chain.idx) == 0
-        @test nresidues(sys, molecule_id = mol.idx, chain_id = -1) == 0
-        @test nresidues(sys, molecule_id = mol.idx, chain_id = chain.idx) == 1
-        @test nresidues(sys, molecule_id = mol.idx, chain_id = nothing) == 1
-        @test nresidues(sys, molecule_id = nothing, chain_id = chain.idx) == 1
-        @test nresidues(sys, molecule_id = nothing, chain_id = nothing) == 2
+        @test nresidues(sys, molecule_idx = -1) == 0
+        @test nresidues(sys, molecule_idx = mol.idx) == 1
+        @test nresidues(sys, molecule_idx = mol2.idx) == 1
+        @test nresidues(sys, molecule_idx = nothing) == 2
+        @test nresidues(sys, chain_idx = -1) == 0
+        @test nresidues(sys, chain_idx = chain.idx) == 1
+        @test nresidues(sys, chain_idx = chain2.idx) == 1
+        @test nresidues(sys, chain_idx = nothing) == 2
+        @test nresidues(sys, molecule_idx = -1, chain_idx = chain.idx) == 0
+        @test nresidues(sys, molecule_idx = mol.idx, chain_idx = -1) == 0
+        @test nresidues(sys, molecule_idx = mol.idx, chain_idx = chain.idx) == 1
+        @test nresidues(sys, molecule_idx = mol.idx, chain_idx = nothing) == 1
+        @test nresidues(sys, molecule_idx = nothing, chain_idx = chain.idx) == 1
+        @test nresidues(sys, molecule_idx = nothing, chain_idx = nothing) == 2
 
-        @test Residue(chain, 1, AminoAcid('A')).chain_id == chain.idx
+        @test Residue(chain, 1, AminoAcid('A')).chain_idx == chain.idx
         @test nresidues(sys) isa Int
         @test nresidues(sys) == 3
-        @test nresidues(sys, molecule_id = -1) == 0
-        @test nresidues(sys, molecule_id = mol.idx) == 2
-        @test nresidues(sys, molecule_id = mol2.idx) == 1
-        @test nresidues(sys, molecule_id = nothing) == 3
-        @test nresidues(sys, chain_id = -1) == 0
-        @test nresidues(sys, chain_id = chain.idx) == 2
-        @test nresidues(sys, chain_id = chain2.idx) == 1
-        @test nresidues(sys, chain_id = nothing) == 3
-        @test nresidues(sys, molecule_id = -1, chain_id = chain.idx) == 0
-        @test nresidues(sys, molecule_id = mol.idx, chain_id = -1) == 0
-        @test nresidues(sys, molecule_id = mol.idx, chain_id = chain.idx) == 2
-        @test nresidues(sys, molecule_id = mol.idx, chain_id = nothing) == 2
-        @test nresidues(sys, molecule_id = nothing, chain_id = chain.idx) == 2
-        @test nresidues(sys, molecule_id = nothing, chain_id = nothing) == 3
+        @test nresidues(sys, molecule_idx = -1) == 0
+        @test nresidues(sys, molecule_idx = mol.idx) == 2
+        @test nresidues(sys, molecule_idx = mol2.idx) == 1
+        @test nresidues(sys, molecule_idx = nothing) == 3
+        @test nresidues(sys, chain_idx = -1) == 0
+        @test nresidues(sys, chain_idx = chain.idx) == 2
+        @test nresidues(sys, chain_idx = chain2.idx) == 1
+        @test nresidues(sys, chain_idx = nothing) == 3
+        @test nresidues(sys, molecule_idx = -1, chain_idx = chain.idx) == 0
+        @test nresidues(sys, molecule_idx = mol.idx, chain_idx = -1) == 0
+        @test nresidues(sys, molecule_idx = mol.idx, chain_idx = chain.idx) == 2
+        @test nresidues(sys, molecule_idx = mol.idx, chain_idx = nothing) == 2
+        @test nresidues(sys, molecule_idx = nothing, chain_idx = chain.idx) == 2
+        @test nresidues(sys, molecule_idx = nothing, chain_idx = nothing) == 3
 
         # chain/molecule residues
         mol3 = Molecule(sys)
         @test size(residues(mol3), 1) == 0
-        @test residues(mol3) == residues(sys, molecule_id = mol3.idx)
+        @test residues(mol3) == residues(sys, molecule_idx = mol3.idx)
         @test nresidues(mol3) == 0
-        @test nresidues(mol3) == nresidues(sys, molecule_id = mol3.idx)
+        @test nresidues(mol3) == nresidues(sys, molecule_idx = mol3.idx)
 
         chain3 = Chain(mol3)
         @test size(residues(chain3), 1) == 0
-        @test residues(chain3) == residues(sys, chain_id = chain3.idx)
+        @test residues(chain3) == residues(sys, chain_idx = chain3.idx)
         @test nresidues(chain3) == 0
-        @test nresidues(chain3) == nresidues(sys, chain_id = chain3.idx)
+        @test nresidues(chain3) == nresidues(sys, chain_idx = chain3.idx)
 
         Residue(chain3, 1, AminoAcid('A'))
         @test size(residues(mol3), 1) == 1
-        @test residues(mol3) == residues(sys, molecule_id = mol3.idx)
+        @test residues(mol3) == residues(sys, molecule_idx = mol3.idx)
         @test nresidues(mol3) == 1
-        @test nresidues(mol3) == nresidues(sys, molecule_id = mol3.idx)
+        @test nresidues(mol3) == nresidues(sys, molecule_idx = mol3.idx)
 
         @test size(residues(chain3), 1) == 1
-        @test residues(chain3) == residues(sys, chain_id = chain3.idx)
+        @test residues(chain3) == residues(sys, chain_idx = chain3.idx)
         @test nresidues(chain3) == 1
-        @test nresidues(chain3) == nresidues(sys, chain_id = chain3.idx)
+        @test nresidues(chain3) == nresidues(sys, chain_idx = chain3.idx)
 
         # residue atoms
         @test length(atoms(res)) == 0
-        @test atoms(res) == atoms(sys, residue_id = res.idx)
+        @test atoms(res) == atoms(sys, residue_idx = res.idx)
         @test natoms(res) == 0
-        @test natoms(res) == natoms(sys, residue_id = res.idx)
+        @test natoms(res) == natoms(sys, residue_idx = res.idx)
 
-        @test Atom(res, 1, Elements.H).residue_id == res.idx
+        @test Atom(res, 1, Elements.H).residue_idx == res.idx
         @test length(atoms(res)) == 1
-        @test atoms(res) == atoms(sys, residue_id = res.idx)
+        @test atoms(res) == atoms(sys, residue_idx = res.idx)
         @test natoms(res) == 1
-        @test natoms(res) == natoms(sys, residue_id = res.idx)
+        @test natoms(res) == natoms(sys, residue_idx = res.idx)
 
         # residue bonds
         @test length(bonds(res)) == 0
-        @test bonds(res) == bonds(sys, residue_id = res.idx)
+        @test bonds(res) == bonds(sys, residue_idx = res.idx)
         @test nbonds(res) == 0
-        @test nbonds(res) == nbonds(sys, residue_id = res.idx)
+        @test nbonds(res) == nbonds(sys, residue_idx = res.idx)
 
         Bond(res, Atom(res, 1, Elements.H).idx, Atom(res, 2, Elements.C).idx, BondOrder.Single)
         @test length(bonds(res)) == 1
-        @test bonds(res) == bonds(sys, residue_id = res.idx)
+        @test bonds(res) == bonds(sys, residue_idx = res.idx)
         @test nbonds(res) == 1
-        @test nbonds(res) == nbonds(sys, residue_id = res.idx)
+        @test nbonds(res) == nbonds(sys, residue_idx = res.idx)
     end
 end

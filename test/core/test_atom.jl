@@ -36,11 +36,11 @@
             charge = at.charge,
             radius = at.radius,
             frame_id = 10,
-            molecule_id = 11,
-            chain_id = 12,
-            fragment_id = 13,
-            nucleotide_id = 14,
-            residue_id = 15
+            molecule_idx = 11,
+            chain_idx = 12,
+            fragment_idx = 13,
+            nucleotide_idx = 14,
+            residue_idx = 15
         )
 
         #=
@@ -81,24 +81,24 @@
 
         @test atom.frame_id isa Int
         @test atom.frame_id == 1
-        @test isnothing(atom.molecule_id)
-        @test isnothing(atom.chain_id)
-        @test isnothing(atom.fragment_id)
-        @test isnothing(atom.nucleotide_id)
-        @test isnothing(atom.residue_id)
+        @test isnothing(atom.molecule_idx)
+        @test isnothing(atom.chain_idx)
+        @test isnothing(atom.fragment_idx)
+        @test isnothing(atom.nucleotide_idx)
+        @test isnothing(atom.residue_idx)
 
         @test atom2.frame_id isa Int
         @test atom2.frame_id == 10
-        @test atom2.molecule_id isa Int
-        @test atom2.molecule_id == 11
-        @test atom2.chain_id isa Int
-        @test atom2.chain_id == 12
-        @test atom2.fragment_id isa Int
-        @test atom2.fragment_id == 13
-        @test atom2.nucleotide_id isa Int
-        @test atom2.nucleotide_id == 14
-        @test atom2.residue_id isa Int
-        @test atom2.residue_id == 15
+        @test atom2.molecule_idx isa Int
+        @test atom2.molecule_idx == 11
+        @test atom2.chain_idx isa Int
+        @test atom2.chain_idx == 12
+        @test atom2.fragment_idx isa Int
+        @test atom2.fragment_idx == 13
+        @test atom2.nucleotide_idx isa Int
+        @test atom2.nucleotide_idx == 14
+        @test atom2.residue_idx isa Int
+        @test atom2.residue_idx == 15
 
         # setproperty!
         atom.number = 42
@@ -133,16 +133,16 @@
         atom3 = Atom(System{T}(), at.number, at.element; name = at.name, frame_id = 10)
         atom3.frame_id = 999
         @test atom3.frame_id == 999
-        atom3.molecule_id = 998
-        @test atom3.molecule_id == 998
-        atom3.chain_id = 997
-        @test atom3.chain_id == 997
-        atom3.fragment_id = 996
-        @test atom3.fragment_id == 996
-        atom3.nucleotide_id = 995
-        @test atom3.nucleotide_id == 995
-        atom3.residue_id = 994
-        @test atom3.residue_id == 994
+        atom3.molecule_idx = 998
+        @test atom3.molecule_idx == 998
+        atom3.chain_idx = 997
+        @test atom3.chain_idx == 997
+        atom3.fragment_idx = 996
+        @test atom3.fragment_idx == 996
+        atom3.nucleotide_idx = 995
+        @test atom3.nucleotide_idx == 995
+        atom3.residue_idx = 994
+        @test atom3.residue_idx == 994
 
         # atom_by_idx
         @test_throws KeyError atom_by_idx(sys, -1)
@@ -169,8 +169,8 @@
         @test length(atoms(sys, frame_id = 2)) == 0
         @test length(atoms(sys, frame_id = 10)) == 2
         @test length(atoms(sys, frame_id = nothing)) == 3
-        @test length(atoms(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
-            nucleotide_id = 14, residue_id = 15)) == 1
+        @test length(atoms(sys, frame_id = nothing, molecule_idx =11, chain_idx = 12, fragment_idx = 13,
+            nucleotide_idx = 14, residue_idx = 15)) == 1
 
         # natoms + push!
         @test natoms(sys) isa Int
@@ -179,13 +179,13 @@
         @test natoms(sys, frame_id = 2) == 0
         @test natoms(sys, frame_id = 10) == 2
         @test natoms(sys, frame_id = nothing) == 3
-        @test natoms(sys, frame_id = nothing, molecule_id =11, chain_id = 12, fragment_id = 13,
-            nucleotide_id = 14, residue_id = 15) == 1
+        @test natoms(sys, frame_id = nothing, molecule_idx =11, chain_idx = 12, fragment_idx = 13,
+            nucleotide_idx = 14, residue_idx = 15) == 1
 
         @test push!(sys, atom) === sys
         @test natoms(sys) == 2
-        @test push!(sys, atom, frame_id = 100, molecule_id = 101, chain_id = 102, fragment_id = 103, 
-            nucleotide_id = 104, residue_id = 105) === sys
+        @test push!(sys, atom, frame_id = 100, molecule_idx = 101, chain_idx = 102, fragment_idx = 103, 
+            nucleotide_idx = 104, residue_idx = 105) === sys
         @test natoms(sys) == 2
         @test natoms(sys, frame_id = 100) == 1
 

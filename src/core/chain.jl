@@ -116,7 +116,7 @@ end
 
 @inline Base.parent(chain::Chain) = chain._sys
 @inline parent_system(chain::Chain) = parent(chain)
-@inline parent_molecule(chain::Chain) = molecule_by_idx(parent(chain), chain.molecule_id)
+@inline parent_molecule(chain::Chain) = molecule_by_idx(parent(chain), chain.molecule_idx)
 
 @doc raw"""
     parent_chain(::Atom)
@@ -144,12 +144,12 @@ end
 Returns a `ChainTable{T}` containing all chains of the given atom container.
 
 # Supported keyword arguments
- - `molecule_id::MaybeInt = nothing`: \
+ - `molecule_idx::MaybeInt = nothing`: \
 Any value other than `nothing` limits the result to chains belonging to the molecule with the given ID.
 """
-@inline function chains(sys::System{T}; molecule_id::MaybeInt = nothing) where T
-    isnothing(molecule_id) && return ChainTable{T}(sys, sys._chains.idx)
-    _filter_chains(chain -> chain.molecule_id == molecule_id, sys)
+@inline function chains(sys::System{T}; molecule_idx::MaybeInt = nothing) where T
+    isnothing(molecule_idx) && return ChainTable{T}(sys, sys._chains.idx)
+    _filter_chains(chain -> chain.molecule_idx == molecule_idx, sys)
 end
 
 """
@@ -165,8 +165,8 @@ end
 #=
     Molecule chains
 =#
-@inline chains(mol::Molecule) = chains(parent(mol), molecule_id = mol.idx)
-@inline nchains(mol::Molecule) = nchains(parent(mol), molecule_id = mol.idx)
+@inline chains(mol::Molecule) = chains(parent(mol), molecule_idx = mol.idx)
+@inline nchains(mol::Molecule) = nchains(parent(mol), molecule_idx = mol.idx)
 
 """
     push!(::Molecule{T}, chain::Chain{T})
@@ -186,21 +186,21 @@ end
 #=
     Chain atoms
 =#
-@inline atoms(chain::Chain; kwargs...) = atoms(parent(chain); chain_id = chain.idx, kwargs...)
-@inline natoms(chain::Chain; kwargs...) = natoms(parent(chain); chain_id = chain.idx, kwargs...)
+@inline atoms(chain::Chain; kwargs...) = atoms(parent(chain); chain_idx = chain.idx, kwargs...)
+@inline natoms(chain::Chain; kwargs...) = natoms(parent(chain); chain_idx = chain.idx, kwargs...)
 
 @inline function Atom(chain::Chain, number::Int, element::ElementType; kwargs...)
     Atom(parent(chain), number, element;
-        molecule_id = chain.molecule_id,
-        chain_id = chain.idx,
+        molecule_idx = chain.molecule_idx,
+        chain_idx = chain.idx,
         kwargs...
     )
 end
 
 @inline function Base.push!(chain::Chain{T}, atom::Atom{T}; kwargs...) where T
     push!(parent(chain), atom;
-        molecule_id = chain.molecule_id,
-        chain_id = chain.idx,
+        molecule_idx = chain.molecule_idx,
+        chain_idx = chain.idx,
         kwargs...
     )
     chain
@@ -209,5 +209,5 @@ end
 #=
     Chain bonds
 =#
-@inline bonds(chain::Chain; kwargs...) = bonds(parent(chain); chain_id = chain.idx, kwargs...)
-@inline nbonds(chain::Chain; kwargs...) = nbonds(parent(chain); chain_id = chain.idx, kwargs...)
+@inline bonds(chain::Chain; kwargs...) = bonds(parent(chain); chain_idx = chain.idx, kwargs...)
+@inline nbonds(chain::Chain; kwargs...) = nbonds(parent(chain); chain_idx = chain.idx, kwargs...)

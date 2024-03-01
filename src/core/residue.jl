@@ -101,7 +101,7 @@ end
     push!(
         sys._residues,
         _Residue(number, type; idx = idx, kwargs...),
-        chain.molecule_id,
+        chain.molecule_idx,
         chain.idx
     )
     residue_by_idx(sys, idx)
@@ -126,8 +126,8 @@ end
 
 @inline Base.parent(res::Residue) = res._sys
 @inline parent_system(res::Residue) = parent(res)
-@inline parent_molecule(res::Residue) = molecule_by_idx(parent(res), res.molecule_id)
-@inline parent_chain(res::Residue) = chain_by_idx(parent(res), res.chain_id)
+@inline parent_molecule(res::Residue) = molecule_by_idx(parent(res), res.molecule_idx)
+@inline parent_chain(res::Residue) = chain_by_idx(parent(res), res.chain_idx)
 
 @doc raw"""
     parent_residue(::Atom)
@@ -153,19 +153,19 @@ end
 Returns a `ResidueTable{T}` containing all residues of the given atom container.
 
 # Supported keyword arguments
- - `molecule_id::MaybeInt = nothing`: \
+ - `molecule_idx::MaybeInt = nothing`: \
 Any value other than `nothing` limits the result to residues belonging to the molecule with the given ID.
-- `chain_id::MaybeInt = nothing`: \
+- `chain_idx::MaybeInt = nothing`: \
 Any value other than `nothing` limits the result to residues belonging to the chain with the given ID.
 """
 function residues(sys::System{T};
-    molecule_id::MaybeInt = nothing,
-    chain_id::MaybeInt = nothing
+    molecule_idx::MaybeInt = nothing,
+    chain_idx::MaybeInt = nothing
 ) where T
-    isnothing(molecule_id) && isnothing(chain_id) && return ResidueTable{T}(sys, sys._residues.idx)
+    isnothing(molecule_idx) && isnothing(chain_idx) && return ResidueTable{T}(sys, sys._residues.idx)
     _filter_residues(res ->
-        (isnothing(molecule_id) || res.molecule_id == something(molecule_id)) &&
-        (isnothing(chain_id)    || res.chain_id    == something(chain_id)),
+        (isnothing(molecule_idx) || res.molecule_idx == something(molecule_idx)) &&
+        (isnothing(chain_idx)    || res.chain_idx    == something(chain_idx)),
         sys
     )
 end
@@ -184,14 +184,14 @@ end
 #=
     Molecule residues
 =#
-@inline residues(mol::Molecule; kwargs...) = residues(parent(mol); molecule_id = mol.idx, kwargs...)
-@inline nresidues(mol::Molecule; kwargs...) = nresidues(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline residues(mol::Molecule; kwargs...) = residues(parent(mol); molecule_idx = mol.idx, kwargs...)
+@inline nresidues(mol::Molecule; kwargs...) = nresidues(parent(mol); molecule_idx = mol.idx, kwargs...)
 
 #=
     Chain residues
 =#
-@inline residues(chain::Chain; kwargs...) = residues(parent(chain); chain_id = chain.idx, kwargs...)
-@inline nresidues(chain::Chain; kwargs...) = nresidues(parent(chain); chain_id = chain.idx, kwargs...)
+@inline residues(chain::Chain; kwargs...) = residues(parent(chain); chain_idx = chain.idx, kwargs...)
+@inline nresidues(chain::Chain; kwargs...) = nresidues(parent(chain); chain_idx = chain.idx, kwargs...)
 
 """
     push!(::Chain{T}, res::Residue{T})
@@ -210,23 +210,23 @@ end
 #=
     Residue atoms
 =#
-@inline atoms(res::Residue; kwargs...) = atoms(parent(res); residue_id = res.idx, kwargs...)
-@inline natoms(res::Residue; kwargs...) = natoms(parent(res); residue_id = res.idx, kwargs...)
+@inline atoms(res::Residue; kwargs...) = atoms(parent(res); residue_idx = res.idx, kwargs...)
+@inline natoms(res::Residue; kwargs...) = natoms(parent(res); residue_idx = res.idx, kwargs...)
 
 @inline function Atom(res::Residue, number::Int, element::ElementType; kwargs...)
     Atom(parent(res), number, element;
-        molecule_id = res.molecule_id,
-        chain_id = res.chain_id,
-        residue_id = res.idx,
+        molecule_idx = res.molecule_idx,
+        chain_idx = res.chain_idx,
+        residue_idx = res.idx,
         kwargs...
     )
 end
 
 @inline function Base.push!(res::Residue{T}, atom::Atom{T}; kwargs...) where T
     push!(parent(res), atom;
-        molecule_id = res.molecule_id,
-        chain_id = res.chain_id,
-        residue_id = res.idx,
+        molecule_idx = res.molecule_idx,
+        chain_idx = res.chain_idx,
+        residue_idx = res.idx,
         kwargs...
     )
     res
@@ -235,5 +235,5 @@ end
 #=
     Residue bonds
 =#
-@inline bonds(res::Residue; kwargs...) = bonds(parent(res); residue_id = res.idx, kwargs...)
-@inline nbonds(res::Residue; kwargs...) = nbonds(parent(res); residue_id = res.idx, kwargs...)
+@inline bonds(res::Residue; kwargs...) = bonds(parent(res); residue_idx = res.idx, kwargs...)
+@inline nbonds(res::Residue; kwargs...) = nbonds(parent(res); residue_idx = res.idx, kwargs...)

@@ -40,7 +40,7 @@ end
 
 const _atom_table_cols = fieldnames(_Atom)
 const _atom_table_cols_set = Set(_atom_table_cols)
-const _atom_table_cols_priv = Set([:frame_id, :molecule_id, :chain_id, :fragment_id, :nucleotide_id, :residue_id])
+const _atom_table_cols_priv = Set([:frame_id, :molecule_idx, :chain_idx, :fragment_idx, :nucleotide_idx, :residue_idx])
 
 @auto_hash_equals struct _AtomTable{T <: Real} <: Tables.AbstractColumns
     # public columns
@@ -60,11 +60,11 @@ const _atom_table_cols_priv = Set([:frame_id, :molecule_id, :chain_id, :fragment
 
     # private columns
     frame_id::Vector{Int}
-    molecule_id::Vector{MaybeInt}
-    chain_id::Vector{MaybeInt}
-    fragment_id::Vector{MaybeInt}
-    nucleotide_id::Vector{MaybeInt}
-    residue_id::Vector{MaybeInt}
+    molecule_idx::Vector{MaybeInt}
+    chain_idx::Vector{MaybeInt}
+    fragment_idx::Vector{MaybeInt}
+    nucleotide_idx::Vector{MaybeInt}
+    residue_idx::Vector{MaybeInt}
 
     # internals
     _idx_map::Dict{Int,Int}
@@ -115,22 +115,22 @@ end
 
 function Base.push!(at::_AtomTable{T}, t::_Atom{T};
     frame_id::Int = 1,
-    molecule_id::MaybeInt = nothing,
-    chain_id::MaybeInt = nothing,
-    fragment_id::MaybeInt = nothing,
-    nucleotide_id::MaybeInt = nothing,
-    residue_id::MaybeInt = nothing
+    molecule_idx::MaybeInt = nothing,
+    chain_idx::MaybeInt = nothing,
+    fragment_idx::MaybeInt = nothing,
+    nucleotide_idx::MaybeInt = nothing,
+    residue_idx::MaybeInt = nothing
 ) where T
     getfield(at, :_idx_map)[t.idx] = length(at.idx) + 1
     for fn in _atom_table_cols
         push!(getfield(at, Symbol(fn)), getfield(t, Symbol(fn)))
     end
     push!(getfield(at, :frame_id), frame_id)
-    push!(getfield(at, :molecule_id), molecule_id)
-    push!(getfield(at, :chain_id), chain_id)
-    push!(getfield(at, :fragment_id), fragment_id)
-    push!(getfield(at, :nucleotide_id), nucleotide_id)
-    push!(getfield(at, :residue_id), residue_id)
+    push!(getfield(at, :molecule_idx), molecule_idx)
+    push!(getfield(at, :chain_idx), chain_idx)
+    push!(getfield(at, :fragment_idx), fragment_idx)
+    push!(getfield(at, :nucleotide_idx), nucleotide_idx)
+    push!(getfield(at, :residue_idx), residue_idx)
     at
 end
 
@@ -151,11 +151,11 @@ function _atom_table(::Type{T}, itr) where T
                 flags = a.flags
             );
             frame_id = Tables.getcolumn(a, :frame_id),
-            molecule_id = Tables.getcolumn(a, :molecule_id),
-            chain_id = Tables.getcolumn(a, :chain_id),
-            fragment_id = Tables.getcolumn(a, :fragment_id),
-            nucleotide_id = Tables.getcolumn(a, :nucleotide_id),
-            residue_id = Tables.getcolumn(a, :residue_id)
+            molecule_idx = Tables.getcolumn(a, :molecule_idx),
+            chain_idx = Tables.getcolumn(a, :chain_idx),
+            fragment_idx = Tables.getcolumn(a, :fragment_idx),
+            nucleotide_idx = Tables.getcolumn(a, :nucleotide_idx),
+            residue_idx = Tables.getcolumn(a, :residue_idx)
        )
     end
     at
@@ -181,22 +181,22 @@ end
 @inline _row_by_idx(at::_AtomTable{T}, idx::Int) where T = _AtomTableRow{T}(getfield(at, :_idx_map)[idx], at)
 
 @inline function Base.getproperty(atr::_AtomTableRow{T}, nm::Symbol) where T
-    nm === :idx           && return _getproperty(atr, :idx)::Int
-    nm === :number        && return _getproperty(atr, :number)::Int
-    nm === :element       && return _getproperty(atr, :element)::ElementType
-    nm === :name          && return _getproperty(atr, :name)::String
-    nm === :atom_type     && return _getproperty(atr, :atom_type)::String
-    nm === :r             && return _getproperty(atr, :r)::Vector3{T}
-    nm === :v             && return _getproperty(atr, :v)::Vector3{T}
-    nm === :F             && return _getproperty(atr, :F)::Vector3{T}
-    nm === :properties    && return _getproperty(atr, :properties)::Properties
-    nm === :flags         && return _getproperty(atr, :flags)::Flags
-    nm === :frame_id      && return _getproperty(atr, :frame_id)::Int
-    nm === :molecule_id   && return _getproperty(atr, :molecule_id)::MaybeInt
-    nm === :chain_id      && return _getproperty(atr, :chain_id)::MaybeInt
-    nm === :fragment_id   && return _getproperty(atr, :fragment_id)::MaybeInt
-    nm === :nucleotide_id && return _getproperty(atr, :nucleotide_id)::MaybeInt
-    nm === :residue_id    && return _getproperty(atr, :residue_id)::MaybeInt
+    nm === :idx            && return _getproperty(atr, :idx)::Int
+    nm === :number         && return _getproperty(atr, :number)::Int
+    nm === :element        && return _getproperty(atr, :element)::ElementType
+    nm === :name           && return _getproperty(atr, :name)::String
+    nm === :atom_type      && return _getproperty(atr, :atom_type)::String
+    nm === :r              && return _getproperty(atr, :r)::Vector3{T}
+    nm === :v              && return _getproperty(atr, :v)::Vector3{T}
+    nm === :F              && return _getproperty(atr, :F)::Vector3{T}
+    nm === :properties     && return _getproperty(atr, :properties)::Properties
+    nm === :flags          && return _getproperty(atr, :flags)::Flags
+    nm === :frame_id       && return _getproperty(atr, :frame_id)::Int
+    nm === :molecule_idx   && return _getproperty(atr, :molecule_idx)::MaybeInt
+    nm === :chain_idx      && return _getproperty(atr, :chain_idx)::MaybeInt
+    nm === :fragment_idx   && return _getproperty(atr, :fragment_idx)::MaybeInt
+    nm === :nucleotide_idx && return _getproperty(atr, :nucleotide_idx)::MaybeInt
+    nm === :residue_idx    && return _getproperty(atr, :residue_idx)::MaybeInt
     getindex(getfield(getfield(atr, :_tab), nm), getfield(atr, :_row))
 end
 

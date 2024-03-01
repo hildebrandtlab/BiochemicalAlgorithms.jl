@@ -67,15 +67,15 @@
 
         # molecule atoms
         @test length(atoms(mol)) == 0
-        @test atoms(mol) == atoms(sys, molecule_id = mol.idx)
+        @test atoms(mol) == atoms(sys, molecule_idx = mol.idx)
         @test natoms(mol) == 0
-        @test natoms(mol) == natoms(sys, molecule_id = mol.idx)
+        @test natoms(mol) == natoms(sys, molecule_idx = mol.idx)
 
-        @test Atom(mol, 1, Elements.H).molecule_id == mol.idx
+        @test Atom(mol, 1, Elements.H).molecule_idx == mol.idx
         @test length(atoms(mol)) == 1
-        @test atoms(mol) == atoms(sys, molecule_id = mol.idx)
+        @test atoms(mol) == atoms(sys, molecule_idx = mol.idx)
         @test natoms(mol) == 1
-        @test natoms(mol) == natoms(sys, molecule_id = mol.idx)
+        @test natoms(mol) == natoms(sys, molecule_idx = mol.idx)
 
         for atom in atoms(mol)
             @test parent_molecule(atom) === mol
@@ -84,14 +84,14 @@
 
         # molecule bonds
         @test length(bonds(mol)) == 0
-        @test bonds(mol) == bonds(sys, molecule_id = mol.idx)
+        @test bonds(mol) == bonds(sys, molecule_idx = mol.idx)
         @test nbonds(mol) == 0
-        @test nbonds(mol) == nbonds(sys, molecule_id = mol.idx)
+        @test nbonds(mol) == nbonds(sys, molecule_idx = mol.idx)
 
         Bond(mol, Atom(mol, 1, Elements.H).idx, Atom(mol, 2, Elements.C).idx, BondOrder.Single)
         @test length(bonds(mol)) == 1
-        @test bonds(mol) == bonds(sys, molecule_id = mol.idx)
+        @test bonds(mol) == bonds(sys, molecule_idx = mol.idx)
         @test nbonds(mol) == 1
-        @test nbonds(mol) == nbonds(sys, molecule_id = mol.idx)
+        @test nbonds(mol) == nbonds(sys, molecule_idx = mol.idx)
     end
 end

@@ -18,7 +18,7 @@ end
 
 const _fragment_table_cols = fieldnames(_Fragment)
 const _fragment_table_cols_set = Set(_fragment_table_cols)
-const _fragment_table_cols_priv = Set([:molecule_id, :chain_id])
+const _fragment_table_cols_priv = Set([:molecule_idx, :chain_idx])
 
 @auto_hash_equals struct _FragmentTable <: Tables.AbstractColumns
     # public columns
@@ -29,8 +29,8 @@ const _fragment_table_cols_priv = Set([:molecule_id, :chain_id])
     flags::Vector{Flags}
 
     # private columns
-    molecule_id::Vector{Int}
-    chain_id::Vector{Int}
+    molecule_idx::Vector{Int}
+    chain_idx::Vector{Int}
 
     # internals
     _idx_map::Dict{Int,Int}
@@ -67,13 +67,13 @@ end
 @inline Base.size(ft::_FragmentTable, dim) = size(ft)[dim]
 @inline Base.length(ft::_FragmentTable) = size(ft, 1)
 
-function Base.push!(ft::_FragmentTable, t::_Fragment, molecule_id::Int, chain_id::Int)
+function Base.push!(ft::_FragmentTable, t::_Fragment, molecule_idx::Int, chain_idx::Int)
     getfield(ft, :_idx_map)[t.idx] = length(ft.idx) + 1
     for fn in _fragment_table_cols
         push!(getfield(ft, Symbol(fn)), getfield(t, Symbol(fn)))
     end
-    push!(getfield(ft, :molecule_id), molecule_id)
-    push!(getfield(ft, :chain_id), chain_id)
+    push!(getfield(ft, :molecule_idx), molecule_idx)
+    push!(getfield(ft, :chain_idx), chain_idx)
     ft
 end
 
@@ -85,9 +85,9 @@ function _fragment_table(itr)
                 name = f.name,
                 properties = f.properties,
                 flags = f.flags
-            );
-            molecule_id = Tables.getcolumn(f, :molecule_id),
-            chain_id = Tables.getcolumn(f, :chain_id)
+            ),
+            Tables.getcolumn(f, :molecule_idx),
+            Tables.getcolumn(f, :chain_idx)
        )
     end
     ft
@@ -113,8 +113,8 @@ end
     nm === :name        && return _getproperty(ftr, :name)::String
     nm === :properties  && return _getproperty(ftr, :properties)::Properties
     nm === :flags       && return _getproperty(ftr, :flags)::Flags
-    nm === :molecule_id && return _getproperty(ftr, :molecule_id)::Int
-    nm === :chain_id    && return _getproperty(ftr, :chain_id)::Int
+    nm === :molecule_idx && return _getproperty(ftr, :molecule_idx)::Int
+    nm === :chain_idx    && return _getproperty(ftr, :chain_idx)::Int
     getindex(getfield(getfield(ftr, :_tab), nm), getfield(ftr, :_row))
 end
 

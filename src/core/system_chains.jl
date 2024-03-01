@@ -16,7 +16,7 @@ end
 
 const _chain_table_cols = fieldnames(_Chain)
 const _chain_table_cols_set = Set(_chain_table_cols)
-const _chain_table_cols_priv = Set([:molecule_id])
+const _chain_table_cols_priv = Set([:molecule_idx])
 
 @auto_hash_equals struct _ChainTable <: Tables.AbstractColumns
     # public columns
@@ -26,7 +26,7 @@ const _chain_table_cols_priv = Set([:molecule_id])
     flags::Vector{Flags}
 
     # private columns
-    molecule_id::Vector{Int}
+    molecule_idx::Vector{Int}
 
     # internals
     _idx_map::Dict{Int,Int}
@@ -61,12 +61,12 @@ end
 @inline Base.size(ct::_ChainTable, dim) = size(ct)[dim]
 @inline Base.length(ct::_ChainTable) = size(ct, 1)
 
-function Base.push!(ct::_ChainTable, t::_Chain, molecule_id::Int)
+function Base.push!(ct::_ChainTable, t::_Chain, molecule_idx::Int)
     getfield(ct, :_idx_map)[t.idx] = length(ct.idx) + 1
     for fn in _chain_table_cols
         push!(getfield(ct, Symbol(fn)), getfield(t, Symbol(fn)))
     end
-    push!(getfield(ct, :molecule_id), molecule_id)
+    push!(getfield(ct, :molecule_idx), molecule_idx)
     ct
 end
 
@@ -78,8 +78,8 @@ function _chain_table(itr)
                 name = c.name,
                 properties = c.properties,
                 flags = c.flags
-            );
-            molecule_id = Tables.getcolumn(c, :molecule_id),
+            ),
+            Tables.getcolumn(c, :molecule_idx)
        )
     end
     ct
@@ -104,7 +104,7 @@ end
     nm === :name        && return _getproperty(ctr, :name)::String
     nm === :properties  && return _getproperty(ctr, :properties)::Properties
     nm === :flags       && return _getproperty(ctr, :flags)::Flags
-    nm === :molecule_id && return _getproperty(ctr, :molecule_id)::Int
+    nm === :molecule_idx && return _getproperty(ctr, :molecule_idx)::Int
     getindex(getfield(getfield(ctr, :_tab), nm), getfield(ctr, :_row))
 end
 

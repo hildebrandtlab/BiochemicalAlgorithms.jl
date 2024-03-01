@@ -118,8 +118,8 @@ function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:R
     )  
 
     atoms.frame_id = orig_df.modelnumber
-    atoms.chain_id = orig_df.chainid
-    atoms.fragment_id = orig_df.resnumber
+    atoms.chain_idx = orig_df.chainid
+    atoms.fragment_idx = orig_df.resnumber
     atoms.inscode = orig_df.inscode
 
     # note: we will remove this column as soon as we have filtered out alternates
@@ -147,7 +147,7 @@ function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:R
     #   - for each atom that has alternative locations, find them
     #   - find the smallest alternate location id and use this as the base case
     #   - store all other variants as properties
-    all_altlocs = groupby(filter(:altlocid => !=(' '), atoms, view=true), [:chain_id, :fragment_id, :name])
+    all_altlocs = groupby(filter(:altlocid => !=(' '), atoms, view=true), [:chain_idx, :fragment_idx, :name])
     for altlocs in all_altlocs
         sorted_altlocs = sort(altlocs, :altlocid, view=true)
 
@@ -165,11 +165,11 @@ function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:R
     atoms = filter(:altlocid => ==(' '), atoms)
 
     # add all remaining atoms to the system
-    grp_atoms = groupby(atoms, [:chain_id, :fragment_id, :inscode])
+    grp_atoms = groupby(atoms, [:chain_idx, :fragment_idx, :inscode])
     for frag in fragments(mol)
         for atom in eachrow(grp_atoms[(
-            chain_id = parent_chain(frag).name,
-            fragment_id = frag.number,
+            chain_idx = parent_chain(frag).name,
+            fragment_idx = frag.number,
             inscode = frag.properties[:insertion_code]
         )])
             Atom(frag, atom.number, atom.element;

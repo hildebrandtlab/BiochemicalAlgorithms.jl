@@ -109,7 +109,7 @@ end
     push!(
         sys._fragments,
         _Fragment(number; idx = idx, kwargs...),
-        chain.molecule_id,
+        chain.molecule_idx,
         chain.idx
     )
     fragment_by_idx(sys, idx)
@@ -134,8 +134,8 @@ end
 
 @inline Base.parent(frag::Fragment) = frag._sys
 @inline parent_system(frag::Fragment) = parent(frag)
-@inline parent_molecule(frag::Fragment) = molecule_by_idx(parent(frag), frag.molecule_id)
-@inline parent_chain(frag::Fragment) = chain_by_idx(parent(frag), frag.chain_id)
+@inline parent_molecule(frag::Fragment) = molecule_by_idx(parent(frag), frag.molecule_idx)
+@inline parent_chain(frag::Fragment) = chain_by_idx(parent(frag), frag.chain_idx)
 
 @doc raw"""
     parent_fragment(::Atom)
@@ -161,19 +161,19 @@ end
 Returns a `FragmentTable{T}` containing all fragments of the given atom container.
 
 # Supported keyword arguments
- - `molecule_id::MaybeInt = nothing`: \
+ - `molecule_idx::MaybeInt = nothing`: \
 Any value other than `nothing` limits the result to fragments belonging to the molecule with the given ID.
-- `chain_id::MaybeInt = nothing`: \
+- `chain_idx::MaybeInt = nothing`: \
 Any value other than `nothing` limits the result to fragments belonging to the chain with the given ID.
 """
 function fragments(sys::System{T};
-    molecule_id::MaybeInt = nothing,
-    chain_id::MaybeInt = nothing
+    molecule_idx::MaybeInt = nothing,
+    chain_idx::MaybeInt = nothing
 ) where T
-    isnothing(molecule_id) && isnothing(chain_id) && return FragmentTable{T}(sys, sys._fragments.idx)
+    isnothing(molecule_idx) && isnothing(chain_idx) && return FragmentTable{T}(sys, sys._fragments.idx)
     _filter_fragments(frag ->
-        (isnothing(molecule_id) || frag.molecule_id == something(molecule_id)) &&
-        (isnothing(chain_id)    || frag.chain_id    == something(chain_id)),
+        (isnothing(molecule_idx) || frag.molecule_idx == something(molecule_idx)) &&
+        (isnothing(chain_idx)    || frag.chain_idx    == something(chain_idx)),
         sys
     )
 end
@@ -192,14 +192,14 @@ end
 #=
     Molecule fragments
 =#
-@inline fragments(mol::Molecule; kwargs...) = fragments(parent(mol); molecule_id = mol.idx, kwargs...)
-@inline nfragments(mol::Molecule; kwargs...) = nfragments(parent(mol); molecule_id = mol.idx, kwargs...)
+@inline fragments(mol::Molecule; kwargs...) = fragments(parent(mol); molecule_idx = mol.idx, kwargs...)
+@inline nfragments(mol::Molecule; kwargs...) = nfragments(parent(mol); molecule_idx = mol.idx, kwargs...)
 
 #=
     Chain fragments
 =#
-@inline fragments(chain::Chain; kwargs...) = fragments(parent(chain); chain_id = chain.idx, kwargs...)
-@inline nfragments(chain::Chain; kwargs...) = nfragments(parent(chain); chain_id = chain.idx, kwargs...)
+@inline fragments(chain::Chain; kwargs...) = fragments(parent(chain); chain_idx = chain.idx, kwargs...)
+@inline nfragments(chain::Chain; kwargs...) = nfragments(parent(chain); chain_idx = chain.idx, kwargs...)
 
 """
     push!(::Chain{T}, frag::Fragment{T})
@@ -219,23 +219,23 @@ end
 #=
     Fragment atoms
 =#
-@inline atoms(frag::Fragment; kwargs...) = atoms(parent(frag); fragment_id = frag.idx, kwargs...)
-@inline natoms(frag::Fragment; kwargs...) = natoms(parent(frag); fragment_id = frag.idx, kwargs...)
+@inline atoms(frag::Fragment; kwargs...) = atoms(parent(frag); fragment_idx = frag.idx, kwargs...)
+@inline natoms(frag::Fragment; kwargs...) = natoms(parent(frag); fragment_idx = frag.idx, kwargs...)
 
 @inline function Atom(frag::Fragment, number::Int, element::ElementType; kwargs...)
     Atom(parent(frag), number, element;
-        molecule_id = frag.molecule_id,
-        chain_id = frag.chain_id,
-        fragment_id = frag.idx,
+        molecule_idx = frag.molecule_idx,
+        chain_idx = frag.chain_idx,
+        fragment_idx = frag.idx,
         kwargs...
     )
 end
 
 @inline function Base.push!(frag::Fragment{T}, atom::Atom{T}; kwargs...) where T
     push!(parent(frag), atom;
-        molecule_id = frag.molecule_id,
-        chain_id = frag.chain_id,
-        fragment_id = frag.idx,
+        molecule_idx = frag.molecule_idx,
+        chain_idx = frag.chain_idx,
+        fragment_idx = frag.idx,
         kwargs...
     )
     frag
@@ -244,8 +244,8 @@ end
 #=
     Fragment bonds
 =#
-@inline bonds(frag::Fragment; kwargs...) = bonds(parent(frag); fragment_id = frag.idx, kwargs...)
-@inline nbonds(frag::Fragment; kwargs...) = nbonds(parent(frag); fragment_id = frag.idx, kwargs...)
+@inline bonds(frag::Fragment; kwargs...) = bonds(parent(frag); fragment_idx = frag.idx, kwargs...)
+@inline nbonds(frag::Fragment; kwargs...) = nbonds(parent(frag); fragment_idx = frag.idx, kwargs...)
 
 @inline function is_amino_acid(frag::Fragment)
     is_amino_acid(frag.name)

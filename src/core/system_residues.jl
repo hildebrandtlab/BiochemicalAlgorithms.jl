@@ -18,7 +18,7 @@ end
 
 const _residue_table_cols = fieldnames(_Residue)
 const _residue_table_cols_set = Set(_residue_table_cols)
-const _residue_table_cols_priv = Set([:molecule_id, :chain_id])
+const _residue_table_cols_priv = Set([:molecule_idx, :chain_idx])
 
 @auto_hash_equals struct _ResidueTable <: Tables.AbstractColumns
     # public columns
@@ -29,8 +29,8 @@ const _residue_table_cols_priv = Set([:molecule_id, :chain_id])
     flags::Vector{Flags}
 
     # private columns
-    molecule_id::Vector{Int}
-    chain_id::Vector{Int}
+    molecule_idx::Vector{Int}
+    chain_idx::Vector{Int}
 
     # internals
     _idx_map::Dict{Int,Int}
@@ -67,13 +67,13 @@ end
 @inline Base.size(rt::_ResidueTable, dim) = size(rt)[dim]
 @inline Base.length(rt::_ResidueTable) = size(rt, 1)
 
-function Base.push!(rt::_ResidueTable, t::_Residue, molecule_id::Int, chain_id::Int)
+function Base.push!(rt::_ResidueTable, t::_Residue, molecule_idx::Int, chain_idx::Int)
     getfield(rt, :_idx_map)[t.idx] = length(rt.idx) + 1
     for fn in _residue_table_cols
         push!(getfield(rt, Symbol(fn)), getfield(t, Symbol(fn)))
     end
-    push!(getfield(rt, :molecule_id), molecule_id)
-    push!(getfield(rt, :chain_id), chain_id)
+    push!(getfield(rt, :molecule_idx), molecule_idx)
+    push!(getfield(rt, :chain_idx), chain_idx)
     rt
 end
 
@@ -84,9 +84,9 @@ function _residue_table(itr)
                 idx = r.idx,
                 properties = r.properties,
                 flags = r.flags
-            );
-            molecule_id = Tables.getcolumn(r, :molecule_id),
-            chain_id = Tables.getcolumn(r, :chain_id)
+            ),
+            Tables.getcolumn(r, :molecule_idx),
+            Tables.getcolumn(r, :chain_idx)
        )
     end
     rt
@@ -112,8 +112,8 @@ end
     nm === :type        && return _getproperty(rtr, :type)::AminoAcid
     nm === :properties  && return _getproperty(rtr, :properties)::Properties
     nm === :flags       && return _getproperty(rtr, :flags)::Flags
-    nm === :molecule_id && return _getproperty(rtr, :molecule_id)::Int
-    nm === :chain_id    && return _getproperty(rtr, :chain_id)::Int
+    nm === :molecule_idx && return _getproperty(rtr, :molecule_idx)::Int
+    nm === :chain_idx    && return _getproperty(rtr, :chain_idx)::Int
     getindex(getfield(getfield(rtr, :_tab), nm), getfield(rtr, :_row))
 end
 
