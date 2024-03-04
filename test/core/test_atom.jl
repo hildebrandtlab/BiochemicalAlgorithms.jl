@@ -1,3 +1,175 @@
+@testitem "AtomTable" begin
+    using Tables
+
+    for T in [Float32, Float64]
+        sys = System{T}()
+
+        a1 = Atom(sys, 1, Elements.H;
+            name = "my atom",
+            atom_type = "my atom type",
+            r = ones(Vector3{T}),
+            v = 2 .* ones(Vector3{T}),
+            F = 3 .* ones(Vector3{T}),
+            formal_charge = 4,
+            charge = T(5),
+            radius = T(6),
+            properties = Properties(:first => 'a', :second => "b"),
+            flags = Flags([:third])
+        )
+        a2 = Atom(sys, 2, Elements.C)
+
+        at = atoms(sys)
+        
+        # Tables.jl interface
+        @test Tables.istable(typeof(at))
+        @test Tables.columnaccess(typeof(at))
+        @test Tables.schema(at) isa Tables.Schema
+        @test !isnothing(Tables.columns(at))
+        @test !isnothing(Tables.rows(at))
+
+        # AbstractArray interface
+        @test size(at) == (2, 13)
+        @test length(at) == 2
+        @test eltype(at) == Atom{T}
+        @test keys(at) == [1, 2]
+
+        # getproperty
+        @test at._sys === sys
+        @test at._idx == [a1.idx, a2.idx]
+
+        @test at.idx isa AbstractVector{Int}
+        @test at.idx == [a1.idx, a2.idx]
+        @test at.number isa AbstractVector{Int}
+        @test at.number == [a1.number, a2.number]
+        @test at.element isa AbstractVector{ElementType}
+        @test at.element == [a1.element, a2.element]
+        @test at.name isa AbstractVector{String}
+        @test at.name == [a1.name, a2.name]
+        @test at.atom_type isa AbstractVector{String}
+        @test at.atom_type == [a1.atom_type, a2.atom_type]
+        @test at.r isa AbstractVector{Vector3{T}}
+        @test at.r == [a1.r, a2.r]
+        @test at.v isa AbstractVector{Vector3{T}}
+        @test at.v == [a1.v, a2.v]
+        @test at.F isa AbstractVector{Vector3{T}}
+        @test at.F == [a1.F, a2.F]
+        @test at.formal_charge isa AbstractVector{Int}
+        @test at.formal_charge == [a1.formal_charge, a2.formal_charge]
+        @test at.charge isa AbstractVector{T}
+        @test at.charge == [a1.charge, a2.charge]
+        @test at.radius isa AbstractVector{T}
+        @test at.radius == [a1.radius, a2.radius]
+        @test at.properties isa AbstractVector{Properties}
+        @test at.properties == [a1.properties, a2.properties]
+        @test at.flags isa AbstractVector{Flags}
+        @test at.flags == [a1.flags, a2.flags]
+
+        @test at.frame_id isa AbstractVector{Int}
+        @test at.frame_id == [a1.frame_id, a2.frame_id]
+        @test at.molecule_idx isa AbstractVector{MaybeInt}
+        @test at.molecule_idx == [a1.molecule_idx, a2.molecule_idx]
+        @test at.chain_idx isa AbstractVector{MaybeInt}
+        @test at.chain_idx == [a1.chain_idx, a2.chain_idx]
+        @test at.fragment_idx isa AbstractVector{MaybeInt}
+        @test at.fragment_idx == [a1.fragment_idx, a2.fragment_idx]
+        @test at.nucleotide_idx isa AbstractVector{MaybeInt}
+        @test at.nucleotide_idx == [a1.nucleotide_idx, a2.nucleotide_idx]
+        @test at.residue_idx isa AbstractVector{MaybeInt}
+        @test at.residue_idx == [a1.residue_idx, a2.residue_idx]
+
+        # Tables.getcolumn
+        @test Tables.getcolumn(at, :idx) isa AbstractVector{Int}
+        @test Tables.getcolumn(at, 1) isa AbstractVector{Int}
+        @test Tables.getcolumn(at, :idx) == Tables.getcolumn(at, 1) == [a1.idx, a2.idx]
+        @test Tables.getcolumn(at, :number) isa AbstractVector{Int}
+        @test Tables.getcolumn(at, 2) isa AbstractVector{Int}
+        @test Tables.getcolumn(at, :number) == Tables.getcolumn(at, 2) == [a1.number, a2.number]
+        @test Tables.getcolumn(at, :element) isa AbstractVector{ElementType}
+        @test Tables.getcolumn(at, 3) isa AbstractVector{ElementType}
+        @test Tables.getcolumn(at, :element) == Tables.getcolumn(at, 3) == [a1.element, a2.element]
+        @test Tables.getcolumn(at, :name) isa AbstractVector{String}
+        @test Tables.getcolumn(at, 4) isa AbstractVector{String}
+        @test Tables.getcolumn(at, :name) == Tables.getcolumn(at, 4) == [a1.name, a2.name]
+        @test Tables.getcolumn(at, :atom_type) isa AbstractVector{String}
+        @test Tables.getcolumn(at, 5) isa AbstractVector{String}
+        @test Tables.getcolumn(at, :atom_type) == Tables.getcolumn(at, 5) == [a1.atom_type, a2.atom_type]
+        @test Tables.getcolumn(at, :r) isa AbstractVector{Vector3{T}}
+        @test Tables.getcolumn(at, 6) isa AbstractVector{Vector3{T}}
+        @test Tables.getcolumn(at, :r) == Tables.getcolumn(at, 6) == [a1.r, a2.r]
+        @test Tables.getcolumn(at, :v) isa AbstractVector{Vector3{T}}
+        @test Tables.getcolumn(at, 7) isa AbstractVector{Vector3{T}}
+        @test Tables.getcolumn(at, :v) == Tables.getcolumn(at, 7) == [a1.v, a2.v]
+        @test Tables.getcolumn(at, :F) isa AbstractVector{Vector3{T}}
+        @test Tables.getcolumn(at, 8) isa AbstractVector{Vector3{T}}
+        @test Tables.getcolumn(at, :F) == Tables.getcolumn(at, 8) == [a1.F, a2.F]
+        @test Tables.getcolumn(at, :formal_charge) isa AbstractVector{Int}
+        @test Tables.getcolumn(at, 9) isa AbstractVector{Int}
+        @test Tables.getcolumn(at, :formal_charge) == Tables.getcolumn(at, 9) == [a1.formal_charge, a2.formal_charge]
+        @test Tables.getcolumn(at, :charge) isa AbstractVector{T}
+        @test Tables.getcolumn(at, 10) isa AbstractVector{T}
+        @test Tables.getcolumn(at, :charge) == Tables.getcolumn(at, 10) == [a1.charge, a2.charge]
+        @test Tables.getcolumn(at, :radius) isa AbstractVector{T}
+        @test Tables.getcolumn(at, 11) isa AbstractVector{T}
+        @test Tables.getcolumn(at, :radius) == Tables.getcolumn(at, 11) == [a1.radius, a2.radius]
+        @test Tables.getcolumn(at, :properties) isa AbstractVector{Properties}
+        @test Tables.getcolumn(at, 12) isa AbstractVector{Properties}
+        @test Tables.getcolumn(at, :properties) == Tables.getcolumn(at, 12) == [a1.properties, a2.properties]
+        @test Tables.getcolumn(at, :flags) isa AbstractVector{Flags}
+        @test Tables.getcolumn(at, 13) isa AbstractVector{Flags}
+        @test Tables.getcolumn(at, :flags) == Tables.getcolumn(at, 13) == [a1.flags, a2.flags]
+
+        @test Tables.getcolumn(at, :frame_id) isa AbstractVector{Int}
+        @test Tables.getcolumn(at, :frame_id) == [a1.frame_id, a2.frame_id]
+        @test Tables.getcolumn(at, :molecule_idx) isa AbstractVector{MaybeInt}
+        @test Tables.getcolumn(at, :molecule_idx) == [a1.molecule_idx, a2.molecule_idx]
+        @test Tables.getcolumn(at, :chain_idx) isa AbstractVector{MaybeInt}
+        @test Tables.getcolumn(at, :chain_idx) == [a1.chain_idx, a2.chain_idx]
+        @test Tables.getcolumn(at, :fragment_idx) isa AbstractVector{MaybeInt}
+        @test Tables.getcolumn(at, :fragment_idx) == [a1.fragment_idx, a2.fragment_idx]
+        @test Tables.getcolumn(at, :nucleotide_idx) isa AbstractVector{MaybeInt}
+        @test Tables.getcolumn(at, :nucleotide_idx) == [a1.nucleotide_idx, a2.nucleotide_idx]
+        @test Tables.getcolumn(at, :residue_idx) isa AbstractVector{MaybeInt}
+        @test Tables.getcolumn(at, :residue_idx) == [a1.residue_idx, a2.residue_idx]
+
+        # setproperty!
+        @test_throws ErrorException at.idx = [999, 998]
+        @test_throws ErrorException at.number = [997, 996]
+        @test_throws ErrorException at.element = [Elements.S, Elements.N]
+        @test_throws ErrorException at.name = ["some other", "names"]
+        @test_throws ErrorException at.atom_type = ["some other", "types"]
+        @test_throws ErrorException at.r = [zeros(Vector3{T}), ones(Vector3{T})]
+        @test_throws ErrorException at.v = [zeros(Vector3{T}), ones(Vector3{T})]
+        @test_throws ErrorException at.F = [zeros(Vector3{T}), ones(Vector3{T})]
+        @test_throws ErrorException at.formal_charge = [995, 994]
+        @test_throws ErrorException at.charge = T[993, 992]
+        @test_throws ErrorException at.radius = T[991, 990]
+        @test_throws ErrorException at.properties = [Properties(), Properties(:fourth => 989)]
+        @test_throws ErrorException at.flags = [Flags(), Flags([:fifth])]
+
+        @test_throws ErrorException at.frame_id = [988, 987]
+        @test_throws ErrorException at.molecule_idx = [986, 985]
+        @test_throws ErrorException at.chain_idx = [984, 983]
+        @test_throws ErrorException at.fragment_idx = [982, 981]
+        @test_throws ErrorException at.nucleotide_idx = [980, 979]
+        @test_throws ErrorException at.residue_idx = [978, 977]
+
+        # getindex
+        @test at[1] === a1
+        @test at[2] === a2
+        @test_throws BoundsError at[0]
+        @test_throws BoundsError at[3]
+
+        # filter
+        @test filter(_ -> true, at) == at
+        @test only(filter(a -> a.idx == a1.idx, at)) === a1
+
+        # collect
+        av = collect(at)
+        @test av isa Vector{Atom{T}}
+        @test length(av) == 2
+    end
+end
+
 @testitem "Atom" begin
     for T in [Float32, Float64]
         at = BiochemicalAlgorithms._Atom{T}(1, Elements.H;
@@ -26,6 +198,12 @@
         @test parent_system(atom) === sys
         T == Float32 && @test parent(Atom(at.number, at.element)) === default_system()
         T == Float32 && @test parent_system(Atom(at.number, at.element)) === default_system()
+
+        @test isnothing(parent_molecule(atom))
+        @test isnothing(parent_chain(atom))
+        @test isnothing(parent_fragment(atom))
+        @test isnothing(parent_nucleotide(atom))
+        @test isnothing(parent_residue(atom))
 
         atom2 = Atom(sys, at.number, at.element;
             name = at.name,
@@ -188,6 +366,27 @@
             nucleotide_idx = 104, residue_idx = 105) === sys
         @test natoms(sys) == 2
         @test natoms(sys, frame_id = 100) == 1
+
+        latom = last(atoms(sys))
+        @test latom.idx != atom.idx
+        @test latom.number == atom.number
+        @test latom.element == atom.element
+        @test latom.name == atom.name
+        @test latom.atom_type == atom.atom_type
+        @test latom.r == atom.r
+        @test latom.v == atom.v
+        @test latom.F == atom.F
+        @test latom.formal_charge == atom.formal_charge
+        @test latom.charge == atom.charge
+        @test latom.radius == atom.radius
+        @test latom.properties == atom.properties
+        @test latom.flags == atom.flags
+        @test latom.frame_id == atom.frame_id
+        @test latom.molecule_idx == atom.molecule_idx
+        @test latom.chain_idx == atom.chain_idx
+        @test latom.fragment_idx == atom.fragment_idx
+        @test latom.nucleotide_idx == atom.nucleotide_idx
+        @test latom.residue_idx == atom.residue_idx
 
         # test is_geminal, is_vicinal
         a = Atom(sys, at.number, at.element)

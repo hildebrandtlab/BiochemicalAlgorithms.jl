@@ -1,3 +1,90 @@
+@testitem "ChainTable" begin
+    using Tables
+
+    for T in [Float32, Float64]
+        sys = System{T}()
+        mol = Molecule(sys)
+
+        c1 = Chain(mol;
+            name = "my chain",
+            properties = Properties(:first => 'a', :second => "b"),
+            flags = Flags([:third])
+        )
+        c2 = Chain(mol)
+
+        ct = chains(sys)
+
+        # Tables.jl interface
+        @test Tables.istable(typeof(ct))
+        @test Tables.columnaccess(typeof(ct))
+        @test Tables.schema(ct) isa Tables.Schema
+        @test !isnothing(Tables.columns(ct))
+        @test !isnothing(Tables.rows(ct))
+
+        # AbstractArray interface
+        @test size(ct) == (2, 4)
+        @test length(ct) == 2
+        @test eltype(ct) == Chain{T}
+        @test keys(ct) == [1, 2]
+
+        # getproperty
+        ct._sys === sys
+        ct._idx == [c1.idx, c2.idx]
+
+        @test ct.idx isa AbstractVector{Int}
+        @test ct.idx == [c1.idx, c2.idx]
+        @test ct.name isa AbstractVector{String}
+        @test ct.name == [c1.name, c2.name]
+        @test ct.properties isa AbstractVector{Properties}
+        @test ct.properties == [c1.properties, c2.properties]
+        @test ct.flags isa AbstractVector{Flags}
+        @test ct.flags == [c1.flags, c2.flags]
+
+        @test ct.molecule_idx isa AbstractVector{Int}
+        @test ct.molecule_idx == [c1.molecule_idx, c2.molecule_idx]
+
+        # Tables.getcolumn
+        @test Tables.getcolumn(ct, :idx) isa AbstractVector{Int}
+        @test Tables.getcolumn(ct, 1) isa AbstractVector{Int}
+        @test Tables.getcolumn(ct, :idx) == Tables.getcolumn(ct, 1) == [c1.idx, c2.idx]
+        @test Tables.getcolumn(ct, :name) isa AbstractVector{String}
+        @test Tables.getcolumn(ct, 2) isa AbstractVector{String}
+        @test Tables.getcolumn(ct, :name) == Tables.getcolumn(ct, 2) == [c1.name, c2.name]
+        @test Tables.getcolumn(ct, :properties) isa AbstractVector{Properties}
+        @test Tables.getcolumn(ct, 3) isa AbstractVector{Properties}
+        @test Tables.getcolumn(ct, :properties) == Tables.getcolumn(ct, 3) == [c1.properties, c2.properties]
+        @test Tables.getcolumn(ct, :flags) isa AbstractVector{Flags}
+        @test Tables.getcolumn(ct, 4) isa AbstractVector{Flags}
+        @test Tables.getcolumn(ct, :flags) == Tables.getcolumn(ct, 4) == [c1.flags, c2.flags]
+
+        @test Tables.getcolumn(ct, :molecule_idx) isa AbstractVector{Int}
+        @test Tables.getcolumn(ct, :molecule_idx) == [c1.molecule_idx, c2.molecule_idx]
+
+        # setproperty!
+        @test_throws ErrorException ct.idx = [999, 998]
+        @test_throws ErrorException ct.name = ["some other", "names"]
+        @test_throws ErrorException ct.properties = [Properties(), Properties(:fourth => 997)]
+        @test_throws ErrorException ct.flags = [Flags(), Flags([:fifth])]
+
+        @test_throws ErrorException ct.molecule_idx = [996, 995]
+
+        # getindex
+        @test ct[1] === c1
+        @test ct[2] === c2
+        @test_throws BoundsError ct[0]
+        @test_throws BoundsError ct[3]
+
+        # filter
+        @test filter(_ -> true, ct) == ct
+        @test only(filter(c -> c.idx == c1.idx, ct)) === c1
+
+        # collect
+        cv = collect(ct)
+        @test cv isa Vector{Chain{T}}
+        @test length(cv) == 2
+    end
+end
+
 @testitem "Chain" begin
     for T in [Float32, Float64]
         sys = System{T}()
@@ -9,6 +96,7 @@
         @test chain isa Chain{T}
         @test parent(chain) === sys
         @test parent_system(chain) === sys
+        @test parent_molecule(chain) === mol
 
         if T == Float32
             mol_ds = Molecule()
@@ -85,12 +173,19 @@
         @test nchains(sys, molecule_idx = mol2.idx) == 1
         @test nchains(sys, molecule_idx = nothing) == 2
 
-        @test Chain(mol).molecule_idx == mol.idx
+        @test push!(mol, chain) === mol
         @test nchains(sys) == 3
         @test nchains(sys, molecule_idx = -1) == 0
         @test nchains(sys, molecule_idx = mol.idx) == 2
         @test nchains(sys, molecule_idx = mol2.idx) == 1
         @test nchains(sys, molecule_idx = nothing) == 3
+
+        lchain = last(chains(mol))
+        @test lchain.idx != chain.idx
+        @test lchain.name == chain.name
+        @test lchain.properties == chain.properties
+        @test lchain.flags == chain.flags
+        @test lchain.molecule_idx == mol.idx
 
         # molecule chains
         mol3 = Molecule(sys)

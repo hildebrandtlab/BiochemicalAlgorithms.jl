@@ -1,3 +1,96 @@
+@testitem "BondTable" begin
+    using Tables
+
+    for T in [Float32, Float64]
+        sys = System{T}()
+
+        a1 = Atom(sys, 1, Elements.H)
+        a2 = Atom(sys, 2, Elements.C)
+        a3 = Atom(sys, 3, Elements.O)
+
+        b1 = Bond(sys, a1.idx, a2.idx, BondOrder.Single;
+            properties = Properties(:first => 'a', :second => "b"),
+            flags = Flags([:third])
+        )
+        b2 = Bond(sys, a2.idx, a3.idx, BondOrder.Double)
+
+        bt = bonds(sys)
+
+        # Tables.jl interface
+        @test Tables.istable(typeof(bt))
+        @test Tables.columnaccess(typeof(bt))
+        @test Tables.schema(bt) isa Tables.Schema
+        @test !isnothing(Tables.columns(bt))
+        @test !isnothing(Tables.rows(bt))
+
+        # AbstractArray interface
+        @test size(bt) == (2, 6)
+        @test length(bt) == 2
+        @test eltype(bt) == Bond{T}
+        @test keys(bt) == [1, 2]
+
+        # getproperty
+        @test bt._sys === sys
+        @test bt._idx == [b1.idx, b2.idx]
+
+        @test bt.idx isa AbstractVector{Int}
+        @test bt.idx == [b1.idx, b2.idx]
+        @test bt.a1 isa AbstractVector{Int}
+        @test bt.a1 == [b1.a1, b2.a1]
+        @test bt.a2 isa AbstractVector{Int}
+        @test bt.a2 == [b1.a2, b2.a2]
+        @test bt.order isa AbstractVector{BondOrderType}
+        @test bt.order == [b1.order, b2.order]
+        @test bt.properties isa AbstractVector{Properties}
+        @test bt.properties == [b1.properties, b2.properties]
+        @test bt.flags isa AbstractVector{Flags}
+        @test bt.flags == [b1.flags, b2.flags]
+
+        # Tables.getcolumn
+        @test Tables.getcolumn(bt, :idx) isa AbstractVector{Int}
+        @test Tables.getcolumn(bt, 1) isa AbstractVector{Int}
+        @test Tables.getcolumn(bt, :idx) == Tables.getcolumn(bt, 1) == [b1.idx, b2.idx]
+        @test Tables.getcolumn(bt, :a1) isa AbstractVector{Int}
+        @test Tables.getcolumn(bt, 2) isa AbstractVector{Int}
+        @test Tables.getcolumn(bt, :a1) == Tables.getcolumn(bt, 2) == [b1.a1, b2.a1]
+        @test Tables.getcolumn(bt, :a2) isa AbstractVector{Int}
+        @test Tables.getcolumn(bt, 3) isa AbstractVector{Int}
+        @test Tables.getcolumn(bt, :a2) == Tables.getcolumn(bt, 3) == [b1.a2, b2.a2]
+        @test Tables.getcolumn(bt, :order) isa AbstractVector{BondOrderType}
+        @test Tables.getcolumn(bt, 4) isa AbstractVector{BondOrderType}
+        @test Tables.getcolumn(bt, :order) == Tables.getcolumn(bt, 4) == [b1.order, b2.order]
+        @test Tables.getcolumn(bt, :properties) isa AbstractVector{Properties}
+        @test Tables.getcolumn(bt, 5) isa AbstractVector{Properties}
+        @test Tables.getcolumn(bt, :properties) == Tables.getcolumn(bt, 5) == [b1.properties, b2.properties]
+        @test Tables.getcolumn(bt, :flags) isa AbstractVector{Flags}
+        @test Tables.getcolumn(bt, 6) isa AbstractVector{Flags}
+        @test Tables.getcolumn(bt, :flags) == Tables.getcolumn(bt, 6) == [b1.flags, b2.flags]
+
+        # setproperty!
+        @test_throws ErrorException bt.idx = [999, 998]
+        @test_throws ErrorException bt.a1 = [997, 996]
+        @test_throws ErrorException bt.a2 = [995, 994]
+        @test_throws ErrorException bt.order = [BondOrder.Triple, BondOrder.Quadruple]
+        @test_throws ErrorException bt.properties = [Properties(), Properties(:fourth => 993)]
+        @test_throws ErrorException bt.flags = [Flags(), Flags([:fifth])]
+
+        # getindex
+        @test bt[1] === b1
+        @test bt[2] === b2
+        @test_throws BoundsError bt[0]
+        @test_throws BoundsError bt[3]
+
+        # filter
+        @test filter(_ -> true, bt) == bt
+        @test only(filter(b -> b.idx == b1.idx, bt)) === b1
+
+        # collect
+        bv = collect(bt)
+        @test bv isa Vector{Bond{T}}
+        @test length(bv) == 2
+    end
+end
+
 @testitem "Bond" begin
     for T in [Float32, Float64]
         sys = System{T}()
@@ -96,7 +189,7 @@
         @test length(bonds(sys, frame_id = 3)) == 0
         @test length(bonds(sys, frame_id = nothing)) == 3
 
-        # nbonds
+        # nbonds + push!
         @test nbonds(sys) isa Int
         @test nbonds(sys) == 2
         @test nbonds(sys, frame_id = 1) == 2
@@ -104,15 +197,19 @@
         @test nbonds(sys, frame_id = 3) == 0
         @test nbonds(sys, frame_id = nothing) == 3
 
-        # push!
-        @test parent(Bond(
-            sys,
-            Atom(sys, 1, Elements.H; frame_id = 3).idx,
-            Atom(sys, 2, Elements.C; frame_id = 3).idx,
-            BondOrder.Quadruple
-        )) === sys
-        @test nbonds(sys) == 2
-        @test nbonds(sys, frame_id = 3) == 1
+        @test push!(sys, bond) === sys
+        @test nbonds(sys) == 3
+        @test nbonds(sys, frame_id = 1) == 3
+        @test nbonds(sys, frame_id = 2) == 1
+        @test nbonds(sys, frame_id = 3) == 0
         @test nbonds(sys, frame_id = nothing) == 4
+
+        lbond = last(bonds(sys))
+        @test lbond.idx != bond.idx
+        @test lbond.a1 == bond.a1
+        @test lbond.a2 == bond.a2
+        @test lbond.order == bond.order
+        @test lbond.properties == bond.properties
+        @test lbond.flags == bond.flags
     end
 end

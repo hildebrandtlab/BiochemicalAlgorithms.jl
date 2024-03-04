@@ -1,3 +1,102 @@
+@testitem "FragmentTable" begin
+    using Tables
+
+    for T in [Float32, Float64]
+        sys = System{T}()
+        mol = Molecule(sys)
+        chain = Chain(mol)
+
+        f1 = Fragment(chain, 1;
+            name = "my fragment",
+            properties = Properties(:first => 'a', :second => "b"),
+            flags = Flags([:third])
+        )
+        f2 = Fragment(chain, 2)
+
+        ft = fragments(sys)
+
+        # Tables.jl interface
+        @test Tables.istable(typeof(ft))
+        @test Tables.columnaccess(typeof(ft))
+        @test Tables.schema(ft) isa Tables.Schema
+        @test !isnothing(Tables.columns(ft))
+        @test !isnothing(Tables.rows(ft))
+
+        # AbstractArray interface
+        @test size(ft) == (2, 5)
+        @test length(ft) == 2
+        @test eltype(ft) == Fragment{T}
+        @test keys(ft) == [1, 2]
+
+        # getproperty
+        @test ft._sys === sys
+        @test ft._idx == [f1.idx, f2.idx]
+
+        @test ft.idx isa AbstractVector{Int}
+        @test ft.idx == [f1.idx, f2.idx]
+        @test ft.number isa AbstractVector{Int}
+        @test ft.number == [f1.number, f2.number]
+        @test ft.name isa AbstractVector{String}
+        @test ft.name == [f1.name, f2.name]
+        @test ft.properties isa AbstractVector{Properties}
+        @test ft.properties == [f1.properties, f2.properties]
+        @test ft.flags isa AbstractVector{Flags}
+        @test ft.flags == [f1.flags, f2.flags]
+
+        @test ft.molecule_idx isa AbstractVector{Int}
+        @test ft.molecule_idx == [f1.molecule_idx, f2.molecule_idx]
+        @test ft.chain_idx isa AbstractVector{Int}
+        @test ft.chain_idx == [f1.chain_idx, f2.chain_idx]
+
+        # Tables.getcolumn
+        @test Tables.getcolumn(ft, :idx) isa AbstractVector{Int}
+        @test Tables.getcolumn(ft, 1) isa AbstractVector{Int}
+        @test Tables.getcolumn(ft, :idx) == Tables.getcolumn(ft, 1) == [f1.idx, f2.idx]
+        @test Tables.getcolumn(ft, :number) isa AbstractVector{Int}
+        @test Tables.getcolumn(ft, 2) isa AbstractVector{Int}
+        @test Tables.getcolumn(ft, :number) == Tables.getcolumn(ft, 2) == [f1.number, f2.number]
+        @test Tables.getcolumn(ft, :name) isa AbstractVector{String}
+        @test Tables.getcolumn(ft, 3) isa AbstractVector{String}
+        @test Tables.getcolumn(ft, :name) == Tables.getcolumn(ft, 3) == [f1.name, f2.name]
+        @test Tables.getcolumn(ft, :properties) isa AbstractVector{Properties}
+        @test Tables.getcolumn(ft, 4) isa AbstractVector{Properties}
+        @test Tables.getcolumn(ft, :properties) == Tables.getcolumn(ft, 4) == [f1.properties, f2.properties]
+        @test Tables.getcolumn(ft, :flags) isa AbstractVector{Flags}
+        @test Tables.getcolumn(ft, 5) isa AbstractVector{Flags}
+        @test Tables.getcolumn(ft, :flags) == Tables.getcolumn(ft, 5) == [f1.flags, f2.flags]
+
+        @test Tables.getcolumn(ft, :molecule_idx) isa AbstractVector{Int}
+        @test Tables.getcolumn(ft, :molecule_idx) == [f1.molecule_idx, f2.molecule_idx]
+        @test Tables.getcolumn(ft, :chain_idx) isa AbstractVector{Int}
+        @test Tables.getcolumn(ft, :chain_idx) == [f1.chain_idx, f2.chain_idx]
+
+        # setproperty!
+        @test_throws ErrorException ft.idx = [999, 998]
+        @test_throws ErrorException ft.number = [997, 996]
+        @test_throws ErrorException ft.name = ["some other", "names"]
+        @test_throws ErrorException ft.properties = [Properties(), Properties(:fourth => 995)]
+        @test_throws ErrorException ft.flags = [Flags(), Flags([:fifth])]
+
+        @test_throws ErrorException ft.molecule_idx = [994, 993]
+        @test_throws ErrorException ft.chain_idx = [992, 991]
+
+        # getindex
+        @test ft[1] === f1
+        @test ft[2] === f2
+        @test_throws BoundsError ft[0]
+        @test_throws BoundsError ft[3]
+
+        # filter
+        @test filter(_ -> true, ft) == ft
+        @test only(filter(f -> f.idx == f1.idx, ft)) === f1
+
+        # collect
+        fv = collect(ft)
+        @test fv isa Vector{Fragment{T}}
+        @test length(fv) == 2
+    end
+end
+
 @testitem "Fragment" begin
     for T in [Float32, Float64]
         sys = System{T}()
@@ -11,6 +110,8 @@
         @test frag isa Fragment{T}
         @test parent(frag) === sys
         @test parent_system(frag) === sys
+        @test parent_molecule(frag) === mol
+        @test parent_chain(frag) === chain
 
         if T == Float32
             mol_ds = Molecule()
@@ -126,7 +227,7 @@
         @test nfragments(sys, molecule_idx = nothing, chain_idx = chain.idx) == 1
         @test nfragments(sys, molecule_idx = nothing, chain_idx = nothing) == 2
 
-        @test Fragment(chain, 1).chain_idx == chain.idx
+        @test push!(chain, frag) === chain
         @test nfragments(sys) isa Int
         @test nfragments(sys) == 3
         @test nfragments(sys, molecule_idx = -1) == 0
@@ -143,6 +244,15 @@
         @test nfragments(sys, molecule_idx = mol.idx, chain_idx = nothing) == 2
         @test nfragments(sys, molecule_idx = nothing, chain_idx = chain.idx) == 2
         @test nfragments(sys, molecule_idx = nothing, chain_idx = nothing) == 3
+
+        lfrag = last(fragments(chain))
+        @test lfrag.idx != frag.idx
+        @test lfrag.number == frag.number
+        @test lfrag.name == frag.name
+        @test lfrag.properties == frag.properties
+        @test lfrag.flags == frag.flags
+        @test lfrag.molecule_idx == parent_molecule(chain).idx
+        @test lfrag.chain_idx == chain.idx
 
         # chain/molecule fragments
         mol3 = Molecule(sys)
@@ -179,6 +289,10 @@
         @test atoms(frag) == atoms(sys, fragment_idx = frag.idx)
         @test natoms(frag) == 1
         @test natoms(frag) == natoms(sys, fragment_idx = frag.idx)
+
+        for atom in atoms(frag)
+            @test parent_fragment(atom) === frag
+        end
 
         # fragment bonds
         @test length(bonds(frag)) == 0
