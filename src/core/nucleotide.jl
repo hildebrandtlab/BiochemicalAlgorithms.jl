@@ -16,6 +16,7 @@ end
 @inline Tables.istable(::Type{<: NucleotideTable}) = true
 @inline Tables.columnaccess(::Type{<: NucleotideTable}) = true
 @inline Tables.columns(nt::NucleotideTable) = nt
+@inline Tables.rows(nt::NucleotideTable) = nt
 
 @inline function Tables.getcolumn(nt::NucleotideTable, nm::Symbol)
     col = Tables.getcolumn(_nucleotides(nt), nm)
@@ -25,11 +26,6 @@ end
     )
 end
 
-@inline function Base.getproperty(nt::NucleotideTable, nm::Symbol)
-    hasfield(typeof(nt), nm) && return getfield(nt, nm)
-    Tables.getcolumn(nt, nm)
-end
-
 @inline Tables.getcolumn(nt::NucleotideTable, i::Int) = Tables.getcolumn(nt, Tables.columnnames(nt)[i])
 @inline Tables.columnnames(nt::NucleotideTable) = Tables.columnnames(_nucleotides(nt))
 @inline Tables.schema(nt::NucleotideTable) = Tables.schema(_nucleotides(nt))
@@ -37,6 +33,21 @@ end
 @inline Base.size(nt::NucleotideTable) = (length(getfield(nt, :_idx)), length(_nucleotide_table_cols))
 @inline Base.size(nt::NucleotideTable, dim) = size(nt)[dim]
 @inline Base.length(nt::NucleotideTable) = size(nt, 1)
+
+@inline function Base.getproperty(nt::NucleotideTable, nm::Symbol)
+    hasfield(typeof(nt), nm) && return getfield(nt, nm)
+    Tables.getcolumn(nt, nm)
+end
+
+@inline function Base.setproperty!(nt::NucleotideTable, nm::Symbol, val)
+    if nm in _nucleotide_table_cols_priv || nm in _nucleotide_table_cols_set
+        error("NucleotideTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
+    end
+    if !hasfield(typeof(nt), nm)
+        error("type NucleotideTable has no field $nm")
+    end
+    setfield!(nt, nm, val)
+end
 
 @inline function _filter_nucleotides(f::Function, sys::System{T}) where T
     NucleotideTable{T}(sys, collect(Int, _filter_select(
@@ -106,9 +117,6 @@ end
     nucleotide_by_idx(sys, idx)
 end
 
-@inline Tables.rows(nt::NucleotideTable) = nt
-@inline Tables.getcolumn(nuc::Nucleotide, name::Symbol) = Tables.getcolumn(getfield(nuc, :_row), name)
-
 @inline function Base.getproperty(nuc::Nucleotide, name::Symbol)
     hasfield(typeof(nuc), name) && return getfield(nuc, name)
     getproperty(getfield(nuc, :_row), name)
@@ -119,7 +127,6 @@ end
     setproperty!(getfield(nuc, :_row), name, val)
 end
 
-# TODO hide internals
 @inline Base.show(io::IO, ::MIME"text/plain", nuc::Nucleotide) = show(io, getfield(nuc, :_row))
 @inline Base.show(io::IO, nuc::Nucleotide) = show(io, getfield(nuc, :_row))
 
@@ -199,7 +206,7 @@ Creates a copy of the given nucleotide in the given chain. The new nucleotide is
 new `idx`.
 """
 @inline function Base.push!(chain::Chain{T}, nuc::Nucleotide{T}) where T
-    Nucleotide(parent(chain), nuc.number;
+    Nucleotide(chain, nuc.number;
         name = nuc.name,
         properties = nuc.properties,
         flags = nuc.flags

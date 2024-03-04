@@ -20,6 +20,7 @@ end
 @inline Tables.istable(::Type{<: BondTable}) = true
 @inline Tables.columnaccess(::Type{<: BondTable}) = true
 @inline Tables.columns(bt::BondTable) = bt
+@inline Tables.rows(bt::BondTable) = bt
 
 @inline function Tables.getcolumn(bt::BondTable, nm::Symbol)
     col = Tables.getcolumn(_bonds(bt), nm)
@@ -29,11 +30,6 @@ end
     )
 end
 
-@inline function Base.getproperty(bt::BondTable, nm::Symbol)
-    hasfield(typeof(bt), nm) && return getfield(bt, nm)
-    Tables.getcolumn(bt, nm)
-end
-
 @inline Tables.getcolumn(bt::BondTable, i::Int) = Tables.getcolumn(bt, Tables.columnnames(bt)[i])
 @inline Tables.columnnames(bt::BondTable) = Tables.columnnames(_bonds(bt))
 @inline Tables.schema(bt::BondTable) = Tables.schema(_bonds(bt))
@@ -41,6 +37,21 @@ end
 @inline Base.size(bt::BondTable) = (length(getfield(bt, :_idx)), length(_bond_table_cols))
 @inline Base.size(bt::BondTable, dim) = size(bt)[dim]
 @inline Base.length(bt::BondTable) = size(bt, 1)
+
+@inline function Base.getproperty(bt::BondTable, nm::Symbol)
+    hasfield(typeof(bt), nm) && return getfield(bt, nm)
+    Tables.getcolumn(bt, nm)
+end
+
+@inline function Base.setproperty!(bt::BondTable, nm::Symbol, val)
+    if nm in _bond_table_cols_set
+        error("BondTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
+    end
+    if !hasfield(typeof(bt), nm)
+        error("type BondTable has no field $nm")
+    end
+    setfield!(bt, nm, val)
+end
 
 @inline function _filter_bonds(f::Function, sys::System{T}) where T
     BondTable(sys, collect(Int, _filter_select(
@@ -137,9 +148,6 @@ end
 )
     Bond(parent(ac), a1, a2, order; kwargs...)
 end
-
-@inline Tables.rows(bt::BondTable) = bt
-@inline Tables.getcolumn(bond::Bond, name::Symbol) = Tables.getcolumn(getfield(bond, :_row), name)
 
 @inline function Base.getproperty(bond::Bond, name::Symbol)
     hasfield(typeof(bond), name) && return getfield(bond, name)

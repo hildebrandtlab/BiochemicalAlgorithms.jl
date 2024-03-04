@@ -25,6 +25,7 @@ end
 @inline Tables.istable(::Type{<: FragmentTable}) = true
 @inline Tables.columnaccess(::Type{<: FragmentTable}) = true
 @inline Tables.columns(ft::FragmentTable) = ft
+@inline Tables.rows(ft::FragmentTable) = ft
 
 @inline function Tables.getcolumn(ft::FragmentTable, nm::Symbol)
     col = Tables.getcolumn(_fragments(ft), nm)
@@ -34,11 +35,6 @@ end
     )
 end
 
-@inline function Base.getproperty(ft::FragmentTable, nm::Symbol)
-    hasfield(typeof(ft), nm) && return getfield(ft, nm)
-    Tables.getcolumn(ft, nm)
-end
-
 @inline Tables.getcolumn(ft::FragmentTable, i::Int) = Tables.getcolumn(ft, Tables.columnnames(ft)[i])
 @inline Tables.columnnames(ft::FragmentTable) = Tables.columnnames(_fragments(ft))
 @inline Tables.schema(ft::FragmentTable) = Tables.schema(_fragments(ft))
@@ -46,6 +42,21 @@ end
 @inline Base.size(ft::FragmentTable) = (length(getfield(ft, :_idx)), length(_fragment_table_cols))
 @inline Base.size(ft::FragmentTable, dim) = size(ft)[dim]
 @inline Base.length(ft::FragmentTable) = size(ft, 1)
+
+@inline function Base.getproperty(ft::FragmentTable, nm::Symbol)
+    hasfield(typeof(ft), nm) && return getfield(ft, nm)
+    Tables.getcolumn(ft, nm)
+end
+
+@inline function Base.setproperty!(ft::FragmentTable, nm::Symbol, val)
+    if nm in _fragment_table_cols_priv || nm in _fragment_table_cols_set
+        error("FragmentTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
+    end
+    if !hasfield(typeof(ft), nm)
+        error("type FragmentTable has no field $nm")
+    end
+    setfield!(ft, nm, val)
+end
 
 @inline function _filter_fragments(f::Function, sys::System{T}) where T
     FragmentTable{T}(sys, collect(Int, _filter_select(
@@ -115,9 +126,6 @@ end
     fragment_by_idx(sys, idx)
 end
 
-@inline Tables.rows(ft::FragmentTable) = ft
-@inline Tables.getcolumn(frag::Fragment, name::Symbol) = Tables.getcolumn(getfield(frag, :_row), name)
-
 @inline function Base.getproperty(frag::Fragment, name::Symbol)
     hasfield(typeof(frag), name) && return getfield(frag, name)
     getproperty(getfield(frag, :_row), name)
@@ -128,7 +136,6 @@ end
     setproperty!(getfield(frag, :_row), name, val)
 end
 
-# TODO hide internals
 @inline Base.show(io::IO, ::MIME"text/plain", frag::Fragment) = show(io, getfield(frag, :_row))
 @inline Base.show(io::IO, frag::Fragment) = show(io, getfield(frag, :_row))
 
@@ -208,8 +215,8 @@ Creates a copy of the given fragment in the given chain. The new fragment is aut
 new `idx`.
 """
 @inline function Base.push!(chain::Chain{T}, frag::Fragment{T}) where T
-    Fragment(parent(chain), frag.number;
-        name = frag.number,
+    Fragment(chain, frag.number;
+        name = frag.name,
         properties = frag.properties,
         flags = frag.flags
     )

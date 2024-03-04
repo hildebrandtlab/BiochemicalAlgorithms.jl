@@ -7,6 +7,7 @@ using DataStructures
 using DocStringExtensions
 using Graphs, GraphDataFrameBridge
 using Unitful, UnitfulAtomic
+using StaticArrays
 using Tables, TableOperations
 
 include("core/exceptions.jl")

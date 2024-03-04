@@ -32,12 +32,6 @@
     end
 end
 
-@inline _Atom(
-    number::Int,
-    element::ElementType;
-    kwargs...
-) = _Atom{Float32}(number, element; kwargs...)
-
 const _atom_table_cols = fieldnames(_Atom)
 const _atom_table_cols_set = Set(_atom_table_cols)
 const _atom_table_cols_priv = Set([:frame_id, :molecule_idx, :chain_idx, :fragment_idx, :nucleotide_idx, :residue_idx])

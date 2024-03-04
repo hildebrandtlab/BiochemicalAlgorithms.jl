@@ -23,6 +23,7 @@ end
 @inline Tables.istable(::Type{<: AtomTable}) = true
 @inline Tables.columnaccess(::Type{<: AtomTable}) = true
 @inline Tables.columns(at::AtomTable) = at
+@inline Tables.rows(at::AtomTable) = at
 
 @inline function Tables.getcolumn(at::AtomTable, nm::Symbol)
     col = Tables.getcolumn(_atoms(at), nm)
@@ -32,11 +33,6 @@ end
     )
 end
 
-@inline function Base.getproperty(at::AtomTable, nm::Symbol)
-    hasfield(typeof(at), nm) && return getfield(at, nm)
-    Tables.getcolumn(at, nm)
-end
-
 @inline Tables.getcolumn(at::AtomTable, i::Int) = Tables.getcolumn(at, Tables.columnnames(at)[i])
 @inline Tables.columnnames(at::AtomTable) = Tables.columnnames(_atoms(at))
 @inline Tables.schema(at::AtomTable) = Tables.schema(_atoms(at))
@@ -44,6 +40,21 @@ end
 @inline Base.size(at::AtomTable) = (length(getfield(at, :_idx)), length(_atom_table_cols))
 @inline Base.size(at::AtomTable, dim) = size(at)[dim]
 @inline Base.length(at::AtomTable) = size(at, 1)
+
+@inline function Base.getproperty(at::AtomTable, nm::Symbol)
+    hasfield(typeof(at), nm) && return getfield(at, nm)
+    Tables.getcolumn(at, nm)
+end
+
+@inline function Base.setproperty!(at::AtomTable, nm::Symbol, val)
+    if nm in _atom_table_cols_priv || nm in _atom_table_cols_set
+        error("AtomTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
+    end
+    if !hasfield(typeof(at), nm)
+        error("type AtomTable has no field $nm")
+    end
+    setfield!(at, nm, val)
+end
 
 @inline function _filter_atoms(f::Function, sys::System{T}) where T
     AtomTable(sys, collect(Int, _filter_select(
@@ -146,9 +157,6 @@ end
     Atom(default_system(), number, element; kwargs...)
 end
 
-@inline Tables.rows(at::AtomTable) = at
-@inline Tables.getcolumn(atom::Atom, name::Symbol) = Tables.getcolumn(getfield(atom, :_row), name)
-
 @inline function Base.getproperty(atom::Atom, name::Symbol)
     hasfield(typeof(atom), name) && return getfield(atom, name)
     getproperty(getfield(atom, :_row), name)
@@ -159,7 +167,6 @@ end
     setproperty!(getfield(atom, :_row), name, val)
 end
 
-# TODO hide internals
 @inline Base.show(io::IO, ::MIME"text/plain", atom::Atom) = show(io, getfield(atom, :_row))
 @inline Base.show(io::IO, atom::Atom) = show(io, getfield(atom, :_row))
 

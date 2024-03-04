@@ -16,6 +16,7 @@ end
 @inline Tables.istable(::Type{<: ResidueTable}) = true
 @inline Tables.columnaccess(::Type{<: ResidueTable}) = true
 @inline Tables.columns(rt::ResidueTable) = rt
+@inline Tables.rows(rt::ResidueTable) = rt
 
 @inline function Tables.getcolumn(rt::ResidueTable, nm::Symbol)
     col = Tables.getcolumn(_residues(rt), nm)
@@ -25,11 +26,6 @@ end
     )
 end
 
-@inline function Base.getproperty(rt::ResidueTable, nm::Symbol)
-    hasfield(typeof(rt), nm) && return getfield(rt, nm)
-    Tables.getcolumn(rt, nm)
-end
-
 @inline Tables.getcolumn(rt::ResidueTable, i::Int) = Tables.getcolumn(rt, Tables.columnnames(rt)[i])
 @inline Tables.columnnames(rt::ResidueTable) = Tables.columnnames(_residues(rt))
 @inline Tables.schema(rt::ResidueTable) = Tables.schema(_residues(rt))
@@ -37,6 +33,21 @@ end
 @inline Base.size(rt::ResidueTable) = (length(getfield(rt, :_idx)), length(_residue_table_cols))
 @inline Base.size(rt::ResidueTable, dim) = size(rt)[dim]
 @inline Base.length(rt::ResidueTable) = size(rt, 1)
+
+@inline function Base.getproperty(rt::ResidueTable, nm::Symbol)
+    hasfield(typeof(rt), nm) && return getfield(rt, nm)
+    Tables.getcolumn(rt, nm)
+end
+
+@inline function Base.setproperty!(rt::ResidueTable, nm::Symbol, val)
+    if nm in _residue_table_cols_priv || nm in _residue_table_cols_set
+        error("ResidueTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
+    end
+    if !hasfield(typeof(rt), nm)
+        error("type ResidueTable has no field $nm")
+    end
+    setfield!(rt, nm, val)
+end
 
 @inline function _filter_residues(f::Function, sys::System{T}) where T
     ResidueTable{T}(sys, collect(Int, _filter_select(
@@ -107,9 +118,6 @@ end
     residue_by_idx(sys, idx)
 end
 
-@inline Tables.rows(rt::ResidueTable) = rt
-@inline Tables.getcolumn(res::Residue, name::Symbol) = Tables.getcolumn(getfield(res, :_row), name)
-
 @inline function Base.getproperty(res::Residue, name::Symbol)
     hasfield(typeof(res), name) && return getfield(res, name)
     getproperty(getfield(res, :_row), name)
@@ -120,7 +128,6 @@ end
     setproperty!(getfield(res, :_row), name, val)
 end
 
-# TODO hide internals
 @inline Base.show(io::IO, ::MIME"text/plain", res::Residue) = show(io, getfield(res, :_row))
 @inline Base.show(io::IO, res::Residue) = show(io, getfield(res, :_row))
 
@@ -200,7 +207,7 @@ Creates a copy of the given residue in the given chain. The new residue is autom
 new `idx`.
 """
 @inline function Base.push!(chain::Chain{T}, res::Residue{T}) where T
-    Residue(parent(chain), res.number, res.type;
+    Residue(chain, res.number, res.type;
         properties = res.properties,
         flags = res.flags
     )

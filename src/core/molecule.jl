@@ -17,6 +17,7 @@ end
 @inline Tables.istable(::Type{<: MoleculeTable}) = true
 @inline Tables.columnaccess(::Type{<: MoleculeTable}) = true
 @inline Tables.columns(mt::MoleculeTable) = mt
+@inline Tables.rows(mt::MoleculeTable) = mt
 
 @inline function Tables.getcolumn(mt::MoleculeTable, nm::Symbol)
     col = Tables.getcolumn(_molecules(mt), nm)
@@ -26,11 +27,6 @@ end
     )
 end
 
-@inline function Base.getproperty(mt::MoleculeTable, nm::Symbol)
-    hasfield(typeof(mt), nm) && return getfield(mt, nm)
-    Tables.getcolumn(mt, nm)
-end
-
 @inline Tables.getcolumn(mt::MoleculeTable, i::Int) = Tables.getcolumn(mt, Tables.columnnames(mt)[i])
 @inline Tables.columnnames(mt::MoleculeTable) = Tables.columnnames(_molecules(mt))
 @inline Tables.schema(mt::MoleculeTable) = Tables.schema(_molecules(mt))
@@ -38,6 +34,21 @@ end
 @inline Base.size(mt::MoleculeTable) = (length(getfield(mt, :_idx)), length(_molecule_table_cols))
 @inline Base.size(mt::MoleculeTable, dim) = size(mt)[dim]
 @inline Base.length(mt::MoleculeTable) = size(mt, 1)
+
+@inline function Base.getproperty(mt::MoleculeTable, nm::Symbol)
+    hasfield(typeof(mt), nm) && return getfield(mt, nm)
+    Tables.getcolumn(mt, nm)
+end
+
+@inline function Base.setproperty!(mt::MoleculeTable, nm::Symbol, val)
+    if nm in _molecule_table_cols_set
+        error("MoleculeTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
+    end
+    if !hasfield(typeof(mt), nm)
+        error("type MoleculeTable has no field $nm")
+    end
+    setfield!(mt, nm, val)
+end
 
 @inline function _filter_molecules(f::Function, sys::System{T}) where T
     MoleculeTable(sys, collect(Int, _filter_select(
@@ -118,9 +129,6 @@ end
     Molecule(default_system(); kwargs...)
 end
 
-@inline Tables.rows(mt::MoleculeTable) = mt
-@inline Tables.getcolumn(mol::Molecule, name::Symbol) = Tables.getcolumn(getfield(mol, :_row), name)
-
 @inline function Base.getproperty(mol::Molecule, name::Symbol)
     hasfield(typeof(mol), name) && return getfield(mol, name)
     getproperty(getfield(mol, :_row), name)
@@ -147,11 +155,20 @@ end
 Returns the `Molecule{T}` containing the given object. Returns `nothing` if no such molecule exists.
 """ parent_molecule
 
-# TODO this should also add all related entities
-#function Base.push!(sys::System{T}, mol::Molecule{T}) where T
-#    ...
-#    sys
-#end
+"""
+    push!(::System{T}, mol::Molecule{T})
+
+Creates a copy of the given molecule in the given system. The new molecule is automatically assigned a
+new `idx`.
+"""
+@inline function Base.push!(sys::System{T}, mol::Molecule{T}) where T
+    Molecule(sys;
+        name = mol.name,
+        properties = mol.properties,
+        flags = mol.flags
+    )
+    sys
+end
 
 """
     $(TYPEDSIGNATURES)

@@ -16,6 +16,7 @@ end
 @inline Tables.istable(::Type{<: ChainTable}) = true
 @inline Tables.columnaccess(::Type{<: ChainTable}) = true
 @inline Tables.columns(ct::ChainTable) = ct
+@inline Tables.rows(ct::ChainTable) = ct
 
 @inline function Tables.getcolumn(ct::ChainTable, nm::Symbol)
     col = Tables.getcolumn(_chains(ct), nm)
@@ -25,11 +26,6 @@ end
     )
 end
 
-@inline function Base.getproperty(ct::ChainTable, nm::Symbol)
-    hasfield(typeof(ct), nm) && return getfield(ct, nm)
-    Tables.getcolumn(ct, nm)
-end
-
 @inline Tables.getcolumn(ct::ChainTable, i::Int) = Tables.getcolumn(ct, Tables.columnnames(ct)[i])
 @inline Tables.columnnames(ct::ChainTable) = Tables.columnnames(_chains(ct))
 @inline Tables.schema(ct::ChainTable) = Tables.schema(_chains(ct))
@@ -37,6 +33,21 @@ end
 @inline Base.size(ct::ChainTable) = (length(getfield(ct, :_idx)), length(_chain_table_cols))
 @inline Base.size(ct::ChainTable, dim) = size(ct)[dim]
 @inline Base.length(ct::ChainTable) = size(ct, 1)
+
+@inline function Base.getproperty(ct::ChainTable, nm::Symbol)
+    hasfield(typeof(ct), nm) && return getfield(ct, nm)
+    Tables.getcolumn(ct, nm)
+end
+
+@inline function Base.setproperty!(ct::ChainTable, nm::Symbol, val)
+    if nm in _chain_table_cols_priv || nm in _chain_table_cols_set
+        error("ChainTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
+    end
+    if !hasfield(typeof(ct), nm)
+        error("type ChainTable has no field $nm")
+    end
+    setfield!(ct, nm, val)
+end
 
 @inline function _filter_chains(f::Function, sys::System{T}) where T
     ChainTable{T}(sys, collect(Int, _filter_select(
@@ -97,9 +108,6 @@ end
     push!(sys._chains, _Chain(; idx = idx, kwargs...), mol.idx)
     chain_by_idx(sys, idx)
 end
-
-@inline Tables.rows(ct::ChainTable) = ct
-@inline Tables.getcolumn(chain::Chain, name::Symbol) = Tables.getcolumn(getfield(chain, :_row), name)
 
 @inline function Base.getproperty(chain::Chain, name::Symbol)
     hasfield(typeof(chain), name) && return getfield(chain, name)
@@ -175,7 +183,7 @@ Creates a copy of the given chain in the given molecule. The new chain is automa
 new `idx`.
 """
 @inline function Base.push!(mol::Molecule{T}, chain::Chain{T}) where T
-    Chain(parent(mol);
+    Chain(mol;
         name = chain.name,
         properties = chain.properties,
         flags = chain.flags

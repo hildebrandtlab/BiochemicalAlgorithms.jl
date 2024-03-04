@@ -61,6 +61,7 @@ molecule_by_idx
 molecules
 nmolecules
 parent_molecule
+Base.push!(::System{T}, ::Molecule{T}) where T
 ```
 
 ## Chains
