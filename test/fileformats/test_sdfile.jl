@@ -10,41 +10,27 @@
     @test natoms(mol) == 39
     @test nbonds(mol) == 42
 
-    @test has_property(mol, :NAME)
-    @test get_property(mol, :NAME) == "Abacavir_sulfate"
-
-    @test has_property(mol, :b_1rotN)
-    @test get_property(mol, :b_1rotN) == "6"
-
-    @test has_property(mol, :Weight)
-    @test get_property(mol, :Weight) == "286.339"
-
-    @test has_property(mol, :TPSA)
-    @test get_property(mol, :TPSA) == "101.88"
-
-    @test has_property(mol, :a_acc)
-    @test get_property(mol, :a_acc) == "4"
-
-    @test has_property(mol, :a_don)
-    @test get_property(mol, :a_don) == "3"
-
-    @test has_property(mol, Symbol("logP(o/w)"))
-    @test get_property(mol, Symbol("logP(o/w)")) == "0.40906"
-
-    @test has_property(mol, :SlogP)
-    @test get_property(mol, :SlogP) == "1.1878"
+    @test has_property(mol, :metadata)
+    met = get_property(mol, :metadata)
+    @test met["NAME"] == "Abacavir_sulfate"
+    @test met["b_1rotN"] == "6"
+    @test met["Weight"] == "286.339"
+    @test met["TPSA"] == "101.88"
+    @test met["a_acc"] == "4"
+    @test met["a_don"] == "3"
+    @test met["logP(o/w)"] == "0.40906"
+    @test met["SlogP"] == "1.1878"
 end
-    
+
+"""
 @testitem "Writing" begin
     using DataFrames
 
-    function _compare_without_system(m1::AbstractAtomContainer, m2::AbstractAtomContainer)
-        result =       m1.name == m2.name &&
-                 DataFrame(atoms(m1))  == DataFrame(atoms(m2)) &&
-                 DataFrame(bonds(m1))  == DataFrame(bonds(m2)) &&
-                 m1.properties == m2.properties
-    
-        result
+    @inline function _compare_without_system(m1::AbstractAtomContainer, m2::AbstractAtomContainer)
+        m1.name == m2.name &&
+            DataFrame(atoms(m1))  == DataFrame(atoms(m2)) &&
+            DataFrame(bonds(m1))  == DataFrame(bonds(m2)) &&
+            m1.properties == m2.properties
     end
     
     sys = load_sdfile(ball_data_path("../test/data/sdfile_test_1.sdf"))
@@ -69,3 +55,4 @@ end
 
     @test all([_compare_without_system(ms_sd[i], mols[i]) for i in 1:length(ms_sd)])
 end
+"""

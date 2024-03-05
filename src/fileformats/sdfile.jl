@@ -1,9 +1,9 @@
-export load_sdfile, write_sdfile
-
-using MolecularGraph: sdfilereader, sdfilewriter
+export
+    load_sdfile,
+    write_sdfile
 
 function load_sdfile(fname::String, T=Float32)
-    mg_mols = [m for m in sdfilereader(fname)]
+    mg_mols = [m for m in MolecularGraph.sdfilereader(fname)]
 
     sys = System{T}(fname)
 
@@ -14,14 +14,11 @@ function load_sdfile(fname::String, T=Float32)
     sys
 end
 
-function write_sdfile(fname::String, mol::AbstractAtomContainer)
-    mg_mol = convert(GraphMol{SDFileAtom, SDFileBond}, mol)
+# Currently broken due to changes in MolecularGraph.jl
+#@inline function write_sdfile(fname::String, mol::AbstractAtomContainer)
+#    MolecularGraph.sdfilewriter(fname, [convert(MolecularGraph.SDFMolGraph, mol)])
+#end
 
-    sdfilewriter(fname, [mg_mol])
-end
-
-function write_sdfile(fname::String, sys::System)
-    mg_mols = [convert(GraphMol{SDFileAtom, SDFileBond}, m) for m in molecules(sys)]
-
-    sdfilewriter(fname, mg_mols)
-end
+#@inline function write_sdfile(fname::String, sys::System)
+#    MolecularGraph.sdfilewriter(fname, convert.(MolecularGraph.SDFMolGraph, molecules(sys)))
+#end

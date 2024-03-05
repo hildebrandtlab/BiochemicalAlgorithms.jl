@@ -8,6 +8,7 @@ using DocStringExtensions
 using Graphs, GraphDataFrameBridge
 using Unitful, UnitfulAtomic
 
+import MolecularGraph
 import PrettyTables
 import StaticArrays
 import Tables, TableOperations
