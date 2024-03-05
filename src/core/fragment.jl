@@ -15,6 +15,23 @@ export
     nfragments,
     parent_fragment
 
+"""
+    $(TYPEDEF)
+
+Tables.jl-compatible representation of system fragments (or a subset thereof). Fragment tables can be
+generated using [`fragments`](@ref) or filtered from other fragment tables (via `Base.filter`).
+
+# Public columns
+ - `idx::AbstractVector{Int}`
+ - `number::AbstractVector{Int}`
+ - `name::AbstractVector{String}`
+ - `properties::AbstractVector{Properties}`
+ - `flags::AbstractVector{Flags}`
+
+# Private columns
+ - `molecule_idx::AbstractVector{Int}`
+ - `chain_idx::AbstractVector{Int}`
+"""
 @auto_hash_equals struct FragmentTable{T} <: Tables.AbstractColumns
     _sys::System{T}
     _idx::Vector{Int}
@@ -86,18 +103,23 @@ end
 
 Mutable representation of an individual fragment in a system.
 
-# Fields
+# Public fields
  - `idx::Int`
  - `number::Int`
  - `name::String`
  - `properties::Properties`
  - `flags::Flags`
 
+# Private fields
+ - `molecule_idx::Int`
+ - `chain_idx::Int`
+
 # Constructors
 ```julia
 Fragment(
     chain::Chain{T},
-    number::Int,
+    number::Int;
+    # keyword arguments
     name::String = "",
     properties::Properties = Properties(),
     flags::Flags = Flags()
@@ -168,10 +190,10 @@ end
 Returns a `FragmentTable{T}` containing all fragments of the given atom container.
 
 # Supported keyword arguments
- - `molecule_idx::MaybeInt = nothing`: \
-Any value other than `nothing` limits the result to fragments belonging to the molecule with the given ID.
-- `chain_idx::MaybeInt = nothing`: \
-Any value other than `nothing` limits the result to fragments belonging to the chain with the given ID.
+ - `molecule_idx::MaybeInt = nothing`
+ - `chain_idx::MaybeInt = nothing`
+All keyword arguments limit the results to fragments matching the given IDs. Keyword arguments set to
+`nothing` are ignored.
 """
 function fragments(sys::System{T};
     molecule_idx::MaybeInt = nothing,
@@ -191,6 +213,9 @@ end
     nfragments(::System)
 
 Returns the number of fragments in the given atom container.
+
+# Supported keyword arguments
+See [`fragments`](@ref)
 """
 @inline function nfragments(sys::System; kwargs...)
     length(fragments(sys; kwargs...))
@@ -209,7 +234,7 @@ end
 @inline nfragments(chain::Chain; kwargs...) = nfragments(parent(chain); chain_idx = chain.idx, kwargs...)
 
 """
-    push!(::Chain{T}, frag::Fragment{T})
+    push!(::Chain{T}, ::Fragment{T})
 
 Creates a copy of the given fragment in the given chain. The new fragment is automatically assigned a
 new `idx`.

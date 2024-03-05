@@ -10,6 +10,20 @@ export
     non_hydrogen_bonds,
     hydrogen_bonds
 
+"""
+    $(TYPEDEF)
+
+Tables.jl-compatible representation of system bonds (or a subset thereof). Bond tables can be
+generated using [`bonds`](@ref) or filtered from other bond tables (via `Base.filter`).
+
+# Columns
+ - `idx::AbstractVector{Int}`
+ - `a1::AbstractVector{Int}`
+ - `a2::AbstractVector{Int}`
+ - `order::AbstractVector{BondOrderType}`
+ - `properties::AbstractVector{Properties}`
+ - `flags::AbstractVector{Flags}`
+"""
 @auto_hash_equals struct BondTable{T} <: Tables.AbstractColumns
     _sys::System{T}
     _idx::Vector{Int}
@@ -92,26 +106,28 @@ Mutable representation of an individual bond in a system.
 # Constructors
 ```julia
 Bond(
-    a1::Int, 
-    a2::Int, 
-    order::BondOrderType, 
-    properties::Properties = Properties(),
-    flags::Flags = Flags()
-)
-```
-Creates a new `Bond{Float32}` in the default system.
-
-```julia
-Bond(
     sys::System{T}, 
     a1::Int, 
     a2::Int, 
-    order::BondOrderType, 
+    order::BondOrderType;
+    # keyword arguments
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )
 ```
 Creates a new `Bond{T}` in the given system.
+
+```julia
+Bond(
+    a1::Int,
+    a2::Int,
+    order::BondOrderType;
+    # keyword arguments
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+)
+```
+Creates a new `Bond{Float32}` in the default system.
 """
 @auto_hash_equals struct Bond{T} <: AbstractSystemComponent{T}
     _sys::System{T}
@@ -218,7 +234,7 @@ function nbonds(sys::System{T}; kwargs...) where T
 end
 
 """
-    push!(ac::AbstractAtomContainer, bond::Bond{T})
+    push!(::AbstractAtomContainer, ::Bond{T})
 
 Creates a copy of the given bond in the system associated with the given atom container.
 The new bond is automatically assigned a new `idx`.

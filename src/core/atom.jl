@@ -13,6 +13,35 @@ export
     is_geminal,
     is_vicinal
 
+"""
+    $(TYPEDEF)
+
+Tables.jl-compatible representation of system atoms (or a subset thereof). Atom tables can be
+generated using [`atoms`](@ref) or filtered from other atom tables (via `Base.filter`).
+
+# Public columns
+ - `idx::AbstractVector{Int}`
+ - `number::AbstractVector{Int}`
+ - `element::AbstractVector{ElementType}`
+ - `name::AbstractVector{String}`
+ - `atom_type::AbstractVector{String}`
+ - `r::AbstractVector{Vector3{T}}`
+ - `v::AbstractVector{Vector3{T}}`
+ - `F::AbstractVector{Vector3{T}}`
+ - `formal_charge::AbstractVector{Int}`
+ - `charge::AbstractVector{T}`
+ - `radius::AbstractVector{T}`
+ - `properties::AbstractVector{Properties}`
+ - `flags::AbstractVector{Flags}`
+
+# Private columns
+ - `frame_id::AbstractVector{Int}`
+ - `molecule_idx::AbstractVector{MaybeInt}`
+ - `chain_idx::AbstractVector{MaybeInt}`
+ - `fragment_idx::AbstractVector{MaybeInt}`
+ - `nucleotide_idx::AbstractVector{MaybeInt}`
+ - `residue_idx::AbstractVector{MaybeInt}`
+"""
 @auto_hash_equals struct AtomTable{T} <: Tables.AbstractColumns
     _sys::System{T}
     _idx::Vector{Int}
@@ -84,7 +113,7 @@ end
 
 Mutable representation of an individual atom in a system.
 
-# Fields
+# Public fields
  - `idx::Int`
  - `number::Int`
  - `element::ElementType`
@@ -99,11 +128,21 @@ Mutable representation of an individual atom in a system.
  - `properties::Properties`
  - `flags::Flags`
 
+# Private fields
+ - `frame_id::Int`
+ - `molecule_idx::MaybeInt`
+ - `chain_idx::MaybeInt`
+ - `fragment_idx::MaybeInt`
+ - `nucleotide_idx::MaybeInt`
+ - `residue_idx::MaybeInt`
+
 # Constructors
 ```julia
 Atom(
+    ac::AbstractAtomContainer{T}
     number::Int,
-    element::ElementType,
+    element::ElementType;
+    # keyword arguments
     name::String = "",
     atom_type::String = "",
     r::Vector3{T} = Vector3{T}(0, 0, 0),
@@ -113,12 +152,25 @@ Atom(
     charge::T = zero(T),
     radius::T = zero(T),
     properties::Properties = Properties(),
-    flags::Flags = Flags();
-    # keyword arguments
+    flags::Flags = Flags(),
     frame_id::Int = 1
+    molecule_idx::MaybeInt = nothing,
+    chain_idx::MaybeInt = nothing,
+    fragment_idx::MaybeInt = nothing,
+    nucleotide_idx::MaybeInt = nothing,
+    residue_idx::MaybeInt = nothing
 )
 ```
-Creates a new `Atom{Float32}` in the default system.
+Creates a new `Atom{T}` in the given atom container.
+
+```julia
+Atom(
+    number::Int,
+    element::ElementType;
+    kwargs...
+)
+```
+Creates a new `Atom{Float32}` in the default system. Supports the same keyword arguments as above.
 """
 @auto_hash_equals struct Atom{T} <: AbstractSystemComponent{T}
     _sys::System{T}
@@ -243,18 +295,14 @@ end
 Returns an `AtomTable{T}` containing all atoms of the given atom container.
 
 # Supported keyword arguments
- - `frame_id::MaybeInt = 1`: \
-Any value other than `nothing` limits the result to atoms matching this frame ID.
- - `molecule_idx::Union{MaybeInt, Some{Nothing}} = nothing`: \
-Any value other than `nothing` limits the results to atoms belonging to the given molecule ID.
- - `chain_idx::Union{MaybeInt, Some{Nothing}} = nothing`: \
-Any value other than `nothing` limits the results to atoms belonging to the given chain ID.
-- `fragment_idx::Union{MaybeInt, Some{Nothing}} = nothing`: \
-Any value other than `nothing` limits the results to atoms belonging to the given fragment ID.
-- `nucleotide_idx::Union{MaybeInt, Some{Nothing}} = nothing`: \
-Any value other than `nothing` limits the results to atoms belonging to the given nucleotide ID.
-- `residue_idx::Union{MaybeInt, Some{Nothing}} = nothing`: \
-Any value other than `nothing` limits the results to atoms belonging to the given residue ID.
+ - `frame_id::MaybeInt = 1`
+ - `molecule_idx::Union{MaybeInt, Some{Nothing}} = nothing`
+ - `chain_idx::Union{MaybeInt, Some{Nothing}} = nothing`
+ - `fragment_idx::Union{MaybeInt, Some{Nothing}} = nothing`
+ - `nucleotide_idx::Union{MaybeInt, Some{Nothing}} = nothing`
+ - `residue_idx::Union{MaybeInt, Some{Nothing}} = nothing`
+All keyword arguments limit the results to atoms matching the given IDs. Keyword arguments set to
+`nothing` are ignored. You can use `Some(nothing)` to explicitly filter for ID values of `nothing`.
 """
 @inline function atoms(sys::System{T};
     frame_id::MaybeInt = 1,
@@ -286,8 +334,7 @@ end
 Returns the number of atoms in the given atom container.
 
 # Supported keyword arguments
- - `frame_id::MaybeInt = 1`: \
-Any value other than `nothing` limits the result to atoms matching this frame ID.
+See [`atoms`](@ref)
 """
 @inline function natoms(sys::System; kwargs...)
     length(atoms(sys; kwargs...))
@@ -315,17 +362,17 @@ Returns the number of bonds of the given atom.
 end
 
 """
-    push!(::Fragment{T}, atom::Atom{T})
-    push!(::Molecule{T}, atom::Atom{T})
-    push!(::Nucleotide{T}, atom::Atom{T})
-    push!(::Residue{T}, atom::Atom{T})
-    push!(::System{T}, atom::Atom{T})
+    push!(::Fragment{T},   ::Atom{T})
+    push!(::Molecule{T},   ::Atom{T})
+    push!(::Nucleotide{T}, ::Atom{T})
+    push!(::Residue{T},    ::Atom{T})
+    push!(::System{T},     ::Atom{T})
 
 Creates a copy of the given atom in the given atom container. The new atom is automatically
 assigned a new `idx`.
 
 # Supported keyword arguments
- - `frame_id::Int = 1`
+See [`atoms`](@ref)
 """
 @inline function Base.push!(sys::System{T}, atom::Atom{T};
     frame_id::Int = 1,
@@ -402,8 +449,8 @@ end
 """
     $(TYPEDSIGNATURES)
 
-    Decides if two atoms are bound to each other.
-    Hydrogen bonds (has_flag(bond, :TYPE__HYDROGEN)) are ignored.
+Decides if two atoms are bound to each other.
+Hydrogen bonds (`has_flag(bond, :TYPE__HYDROGEN)`) are ignored.
 """
 function is_bound_to(a1::Atom, a2::Atom)
     s = parent(a1)
@@ -427,9 +474,9 @@ end
 
     Decides if two atoms are geminal.
     
-    Two atoms are geminal if they do not share a common bond but both have a
-    bond to a third atom. For example the two hydrogen atoms in water are geminal. 
-    Hydrogen bonds (has_flag(bond, :TYPE__HYDROGEN)) are ignored.
+Two atoms are geminal if they do not share a common bond but both have a
+bond to a third atom. For example the two hydrogen atoms in water are geminal. 
+Hydrogen bonds (`has_flag(bond, :TYPE__HYDROGEN)`) are ignored.
 """
 function is_geminal(a1::Atom, a2::Atom)
     if a1 == a2
@@ -449,7 +496,7 @@ end
 Decides if two atoms are vicinal.
 
 Two atoms are vicinal if they are separated by three bonds (1-4 position).
-Hydrogen bonds (has_flag(bond, :TYPE__HYDROGEN)) are ignored.
+Hydrogen bonds (`has_flag(bond, :TYPE__HYDROGEN)`) are ignored.
 """
 function is_vicinal(a1::Atom, a2::Atom)
     if a1 == a2

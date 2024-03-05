@@ -6,6 +6,21 @@ export
     nchains,
     parent_chain
 
+"""
+    $(TYPEDEF)
+
+Tables.jl-compatible representation of system chains (or a subset thereof). Chain tables can be
+generated using [`chains`](@ref) or filtered from other chain tables (via `Base.filter`).
+
+# Public columns
+ - `idx::AbstractVector{Int}`
+ - `name::AbstractVector{String}`
+ - `properties::AbstractVector{Properties}`
+ - `flags::AbstractVector{Flags}`
+
+# Private columns
+ - `molecule_idx::AbstractVector{Int}`
+"""
 @auto_hash_equals struct ChainTable{T} <: Tables.AbstractColumns
     _sys::System{T}
     _idx::Vector{Int}
@@ -77,16 +92,20 @@ end
 
 Mutable representation of an individual chain in a system.
 
-# Fields
+# Public fields
  - `idx::Int`
  - `name::String`
  - `properties::Properties`
  - `flags::Flags`
 
+# Private fields
+ - `molecule_idx::Int`
+
 # Constructors
 ```julia
 Chain(
-    mol::Molecule{T},
+    mol::Molecule{T};
+    # keyword arguments
     name::String = "",
     properties::Properties = Properties(),
     flags::Flags = Flags()
@@ -147,7 +166,7 @@ end
 
 """
     chains(::Molecule)
-    chains(::System)
+    chains(::System; kwargs...)
 
 Returns a `ChainTable{T}` containing all chains of the given atom container.
 
@@ -162,9 +181,12 @@ end
 
 """
     nchains(::Molecule)
-    nchains(::System)
+    nchains(::System; kwargs...)
 
 Returns the number of chains in the given atom container.
+
+# Supported keyword arguments
+See [`chains`](@ref)
 """
 @inline function nchains(sys::System; kwargs...)
     length(chains(sys; kwargs...))
@@ -177,7 +199,7 @@ end
 @inline nchains(mol::Molecule) = nchains(parent(mol), molecule_idx = mol.idx)
 
 """
-    push!(::Molecule{T}, chain::Chain{T})
+    push!(::Molecule{T}, ::Chain{T})
 
 Creates a copy of the given chain in the given molecule. The new chain is automatically assigned a
 new `idx`.

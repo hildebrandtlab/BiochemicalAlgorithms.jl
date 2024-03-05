@@ -7,6 +7,18 @@ export
     nmolecules,
     parent_molecule
 
+"""
+    $(TYPEDEF)
+
+Tables.jl-compatible representation of system molecules (or a subset thereof). Molecule tables can be
+generated using [`molecules`](@ref) or filtered from other molecule tables (via `Base.filter`).
+
+# Columns
+ - `idx::AbstractVector{Int}`
+ - `name::AbstractVector{String}`
+ - `properties::AbstractVector{Properties}`
+ - `flags::AbstractVector{Flags}`
+"""
 @auto_hash_equals struct MoleculeTable{T} <: Tables.AbstractColumns
     _sys::System{T}
     _idx::Vector{Int}
@@ -94,22 +106,24 @@ Mutable representation of an individual molecule in a system.
 # Constructors
 ```julia
 Molecule(
-    name::String = "",
-    properties::Properties = Properties(),
-    flags::Flags = Flags()
-)
-```
-Creates a new `Molecule{Float32}` in the default system.
-
-```julia
-Molecule(
-    sys::System{T},
+    sys::System{T};
+    # keyword arguments
     name::String = "",
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )
 ```
 Creates a new `Molecule{T}` in the given system.
+
+```julia
+Molecule(;
+    #keyword arguments
+    name::String = "",
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+)
+```
+Creates a new `Molecule{Float32}` in the default system.
 """
 @auto_hash_equals struct Molecule{T} <: AbstractMolecule{T}
     _sys::System{T}
@@ -156,7 +170,7 @@ Returns the `Molecule{T}` containing the given object. Returns `nothing` if no s
 """ parent_molecule
 
 """
-    push!(::System{T}, mol::Molecule{T})
+    push!(::System{T}, ::Molecule{T})
 
 Creates a copy of the given molecule in the given system. The new molecule is automatically assigned a
 new `idx`.

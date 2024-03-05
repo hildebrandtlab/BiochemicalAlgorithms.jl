@@ -35,6 +35,7 @@ parent_system
 ## Atoms
 ```@docs
 Atom
+AtomTable
 atom_by_idx
 atom_by_name
 atoms
@@ -48,6 +49,7 @@ Base.push!(::System{T}, ::Atom{T}) where T
 ## Bonds
 ```@docs
 Bond
+BondTable
 bond_by_idx
 bonds
 nbonds
@@ -57,6 +59,7 @@ Base.push!(::System{T}, ::Bond{T}) where T
 ## Molecules
 ```@docs
 Molecule
+MoleculeTable
 molecule_by_idx
 molecules
 nmolecules
@@ -67,6 +70,7 @@ Base.push!(::System{T}, ::Molecule{T}) where T
 ## Chains
 ```@docs
 Chain
+ChainTable
 chain_by_idx
 chains
 nchains
@@ -77,6 +81,7 @@ Base.push!(::Molecule{T}, ::Chain{T}) where T
 ## Fragments
 ```@docs
 Fragment
+FragmentTable
 fragment_by_idx
 fragments
 nfragments
@@ -87,6 +92,7 @@ Base.push!(::Chain{T}, ::Fragment{T}) where T
 ## Nucleotides
 ```@docs
 Nucleotide
+NucleotideTable
 nnucleotides
 nucleotide_by_idx
 nucleotides
@@ -97,6 +103,7 @@ Base.push!(::Chain{T}, ::Nucleotide{T}) where T
 ## Residues
 ```@docs
 Residue
+ResidueTable
 nresidues
 parent_residue
 residue_by_idx
