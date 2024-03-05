@@ -29,7 +29,7 @@ end
 
 @inline function Tables.getcolumn(ft::FragmentTable, nm::Symbol)
     col = Tables.getcolumn(_fragments(ft), nm)
-    RowProjectionVector{eltype(col)}(
+    _RowProjectionVector{eltype(col)}(
         col,
         map(idx -> _fragments(ft)._idx_map[idx], getfield(ft, :_idx))
     )

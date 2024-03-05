@@ -24,7 +24,7 @@ end
 
 @inline function Tables.getcolumn(bt::BondTable, nm::Symbol)
     col = Tables.getcolumn(_bonds(bt), nm)
-    RowProjectionVector{eltype(col)}(
+    _RowProjectionVector{eltype(col)}(
         col,
         map(idx -> _bonds(bt)._idx_map[idx], getfield(bt, :_idx))
     )

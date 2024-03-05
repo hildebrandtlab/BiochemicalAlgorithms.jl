@@ -21,7 +21,7 @@ end
 
 @inline function Tables.getcolumn(mt::MoleculeTable, nm::Symbol)
     col = Tables.getcolumn(_molecules(mt), nm)
-    RowProjectionVector{eltype(col)}(
+    _RowProjectionVector{eltype(col)}(
         col,
         map(idx -> _molecules(mt)._idx_map[idx], getfield(mt, :_idx))
     )

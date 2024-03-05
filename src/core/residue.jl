@@ -20,7 +20,7 @@ end
 
 @inline function Tables.getcolumn(rt::ResidueTable, nm::Symbol)
     col = Tables.getcolumn(_residues(rt), nm)
-    RowProjectionVector{eltype(col)}(
+    _RowProjectionVector{eltype(col)}(
         col,
         map(idx -> _residues(rt)._idx_map[idx], getfield(rt, :_idx))
     )

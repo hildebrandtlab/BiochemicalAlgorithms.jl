@@ -17,20 +17,20 @@ const Flags = Set{Symbol}
 squared_norm(v::Vector3{T}) where {T<:Real} = dot(v, v)
 distance(v::Vector3{T}, w::Vector3{T}) where {T<:Real} = norm(v - w)
 
-struct RowProjectionVector{T} <: AbstractArray{T, 1}
-    base::Vector{T}
-    rows::Vector{Int}
+struct _RowProjectionVector{T} <: AbstractArray{T, 1}
+    _base::Vector{T}
+    _rows::Vector{Int}
 end
 
-@inline Base.size(M::RowProjectionVector) = (length(M.rows),)
+@inline Base.size(M::_RowProjectionVector) = (length(M._rows),)
 
 @inline Base.getindex(
-    M::RowProjectionVector,
+    M::_RowProjectionVector,
     i::Int
-) = getindex(getproperty(M, :base), getindex(getproperty(M, :rows), i))
+) = getindex(getproperty(M, :_base), getindex(getproperty(M, :_rows), i))
 
 @inline Base.setindex!(
-    M::RowProjectionVector{T},
+    M::_RowProjectionVector{T},
     v::T,
     i::Int
-) where T = setindex!(getproperty(M, :base), v, getindex(getproperty(M, :rows), i))
+) where T = setindex!(getproperty(M, :_base), v, getindex(getproperty(M, :_rows), i))

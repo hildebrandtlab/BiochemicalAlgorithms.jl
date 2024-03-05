@@ -55,19 +55,19 @@ end
     @test Flags([:first, :second]) isa Flags
 end
 
-@testitem "RowProjectionVector" begin
-    using BiochemicalAlgorithms: RowProjectionVector
+@testitem "_RowProjectionVector" begin
+    using BiochemicalAlgorithms: _RowProjectionVector
 
     for T in [Int, Float32, Float64]
         v = T[1, 2, 3]
         
         # invalid row bounds
-        @test_throws BoundsError RowProjectionVector(v, [0])[1]
-        @test_throws BoundsError RowProjectionVector(v, [4])[1]
+        @test_throws BoundsError _RowProjectionVector(v, [0])[1]
+        @test_throws BoundsError _RowProjectionVector(v, [4])[1]
 
         # row subset
-        u = RowProjectionVector(v, [3, 1])
-        @test u isa RowProjectionVector{T}
+        u = _RowProjectionVector(v, [3, 1])
+        @test u isa _RowProjectionVector{T}
         @test size(u) == (2,)
         @test length(u) == 2
         @test_throws BoundsError u[0]
@@ -80,7 +80,7 @@ end
         @test_throws BoundsError u[3] = T(42)
 
         # row bag
-        u = RowProjectionVector(v, [2, 2])
+        u = _RowProjectionVector(v, [2, 2])
         @test size(u) == (2,)
         @test length(u) == 2
         @test_throws BoundsError u[0]

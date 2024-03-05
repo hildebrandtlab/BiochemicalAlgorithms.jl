@@ -20,7 +20,7 @@ end
 
 @inline function Tables.getcolumn(nt::NucleotideTable, nm::Symbol)
     col = Tables.getcolumn(_nucleotides(nt), nm)
-    RowProjectionVector{eltype(col)}(
+    _RowProjectionVector{eltype(col)}(
         col,
         map(idx -> _nucleotides(nt)._idx_map[idx], getfield(nt, :_idx))
     )

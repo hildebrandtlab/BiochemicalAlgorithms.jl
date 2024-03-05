@@ -20,7 +20,7 @@ end
 
 @inline function Tables.getcolumn(ct::ChainTable, nm::Symbol)
     col = Tables.getcolumn(_chains(ct), nm)
-    RowProjectionVector{eltype(col)}(
+    _RowProjectionVector{eltype(col)}(
         col,
         map(idx -> _chains(ct)._idx_map[idx], getfield(ct, :_idx))
     )

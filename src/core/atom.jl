@@ -27,7 +27,7 @@ end
 
 @inline function Tables.getcolumn(at::AtomTable, nm::Symbol)
     col = Tables.getcolumn(_atoms(at), nm)
-    RowProjectionVector{eltype(col)}(
+    _RowProjectionVector{eltype(col)}(
         col,
         map(idx -> _atoms(at)._idx_map[idx], getfield(at, :_idx))
     )
