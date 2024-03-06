@@ -1,22 +1,8 @@
-@auto_hash_equals struct _Residue
-    idx::Int
-    number::Int
-    type::AminoAcid
-    properties::Properties
-    flags::Flags
-
-    function _Residue(
-        number::Int,
-        type::AminoAcid;
-        idx::Int = 0,
-        properties::Properties = Properties(),
-        flags::Flags = Flags()
-    )
-        new(idx, number, type, properties, flags)
-    end
-end
-
-const _residue_table_cols = fieldnames(_Residue)
+const _residue_table_schema = Tables.Schema(
+    (:idx, :number, :type, :properties, :flags),
+    (Int, Int, AminoAcid, Properties, Flags)
+)
+const _residue_table_cols = _residue_table_schema.names
 const _residue_table_cols_set = Set(_residue_table_cols)
 const _residue_table_cols_priv = Set([:molecule_idx, :chain_idx])
 
@@ -61,33 +47,40 @@ end
 
 @inline Tables.getcolumn(rt::_ResidueTable, i::Int) = getfield(rt, Tables.columnnames(rt)[i])
 @inline Tables.columnnames(::_ResidueTable) = _residue_table_cols
-@inline Tables.schema(::_ResidueTable) = Tables.Schema(fieldnames(_Residue), fieldtypes(_Residue))
+@inline Tables.schema(::_ResidueTable) = _residue_table_schema
 
 @inline Base.size(rt::_ResidueTable) = (length(rt.idx), length(_residue_table_cols))
 @inline Base.size(rt::_ResidueTable, dim) = size(rt)[dim]
 @inline Base.length(rt::_ResidueTable) = size(rt, 1)
 
-function Base.push!(rt::_ResidueTable, t::_Residue, molecule_idx::Int, chain_idx::Int)
-    getfield(rt, :_idx_map)[t.idx] = length(rt.idx) + 1
-    for fn in _residue_table_cols
-        push!(getfield(rt, Symbol(fn)), getfield(t, Symbol(fn)))
-    end
-    push!(getfield(rt, :molecule_idx), molecule_idx)
-    push!(getfield(rt, :chain_idx), chain_idx)
+function Base.push!(
+    rt::_ResidueTable,
+    idx::Int,
+    number::Int,
+    type::AminoAcid,
+    molecule_idx::Int,
+    chain_idx::Int;
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+)
+    rt._idx_map[idx] = length(rt.idx) + 1
+    push!(rt.idx, idx)
+    push!(rt.number, number)
+    push!(rt.type, type)
+    push!(rt.properties, properties)
+    push!(rt.flags, flags)
+    push!(rt.molecule_idx, molecule_idx)
+    push!(rt.chain_idx, chain_idx)
     rt
 end
 
 function _residue_table(itr)
     rt = _ResidueTable()
     for r in itr
-        push!(rt, _Residue(r.number, r.type;
-                idx = r.idx,
-                properties = r.properties,
-                flags = r.flags
-            ),
-            Tables.getcolumn(r, :molecule_idx),
-            Tables.getcolumn(r, :chain_idx)
-       )
+        push!(rt, r.idx, r.number, r.type, r.molecule_idx, r.chain_idx;
+            properties = r.properties,
+            flags = r.flags
+        )
     end
     rt
 end

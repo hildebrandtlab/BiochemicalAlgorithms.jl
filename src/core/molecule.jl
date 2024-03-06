@@ -135,7 +135,7 @@ end
     kwargs...
 ) where T
     idx = _next_idx(sys)
-    push!(sys._molecules, _Molecule(; idx = idx, kwargs...))
+    push!(sys._molecules, idx; kwargs...)
     molecule_by_idx(sys, idx)
 end
 

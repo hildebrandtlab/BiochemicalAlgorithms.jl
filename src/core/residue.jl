@@ -131,12 +131,7 @@ end
 ) where T
     sys = parent(chain)
     idx = _next_idx(sys)
-    push!(
-        sys._residues,
-        _Residue(number, type; idx = idx, kwargs...),
-        chain.molecule_idx,
-        chain.idx
-    )
+    push!(sys._residues, idx, number, type, chain.molecule_idx, chain.idx; kwargs...)
     residue_by_idx(sys, idx)
 end
 

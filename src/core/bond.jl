@@ -142,7 +142,7 @@ end
     kwargs...
 ) where T
     idx = _next_idx(sys)
-    push!(sys._bonds, _Bond(a1, a2, order; idx = idx, kwargs...))
+    push!(sys._bonds, idx, a1, a2, order; kwargs...)
     bond_by_idx(sys, idx)
 end
 

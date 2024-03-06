@@ -1,22 +1,8 @@
-@auto_hash_equals struct _Nucleotide
-    idx::Int
-    number::Int
-    name::String
-    properties::Properties
-    flags::Flags
-
-    function _Nucleotide(
-        number::Int;
-        idx::Int = 0,
-        name::String = "",
-        properties::Properties = Properties(),
-        flags::Flags = Flags()
-    )
-        new(idx, number, name, properties, flags)
-    end
-end
-
-const _nucleotide_table_cols = fieldnames(_Nucleotide)
+const _nucleotide_table_schema = Tables.Schema(
+    (:idx, :number, :name, :properties, :flags),
+    (Int, Int, String, Properties, Flags)
+)
+const _nucleotide_table_cols = _nucleotide_table_schema.names
 const _nucleotide_table_cols_set = Set(_nucleotide_table_cols)
 const _nucleotide_table_cols_priv = Set([:molecule_idx, :chain_idx])
 
@@ -61,33 +47,40 @@ end
 
 @inline Tables.getcolumn(nt::_NucleotideTable, i::Int) = getfield(nt, Tables.columnnames(nt)[i])
 @inline Tables.columnnames(::_NucleotideTable) = _nucleotide_table_cols
-@inline Tables.schema(::_NucleotideTable) = Tables.Schema(fieldnames(_Nucleotide), fieldtypes(_Nucleotide))
+@inline Tables.schema(::_NucleotideTable) = _nucleotide_table_schema
 
 @inline Base.size(nt::_NucleotideTable) = (length(nt.idx), length(_nucleotide_table_cols))
 @inline Base.size(nt::_NucleotideTable, dim) = size(nt)[dim]
 @inline Base.length(nt::_NucleotideTable) = size(nt, 1)
 
-function Base.push!(nt::_NucleotideTable, t::_Nucleotide, molecule_idx::Int, chain_idx::Int)
-    getfield(nt, :_idx_map)[t.idx] = length(nt.idx) + 1
-    for fn in _nucleotide_table_cols
-        push!(getfield(nt, Symbol(fn)), getfield(t, Symbol(fn)))
-    end
-    push!(getfield(nt, :molecule_idx), molecule_idx)
-    push!(getfield(nt, :chain_idx), chain_idx)
+function Base.push!(
+    nt::_NucleotideTable,
+    idx::Int,
+    number::Int,
+    molecule_idx::Int,
+    chain_idx::Int;
+    name::String = "",
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+)
+    nt._idx_map[idx] = length(nt.idx) + 1
+    push!(nt.idx, idx)
+    push!(nt.number, number)
+    push!(nt.name, name)
+    push!(nt.properties, properties)
+    push!(nt.flags, flags)
+    push!(nt.molecule_idx, molecule_idx)
+    push!(nt.chain_idx, chain_idx)
     nt
 end
 
 function _nucleotide_table(itr)
     nt = _NucleotideTable()
     for n in itr
-        push!(nt, _Nucleotide(n.number;
-                idx = n.idx,
-                name = n.name,
-                properties = n.properties,
-                flags = n.flags
-            ),
-            Tables.getcolumn(n, :molecule_idx),
-            Tables.getcolumn(n, :chain_idx)
+        push!(nt, n.idx, n.number, n.molecule_idx, n.chain_idx;
+            name = n.name,
+            properties = n.properties,
+            flags = n.flags
        )
     end
     nt

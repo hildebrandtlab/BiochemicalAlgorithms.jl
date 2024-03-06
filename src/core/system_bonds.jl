@@ -1,24 +1,8 @@
-@auto_hash_equals struct _Bond
-    idx::Int
-    a1::Int
-    a2::Int
-    order::BondOrderType
-    properties::Properties
-    flags::Flags
-
-    function _Bond(
-        a1::Int,
-        a2::Int,
-        order::BondOrderType;
-        idx::Int = 0,
-        properties::Properties = Properties(),
-        flags::Flags = Flags()
-    )
-        new(idx, a1, a2, order, properties, flags)
-    end
-end
-
-const _bond_table_cols = fieldnames(_Bond)
+const _bond_table_schema = Tables.Schema(
+    (:idx, :a1, :a2, :order, :properties, :flags),
+    (Int, Int, Int, BondOrderType, Properties, Flags)
+)
+const _bond_table_cols = _bond_table_schema.names
 const _bond_table_cols_set = Set(_bond_table_cols)
 
 @auto_hash_equals struct _BondTable <: Tables.AbstractColumns
@@ -56,28 +40,38 @@ end
 
 @inline Tables.getcolumn(bt::_BondTable, i::Int) = getfield(bt, Tables.columnnames(bt)[i])
 @inline Tables.columnnames(::_BondTable) = _bond_table_cols
-@inline Tables.schema(::_BondTable) = Tables.Schema(fieldnames(_Bond), fieldtypes(_Bond))
+@inline Tables.schema(::_BondTable) = _bond_table_schema
 
 @inline Base.size(bt::_BondTable) = (length(bt.idx), length(_bond_table_cols))
 @inline Base.size(bt::_BondTable, dim) = size(bt)[dim]
 @inline Base.length(bt::_BondTable) = size(bt, 1)
 
-function Base.push!(bt::_BondTable, t::_Bond)
-    getfield(bt, :_idx_map)[t.idx] = length(bt.idx) + 1
-    for fn in _bond_table_cols
-        push!(getfield(bt, Symbol(fn)), getfield(t, Symbol(fn)))
-    end
+function Base.push!(
+    bt::_BondTable,
+    idx::Int,
+    a1::Int,
+    a2::Int,
+    order::BondOrderType;
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+)
+    bt._idx_map[idx] = length(bt.idx) + 1
+    push!(bt.idx, idx)
+    push!(bt.a1, a1)
+    push!(bt.a2, a2)
+    push!(bt.order, order)
+    push!(bt.properties, properties)
+    push!(bt.flags, flags)
     bt
 end
 
 function _bond_table(itr)
     bt = _BondTable()
     for b in itr
-        push!(bt, _Bond(b.a1, b.a2, b.order;
-            idx = b.idx,
+        push!(bt, b.idx, b.a1, b.a2, b.order;
             properties = b.properties,
             flags = b.flags
-        ))
+        )
     end
     bt
 end

@@ -1,22 +1,8 @@
-@auto_hash_equals struct _Fragment
-    idx::Int
-    number::Int
-    name::String
-    properties::Properties
-    flags::Flags
-
-    function _Fragment(
-        number::Int;
-        idx::Int = 0,
-        name::String = "",
-        properties::Properties = Properties(),
-        flags::Flags = Flags()
-    )
-        new(idx, number, name, properties, flags)
-    end
-end
-
-const _fragment_table_cols = fieldnames(_Fragment)
+const _fragment_table_schema = Tables.Schema(
+    (:idx, :number, :name, :properties, :flags),
+    (Int, Int, String, Properties, Flags)
+)
+const _fragment_table_cols = _fragment_table_schema.names
 const _fragment_table_cols_set = Set(_fragment_table_cols)
 const _fragment_table_cols_priv = Set([:molecule_idx, :chain_idx])
 
@@ -61,33 +47,40 @@ end
 
 @inline Tables.getcolumn(ft::_FragmentTable, i::Int) = getfield(ft, Tables.columnnames(ft)[i])
 @inline Tables.columnnames(::_FragmentTable) = _fragment_table_cols
-@inline Tables.schema(::_FragmentTable) = Tables.Schema(fieldnames(_Fragment), fieldtypes(_Fragment))
+@inline Tables.schema(::_FragmentTable) = _fragment_table_schema
 
 @inline Base.size(ft::_FragmentTable) = (length(ft.idx), length(_fragment_table_cols))
 @inline Base.size(ft::_FragmentTable, dim) = size(ft)[dim]
 @inline Base.length(ft::_FragmentTable) = size(ft, 1)
 
-function Base.push!(ft::_FragmentTable, t::_Fragment, molecule_idx::Int, chain_idx::Int)
-    getfield(ft, :_idx_map)[t.idx] = length(ft.idx) + 1
-    for fn in _fragment_table_cols
-        push!(getfield(ft, Symbol(fn)), getfield(t, Symbol(fn)))
-    end
-    push!(getfield(ft, :molecule_idx), molecule_idx)
-    push!(getfield(ft, :chain_idx), chain_idx)
+function Base.push!(
+    ft::_FragmentTable,
+    idx::Int,
+    number::Int,
+    molecule_idx::Int,
+    chain_idx::Int;
+    name::String = "",
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+)
+    ft._idx_map[idx] = length(ft.idx) + 1
+    push!(ft.idx, idx)
+    push!(ft.number, number)
+    push!(ft.name, name)
+    push!(ft.properties, properties)
+    push!(ft.flags, flags)
+    push!(ft.molecule_idx, molecule_idx)
+    push!(ft.chain_idx, chain_idx)
     ft
 end
 
 function _fragment_table(itr)
     ft = _FragmentTable()
     for f in itr
-        push!(ft, _Fragment(f.number;
-                idx = f.idx,
-                name = f.name,
-                properties = f.properties,
-                flags = f.flags
-            ),
-            Tables.getcolumn(f, :molecule_idx),
-            Tables.getcolumn(f, :chain_idx)
+        push!(ft, f.idx, f.number, f.molecule_idx, f.chain_idx;
+            name = f.name,
+            properties = f.properties,
+            flags = f.flags
        )
     end
     ft

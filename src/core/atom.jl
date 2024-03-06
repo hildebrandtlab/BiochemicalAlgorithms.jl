@@ -190,13 +190,14 @@ end
     kwargs...
 ) where T
     idx = _next_idx(sys)
-    push!(sys._atoms, _Atom{T}(number, element; idx = idx, kwargs...);
+    push!(sys._atoms, idx, number, element;
         frame_id = frame_id,
         molecule_idx = molecule_idx,
         chain_idx = chain_idx,
         fragment_idx = fragment_idx,
         nucleotide_idx = nucleotide_idx,
-        residue_idx = residue_idx
+        residue_idx = residue_idx,
+        kwargs...
     )
     atom_by_idx(sys, idx)
 end

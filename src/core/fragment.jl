@@ -139,12 +139,7 @@ end
 ) where T
     sys = parent(chain)
     idx = _next_idx(sys)
-    push!(
-        sys._fragments,
-        _Fragment(number; idx = idx, kwargs...),
-        chain.molecule_idx,
-        chain.idx
-    )
+    push!(sys._fragments, idx, number, chain.molecule_idx, chain.idx; kwargs...)
     fragment_by_idx(sys, idx)
 end
 

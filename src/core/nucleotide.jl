@@ -130,12 +130,7 @@ end
 ) where T
     sys = parent(chain)
     idx = _next_idx(sys)
-    push!(
-        sys._nucleotides,
-        _Nucleotide(number; idx = idx, kwargs...),
-        chain.molecule_idx,
-        chain.idx
-    )
+    push!(sys._nucleotides, idx, number, chain.molecule_idx, chain.idx; kwargs...)
     nucleotide_by_idx(sys, idx)
 end
 

@@ -172,14 +172,19 @@ end
 
 @testitem "Atom" begin
     for T in [Float32, Float64]
-        at = BiochemicalAlgorithms._Atom{T}(1, Elements.H;
-            name = "my fancy atom",
-            atom_type = "heavy",
-            r = Vector3{T}(1, 2, 4),
-            v = Vector3{T}(1, 1, 1),
-            formal_charge = 1,
-            charge = T(0.2),
-            radius = T(1.01)
+        at = (
+            number = 1,
+            element = Elements.H,
+            name = "my atom",
+            atom_type = "my atom type",
+            r = ones(Vector3{T}),
+            v = 2 .* ones(Vector3{T}),
+            F = 3 .* ones(Vector3{T}),
+            formal_charge = 4,
+            charge = T(5),
+            radius = T(6),
+            properties = Properties(:first => 'a', :second => "b"),
+            flags = Flags([:third])
         )
         sys = System{T}()
 
@@ -189,9 +194,12 @@ end
             atom_type = at.atom_type,
             r = at.r,
             v = at.v,
+            F = at.F,
             formal_charge = at.formal_charge,
             charge = at.charge,
-            radius = at.radius
+            radius = at.radius,
+            properties = at.properties,
+            flags = at.flags
         )
         @test atom isa Atom{T}
         @test parent(atom) === sys

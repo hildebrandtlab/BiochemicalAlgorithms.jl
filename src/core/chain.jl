@@ -124,7 +124,7 @@ end
 )
     sys = parent(mol)
     idx = _next_idx(sys)
-    push!(sys._chains, _Chain(; idx = idx, kwargs...), mol.idx)
+    push!(sys._chains, idx, mol.idx; kwargs...)
     chain_by_idx(sys, idx)
 end
 
