@@ -83,19 +83,12 @@ end
 @inline _row_by_idx(ct::_ChainTable, idx::Int) = _ChainTableRow(getfield(ct, :_idx_map)[idx], ct)
 
 @inline function Base.getproperty(ctr::_ChainTableRow, nm::Symbol)
-    nm === :idx         && return _getproperty(ctr, :idx)::Int
-    nm === :name        && return _getproperty(ctr, :name)::String
-    nm === :properties  && return _getproperty(ctr, :properties)::Properties
-    nm === :flags       && return _getproperty(ctr, :flags)::Flags
-    nm === :molecule_idx && return _getproperty(ctr, :molecule_idx)::Int
     getindex(getfield(getfield(ctr, :_tab), nm), getfield(ctr, :_row))
 end
 
-@inline function _getproperty(ctr::_ChainTableRow, nm::Symbol)
-    getindex(getproperty(getfield(ctr, :_tab), nm), getfield(ctr, :_row))
+@inline function Base.setproperty!(ctr::_ChainTableRow, nm::Symbol, val)
+    setindex!(getproperty(getfield(ctr, :_tab), nm), val, getfield(ctr, :_row))
 end
-
-@inline Base.setproperty!(ctr::_ChainTableRow, nm::Symbol, val) = setindex!(getproperty(getfield(ctr, :_tab), nm), val, getfield(ctr, :_row))
 
 @inline Base.eltype(::_ChainTable) = _ChainTableRow
 @inline Base.iterate(ct::_ChainTable, st=1) = st > length(ct) ? nothing : (_ChainTableRow(st, ct), st + 1)

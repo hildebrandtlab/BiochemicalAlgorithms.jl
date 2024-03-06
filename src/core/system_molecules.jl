@@ -79,18 +79,12 @@ end
 @inline _row_by_idx(mt::_MoleculeTable, idx::Int) = _MoleculeTableRow(getfield(mt, :_idx_map)[idx], mt)
 
 @inline function Base.getproperty(mtr::_MoleculeTableRow, nm::Symbol)
-    nm === :idx        && return _getproperty(mtr, :idx)::Int
-    nm === :name       && return _getproperty(mtr, :name)::String
-    nm === :properties && return _getproperty(mtr, :properties)::Properties
-    nm === :flags      && return _getproperty(mtr, :flags)::Flags
     getindex(getfield(getfield(mtr, :_tab), nm), getfield(mtr, :_row))
 end
 
-@inline function _getproperty(mtr::_MoleculeTableRow, nm::Symbol)
-    getindex(getproperty(getfield(mtr, :_tab), nm), getfield(mtr, :_row))
+@inline function Base.setproperty!(mtr::_MoleculeTableRow, nm::Symbol, val) 
+    setindex!(getproperty(getfield(mtr, :_tab), nm), val, getfield(mtr, :_row))
 end
-
-@inline Base.setproperty!(mtr::_MoleculeTableRow, nm::Symbol, val) = setindex!(getproperty(getfield(mtr, :_tab), nm), val, getfield(mtr, :_row))
 
 @inline Base.eltype(::_MoleculeTable) = _MoleculeTableRow
 @inline Base.iterate(mt::_MoleculeTable, st=1) = st > length(mt) ? nothing : (_MoleculeTableRow(st, mt), st + 1)

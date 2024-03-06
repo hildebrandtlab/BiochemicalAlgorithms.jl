@@ -153,31 +153,13 @@ end
 
 @inline _row_by_idx(at::_AtomTable{T}, idx::Int) where T = _AtomTableRow{T}(getfield(at, :_idx_map)[idx], at)
 
-@inline function Base.getproperty(atr::_AtomTableRow{T}, nm::Symbol) where T
-    nm === :idx            && return _getproperty(atr, :idx)::Int
-    nm === :number         && return _getproperty(atr, :number)::Int
-    nm === :element        && return _getproperty(atr, :element)::ElementType
-    nm === :name           && return _getproperty(atr, :name)::String
-    nm === :atom_type      && return _getproperty(atr, :atom_type)::String
-    nm === :r              && return _getproperty(atr, :r)::Vector3{T}
-    nm === :v              && return _getproperty(atr, :v)::Vector3{T}
-    nm === :F              && return _getproperty(atr, :F)::Vector3{T}
-    nm === :properties     && return _getproperty(atr, :properties)::Properties
-    nm === :flags          && return _getproperty(atr, :flags)::Flags
-    nm === :frame_id       && return _getproperty(atr, :frame_id)::Int
-    nm === :molecule_idx   && return _getproperty(atr, :molecule_idx)::MaybeInt
-    nm === :chain_idx      && return _getproperty(atr, :chain_idx)::MaybeInt
-    nm === :fragment_idx   && return _getproperty(atr, :fragment_idx)::MaybeInt
-    nm === :nucleotide_idx && return _getproperty(atr, :nucleotide_idx)::MaybeInt
-    nm === :residue_idx    && return _getproperty(atr, :residue_idx)::MaybeInt
+@inline function Base.getproperty(atr::_AtomTableRow, nm::Symbol)
     getindex(getfield(getfield(atr, :_tab), nm), getfield(atr, :_row))
 end
 
-@inline function _getproperty(atr::_AtomTableRow{T}, nm::Symbol) where T
-    getindex(getproperty(getfield(atr, :_tab), nm), getfield(atr, :_row))
+@inline function Base.setproperty!(atr::_AtomTableRow, nm::Symbol, val)
+    setindex!(getproperty(getfield(atr, :_tab), nm), val, getfield(atr, :_row))
 end
-
-@inline Base.setproperty!(atr::_AtomTableRow, nm::Symbol, val) = setindex!(getproperty(getfield(atr, :_tab), nm), val, getfield(atr, :_row))
 
 @inline Base.eltype(::_AtomTable{T}) where T = _AtomTableRow{T}
 @inline Base.iterate(at::_AtomTable, st=1) = st > length(at) ? nothing : (_AtomTableRow(st, at), st + 1)

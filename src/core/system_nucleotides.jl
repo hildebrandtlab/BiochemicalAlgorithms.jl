@@ -91,21 +91,12 @@ end
 @inline _row_by_idx(nt::_NucleotideTable, idx::Int) = _NucleotideTableRow(getfield(nt, :_idx_map)[idx], nt)
 
 @inline function Base.getproperty(ntr::_NucleotideTableRow, nm::Symbol)
-    nm === :idx         && return _getproperty(ntr, :idx)::Int
-    nm === :number      && return _getproperty(ntr, :number)::Int
-    nm === :name        && return _getproperty(ntr, :name)::String
-    nm === :properties  && return _getproperty(ntr, :properties)::Properties
-    nm === :flags       && return _getproperty(ntr, :flags)::Flags
-    nm === :molecule_idx && return _getproperty(ntr, :molecule_idx)::Int
-    nm === :chain_idx    && return _getproperty(ntr, :chain_idx)::Int
     getindex(getfield(getfield(ntr, :_tab), nm), getfield(ntr, :_row))
 end
 
-@inline function _getproperty(ntr::_NucleotideTableRow, nm::Symbol)
-    getindex(getproperty(getfield(ntr, :_tab), nm), getfield(ntr, :_row))
+@inline function Base.setproperty!(ntr::_NucleotideTableRow, nm::Symbol, val) 
+    setindex!(getproperty(getfield(ntr, :_tab), nm), val, getfield(ntr, :_row))
 end
-
-@inline Base.setproperty!(ntr::_NucleotideTableRow, nm::Symbol, val) = setindex!(getproperty(getfield(ntr, :_tab), nm), val, getfield(ntr, :_row))
 
 @inline Base.eltype(::_NucleotideTable) = _NucleotideTableRow
 @inline Base.iterate(nt::_NucleotideTable, st=1) = st > length(nt) ? nothing : (_NucleotideTableRow(st, nt), st + 1)

@@ -91,21 +91,12 @@ end
 @inline _row_by_idx(ft::_FragmentTable, idx::Int) = _FragmentTableRow(getfield(ft, :_idx_map)[idx], ft)
 
 @inline function Base.getproperty(ftr::_FragmentTableRow, nm::Symbol)
-    nm === :idx         && return _getproperty(ftr, :idx)::Int
-    nm === :number      && return _getproperty(ftr, :number)::Int
-    nm === :name        && return _getproperty(ftr, :name)::String
-    nm === :properties  && return _getproperty(ftr, :properties)::Properties
-    nm === :flags       && return _getproperty(ftr, :flags)::Flags
-    nm === :molecule_idx && return _getproperty(ftr, :molecule_idx)::Int
-    nm === :chain_idx    && return _getproperty(ftr, :chain_idx)::Int
     getindex(getfield(getfield(ftr, :_tab), nm), getfield(ftr, :_row))
 end
 
-@inline function _getproperty(ftr::_FragmentTableRow, nm::Symbol)
-    getindex(getproperty(getfield(ftr, :_tab), nm), getfield(ftr, :_row))
+@inline function Base.setproperty!(ftr::_FragmentTableRow, nm::Symbol, val)
+    setindex!(getproperty(getfield(ftr, :_tab), nm), val, getfield(ftr, :_row))
 end
-
-@inline Base.setproperty!(ftr::_FragmentTableRow, nm::Symbol, val) = setindex!(getproperty(getfield(ftr, :_tab), nm), val, getfield(ftr, :_row))
 
 @inline Base.eltype(::_FragmentTable) = _FragmentTableRow
 @inline Base.iterate(ft::_FragmentTable, st=1) = st > length(ft) ? nothing : (_FragmentTableRow(st, ft), st + 1)

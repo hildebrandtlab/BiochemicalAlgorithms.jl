@@ -85,20 +85,12 @@ end
 @inline _row_by_idx(bt::_BondTable, idx::Int) = _BondTableRow(getfield(bt, :_idx_map)[idx], bt)
 
 @inline function Base.getproperty(btr::_BondTableRow, nm::Symbol)
-    nm === :idx        && return _getproperty(btr, :idx)::Int
-    nm === :a1         && return _getproperty(btr, :a1)::Int
-    nm === :a2         && return _getproperty(btr, :a2)::Int
-    nm === :order      && return _getproperty(btr, :order)::BondOrderType
-    nm === :properties && return _getproperty(btr, :properties)::Properties
-    nm === :flags      && return _getproperty(btr, :flags)::Flags
     getindex(getfield(getfield(btr, :_tab), nm), getfield(btr, :_row))
 end
 
-@inline function _getproperty(btr::_BondTableRow, nm::Symbol)
-    getindex(getproperty(getfield(btr, :_tab), nm), getfield(btr, :_row))
+@inline function Base.setproperty!(btr::_BondTableRow, nm::Symbol, val)
+    setindex!(getproperty(getfield(btr, :_tab), nm), val, getfield(btr, :_row))
 end
-
-@inline Base.setproperty!(btr::_BondTableRow, nm::Symbol, val) = setindex!(getproperty(getfield(btr, :_tab), nm), val, getfield(btr, :_row))
 
 @inline Base.eltype(::_BondTable) = _BondTableRow
 @inline Base.iterate(bt::_BondTable, st=1) = st > length(bt) ? nothing : (_BondTableRow(st, bt), st + 1)

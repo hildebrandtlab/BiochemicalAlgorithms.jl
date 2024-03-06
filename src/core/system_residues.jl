@@ -90,21 +90,12 @@ end
 @inline _row_by_idx(rt::_ResidueTable, idx::Int) = _ResidueTableRow(getfield(rt, :_idx_map)[idx], rt)
 
 @inline function Base.getproperty(rtr::_ResidueTableRow, nm::Symbol)
-    nm === :idx         && return _getproperty(rtr, :idx)::Int
-    nm === :number      && return _getproperty(rtr, :number)::Int
-    nm === :type        && return _getproperty(rtr, :type)::AminoAcid
-    nm === :properties  && return _getproperty(rtr, :properties)::Properties
-    nm === :flags       && return _getproperty(rtr, :flags)::Flags
-    nm === :molecule_idx && return _getproperty(rtr, :molecule_idx)::Int
-    nm === :chain_idx    && return _getproperty(rtr, :chain_idx)::Int
     getindex(getfield(getfield(rtr, :_tab), nm), getfield(rtr, :_row))
 end
 
-@inline function _getproperty(rtr::_ResidueTableRow, nm::Symbol)
-    getindex(getproperty(getfield(rtr, :_tab), nm), getfield(rtr, :_row))
+@inline function Base.setproperty!(rtr::_ResidueTableRow, nm::Symbol, val) 
+    setindex!(getproperty(getfield(rtr, :_tab), nm), val, getfield(rtr, :_row))
 end
-
-@inline Base.setproperty!(rtr::_ResidueTableRow, nm::Symbol, val) = setindex!(getproperty(getfield(rtr, :_tab), nm), val, getfield(rtr, :_row))
 
 @inline Base.eltype(::_ResidueTable) = _ResidueTableRow
 @inline Base.iterate(rt::_ResidueTable, st=1) = st > length(rt) ? nothing : (_ResidueTableRow(st, rt), st + 1)
