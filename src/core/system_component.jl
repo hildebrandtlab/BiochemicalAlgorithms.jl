@@ -28,7 +28,7 @@ abstract type AbstractColumnTable <: Tables.AbstractColumns end
 @inline Base.keys(at::AbstractColumnTable) = LinearIndices((length(at),))
 
 @inline function _filter_select(itr, col::Symbol)
-    (getproperty(a, col) for a in itr)
+    Tables.getcolumn.(itr, col)
 end
 
 """
