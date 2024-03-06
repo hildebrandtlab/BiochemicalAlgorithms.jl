@@ -5,7 +5,7 @@ const _molecule_table_schema = Tables.Schema(
 const _molecule_table_cols = _molecule_table_schema.names
 const _molecule_table_cols_set = Set(_molecule_table_cols)
 
-@auto_hash_equals struct _MoleculeTable <: Tables.AbstractColumns
+@auto_hash_equals struct _MoleculeTable <: AbstractColumnTable
     idx::Vector{Int}
     name::Vector{String}
     properties::Vector{Properties}
@@ -24,23 +24,15 @@ const _molecule_table_cols_set = Set(_molecule_table_cols)
     end
 end
 
-@inline Tables.istable(::Type{<: _MoleculeTable}) = true
-@inline Tables.columnaccess(::Type{<: _MoleculeTable}) = true
-@inline Tables.columns(mt::_MoleculeTable) = mt
+@inline Tables.columnnames(::_MoleculeTable) = _molecule_table_cols
+@inline Tables.schema(::_MoleculeTable) = _molecule_table_schema
 
 @inline function Tables.getcolumn(mt::_MoleculeTable, nm::Symbol)
     @assert nm in _molecule_table_cols "type _MoleculeTable has no column $nm"
     getfield(mt, nm)
 end
-@inline Base.getproperty(mt::_MoleculeTable, nm::Symbol) = getfield(mt, nm)
-
-@inline Tables.getcolumn(mt::_MoleculeTable, i::Int) = getfield(mt, Tables.columnnames(mt)[i])
-@inline Tables.columnnames(::_MoleculeTable) = _molecule_table_cols
-@inline Tables.schema(::_MoleculeTable) = _molecule_table_schema
 
 @inline Base.size(mt::_MoleculeTable) = (length(mt.idx), length(_molecule_table_cols))
-@inline Base.size(mt::_MoleculeTable, dim) = size(mt)[dim]
-@inline Base.length(mt::_MoleculeTable) = size(mt, 1)
 
 function Base.push!(
     mt::_MoleculeTable,
@@ -75,8 +67,6 @@ Tables.materializer(::Type{_MoleculeTable}) = _molecule_table
     _tab::_MoleculeTable
 end
 
-@inline Tables.rowaccess(::Type{<: _MoleculeTable}) = true
-@inline Tables.rows(mt::_MoleculeTable) = mt
 @inline Tables.getcolumn(mtr::_MoleculeTableRow, nm::Symbol) = Tables.getcolumn(getfield(mtr, :_tab), nm)[getfield(mtr, :_row)]
 @inline Tables.getcolumn(mtr::_MoleculeTableRow, i::Int) = getfield(mtr, Tables.columnnames(mtr)[i])
 @inline Tables.columnnames(::_MoleculeTableRow) = _molecule_table_cols

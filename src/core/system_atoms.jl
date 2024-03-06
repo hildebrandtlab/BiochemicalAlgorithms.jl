@@ -2,7 +2,7 @@ const _atom_table_cols = (:idx, :number, :element, :name, :atom_type, :r, :v, :F
 const _atom_table_cols_set = Set(_atom_table_cols)
 const _atom_table_cols_priv = Set([:frame_id, :molecule_idx, :chain_idx, :fragment_idx, :nucleotide_idx, :residue_idx])
 
-@auto_hash_equals struct _AtomTable{T <: Real} <: Tables.AbstractColumns
+@auto_hash_equals struct _AtomTable{T <: Real} <: AbstractColumnTable
     # public columns
     idx::Vector{Int}
     number::Vector{Int}
@@ -55,17 +55,6 @@ const _atom_table_cols_priv = Set([:frame_id, :molecule_idx, :chain_idx, :fragme
     end
 end
 
-@inline Tables.istable(::Type{<: _AtomTable}) = true
-@inline Tables.columnaccess(::Type{<: _AtomTable}) = true
-@inline Tables.columns(at::_AtomTable) = at
-
-@inline function Tables.getcolumn(at::_AtomTable, nm::Symbol)
-    @assert nm in _atom_table_cols_priv || nm in _atom_table_cols_set "type _AtomTable has no column $nm"
-    getfield(at, nm)
-end
-@inline Base.getproperty(at::_AtomTable{T}, nm::Symbol) where T = getfield(at, nm)
-
-@inline Tables.getcolumn(at::_AtomTable, i::Int) = getfield(at, Tables.columnnames(at)[i])
 @inline Tables.columnnames(::_AtomTable) = _atom_table_cols
 
 @inline function Tables.schema(::_AtomTable{T}) where T
@@ -75,9 +64,12 @@ end
     )
 end
 
+@inline function Tables.getcolumn(at::_AtomTable, nm::Symbol)
+    @assert nm in _atom_table_cols_priv || nm in _atom_table_cols_set "type _AtomTable has no column $nm"
+    getfield(at, nm)
+end
+
 @inline Base.size(at::_AtomTable) = (length(at.idx), length(_atom_table_cols))
-@inline Base.size(at::_AtomTable, dim) = size(at)[dim]
-@inline Base.length(at::_AtomTable) = size(at, 1)
 
 function Base.push!(
     at::_AtomTable{T},
@@ -150,17 +142,10 @@ function _atom_table(::Type{T}, itr) where T
 end
 @inline Tables.materializer(::Type{_AtomTable{T}}) where T = itr -> _atom_table(T, itr)
 
-@inline function _filter_select(itr, col::Symbol)
-    (getproperty(a, col) for a in itr)
-end
-
 @auto_hash_equals struct _AtomTableRow{T} <: Tables.AbstractRow
     _row::Int
     _tab::_AtomTable{T}
 end
-
-@inline Tables.rowaccess(::Type{<: _AtomTable}) = true
-@inline Tables.rows(at::_AtomTable) = at
 
 @inline Tables.getcolumn(atr::_AtomTableRow, nm::Symbol) = Tables.getcolumn(getfield(atr, :_tab), nm)[getfield(atr, :_row)]
 @inline Tables.getcolumn(atr::_AtomTableRow, i::Int) = getfield(atr, Tables.columnnames(atr)[i])

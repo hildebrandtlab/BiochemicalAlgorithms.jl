@@ -6,7 +6,7 @@ const _nucleotide_table_cols = _nucleotide_table_schema.names
 const _nucleotide_table_cols_set = Set(_nucleotide_table_cols)
 const _nucleotide_table_cols_priv = Set([:molecule_idx, :chain_idx])
 
-@auto_hash_equals struct _NucleotideTable <: Tables.AbstractColumns
+@auto_hash_equals struct _NucleotideTable <: AbstractColumnTable
     # public columns
     idx::Vector{Int}
     number::Vector{Int}
@@ -35,23 +35,15 @@ const _nucleotide_table_cols_priv = Set([:molecule_idx, :chain_idx])
     end
 end
 
-@inline Tables.istable(::Type{<: _NucleotideTable}) = true
-@inline Tables.columnaccess(::Type{<: _NucleotideTable}) = true
-@inline Tables.columns(nt::_NucleotideTable) = nt
+@inline Tables.columnnames(::_NucleotideTable) = _nucleotide_table_cols
+@inline Tables.schema(::_NucleotideTable) = _nucleotide_table_schema
 
 @inline function Tables.getcolumn(nt::_NucleotideTable, nm::Symbol)
     @assert nm in _nucleotide_table_cols_priv || nm in _nucleotide_table_cols_set "type _NucleotideTable has no column $nm"
     getfield(nt, nm)
 end
-@inline Base.getproperty(nt::_NucleotideTable, nm::Symbol) = getfield(nt, nm)
-
-@inline Tables.getcolumn(nt::_NucleotideTable, i::Int) = getfield(nt, Tables.columnnames(nt)[i])
-@inline Tables.columnnames(::_NucleotideTable) = _nucleotide_table_cols
-@inline Tables.schema(::_NucleotideTable) = _nucleotide_table_schema
 
 @inline Base.size(nt::_NucleotideTable) = (length(nt.idx), length(_nucleotide_table_cols))
-@inline Base.size(nt::_NucleotideTable, dim) = size(nt)[dim]
-@inline Base.length(nt::_NucleotideTable) = size(nt, 1)
 
 function Base.push!(
     nt::_NucleotideTable,
@@ -92,8 +84,6 @@ end
     _tab::_NucleotideTable
 end
 
-@inline Tables.rowaccess(::Type{<: _NucleotideTable}) = true
-@inline Tables.rows(nt::_NucleotideTable) = nt
 @inline Tables.getcolumn(ntr::_NucleotideTableRow, nm::Symbol) = Tables.getcolumn(getfield(ntr, :_tab), nm)[getfield(ntr, :_row)]
 @inline Tables.getcolumn(ntr::_NucleotideTableRow, i::Int) = getfield(ntr, Tables.columnnames(ntr)[i])
 @inline Tables.columnnames(::_NucleotideTableRow) = _nucleotide_table_cols

@@ -24,33 +24,23 @@ generated using [`bonds`](@ref) or filtered from other bond tables (via `Base.fi
  - `properties::AbstractVector{Properties}`
  - `flags::AbstractVector{Flags}`
 """
-@auto_hash_equals struct BondTable{T} <: Tables.AbstractColumns
+@auto_hash_equals struct BondTable{T} <: AbstractSystemComponentTable{T}
     _sys::System{T}
     _idx::Vector{Int}
 end
 
-@inline _bonds(bt::BondTable) = getproperty(getfield(bt, :_sys), :_bonds)
-
-@inline Tables.istable(::Type{<: BondTable}) = true
-@inline Tables.columnaccess(::Type{<: BondTable}) = true
-@inline Tables.columns(bt::BondTable) = bt
-@inline Tables.rows(bt::BondTable) = bt
+@inline _bonds(bt::BondTable) = getfield(getfield(bt, :_sys), :_bonds)
 
 @inline function Tables.getcolumn(bt::BondTable, nm::Symbol)
     col = Tables.getcolumn(_bonds(bt), nm)
     _RowProjectionVector{eltype(col)}(
         col,
-        map(idx -> _bonds(bt)._idx_map[idx], getfield(bt, :_idx))
+        map(idx -> _bonds(bt)._idx_map[idx], bt._idx)
     )
 end
 
-@inline Tables.getcolumn(bt::BondTable, i::Int) = Tables.getcolumn(bt, Tables.columnnames(bt)[i])
 @inline Tables.columnnames(bt::BondTable) = Tables.columnnames(_bonds(bt))
 @inline Tables.schema(bt::BondTable) = Tables.schema(_bonds(bt))
-
-@inline Base.size(bt::BondTable) = (length(getfield(bt, :_idx)), length(_bond_table_cols))
-@inline Base.size(bt::BondTable, dim) = size(bt)[dim]
-@inline Base.length(bt::BondTable) = size(bt, 1)
 
 @inline function Base.getproperty(bt::BondTable, nm::Symbol)
     hasfield(typeof(bt), nm) && return getfield(bt, nm)
@@ -67,7 +57,7 @@ end
     setfield!(bt, nm, val)
 end
 
-@inline function _filter_bonds(f::Function, sys::System{T}) where T
+@inline function _filter_bonds(f::Function, sys::System)
     BondTable(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._bonds),
         :idx
@@ -75,7 +65,7 @@ end
 end
 
 @inline function Base.filter(f::Function, bt::BondTable)
-    BondTable(getfield(bt, :_sys), collect(Int, _filter_select(
+    BondTable(bt._sys, collect(Int, _filter_select(
         TableOperations.filter(f, bt),
         :idx
     )))
@@ -84,11 +74,12 @@ end
 @inline function Base.iterate(bt::BondTable, st = 1)
     st > length(bt) ?
         nothing :
-        (bond_by_idx(getfield(bt, :_sys), getfield(bt, :_idx)[st]), st + 1)
+        (bond_by_idx(bt._sys, bt._idx[st]), st + 1)
 end
+
 @inline Base.eltype(::BondTable{T}) where T = Bond{T}
-@inline Base.getindex(bt::BondTable{T}, i::Int) where T = bond_by_idx(getfield(bt, :_sys), getfield(bt, :_idx)[i])
-@inline Base.keys(bt::BondTable) = LinearIndices((length(bt),))
+@inline Base.size(bt::BondTable) = (length(bt._idx), length(Tables.columnnames(bt)))
+@inline Base.getindex(bt::BondTable, i::Int) = bond_by_idx(bt._sys, bt._idx[i])
 
 """
     $(TYPEDEF)

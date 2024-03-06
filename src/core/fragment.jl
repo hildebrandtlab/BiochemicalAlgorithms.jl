@@ -32,33 +32,23 @@ generated using [`fragments`](@ref) or filtered from other fragment tables (via 
  - `molecule_idx::AbstractVector{Int}`
  - `chain_idx::AbstractVector{Int}`
 """
-@auto_hash_equals struct FragmentTable{T} <: Tables.AbstractColumns
+@auto_hash_equals struct FragmentTable{T} <: AbstractSystemComponentTable{T}
     _sys::System{T}
     _idx::Vector{Int}
 end
 
-@inline _fragments(ft::FragmentTable) = getproperty(getfield(ft, :_sys), :_fragments)
-
-@inline Tables.istable(::Type{<: FragmentTable}) = true
-@inline Tables.columnaccess(::Type{<: FragmentTable}) = true
-@inline Tables.columns(ft::FragmentTable) = ft
-@inline Tables.rows(ft::FragmentTable) = ft
+@inline _fragments(ft::FragmentTable) = getfield(getfield(ft, :_sys), :_fragments)
 
 @inline function Tables.getcolumn(ft::FragmentTable, nm::Symbol)
     col = Tables.getcolumn(_fragments(ft), nm)
     _RowProjectionVector{eltype(col)}(
         col,
-        map(idx -> _fragments(ft)._idx_map[idx], getfield(ft, :_idx))
+        map(idx -> _fragments(ft)._idx_map[idx], ft._idx)
     )
 end
 
-@inline Tables.getcolumn(ft::FragmentTable, i::Int) = Tables.getcolumn(ft, Tables.columnnames(ft)[i])
 @inline Tables.columnnames(ft::FragmentTable) = Tables.columnnames(_fragments(ft))
 @inline Tables.schema(ft::FragmentTable) = Tables.schema(_fragments(ft))
-
-@inline Base.size(ft::FragmentTable) = (length(getfield(ft, :_idx)), length(_fragment_table_cols))
-@inline Base.size(ft::FragmentTable, dim) = size(ft)[dim]
-@inline Base.length(ft::FragmentTable) = size(ft, 1)
 
 @inline function Base.getproperty(ft::FragmentTable, nm::Symbol)
     hasfield(typeof(ft), nm) && return getfield(ft, nm)
@@ -75,15 +65,15 @@ end
     setfield!(ft, nm, val)
 end
 
-@inline function _filter_fragments(f::Function, sys::System{T}) where T
-    FragmentTable{T}(sys, collect(Int, _filter_select(
+@inline function _filter_fragments(f::Function, sys::System)
+    FragmentTable(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._fragments),
         :idx
     )))
 end
 
 @inline function Base.filter(f::Function, ft::FragmentTable)
-    FragmentTable(getfield(ft, :_sys), collect(Int, _filter_select(
+    FragmentTable(ft._sys, collect(Int, _filter_select(
         TableOperations.filter(f, ft),
         :idx
     )))
@@ -92,11 +82,12 @@ end
 @inline function Base.iterate(ft::FragmentTable, st = 1)
     st > length(ft) ?
         nothing :
-        (fragment_by_idx(getfield(ft, :_sys), getfield(ft, :_idx)[st]), st + 1)
+        (fragment_by_idx(ft._sys, ft._idx[st]), st + 1)
 end
+
 @inline Base.eltype(::FragmentTable{T}) where T = Fragment{T}
-@inline Base.getindex(ft::FragmentTable{T}, i::Int) where T = fragment_by_idx(getfield(ft, :_sys), getfield(ft, :_idx)[i])
-@inline Base.keys(ft::FragmentTable) = LinearIndices((length(ft),))
+@inline Base.size(ft::FragmentTable) = (length(ft._idx), length(Tables.columnnames(ft)))
+@inline Base.getindex(ft::FragmentTable, i::Int) = fragment_by_idx(ft._sys, ft._idx[i])
 
 """
     $(TYPEDEF)

@@ -6,7 +6,7 @@ const _chain_table_cols = _chain_table_schema.names
 const _chain_table_cols_set = Set(_chain_table_cols)
 const _chain_table_cols_priv = Set([:molecule_idx])
 
-@auto_hash_equals struct _ChainTable <: Tables.AbstractColumns
+@auto_hash_equals struct _ChainTable <: AbstractColumnTable
     # public columns
     idx::Vector{Int}
     name::Vector{String}
@@ -31,23 +31,15 @@ const _chain_table_cols_priv = Set([:molecule_idx])
     end
 end
 
-@inline Tables.istable(::Type{<: _ChainTable}) = true
-@inline Tables.columnaccess(::Type{<: _ChainTable}) = true
-@inline Tables.columns(ct::_ChainTable) = ct
+@inline Tables.columnnames(::_ChainTable) = _chain_table_cols
+@inline Tables.schema(::_ChainTable) = _chain_table_schema
 
 @inline function Tables.getcolumn(ct::_ChainTable, nm::Symbol)
     @assert nm in _chain_table_cols_priv || nm in _chain_table_cols_set "type _ChainTable has no column $nm"
     getfield(ct, nm)
 end
-@inline Base.getproperty(ct::_ChainTable, nm::Symbol) = getfield(ct, nm)
-
-@inline Tables.getcolumn(ct::_ChainTable, i::Int) = getfield(ct, Tables.columnnames(ct)[i])
-@inline Tables.columnnames(::_ChainTable) = _chain_table_cols
-@inline Tables.schema(::_ChainTable) = _chain_table_schema
 
 @inline Base.size(ct::_ChainTable) = (length(ct.idx), length(_chain_table_cols))
-@inline Base.size(ct::_ChainTable, dim) = size(ct)[dim]
-@inline Base.length(ct::_ChainTable) = size(ct, 1)
 
 function Base.push!(
     ct::_ChainTable,
@@ -84,8 +76,6 @@ end
     _tab::_ChainTable
 end
 
-@inline Tables.rowaccess(::Type{<: _ChainTable}) = true
-@inline Tables.rows(ct::_ChainTable) = ct
 @inline Tables.getcolumn(ctr::_ChainTableRow, nm::Symbol) = Tables.getcolumn(getfield(ctr, :_tab), nm)[getfield(ctr, :_row)]
 @inline Tables.getcolumn(ctr::_ChainTableRow, i::Int) = getfield(ctr, Tables.columnnames(ctr)[i])
 @inline Tables.columnnames(::_ChainTableRow) = _chain_table_cols

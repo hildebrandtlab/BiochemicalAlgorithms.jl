@@ -23,33 +23,23 @@ generated using [`nucleotides`](@ref) or filtered from other nucleotide tables (
  - `molecule_idx::AbstractVector{Int}`
  - `chain_idx::AbstractVector{Int}`
 """
-@auto_hash_equals struct NucleotideTable{T} <: Tables.AbstractColumns
+@auto_hash_equals struct NucleotideTable{T} <: AbstractSystemComponentTable{T}
     _sys::System{T}
     _idx::Vector{Int}
 end
 
-@inline _nucleotides(nt::NucleotideTable) = getproperty(getfield(nt, :_sys), :_nucleotides)
-
-@inline Tables.istable(::Type{<: NucleotideTable}) = true
-@inline Tables.columnaccess(::Type{<: NucleotideTable}) = true
-@inline Tables.columns(nt::NucleotideTable) = nt
-@inline Tables.rows(nt::NucleotideTable) = nt
+@inline _nucleotides(nt::NucleotideTable) = getfield(getfield(nt, :_sys), :_nucleotides)
 
 @inline function Tables.getcolumn(nt::NucleotideTable, nm::Symbol)
     col = Tables.getcolumn(_nucleotides(nt), nm)
     _RowProjectionVector{eltype(col)}(
         col,
-        map(idx -> _nucleotides(nt)._idx_map[idx], getfield(nt, :_idx))
+        map(idx -> _nucleotides(nt)._idx_map[idx], nt._idx)
     )
 end
 
-@inline Tables.getcolumn(nt::NucleotideTable, i::Int) = Tables.getcolumn(nt, Tables.columnnames(nt)[i])
 @inline Tables.columnnames(nt::NucleotideTable) = Tables.columnnames(_nucleotides(nt))
 @inline Tables.schema(nt::NucleotideTable) = Tables.schema(_nucleotides(nt))
-
-@inline Base.size(nt::NucleotideTable) = (length(getfield(nt, :_idx)), length(_nucleotide_table_cols))
-@inline Base.size(nt::NucleotideTable, dim) = size(nt)[dim]
-@inline Base.length(nt::NucleotideTable) = size(nt, 1)
 
 @inline function Base.getproperty(nt::NucleotideTable, nm::Symbol)
     hasfield(typeof(nt), nm) && return getfield(nt, nm)
@@ -66,15 +56,15 @@ end
     setfield!(nt, nm, val)
 end
 
-@inline function _filter_nucleotides(f::Function, sys::System{T}) where T
-    NucleotideTable{T}(sys, collect(Int, _filter_select(
+@inline function _filter_nucleotides(f::Function, sys::System)
+    NucleotideTable(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._nucleotides),
         :idx
     )))
 end
 
 @inline function Base.filter(f::Function, nt::NucleotideTable)
-    NucleotideTable(getfield(nt, :_sys), collect(Int, _filter_select(
+    NucleotideTable(nt._sys, collect(Int, _filter_select(
         TableOperations.filter(f, nt),
         :idx
     )))
@@ -83,11 +73,12 @@ end
 @inline function Base.iterate(nt::NucleotideTable, st = 1)
     st > length(nt) ?
         nothing :
-        (nucleotide_by_idx(getfield(nt, :_sys), getfield(nt, :_idx)[st]), st + 1)
+        (nucleotide_by_idx(nt._sys, nt._idx[st]), st + 1)
 end
+
 @inline Base.eltype(::NucleotideTable{T}) where T = Nucleotide{T}
-@inline Base.getindex(nt::NucleotideTable{T}, i::Int) where T = nucleotide_by_idx(getfield(nt, :_sys), getfield(nt, :_idx)[i])
-@inline Base.keys(nt::NucleotideTable) = LinearIndices((length(nt),))
+@inline Base.size(nt::NucleotideTable) = (length(nt._idx), length(Tables.columnnames(nt)))
+@inline Base.getindex(nt::NucleotideTable, i::Int) = nucleotide_by_idx(nt._sys, nt._idx[i])
 
 """
     $(TYPEDEF)

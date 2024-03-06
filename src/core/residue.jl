@@ -23,33 +23,23 @@ generated using [`residues`](@ref) or filtered from other residue tables (via `B
  - `molecule_idx::AbstractVector{Int}`
  - `chain_idx::AbstractVector{Int}`
 """
-@auto_hash_equals struct ResidueTable{T} <: Tables.AbstractColumns
+@auto_hash_equals struct ResidueTable{T} <: AbstractSystemComponentTable{T}
     _sys::System{T}
     _idx::Vector{Int}
 end
 
-@inline _residues(rt::ResidueTable) = getproperty(getfield(rt, :_sys), :_residues)
-
-@inline Tables.istable(::Type{<: ResidueTable}) = true
-@inline Tables.columnaccess(::Type{<: ResidueTable}) = true
-@inline Tables.columns(rt::ResidueTable) = rt
-@inline Tables.rows(rt::ResidueTable) = rt
+@inline _residues(rt::ResidueTable) = getfield(getfield(rt, :_sys), :_residues)
 
 @inline function Tables.getcolumn(rt::ResidueTable, nm::Symbol)
     col = Tables.getcolumn(_residues(rt), nm)
     _RowProjectionVector{eltype(col)}(
         col,
-        map(idx -> _residues(rt)._idx_map[idx], getfield(rt, :_idx))
+        map(idx -> _residues(rt)._idx_map[idx], rt._idx)
     )
 end
 
-@inline Tables.getcolumn(rt::ResidueTable, i::Int) = Tables.getcolumn(rt, Tables.columnnames(rt)[i])
 @inline Tables.columnnames(rt::ResidueTable) = Tables.columnnames(_residues(rt))
 @inline Tables.schema(rt::ResidueTable) = Tables.schema(_residues(rt))
-
-@inline Base.size(rt::ResidueTable) = (length(getfield(rt, :_idx)), length(_residue_table_cols))
-@inline Base.size(rt::ResidueTable, dim) = size(rt)[dim]
-@inline Base.length(rt::ResidueTable) = size(rt, 1)
 
 @inline function Base.getproperty(rt::ResidueTable, nm::Symbol)
     hasfield(typeof(rt), nm) && return getfield(rt, nm)
@@ -66,15 +56,15 @@ end
     setfield!(rt, nm, val)
 end
 
-@inline function _filter_residues(f::Function, sys::System{T}) where T
-    ResidueTable{T}(sys, collect(Int, _filter_select(
+@inline function _filter_residues(f::Function, sys::System)
+    ResidueTable(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._residues),
         :idx
     )))
 end
 
 @inline function Base.filter(f::Function, rt::ResidueTable)
-    ResidueTable(getfield(rt, :_sys), collect(Int, _filter_select(
+    ResidueTable(rt._sys, collect(Int, _filter_select(
         TableOperations.filter(f, rt),
         :idx
     )))
@@ -83,11 +73,12 @@ end
 @inline function Base.iterate(rt::ResidueTable, st = 1)
     st > length(rt) ?
         nothing :
-        (residue_by_idx(getfield(rt, :_sys), getfield(rt, :_idx)[st]), st + 1)
+        (residue_by_idx(rt._sys, rt._idx[st]), st + 1)
 end
+
 @inline Base.eltype(::ResidueTable{T}) where T = Residue{T}
-@inline Base.getindex(rt::ResidueTable{T}, i::Int) where T = residue_by_idx(getfield(rt, :_sys), getfield(rt, :_idx)[i])
-@inline Base.keys(rt::ResidueTable) = LinearIndices((length(rt),))
+@inline Base.size(rt::ResidueTable) = (length(rt._idx), length(Tables.columnnames(rt)))
+@inline Base.getindex(rt::ResidueTable, i::Int) = residue_by_idx(rt._sys, rt._idx[i])
 
 """
     $(TYPEDEF)

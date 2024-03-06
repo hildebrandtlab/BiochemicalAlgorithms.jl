@@ -5,7 +5,7 @@ const _bond_table_schema = Tables.Schema(
 const _bond_table_cols = _bond_table_schema.names
 const _bond_table_cols_set = Set(_bond_table_cols)
 
-@auto_hash_equals struct _BondTable <: Tables.AbstractColumns
+@auto_hash_equals struct _BondTable <: AbstractColumnTable
     idx::Vector{Int}
     a1::Vector{Int}
     a2::Vector{Int}
@@ -28,23 +28,15 @@ const _bond_table_cols_set = Set(_bond_table_cols)
     end
 end
 
-@inline Tables.istable(::Type{<: _BondTable}) = true
-@inline Tables.columnaccess(::Type{<: _BondTable}) = true
-@inline Tables.columns(bt::_BondTable) = bt
+@inline Tables.columnnames(::_BondTable) = _bond_table_cols
+@inline Tables.schema(::_BondTable) = _bond_table_schema
 
 @inline function Tables.getcolumn(bt::_BondTable, nm::Symbol)
     @assert nm in _bond_table_cols "type _BondTable has no column $nm"
     getfield(bt, nm)
 end
-@inline Base.getproperty(bt::_BondTable, nm::Symbol) = getfield(bt, nm)
-
-@inline Tables.getcolumn(bt::_BondTable, i::Int) = getfield(bt, Tables.columnnames(bt)[i])
-@inline Tables.columnnames(::_BondTable) = _bond_table_cols
-@inline Tables.schema(::_BondTable) = _bond_table_schema
 
 @inline Base.size(bt::_BondTable) = (length(bt.idx), length(_bond_table_cols))
-@inline Base.size(bt::_BondTable, dim) = size(bt)[dim]
-@inline Base.length(bt::_BondTable) = size(bt, 1)
 
 function Base.push!(
     bt::_BondTable,
@@ -82,8 +74,6 @@ Tables.materializer(::Type{_BondTable}) = _bond_table
     _tab::_BondTable
 end
 
-@inline Tables.rowaccess(::Type{<: _BondTable}) = true
-@inline Tables.rows(bt::_BondTable) = bt
 @inline Tables.getcolumn(btr::_BondTableRow, nm::Symbol) = Tables.getcolumn(getfield(btr, :_tab), nm)[getfield(btr, :_row)]
 @inline Tables.getcolumn(btr::_BondTableRow, i::Int) = getfield(btr, Tables.columnnames(btr)[i])
 @inline Tables.columnnames(::_BondTableRow) = _bond_table_cols

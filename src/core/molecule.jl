@@ -19,33 +19,23 @@ generated using [`molecules`](@ref) or filtered from other molecule tables (via 
  - `properties::AbstractVector{Properties}`
  - `flags::AbstractVector{Flags}`
 """
-@auto_hash_equals struct MoleculeTable{T} <: Tables.AbstractColumns
+@auto_hash_equals struct MoleculeTable{T} <: AbstractSystemComponentTable{T}
     _sys::System{T}
     _idx::Vector{Int}
 end
 
-@inline _molecules(mt::MoleculeTable) = getproperty(getfield(mt, :_sys), :_molecules)
-
-@inline Tables.istable(::Type{<: MoleculeTable}) = true
-@inline Tables.columnaccess(::Type{<: MoleculeTable}) = true
-@inline Tables.columns(mt::MoleculeTable) = mt
-@inline Tables.rows(mt::MoleculeTable) = mt
+@inline _molecules(mt::MoleculeTable) = getfield(getfield(mt, :_sys), :_molecules)
 
 @inline function Tables.getcolumn(mt::MoleculeTable, nm::Symbol)
     col = Tables.getcolumn(_molecules(mt), nm)
     _RowProjectionVector{eltype(col)}(
         col,
-        map(idx -> _molecules(mt)._idx_map[idx], getfield(mt, :_idx))
+        map(idx -> _molecules(mt)._idx_map[idx], mt._idx)
     )
 end
 
-@inline Tables.getcolumn(mt::MoleculeTable, i::Int) = Tables.getcolumn(mt, Tables.columnnames(mt)[i])
 @inline Tables.columnnames(mt::MoleculeTable) = Tables.columnnames(_molecules(mt))
 @inline Tables.schema(mt::MoleculeTable) = Tables.schema(_molecules(mt))
-
-@inline Base.size(mt::MoleculeTable) = (length(getfield(mt, :_idx)), length(_molecule_table_cols))
-@inline Base.size(mt::MoleculeTable, dim) = size(mt)[dim]
-@inline Base.length(mt::MoleculeTable) = size(mt, 1)
 
 @inline function Base.getproperty(mt::MoleculeTable, nm::Symbol)
     hasfield(typeof(mt), nm) && return getfield(mt, nm)
@@ -62,7 +52,7 @@ end
     setfield!(mt, nm, val)
 end
 
-@inline function _filter_molecules(f::Function, sys::System{T}) where T
+@inline function _filter_molecules(f::Function, sys::System)
     MoleculeTable(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._molecules),
         :idx
@@ -70,7 +60,7 @@ end
 end
 
 @inline function Base.filter(f::Function, mt::MoleculeTable)
-    MoleculeTable(getfield(mt, :_sys), collect(Int, _filter_select(
+    MoleculeTable(mt._sys, collect(Int, _filter_select(
         TableOperations.filter(f, mt),
         :idx
     )))
@@ -79,11 +69,12 @@ end
 @inline function Base.iterate(mt::MoleculeTable, st = 1)
     st > length(mt) ?
         nothing :
-        (molecule_by_idx(getfield(mt, :_sys), getfield(mt, :_idx)[st]), st + 1)
+        (molecule_by_idx(mt._sys, mt._idx[st]), st + 1)
 end
+
 @inline Base.eltype(::MoleculeTable{T}) where T = Molecule{T}
-@inline Base.getindex(mt::MoleculeTable{T}, i::Int) where T = molecule_by_idx(getfield(mt, :_sys), getfield(mt, :_idx)[i])
-@inline Base.keys(mt::MoleculeTable) = LinearIndices((length(mt),))
+@inline Base.size(mt::MoleculeTable) = (length(mt._idx), length(Tables.columnnames(mt)))
+@inline Base.getindex(mt::MoleculeTable, i::Int) = molecule_by_idx(mt._sys, mt._idx[i])
 
     """
     $(TYPEDEF)

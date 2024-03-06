@@ -14,8 +14,8 @@ const MaybeInt = Union{Nothing, Int}
 const Properties = Dict{Symbol, Any}
 const Flags = Set{Symbol}
 
-squared_norm(v::Vector3{T}) where {T<:Real} = dot(v, v)
-distance(v::Vector3{T}, w::Vector3{T}) where {T<:Real} = norm(v - w)
+@inline squared_norm(v::Vector3{T}) where T = dot(v, v)
+@inline distance(v::Vector3{T}, w::Vector3{T}) where T = norm(v - w)
 
 struct _RowProjectionVector{T} <: AbstractArray{T, 1}
     _base::Vector{T}
@@ -27,10 +27,10 @@ end
 @inline Base.getindex(
     M::_RowProjectionVector,
     i::Int
-) = getindex(getproperty(M, :_base), getindex(getproperty(M, :_rows), i))
+) = getindex(M._base, getindex(M._rows, i))
 
 @inline Base.setindex!(
     M::_RowProjectionVector{T},
     v::T,
     i::Int
-) where T = setindex!(getproperty(M, :_base), v, getindex(getproperty(M, :_rows), i))
+) where T = setindex!(M._base, v, getindex(M._rows, i))

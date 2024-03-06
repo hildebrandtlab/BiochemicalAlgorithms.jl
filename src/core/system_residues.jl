@@ -6,7 +6,7 @@ const _residue_table_cols = _residue_table_schema.names
 const _residue_table_cols_set = Set(_residue_table_cols)
 const _residue_table_cols_priv = Set([:molecule_idx, :chain_idx])
 
-@auto_hash_equals struct _ResidueTable <: Tables.AbstractColumns
+@auto_hash_equals struct _ResidueTable <: AbstractColumnTable
     # public columns
     idx::Vector{Int}
     number::Vector{Int}
@@ -35,23 +35,15 @@ const _residue_table_cols_priv = Set([:molecule_idx, :chain_idx])
     end
 end
 
-@inline Tables.istable(::Type{<: _ResidueTable}) = true
-@inline Tables.columnaccess(::Type{<: _ResidueTable}) = true
-@inline Tables.columns(rt::_ResidueTable) = rt
+@inline Tables.columnnames(::_ResidueTable) = _residue_table_cols
+@inline Tables.schema(::_ResidueTable) = _residue_table_schema
 
 @inline function Tables.getcolumn(rt::_ResidueTable, nm::Symbol)
     @assert nm in _residue_table_cols_priv || nm in _residue_table_cols_set "type _ResidueTable has no column $nm"
     getfield(rt, nm)
 end
-@inline Base.getproperty(rt::_ResidueTable, nm::Symbol) = getfield(rt, nm)
-
-@inline Tables.getcolumn(rt::_ResidueTable, i::Int) = getfield(rt, Tables.columnnames(rt)[i])
-@inline Tables.columnnames(::_ResidueTable) = _residue_table_cols
-@inline Tables.schema(::_ResidueTable) = _residue_table_schema
 
 @inline Base.size(rt::_ResidueTable) = (length(rt.idx), length(_residue_table_cols))
-@inline Base.size(rt::_ResidueTable, dim) = size(rt)[dim]
-@inline Base.length(rt::_ResidueTable) = size(rt, 1)
 
 function Base.push!(
     rt::_ResidueTable,
@@ -91,8 +83,6 @@ end
     _tab::_ResidueTable
 end
 
-@inline Tables.rowaccess(::Type{<: _ResidueTable}) = true
-@inline Tables.rows(rt::_ResidueTable) = rt
 @inline Tables.getcolumn(rtr::_ResidueTableRow, nm::Symbol) = Tables.getcolumn(getfield(rtr, :_tab), nm)[getfield(rtr, :_row)]
 @inline Tables.getcolumn(rtr::_ResidueTableRow, i::Int) = getfield(rtr, Tables.columnnames(rtr)[i])
 @inline Tables.columnnames(::_ResidueTableRow) = _residue_table_cols

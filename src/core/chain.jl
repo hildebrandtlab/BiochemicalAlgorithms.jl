@@ -21,33 +21,23 @@ generated using [`chains`](@ref) or filtered from other chain tables (via `Base.
 # Private columns
  - `molecule_idx::AbstractVector{Int}`
 """
-@auto_hash_equals struct ChainTable{T} <: Tables.AbstractColumns
+@auto_hash_equals struct ChainTable{T} <: AbstractSystemComponentTable{T}
     _sys::System{T}
     _idx::Vector{Int}
 end
 
-@inline _chains(ct::ChainTable) = getproperty(getfield(ct, :_sys), :_chains)
-
-@inline Tables.istable(::Type{<: ChainTable}) = true
-@inline Tables.columnaccess(::Type{<: ChainTable}) = true
-@inline Tables.columns(ct::ChainTable) = ct
-@inline Tables.rows(ct::ChainTable) = ct
+@inline _chains(ct::ChainTable) = getfield(getfield(ct, :_sys), :_chains)
 
 @inline function Tables.getcolumn(ct::ChainTable, nm::Symbol)
     col = Tables.getcolumn(_chains(ct), nm)
     _RowProjectionVector{eltype(col)}(
         col,
-        map(idx -> _chains(ct)._idx_map[idx], getfield(ct, :_idx))
+        map(idx -> _chains(ct)._idx_map[idx], ct._idx)
     )
 end
 
-@inline Tables.getcolumn(ct::ChainTable, i::Int) = Tables.getcolumn(ct, Tables.columnnames(ct)[i])
 @inline Tables.columnnames(ct::ChainTable) = Tables.columnnames(_chains(ct))
 @inline Tables.schema(ct::ChainTable) = Tables.schema(_chains(ct))
-
-@inline Base.size(ct::ChainTable) = (length(getfield(ct, :_idx)), length(_chain_table_cols))
-@inline Base.size(ct::ChainTable, dim) = size(ct)[dim]
-@inline Base.length(ct::ChainTable) = size(ct, 1)
 
 @inline function Base.getproperty(ct::ChainTable, nm::Symbol)
     hasfield(typeof(ct), nm) && return getfield(ct, nm)
@@ -64,15 +54,15 @@ end
     setfield!(ct, nm, val)
 end
 
-@inline function _filter_chains(f::Function, sys::System{T}) where T
-    ChainTable{T}(sys, collect(Int, _filter_select(
+@inline function _filter_chains(f::Function, sys::System)
+    ChainTable(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._chains),
         :idx
     )))
 end
 
 @inline function Base.filter(f::Function, ct::ChainTable)
-    ChainTable(getfield(ct, :_sys), collect(Int, _filter_select(
+    ChainTable(ct._sys, collect(Int, _filter_select(
         TableOperations.filter(f, ct),
         :idx
     )))
@@ -81,11 +71,12 @@ end
 @inline function Base.iterate(ct::ChainTable, st = 1)
     st > length(ct) ?
         nothing :
-        (chain_by_idx(getfield(ct, :_sys), getfield(ct, :_idx)[st]), st + 1)
+        (chain_by_idx(ct._sys, ct._idx[st]), st + 1)
 end
+
 @inline Base.eltype(::ChainTable{T}) where T = Chain{T}
-@inline Base.getindex(ct::ChainTable{T}, i::Int) where T = chain_by_idx(getfield(ct, :_sys), getfield(ct, :_idx)[i])
-@inline Base.keys(ct::ChainTable) = LinearIndices((length(ct),))
+@inline Base.size(ct::ChainTable) = (length(ct._idx), length(Tables.columnnames(ct)))
+@inline Base.getindex(ct::ChainTable, i::Int) = chain_by_idx(ct._sys, ct._idx[i])
 
 """
     $(TYPEDEF)

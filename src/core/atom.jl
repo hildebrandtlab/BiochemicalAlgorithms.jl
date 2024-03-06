@@ -42,33 +42,23 @@ generated using [`atoms`](@ref) or filtered from other atom tables (via `Base.fi
  - `nucleotide_idx::AbstractVector{MaybeInt}`
  - `residue_idx::AbstractVector{MaybeInt}`
 """
-@auto_hash_equals struct AtomTable{T} <: Tables.AbstractColumns
+@auto_hash_equals struct AtomTable{T} <: AbstractSystemComponentTable{T}
     _sys::System{T}
     _idx::Vector{Int}
 end
 
-@inline _atoms(at::AtomTable) = getproperty(getfield(at, :_sys), :_atoms)
-
-@inline Tables.istable(::Type{<: AtomTable}) = true
-@inline Tables.columnaccess(::Type{<: AtomTable}) = true
-@inline Tables.columns(at::AtomTable) = at
-@inline Tables.rows(at::AtomTable) = at
+@inline _atoms(at::AtomTable) = getfield(getfield(at, :_sys), :_atoms)
 
 @inline function Tables.getcolumn(at::AtomTable, nm::Symbol)
     col = Tables.getcolumn(_atoms(at), nm)
     _RowProjectionVector{eltype(col)}(
         col,
-        map(idx -> _atoms(at)._idx_map[idx], getfield(at, :_idx))
+        map(idx -> _atoms(at)._idx_map[idx], at._idx)
     )
 end
 
-@inline Tables.getcolumn(at::AtomTable, i::Int) = Tables.getcolumn(at, Tables.columnnames(at)[i])
 @inline Tables.columnnames(at::AtomTable) = Tables.columnnames(_atoms(at))
 @inline Tables.schema(at::AtomTable) = Tables.schema(_atoms(at))
-
-@inline Base.size(at::AtomTable) = (length(getfield(at, :_idx)), length(_atom_table_cols))
-@inline Base.size(at::AtomTable, dim) = size(at)[dim]
-@inline Base.length(at::AtomTable) = size(at, 1)
 
 @inline function Base.getproperty(at::AtomTable, nm::Symbol)
     hasfield(typeof(at), nm) && return getfield(at, nm)
@@ -85,7 +75,7 @@ end
     setfield!(at, nm, val)
 end
 
-@inline function _filter_atoms(f::Function, sys::System{T}) where T
+@inline function _filter_atoms(f::Function, sys::System)
     AtomTable(sys, collect(Int, _filter_select(
         TableOperations.filter(f, sys._atoms),
         :idx
@@ -93,7 +83,7 @@ end
 end
 
 @inline function Base.filter(f::Function, at::AtomTable)
-    AtomTable(getfield(at, :_sys), collect(Int, _filter_select(
+    AtomTable(at._sys, collect(Int, _filter_select(
         TableOperations.filter(f, at),
         :idx
     )))
@@ -102,11 +92,13 @@ end
 @inline function Base.iterate(at::AtomTable, st = 1)
     st > length(at) ?
         nothing :
-        (atom_by_idx(getfield(at, :_sys), getfield(at, :_idx)[st]), st + 1)
+        (atom_by_idx(at._sys, at._idx[st]), st + 1)
 end
+
 @inline Base.eltype(::AtomTable{T}) where T = Atom{T}
-@inline Base.getindex(at::AtomTable{T}, i::Int) where T = atom_by_idx(getfield(at, :_sys), getfield(at, :_idx)[i])
-@inline Base.keys(at::AtomTable) = LinearIndices((length(at),))
+@inline Base.size(at::AtomTable) = (length(at._idx), length(Tables.columnnames(at)))
+@inline Base.getindex(at::AtomTable, i::Int) = atom_by_idx(at._sys, at._idx[i])
+
 
 """
     $(TYPEDEF)

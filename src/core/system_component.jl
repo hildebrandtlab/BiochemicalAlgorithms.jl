@@ -1,4 +1,42 @@
-export AbstractSystemComponent, has_property, get_property, set_property!, has_flag, set_flag!, unset_flag!
+export
+    AbstractColumnTable,
+    AbstractSystemComponent,
+    AbstractSystemComponentTable,
+    get_property,
+    has_flag,
+    has_property,
+    set_flag!,
+    set_property!,
+    unset_flag!
+
+"""
+    $(TYPEDEF)
+
+Abstract base type for all Tables.jl-compatible column tables.
+"""
+abstract type AbstractColumnTable <: Tables.AbstractColumns end
+
+@inline Tables.istable(::Type{<: AbstractColumnTable}) = true
+@inline Tables.columnaccess(::Type{<: AbstractColumnTable}) = true
+@inline Tables.columns(at::AbstractColumnTable) = at
+@inline Tables.rows(at::AbstractColumnTable) = at
+@inline Tables.getcolumn(at::AbstractColumnTable, i::Int) = Tables.getcolumn(at, Tables.columnnames(at)[i])
+
+@inline Base.getproperty(at::AbstractColumnTable, nm::Symbol) = getfield(at, nm)
+@inline Base.size(at::AbstractColumnTable, dim) = size(at)[dim]
+@inline Base.length(at::AbstractColumnTable) = size(at, 1)
+@inline Base.keys(at::AbstractColumnTable) = LinearIndices((length(at),))
+
+@inline function _filter_select(itr, col::Symbol)
+    (getproperty(a, col) for a in itr)
+end
+
+"""
+    $(TYPEDEF)
+
+Abstract base type for all Tables.jl-compatible system component tables.
+"""
+abstract type AbstractSystemComponentTable{T <: Real} <: AbstractColumnTable end
 
 """
     $(TYPEDEF)

@@ -6,7 +6,7 @@ const _fragment_table_cols = _fragment_table_schema.names
 const _fragment_table_cols_set = Set(_fragment_table_cols)
 const _fragment_table_cols_priv = Set([:molecule_idx, :chain_idx])
 
-@auto_hash_equals struct _FragmentTable <: Tables.AbstractColumns
+@auto_hash_equals struct _FragmentTable <: AbstractColumnTable
     # public columns
     idx::Vector{Int}
     number::Vector{Int}
@@ -35,23 +35,15 @@ const _fragment_table_cols_priv = Set([:molecule_idx, :chain_idx])
     end
 end
 
-@inline Tables.istable(::Type{<: _FragmentTable}) = true
-@inline Tables.columnaccess(::Type{<: _FragmentTable}) = true
-@inline Tables.columns(ft::_FragmentTable) = ft
+@inline Tables.columnnames(::_FragmentTable) = _fragment_table_cols
+@inline Tables.schema(::_FragmentTable) = _fragment_table_schema
 
 @inline function Tables.getcolumn(ft::_FragmentTable, nm::Symbol)
     @assert nm in _fragment_table_cols_priv || nm in _fragment_table_cols_set "type _FragmentTable has no column $nm"
     getfield(ft, nm)
 end
-@inline Base.getproperty(ft::_FragmentTable, nm::Symbol) = getfield(ft, nm)
-
-@inline Tables.getcolumn(ft::_FragmentTable, i::Int) = getfield(ft, Tables.columnnames(ft)[i])
-@inline Tables.columnnames(::_FragmentTable) = _fragment_table_cols
-@inline Tables.schema(::_FragmentTable) = _fragment_table_schema
 
 @inline Base.size(ft::_FragmentTable) = (length(ft.idx), length(_fragment_table_cols))
-@inline Base.size(ft::_FragmentTable, dim) = size(ft)[dim]
-@inline Base.length(ft::_FragmentTable) = size(ft, 1)
 
 function Base.push!(
     ft::_FragmentTable,
@@ -92,8 +84,6 @@ end
     _tab::_FragmentTable
 end
 
-@inline Tables.rowaccess(::Type{<: _FragmentTable}) = true
-@inline Tables.rows(ft::_FragmentTable) = ft
 @inline Tables.getcolumn(ftr::_FragmentTableRow, nm::Symbol) = Tables.getcolumn(getfield(ftr, :_tab), nm)[getfield(ftr, :_row)]
 @inline Tables.getcolumn(ftr::_FragmentTableRow, i::Int) = getfield(ftr, Tables.columnnames(ftr)[i])
 @inline Tables.columnnames(::_FragmentTableRow) = _fragment_table_cols
