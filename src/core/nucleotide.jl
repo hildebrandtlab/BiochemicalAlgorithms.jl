@@ -79,6 +79,11 @@ end
 @inline Base.eltype(::NucleotideTable{T}) where T = Nucleotide{T}
 @inline Base.size(nt::NucleotideTable) = (length(nt._idx), length(Tables.columnnames(nt)))
 @inline Base.getindex(nt::NucleotideTable, i::Int) = nucleotide_by_idx(nt._sys, nt._idx[i])
+@inline Base.getindex(nt::NucleotideTable, ::Colon) = nt
+
+@inline function Base.getindex(nt::NucleotideTable, I)
+    NucleotideTable(nt._sys, collect(Int, map(i -> nt._idx[i], I)))
+end
 
 """
     $(TYPEDEF)

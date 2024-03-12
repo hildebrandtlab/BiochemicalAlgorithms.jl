@@ -80,6 +80,11 @@ end
 @inline Base.eltype(::BondTable{T}) where T = Bond{T}
 @inline Base.size(bt::BondTable) = (length(bt._idx), length(Tables.columnnames(bt)))
 @inline Base.getindex(bt::BondTable, i::Int) = bond_by_idx(bt._sys, bt._idx[i])
+@inline Base.getindex(bt::BondTable, ::Colon) = bt
+
+@inline function Base.getindex(bt::BondTable, I)
+    BondTable(bt._sys, collect(Int, map(i -> bt._idx[i], I)))
+end
 
 """
     $(TYPEDEF)

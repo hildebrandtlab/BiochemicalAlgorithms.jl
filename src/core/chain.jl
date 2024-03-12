@@ -77,6 +77,11 @@ end
 @inline Base.eltype(::ChainTable{T}) where T = Chain{T}
 @inline Base.size(ct::ChainTable) = (length(ct._idx), length(Tables.columnnames(ct)))
 @inline Base.getindex(ct::ChainTable, i::Int) = chain_by_idx(ct._sys, ct._idx[i])
+@inline Base.getindex(ct::ChainTable, ::Colon) = ct
+
+@inline function Base.getindex(ct::ChainTable, I)
+    ChainTable(ct._sys, collect(Int, map(i -> ct._idx[i], I)))
+end
 
 """
     $(TYPEDEF)

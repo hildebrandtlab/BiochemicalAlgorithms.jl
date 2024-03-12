@@ -98,6 +98,11 @@ end
 @inline Base.eltype(::AtomTable{T}) where T = Atom{T}
 @inline Base.size(at::AtomTable) = (length(at._idx), length(Tables.columnnames(at)))
 @inline Base.getindex(at::AtomTable, i::Int) = atom_by_idx(at._sys, at._idx[i])
+@inline Base.getindex(at::AtomTable, ::Colon) = at
+
+@inline function Base.getindex(at::AtomTable, I)
+    AtomTable(at._sys, collect(Int, map(i -> at._idx[i], I)))
+end
 
 
 """

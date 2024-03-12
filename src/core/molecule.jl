@@ -75,6 +75,11 @@ end
 @inline Base.eltype(::MoleculeTable{T}) where T = Molecule{T}
 @inline Base.size(mt::MoleculeTable) = (length(mt._idx), length(Tables.columnnames(mt)))
 @inline Base.getindex(mt::MoleculeTable, i::Int) = molecule_by_idx(mt._sys, mt._idx[i])
+@inline Base.getindex(mt::MoleculeTable, ::Colon) = mt
+
+@inline function Base.getindex(mt::MoleculeTable, I)
+    MoleculeTable(mt._sys, collect(Int, map(i -> mt._idx[i], I)))
+end
 
     """
     $(TYPEDEF)

@@ -88,6 +88,11 @@ end
 @inline Base.eltype(::FragmentTable{T}) where T = Fragment{T}
 @inline Base.size(ft::FragmentTable) = (length(ft._idx), length(Tables.columnnames(ft)))
 @inline Base.getindex(ft::FragmentTable, i::Int) = fragment_by_idx(ft._sys, ft._idx[i])
+@inline Base.getindex(ft::FragmentTable, ::Colon) = ft
+
+@inline function Base.getindex(ft::FragmentTable, I)
+    FragmentTable(ft._sys, collect(Int, map(i -> ft._idx[i], I)))
+end
 
 """
     $(TYPEDEF)

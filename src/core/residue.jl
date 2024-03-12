@@ -79,6 +79,11 @@ end
 @inline Base.eltype(::ResidueTable{T}) where T = Residue{T}
 @inline Base.size(rt::ResidueTable) = (length(rt._idx), length(Tables.columnnames(rt)))
 @inline Base.getindex(rt::ResidueTable, i::Int) = residue_by_idx(rt._sys, rt._idx[i])
+@inline Base.getindex(rt::ResidueTable, ::Colon) = rt
+
+@inline function Base.getindex(rt::ResidueTable, I)
+    ResidueTable(rt._sys, collect(Int, map(i -> rt._idx[i], I)))
+end
 
 """
     $(TYPEDEF)
