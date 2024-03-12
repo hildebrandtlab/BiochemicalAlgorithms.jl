@@ -27,6 +27,17 @@ abstract type AbstractColumnTable <: Tables.AbstractColumns end
 @inline Base.length(at::AbstractColumnTable) = size(at, 1)
 @inline Base.keys(at::AbstractColumnTable) = LinearIndices((length(at),))
 
+@inline function Base.show(io::IO, ::MIME"text/plain", at::AbstractColumnTable)
+    PrettyTables.pretty_table(io, at;
+        alignment = :l,
+        header = collect(Tables.columnnames(at)),
+        title  = "$(typeof(at)) with $(length(at)) rows:",
+        show_row_number = true,
+        row_number_column_title = "#"
+    )
+end
+@inline Base.show(io::IO, at::AbstractColumnTable) = print(io, "$(typeof(at)) with $(length(at)) rows")
+
 @inline function _filter_select(itr, col::Symbol)
     Tables.getcolumn.(itr, col)
 end
