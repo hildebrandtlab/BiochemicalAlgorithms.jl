@@ -22,7 +22,7 @@
         @test !isnothing(Tables.rows(ct))
 
         # AbstractArray interface
-        @test size(ct) == (2, 4)
+        @test size(ct) == (2, 2)
         @test length(ct) == 2
         @test eltype(ct) == Chain{T}
         @test keys(ct) == [1, 2]
@@ -35,11 +35,11 @@
         @test ct.idx == [c1.idx, c2.idx]
         @test ct.name isa AbstractVector{String}
         @test ct.name == [c1.name, c2.name]
+
         @test ct.properties isa AbstractVector{Properties}
         @test ct.properties == [c1.properties, c2.properties]
         @test ct.flags isa AbstractVector{Flags}
         @test ct.flags == [c1.flags, c2.flags]
-
         @test ct.molecule_idx isa AbstractVector{Int}
         @test ct.molecule_idx == [c1.molecule_idx, c2.molecule_idx]
 
@@ -50,22 +50,20 @@
         @test Tables.getcolumn(ct, :name) isa AbstractVector{String}
         @test Tables.getcolumn(ct, 2) isa AbstractVector{String}
         @test Tables.getcolumn(ct, :name) == Tables.getcolumn(ct, 2) == [c1.name, c2.name]
-        @test Tables.getcolumn(ct, :properties) isa AbstractVector{Properties}
-        @test Tables.getcolumn(ct, 3) isa AbstractVector{Properties}
-        @test Tables.getcolumn(ct, :properties) == Tables.getcolumn(ct, 3) == [c1.properties, c2.properties]
-        @test Tables.getcolumn(ct, :flags) isa AbstractVector{Flags}
-        @test Tables.getcolumn(ct, 4) isa AbstractVector{Flags}
-        @test Tables.getcolumn(ct, :flags) == Tables.getcolumn(ct, 4) == [c1.flags, c2.flags]
 
+        @test Tables.getcolumn(ct, :properties) isa AbstractVector{Properties}
+        @test Tables.getcolumn(ct, :properties) == [c1.properties, c2.properties]
+        @test Tables.getcolumn(ct, :flags) isa AbstractVector{Flags}
+        @test Tables.getcolumn(ct, :flags) == [c1.flags, c2.flags]
         @test Tables.getcolumn(ct, :molecule_idx) isa AbstractVector{Int}
         @test Tables.getcolumn(ct, :molecule_idx) == [c1.molecule_idx, c2.molecule_idx]
 
         # setproperty!
         @test_throws ErrorException ct.idx = [999, 998]
         @test_throws ErrorException ct.name = ["some other", "names"]
+
         @test_throws ErrorException ct.properties = [Properties(), Properties(:fourth => 997)]
         @test_throws ErrorException ct.flags = [Flags(), Flags([:fifth])]
-
         @test_throws ErrorException ct.molecule_idx = [996, 995]
 
         # getindex
@@ -113,22 +111,22 @@ end
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(chain, :_row)) == 4
+        @test length(getfield(chain, :_row)) == 2
 
         # getproperty
         @test chain.idx isa Int
         @test chain.name isa String
         @test chain.name == ""
+
         @test chain.properties isa Properties
         @test chain.properties == Properties()
         @test chain.flags isa Flags
         @test chain.flags == Flags()
+        @test chain.molecule_idx isa Int
+        @test chain.molecule_idx == mol.idx
 
         @test chain._sys isa System{T}
         @test chain._row isa BiochemicalAlgorithms._ChainTableRow
-        
-        @test chain.molecule_idx isa Int
-        @test chain.molecule_idx == mol.idx
 
         @test chain2.name == "something"
         @test chain2.properties == Properties(:a => 1)
@@ -138,6 +136,7 @@ end
         # setproperty!
         chain.name = "something else"
         @test chain.name == "something else"
+
         chain.properties = Properties(:first => "v1", :second => 99)
         @test length(chain.properties) == 2
         @test chain.properties[:first] == "v1"

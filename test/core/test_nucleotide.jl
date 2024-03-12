@@ -23,7 +23,7 @@
         @test !isnothing(Tables.rows(nt))
 
         # AbstractArray interface
-        @test size(nt) == (2, 5)
+        @test size(nt) == (2, 3)
         @test length(nt) == 2
         @test eltype(nt) == Nucleotide{T}
         @test keys(nt) == [1, 2]
@@ -38,11 +38,11 @@
         @test nt.number == [n1.number, n2.number]
         @test nt.name isa AbstractVector{String}
         @test nt.name == [n1.name, n2.name]
+
         @test nt.properties isa AbstractVector{Properties}
         @test nt.properties == [n1.properties, n2.properties]
         @test nt.flags isa AbstractVector{Flags}
         @test nt.flags == [n1.flags, n2.flags]
-
         @test nt.molecule_idx isa AbstractVector{Int}
         @test nt.molecule_idx == [n1.molecule_idx, n2.molecule_idx]
         @test nt.chain_idx isa AbstractVector{Int}
@@ -58,13 +58,11 @@
         @test Tables.getcolumn(nt, :name) isa AbstractVector{String}
         @test Tables.getcolumn(nt, 3) isa AbstractVector{String}
         @test Tables.getcolumn(nt, :name) == Tables.getcolumn(nt, 3) == [n1.name, n2.name]
-        @test Tables.getcolumn(nt, :properties) isa AbstractVector{Properties}
-        @test Tables.getcolumn(nt, 4) isa AbstractVector{Properties}
-        @test Tables.getcolumn(nt, :properties) == Tables.getcolumn(nt, 4) == [n1.properties, n2.properties]
-        @test Tables.getcolumn(nt, :flags) isa AbstractVector{Flags}
-        @test Tables.getcolumn(nt, 5) isa AbstractVector{Flags}
-        @test Tables.getcolumn(nt, :flags) == Tables.getcolumn(nt, 5) == [n1.flags, n2.flags]
 
+        @test Tables.getcolumn(nt, :properties) isa AbstractVector{Properties}
+        @test Tables.getcolumn(nt, :properties) == [n1.properties, n2.properties]
+        @test Tables.getcolumn(nt, :flags) isa AbstractVector{Flags}
+        @test Tables.getcolumn(nt, :flags) == [n1.flags, n2.flags]
         @test Tables.getcolumn(nt, :molecule_idx) isa AbstractVector{Int}
         @test Tables.getcolumn(nt, :molecule_idx) == [n1.molecule_idx, n2.molecule_idx]
         @test Tables.getcolumn(nt, :chain_idx) isa AbstractVector{Int}
@@ -74,9 +72,9 @@
         @test_throws ErrorException nt.idx = [999, 998]
         @test_throws ErrorException nt.number = [997, 996]
         @test_throws ErrorException nt.name = ["some other", "names"]
+
         @test_throws ErrorException nt.properties = [Properties(), Properties(:fourth => 995)]
         @test_throws ErrorException nt.flags = [Flags(), Flags([:fifth])]
-
         @test_throws ErrorException nt.molecule_idx = [994, 993]
         @test_throws ErrorException nt.chain_idx = [992, 991]
 
@@ -137,7 +135,7 @@ end
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(nuc, :_row)) == 5
+        @test length(getfield(nuc, :_row)) == 3
 
         # getproperty
         @test nuc.idx isa Int
@@ -145,18 +143,18 @@ end
         @test nuc.number == 1
         @test nuc.name isa String
         @test nuc.name == ""
+
         @test nuc.properties isa Properties
         @test nuc.properties == Properties()
         @test nuc.flags isa Flags
         @test nuc.flags == Flags()
-
-        @test nuc._sys isa System{T}
-        @test nuc._row isa BiochemicalAlgorithms._NucleotideTableRow
-        
         @test nuc.molecule_idx isa Int
         @test nuc.molecule_idx == mol.idx
         @test nuc.chain_idx isa Int
         @test nuc.chain_idx == chain.idx
+
+        @test nuc._sys isa System{T}
+        @test nuc._row isa BiochemicalAlgorithms._NucleotideTableRow
 
         @test nuc2.number == 1
         @test nuc2.name == "something"
@@ -170,6 +168,7 @@ end
         @test nuc.number == 0
         nuc.name = "something else"
         @test nuc.name == "something else"
+
         nuc.properties = Properties(:first => "v1", :second => 99)
         @test length(nuc.properties) == 2
         @test nuc.properties[:first] == "v1"

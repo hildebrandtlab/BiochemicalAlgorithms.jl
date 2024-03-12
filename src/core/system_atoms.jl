@@ -1,6 +1,6 @@
-const _atom_table_cols = (:idx, :number, :element, :name, :atom_type, :r, :v, :F, :formal_charge, :charge, :radius, :properties, :flags)
+const _atom_table_cols = (:idx, :number, :element, :name, :atom_type, :r, :v, :F, :formal_charge, :charge, :radius)
 const _atom_table_cols_set = Set(_atom_table_cols)
-const _atom_table_cols_priv = Set([:frame_id, :molecule_idx, :chain_idx, :fragment_idx, :nucleotide_idx, :residue_idx])
+const _atom_table_cols_priv = Set([:properties, :flags, :frame_id, :molecule_idx, :chain_idx, :fragment_idx, :nucleotide_idx, :residue_idx])
 
 @auto_hash_equals struct _AtomTable{T <: Real} <: AbstractColumnTable
     # public columns
@@ -15,10 +15,10 @@ const _atom_table_cols_priv = Set([:frame_id, :molecule_idx, :chain_idx, :fragme
     formal_charge::Vector{Int}
     charge::Vector{T}
     radius::Vector{T}
-    properties::Vector{Properties}
-    flags::Vector{Flags}
 
     # private columns
+    properties::Vector{Properties}
+    flags::Vector{Flags}
     frame_id::Vector{Int}
     molecule_idx::Vector{MaybeInt}
     chain_idx::Vector{MaybeInt}
@@ -60,7 +60,7 @@ end
 @inline function Tables.schema(::_AtomTable{T}) where T
     Tables.Schema(
         _atom_table_cols,
-        (Int, Int, ElementType, String, String, Vector3{T}, Vector3{T}, Vector3{T}, Int, T, T, Properties, Flags)
+        (Int, Int, ElementType, String, String, Vector3{T}, Vector3{T}, Vector3{T}, Int, T, T)
     )
 end
 

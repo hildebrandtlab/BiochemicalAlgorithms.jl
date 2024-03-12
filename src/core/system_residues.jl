@@ -1,20 +1,20 @@
 const _residue_table_schema = Tables.Schema(
-    (:idx, :number, :type, :properties, :flags),
-    (Int, Int, AminoAcid, Properties, Flags)
+    (:idx, :number, :type),
+    (Int, Int, AminoAcid)
 )
 const _residue_table_cols = _residue_table_schema.names
 const _residue_table_cols_set = Set(_residue_table_cols)
-const _residue_table_cols_priv = Set([:molecule_idx, :chain_idx])
+const _residue_table_cols_priv = Set([:properties, :flags, :molecule_idx, :chain_idx])
 
 @auto_hash_equals struct _ResidueTable <: AbstractColumnTable
     # public columns
     idx::Vector{Int}
     number::Vector{Int}
     type::Vector{AminoAcid}
-    properties::Vector{Properties}
-    flags::Vector{Flags}
 
     # private columns
+    properties::Vector{Properties}
+    flags::Vector{Flags}
     molecule_idx::Vector{Int}
     chain_idx::Vector{Int}
 

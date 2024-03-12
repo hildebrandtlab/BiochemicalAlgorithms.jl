@@ -1,18 +1,22 @@
 const _bond_table_schema = Tables.Schema(
-    (:idx, :a1, :a2, :order, :properties, :flags),
-    (Int, Int, Int, BondOrderType, Properties, Flags)
+    (:idx, :a1, :a2, :order),
+    (Int, Int, Int, BondOrderType)
 )
 const _bond_table_cols = _bond_table_schema.names
 const _bond_table_cols_set = Set(_bond_table_cols)
+const _bond_table_cols_priv = Set([:properties, :flags])
 
 @auto_hash_equals struct _BondTable <: AbstractColumnTable
     idx::Vector{Int}
     a1::Vector{Int}
     a2::Vector{Int}
     order::Vector{BondOrderType}
+
+    # private columns
     properties::Vector{Properties}
     flags::Vector{Flags}
 
+    # internals
     _idx_map::Dict{Int,Int}
 
     function _BondTable()
@@ -32,7 +36,7 @@ end
 @inline Tables.schema(::_BondTable) = _bond_table_schema
 
 @inline function Tables.getcolumn(bt::_BondTable, nm::Symbol)
-    @assert nm in _bond_table_cols "type _BondTable has no column $nm"
+    @assert nm in _bond_table_cols_priv || nm in _bond_table_cols "type _BondTable has no column $nm"
     getfield(bt, nm)
 end
 

@@ -21,7 +21,7 @@
         @test !isnothing(Tables.rows(mt))
 
         # AbstractArray interface
-        @test size(mt) == (2, 4)
+        @test size(mt) == (2, 2)
         @test length(mt) == 2
         @test eltype(mt) == Molecule{T}
         @test keys(mt) == [1, 2]
@@ -34,6 +34,7 @@
         @test mt.idx == [m1.idx, m2.idx]
         @test mt.name isa AbstractVector{String}
         @test mt.name == [m1.name, m2.name]
+
         @test mt.properties isa AbstractVector{Properties}
         @test mt.properties == [m1.properties, m2.properties]
         @test mt.flags isa AbstractVector{Flags}
@@ -46,16 +47,16 @@
         @test Tables.getcolumn(mt, :name) isa AbstractVector{String}
         @test Tables.getcolumn(mt, 2) isa AbstractVector{String}
         @test Tables.getcolumn(mt, :name) == Tables.getcolumn(mt, 2) == [m1.name, m2.name]
+
         @test Tables.getcolumn(mt, :properties) isa AbstractVector{Properties}
-        @test Tables.getcolumn(mt, 3) isa AbstractVector{Properties}
-        @test Tables.getcolumn(mt, :properties) == Tables.getcolumn(mt, 3) == [m1.properties, m2.properties]
+        @test Tables.getcolumn(mt, :properties) == [m1.properties, m2.properties]
         @test Tables.getcolumn(mt, :flags) isa AbstractVector{Flags}
-        @test Tables.getcolumn(mt, 4) isa AbstractVector{Flags}
-        @test Tables.getcolumn(mt, :flags) == Tables.getcolumn(mt, 4) == [m1.flags, m2.flags]
+        @test Tables.getcolumn(mt, :flags) == [m1.flags, m2.flags]
 
         # setproperty!
         @test_throws ErrorException mt.idx = [999, 998]
         @test_throws ErrorException mt.name = ["some other", "name"]
+
         @test_throws ErrorException mt.properties = [Properties(), Properties(:fourth => 989)]
         @test_throws ErrorException mt.flags = [Flags(), Flags([:fifth])]
 
@@ -100,12 +101,13 @@ end
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(mol, :_row)) == 4
+        @test length(getfield(mol, :_row)) == 2
 
         # getproperty
         @test mol.idx isa Int
         @test mol.name isa String
         @test mol.name == ""
+
         @test mol.properties isa Properties
         @test mol.properties == Properties()
         @test mol.flags isa Flags
@@ -121,6 +123,7 @@ end
         # setproperty!
         mol.name = "something else"
         @test mol.name == "something else"
+
         mol.properties = Properties(:first => "v1", :second => 99)
         @test length(mol.properties) == 2
         @test mol.properties[:first] == "v1"

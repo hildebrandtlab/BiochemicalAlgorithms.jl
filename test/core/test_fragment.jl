@@ -23,7 +23,7 @@
         @test !isnothing(Tables.rows(ft))
 
         # AbstractArray interface
-        @test size(ft) == (2, 5)
+        @test size(ft) == (2, 3)
         @test length(ft) == 2
         @test eltype(ft) == Fragment{T}
         @test keys(ft) == [1, 2]
@@ -38,11 +38,11 @@
         @test ft.number == [f1.number, f2.number]
         @test ft.name isa AbstractVector{String}
         @test ft.name == [f1.name, f2.name]
+
         @test ft.properties isa AbstractVector{Properties}
         @test ft.properties == [f1.properties, f2.properties]
         @test ft.flags isa AbstractVector{Flags}
         @test ft.flags == [f1.flags, f2.flags]
-
         @test ft.molecule_idx isa AbstractVector{Int}
         @test ft.molecule_idx == [f1.molecule_idx, f2.molecule_idx]
         @test ft.chain_idx isa AbstractVector{Int}
@@ -58,13 +58,11 @@
         @test Tables.getcolumn(ft, :name) isa AbstractVector{String}
         @test Tables.getcolumn(ft, 3) isa AbstractVector{String}
         @test Tables.getcolumn(ft, :name) == Tables.getcolumn(ft, 3) == [f1.name, f2.name]
-        @test Tables.getcolumn(ft, :properties) isa AbstractVector{Properties}
-        @test Tables.getcolumn(ft, 4) isa AbstractVector{Properties}
-        @test Tables.getcolumn(ft, :properties) == Tables.getcolumn(ft, 4) == [f1.properties, f2.properties]
-        @test Tables.getcolumn(ft, :flags) isa AbstractVector{Flags}
-        @test Tables.getcolumn(ft, 5) isa AbstractVector{Flags}
-        @test Tables.getcolumn(ft, :flags) == Tables.getcolumn(ft, 5) == [f1.flags, f2.flags]
 
+        @test Tables.getcolumn(ft, :properties) isa AbstractVector{Properties}
+        @test Tables.getcolumn(ft, :properties) == [f1.properties, f2.properties]
+        @test Tables.getcolumn(ft, :flags) isa AbstractVector{Flags}
+        @test Tables.getcolumn(ft, :flags) == [f1.flags, f2.flags]
         @test Tables.getcolumn(ft, :molecule_idx) isa AbstractVector{Int}
         @test Tables.getcolumn(ft, :molecule_idx) == [f1.molecule_idx, f2.molecule_idx]
         @test Tables.getcolumn(ft, :chain_idx) isa AbstractVector{Int}
@@ -74,9 +72,9 @@
         @test_throws ErrorException ft.idx = [999, 998]
         @test_throws ErrorException ft.number = [997, 996]
         @test_throws ErrorException ft.name = ["some other", "names"]
+
         @test_throws ErrorException ft.properties = [Properties(), Properties(:fourth => 995)]
         @test_throws ErrorException ft.flags = [Flags(), Flags([:fifth])]
-
         @test_throws ErrorException ft.molecule_idx = [994, 993]
         @test_throws ErrorException ft.chain_idx = [992, 991]
 
@@ -137,7 +135,7 @@ end
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(frag, :_row)) == 5
+        @test length(getfield(frag, :_row)) == 3
 
         # getproperty
         @test frag.idx isa Int
@@ -145,19 +143,19 @@ end
         @test frag.number == 1
         @test frag.name isa String
         @test frag.name == ""
+
         @test frag.properties isa Properties
         @test frag.properties == Properties()
         @test frag.flags isa Flags
         @test frag.flags == Flags()
-
-        @test frag._sys isa System{T}
-        @test frag._row isa BiochemicalAlgorithms._FragmentTableRow
-        
         @test frag.molecule_idx isa Int
         @test frag.molecule_idx == mol.idx
         @test frag.chain_idx isa Int
         @test frag.chain_idx == chain.idx
 
+        @test frag._sys isa System{T}
+        @test frag._row isa BiochemicalAlgorithms._FragmentTableRow
+        
         @test frag2.number == 1
         @test frag2.name == "something"
         @test frag2.properties == Properties(:a => 1)
@@ -170,6 +168,7 @@ end
         @test frag.number == 0
         frag.name = "something else"
         @test frag.name == "something else"
+
         frag.properties = Properties(:first => "v1", :second => 99)
         @test length(frag.properties) == 2
         @test frag.properties[:first] == "v1"

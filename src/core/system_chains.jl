@@ -1,19 +1,19 @@
 const _chain_table_schema = Tables.Schema(
-    (:idx, :name, :properties, :flags),
-    (Int, String, Properties, Flags)
+    (:idx, :name),
+    (Int, String)
 )
 const _chain_table_cols = _chain_table_schema.names
 const _chain_table_cols_set = Set(_chain_table_cols)
-const _chain_table_cols_priv = Set([:molecule_idx])
+const _chain_table_cols_priv = Set([:properties, :flags, :molecule_idx])
 
 @auto_hash_equals struct _ChainTable <: AbstractColumnTable
     # public columns
     idx::Vector{Int}
     name::Vector{String}
-    properties::Vector{Properties}
-    flags::Vector{Flags}
 
     # private columns
+    properties::Vector{Properties}
+    flags::Vector{Flags}
     molecule_idx::Vector{Int}
 
     # internals

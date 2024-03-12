@@ -16,10 +16,10 @@ generated using [`nucleotides`](@ref) or filtered from other nucleotide tables (
  - `idx::AbstractVector{Int}`
  - `number::AbstractVector{Int}`
  - `name::AbstractVector{String}`
- - `properties::AbstractVector{Properties}`
- - `flags::AbstractVector{Flags}`
 
 # Private columns
+ - `properties::AbstractVector{Properties}`
+ - `flags::AbstractVector{Flags}`
  - `molecule_idx::AbstractVector{Int}`
  - `chain_idx::AbstractVector{Int}`
 """
@@ -94,10 +94,10 @@ Mutable representation of an individual nucleotide in a system.
  - `idx::Int`
  - `number::Int`
  - `name::String`
- - `properties::Properties`
- - `flags::Flags`
 
 # Private fields
+ - `properties::Properties`
+ - `flags::Flags`
  - `molecule_idx::Int`
  - `chain_idx::Int`
 

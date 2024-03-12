@@ -22,7 +22,7 @@
         @test !isnothing(Tables.rows(rt))
 
         # AbstractArray interface
-        @test size(rt) == (2, 5)
+        @test size(rt) == (2, 3)
         @test length(rt) == 2
         @test eltype(rt) == Residue{T}
         @test keys(rt) == [1, 2]
@@ -37,11 +37,11 @@
         @test rt.number == [r1.number, r2.number]
         @test rt.type isa AbstractVector{AminoAcid}
         @test rt.type == [r1.type, r2.type]
+
         @test rt.properties isa AbstractVector{Properties}
         @test rt.properties == [r1.properties, r2.properties]
         @test rt.flags isa AbstractVector{Flags}
         @test rt.flags == [r1.flags, r2.flags]
-
         @test rt.molecule_idx isa AbstractVector{Int}
         @test rt.molecule_idx == [r1.molecule_idx, r2.molecule_idx]
         @test rt.chain_idx isa AbstractVector{Int}
@@ -57,13 +57,11 @@
         @test Tables.getcolumn(rt, :type) isa AbstractVector{AminoAcid}
         @test Tables.getcolumn(rt, 3) isa AbstractVector{AminoAcid}
         @test Tables.getcolumn(rt, :type) == Tables.getcolumn(rt, 3) == [r1.type, r2.type]
-        @test Tables.getcolumn(rt, :properties) isa AbstractVector{Properties}
-        @test Tables.getcolumn(rt, 4) isa AbstractVector{Properties}
-        @test Tables.getcolumn(rt, :properties) == Tables.getcolumn(rt, 4) == [r1.properties, r2.properties]
-        @test Tables.getcolumn(rt, :flags) isa AbstractVector{Flags}
-        @test Tables.getcolumn(rt, 5) isa AbstractVector{Flags}
-        @test Tables.getcolumn(rt, :flags) == Tables.getcolumn(rt, 5) == [r1.flags, r2.flags]
 
+        @test Tables.getcolumn(rt, :properties) isa AbstractVector{Properties}
+        @test Tables.getcolumn(rt, :properties) == [r1.properties, r2.properties]
+        @test Tables.getcolumn(rt, :flags) isa AbstractVector{Flags}
+        @test Tables.getcolumn(rt, :flags) == [r1.flags, r2.flags]
         @test Tables.getcolumn(rt, :molecule_idx) isa AbstractVector{Int}
         @test Tables.getcolumn(rt, :molecule_idx) == [r1.molecule_idx, r2.molecule_idx]
         @test Tables.getcolumn(rt, :chain_idx) isa AbstractVector{Int}
@@ -73,9 +71,9 @@
         @test_throws ErrorException rt.idx = [999, 998]
         @test_throws ErrorException rt.number = [997, 996]
         @test_throws ErrorException rt.type = [AminoAcid('D'), AminoAcid('A')]
+
         @test_throws ErrorException rt.properties = [Properties(), Properties(:fourth => 995)]
         @test_throws ErrorException rt.flags = [Flags(), Flags([:fifth])]
-
         @test_throws ErrorException rt.molecule_idx = [994, 993]
         @test_throws ErrorException rt.chain_idx = [992, 991]
 
@@ -128,7 +126,7 @@ end
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(res, :_row)) == 5
+        @test length(getfield(res, :_row)) == 3
 
         # getproperty
         @test res.idx isa Int
@@ -136,18 +134,18 @@ end
         @test res.number == 1
         @test res.type isa AminoAcid
         @test res.type == AminoAcid('A')
+
         @test res.properties isa Properties
         @test res.properties == Properties()
         @test res.flags isa Flags
         @test res.flags == Flags()
-
-        @test res._sys isa System{T}
-        @test res._row isa BiochemicalAlgorithms._ResidueTableRow
-        
         @test res.molecule_idx isa Int
         @test res.molecule_idx == mol.idx
         @test res.chain_idx isa Int
         @test res.chain_idx == chain.idx
+
+        @test res._sys isa System{T}
+        @test res._row isa BiochemicalAlgorithms._ResidueTableRow
 
         @test res2.number == 1
         @test res2.type == AminoAcid('D')
@@ -161,6 +159,7 @@ end
         @test res.number == 0
         res.type = AminoAcid('W')
         @test res.type == AminoAcid('W')
+
         res.properties = Properties(:first => "v1", :second => 99)
         @test length(res.properties) == 2
         @test res.properties[:first] == "v1"

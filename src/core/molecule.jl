@@ -13,9 +13,11 @@ export
 Tables.jl-compatible representation of system molecules (or a subset thereof). Molecule tables can be
 generated using [`molecules`](@ref) or filtered from other molecule tables (via `Base.filter`).
 
-# Columns
+# Public columns
  - `idx::AbstractVector{Int}`
  - `name::AbstractVector{String}`
+
+# Private columns
  - `properties::AbstractVector{Properties}`
  - `flags::AbstractVector{Flags}`
 """
@@ -43,7 +45,7 @@ end
 end
 
 @inline function Base.setproperty!(mt::MoleculeTable, nm::Symbol, val)
-    if nm in _molecule_table_cols_set
+    if nm in _molecule_table_cols_priv || nm in _molecule_table_cols_set
         error("MoleculeTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
     end
     if !hasfield(typeof(mt), nm)
@@ -93,9 +95,11 @@ abstract type AbstractMolecule{T} <: AbstractAtomContainer{T} end
 
 Mutable representation of an individual molecule in a system.
 
-# Fields
+# Public fields
  - `idx::Int`
  - `name::String`
+
+# Private fields
  - `properties::Properties`
  - `flags::Flags`
 

@@ -16,11 +16,13 @@ export
 Tables.jl-compatible representation of system bonds (or a subset thereof). Bond tables can be
 generated using [`bonds`](@ref) or filtered from other bond tables (via `Base.filter`).
 
-# Columns
+# Public columns
  - `idx::AbstractVector{Int}`
  - `a1::AbstractVector{Int}`
  - `a2::AbstractVector{Int}`
  - `order::AbstractVector{BondOrderType}`
+
+# Private columns
  - `properties::AbstractVector{Properties}`
  - `flags::AbstractVector{Flags}`
 """
@@ -48,7 +50,7 @@ end
 end
 
 @inline function Base.setproperty!(bt::BondTable, nm::Symbol, val)
-    if nm in _bond_table_cols_set
+    if nm in _bond_table_cols_priv || nm in _bond_table_cols_set
         error("BondTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
     end
     if !hasfield(typeof(bt), nm)
@@ -91,11 +93,13 @@ end
 
 Mutable representation of an individual bond in a system.
 
-# Fields
+# Public fields
  - `idx::Int`
  - `a1::Int`
  - `a2::Int`
  - `order::BondOrderType`
+
+# Private fields
  - `properties::Properties`
  - `flags::Flags`
 

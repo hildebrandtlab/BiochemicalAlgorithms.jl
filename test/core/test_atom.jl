@@ -28,7 +28,7 @@
         @test !isnothing(Tables.rows(at))
 
         # AbstractArray interface
-        @test size(at) == (2, 13)
+        @test size(at) == (2, 11)
         @test length(at) == 2
         @test eltype(at) == Atom{T}
         @test keys(at) == [1, 2]
@@ -59,11 +59,11 @@
         @test at.charge == [a1.charge, a2.charge]
         @test at.radius isa AbstractVector{T}
         @test at.radius == [a1.radius, a2.radius]
+
         @test at.properties isa AbstractVector{Properties}
         @test at.properties == [a1.properties, a2.properties]
         @test at.flags isa AbstractVector{Flags}
         @test at.flags == [a1.flags, a2.flags]
-
         @test at.frame_id isa AbstractVector{Int}
         @test at.frame_id == [a1.frame_id, a2.frame_id]
         @test at.molecule_idx isa AbstractVector{MaybeInt}
@@ -111,13 +111,11 @@
         @test Tables.getcolumn(at, :radius) isa AbstractVector{T}
         @test Tables.getcolumn(at, 11) isa AbstractVector{T}
         @test Tables.getcolumn(at, :radius) == Tables.getcolumn(at, 11) == [a1.radius, a2.radius]
-        @test Tables.getcolumn(at, :properties) isa AbstractVector{Properties}
-        @test Tables.getcolumn(at, 12) isa AbstractVector{Properties}
-        @test Tables.getcolumn(at, :properties) == Tables.getcolumn(at, 12) == [a1.properties, a2.properties]
-        @test Tables.getcolumn(at, :flags) isa AbstractVector{Flags}
-        @test Tables.getcolumn(at, 13) isa AbstractVector{Flags}
-        @test Tables.getcolumn(at, :flags) == Tables.getcolumn(at, 13) == [a1.flags, a2.flags]
 
+        @test Tables.getcolumn(at, :properties) isa AbstractVector{Properties}
+        @test Tables.getcolumn(at, :properties) == [a1.properties, a2.properties]
+        @test Tables.getcolumn(at, :flags) isa AbstractVector{Flags}
+        @test Tables.getcolumn(at, :flags) == [a1.flags, a2.flags]
         @test Tables.getcolumn(at, :frame_id) isa AbstractVector{Int}
         @test Tables.getcolumn(at, :frame_id) == [a1.frame_id, a2.frame_id]
         @test Tables.getcolumn(at, :molecule_idx) isa AbstractVector{MaybeInt}
@@ -143,9 +141,9 @@
         @test_throws ErrorException at.formal_charge = [995, 994]
         @test_throws ErrorException at.charge = T[993, 992]
         @test_throws ErrorException at.radius = T[991, 990]
+
         @test_throws ErrorException at.properties = [Properties(), Properties(:fourth => 989)]
         @test_throws ErrorException at.flags = [Flags(), Flags([:fifth])]
-
         @test_throws ErrorException at.frame_id = [988, 987]
         @test_throws ErrorException at.molecule_idx = [986, 985]
         @test_throws ErrorException at.chain_idx = [984, 983]
@@ -233,7 +231,7 @@ end
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(atom, :_row)) == 13
+        @test length(getfield(atom, :_row)) == 11
 
         # getproperty
         @test atom.idx isa Int
@@ -257,14 +255,11 @@ end
         @test atom.charge == at.charge
         @test atom.radius isa T
         @test atom.radius == at.radius
+
         @test atom.properties isa Properties
         @test atom.properties == at.properties
         @test atom.flags isa Flags
         @test atom.flags == at.flags
-
-        @test atom._sys isa System{T}
-        @test atom._row isa BiochemicalAlgorithms._AtomTableRow{T}
-
         @test atom.frame_id isa Int
         @test atom.frame_id == 1
         @test isnothing(atom.molecule_idx)
@@ -272,6 +267,9 @@ end
         @test isnothing(atom.fragment_idx)
         @test isnothing(atom.nucleotide_idx)
         @test isnothing(atom.residue_idx)
+
+        @test atom._sys isa System{T}
+        @test atom._row isa BiochemicalAlgorithms._AtomTableRow{T}
 
         @test atom2.frame_id isa Int
         @test atom2.frame_id == 10
@@ -307,6 +305,7 @@ end
         @test atom.charge == -one(T)
         atom.radius = one(T) / 2
         @test atom.radius == one(T) / 2
+
         atom.properties = Properties(:first => "v1", :second => 99)
         @test length(atom.properties) == 2
         @test atom.properties[:first] == "v1"

@@ -15,10 +15,10 @@ generated using [`chains`](@ref) or filtered from other chain tables (via `Base.
 # Public columns
  - `idx::AbstractVector{Int}`
  - `name::AbstractVector{String}`
- - `properties::AbstractVector{Properties}`
- - `flags::AbstractVector{Flags}`
 
 # Private columns
+ - `properties::AbstractVector{Properties}`
+ - `flags::AbstractVector{Flags}`
  - `molecule_idx::AbstractVector{Int}`
 """
 @auto_hash_equals struct ChainTable{T} <: AbstractSystemComponentTable{T}
@@ -91,10 +91,10 @@ Mutable representation of an individual chain in a system.
 # Public fields
  - `idx::Int`
  - `name::String`
- - `properties::Properties`
- - `flags::Flags`
 
 # Private fields
+ - `properties::Properties`
+ - `flags::Flags`
  - `molecule_idx::Int`
 
 # Constructors

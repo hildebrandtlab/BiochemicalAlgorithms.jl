@@ -1,20 +1,20 @@
 const _fragment_table_schema = Tables.Schema(
-    (:idx, :number, :name, :properties, :flags),
-    (Int, Int, String, Properties, Flags)
+    (:idx, :number, :name),
+    (Int, Int, String)
 )
 const _fragment_table_cols = _fragment_table_schema.names
 const _fragment_table_cols_set = Set(_fragment_table_cols)
-const _fragment_table_cols_priv = Set([:molecule_idx, :chain_idx])
+const _fragment_table_cols_priv = Set([:properties, :flags, :molecule_idx, :chain_idx])
 
 @auto_hash_equals struct _FragmentTable <: AbstractColumnTable
     # public columns
     idx::Vector{Int}
     number::Vector{Int}
     name::Vector{String}
-    properties::Vector{Properties}
-    flags::Vector{Flags}
 
     # private columns
+    properties::Vector{Properties}
+    flags::Vector{Flags}
     molecule_idx::Vector{Int}
     chain_idx::Vector{Int}
 

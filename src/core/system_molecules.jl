@@ -1,16 +1,21 @@
 const _molecule_table_schema = Tables.Schema(
-    (:idx, :name, :properties, :flags),
-    (Int, String, Properties, Flags)
+    (:idx, :name),
+    (Int, String)
 )
 const _molecule_table_cols = _molecule_table_schema.names
 const _molecule_table_cols_set = Set(_molecule_table_cols)
+const _molecule_table_cols_priv = Set([:properties, :flags])
 
 @auto_hash_equals struct _MoleculeTable <: AbstractColumnTable
+    # public columns
     idx::Vector{Int}
     name::Vector{String}
+
+    # private columns
     properties::Vector{Properties}
     flags::Vector{Flags}
 
+    # internals
     _idx_map::Dict{Int,Int}
 
     function _MoleculeTable()
@@ -28,7 +33,7 @@ end
 @inline Tables.schema(::_MoleculeTable) = _molecule_table_schema
 
 @inline function Tables.getcolumn(mt::_MoleculeTable, nm::Symbol)
-    @assert nm in _molecule_table_cols "type _MoleculeTable has no column $nm"
+    @assert nm in _molecule_table_cols_priv || nm in _molecule_table_cols "type _MoleculeTable has no column $nm"
     getfield(mt, nm)
 end
 

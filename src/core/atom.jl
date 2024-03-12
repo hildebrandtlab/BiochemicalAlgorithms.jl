@@ -31,10 +31,10 @@ generated using [`atoms`](@ref) or filtered from other atom tables (via `Base.fi
  - `formal_charge::AbstractVector{Int}`
  - `charge::AbstractVector{T}`
  - `radius::AbstractVector{T}`
- - `properties::AbstractVector{Properties}`
- - `flags::AbstractVector{Flags}`
 
 # Private columns
+ - `properties::AbstractVector{Properties}`
+ - `flags::AbstractVector{Flags}`
  - `frame_id::AbstractVector{Int}`
  - `molecule_idx::AbstractVector{MaybeInt}`
  - `chain_idx::AbstractVector{MaybeInt}`
@@ -122,10 +122,10 @@ Mutable representation of an individual atom in a system.
  - `formal_charge::Int`
  - `charge::T`
  - `radius::T`
- - `properties::Properties`
- - `flags::Flags`
 
 # Private fields
+ - `properties::Properties`
+ - `flags::Flags`
  - `frame_id::Int`
  - `molecule_idx::MaybeInt`
  - `chain_idx::MaybeInt`

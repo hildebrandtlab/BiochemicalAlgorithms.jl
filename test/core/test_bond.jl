@@ -24,7 +24,7 @@
         @test !isnothing(Tables.rows(bt))
 
         # AbstractArray interface
-        @test size(bt) == (2, 6)
+        @test size(bt) == (2, 4)
         @test length(bt) == 2
         @test eltype(bt) == Bond{T}
         @test keys(bt) == [1, 2]
@@ -41,6 +41,7 @@
         @test bt.a2 == [b1.a2, b2.a2]
         @test bt.order isa AbstractVector{BondOrderType}
         @test bt.order == [b1.order, b2.order]
+
         @test bt.properties isa AbstractVector{Properties}
         @test bt.properties == [b1.properties, b2.properties]
         @test bt.flags isa AbstractVector{Flags}
@@ -59,18 +60,18 @@
         @test Tables.getcolumn(bt, :order) isa AbstractVector{BondOrderType}
         @test Tables.getcolumn(bt, 4) isa AbstractVector{BondOrderType}
         @test Tables.getcolumn(bt, :order) == Tables.getcolumn(bt, 4) == [b1.order, b2.order]
+
         @test Tables.getcolumn(bt, :properties) isa AbstractVector{Properties}
-        @test Tables.getcolumn(bt, 5) isa AbstractVector{Properties}
-        @test Tables.getcolumn(bt, :properties) == Tables.getcolumn(bt, 5) == [b1.properties, b2.properties]
+        @test Tables.getcolumn(bt, :properties) == [b1.properties, b2.properties]
         @test Tables.getcolumn(bt, :flags) isa AbstractVector{Flags}
-        @test Tables.getcolumn(bt, 6) isa AbstractVector{Flags}
-        @test Tables.getcolumn(bt, :flags) == Tables.getcolumn(bt, 6) == [b1.flags, b2.flags]
+        @test Tables.getcolumn(bt, :flags) == [b1.flags, b2.flags]
 
         # setproperty!
         @test_throws ErrorException bt.idx = [999, 998]
         @test_throws ErrorException bt.a1 = [997, 996]
         @test_throws ErrorException bt.a2 = [995, 994]
         @test_throws ErrorException bt.order = [BondOrder.Triple, BondOrder.Quadruple]
+
         @test_throws ErrorException bt.properties = [Properties(), Properties(:fourth => 993)]
         @test_throws ErrorException bt.flags = [Flags(), Flags([:fifth])]
 
@@ -130,7 +131,7 @@ end
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(bond, :_row)) == 6
+        @test length(getfield(bond, :_row)) == 4
 
         # getproperty
         @test bond.idx isa Int
@@ -140,6 +141,7 @@ end
         @test bond.a2 == atom2.idx
         @test bond.order isa BondOrderType
         @test bond.order == BondOrder.Single
+
         @test bond.properties isa Properties
         @test bond.properties == Properties()
         @test bond.flags isa Flags
@@ -167,6 +169,7 @@ end
         @test bond.a2 == atom1.idx
         bond.order = BondOrder.Triple
         @test bond.order == BondOrder.Triple
+
         bond.properties = Properties(:first => "v1", :second => 99)
         @test length(bond.properties) == 2
         @test bond.properties[:first] == "v1"
