@@ -140,8 +140,11 @@ end
     setproperty!(getfield(nuc, :_row), name, val)
 end
 
-@inline Base.show(io::IO, ::MIME"text/plain", nuc::Nucleotide) = show(io, getfield(nuc, :_row))
-@inline Base.show(io::IO, nuc::Nucleotide) = show(io, getfield(nuc, :_row))
+@inline Base.show(io::IO, ::MIME"text/plain", nuc::Nucleotide) = show(io, nuc)
+@inline function Base.show(io::IO, nuc::Nucleotide)
+    print(io, "$(typeof(nuc)): ")
+    show(io, NamedTuple(nuc._row))
+end
 
 @inline Base.parent(nuc::Nucleotide) = nuc._sys
 @inline parent_system(nuc::Nucleotide) = parent(nuc)

@@ -217,8 +217,11 @@ end
     setproperty!(getfield(atom, :_row), name, val)
 end
 
-@inline Base.show(io::IO, ::MIME"text/plain", atom::Atom) = show(io, getfield(atom, :_row))
-@inline Base.show(io::IO, atom::Atom) = show(io, getfield(atom, :_row))
+@inline Base.show(io::IO, ::MIME"text/plain", atom::Atom) = show(io, atom)
+@inline function Base.show(io::IO, atom::Atom)
+    print(io, "$(typeof(atom)): ")
+    show(io, NamedTuple(atom._row))
+end
 
 @inline Base.parent(atom::Atom) = atom._sys
 @inline parent_system(atom::Atom) = parent(atom)

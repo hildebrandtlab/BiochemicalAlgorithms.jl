@@ -134,8 +134,11 @@ end
     setproperty!(getfield(chain, :_row), name, val)
 end
 
-@inline Base.show(io::IO, ::MIME"text/plain", chain::Chain) = show(io, getfield(chain, :_row))
-@inline Base.show(io::IO, chain::Chain) = show(io, getfield(chain, :_row))
+@inline Base.show(io::IO, ::MIME"text/plain", chain::Chain) = show(io, chain)
+@inline function Base.show(io::IO, chain::Chain)
+    print(io, "$(typeof(chain)): ")
+    show(io, NamedTuple(chain._row))
+end
 
 @inline Base.parent(chain::Chain) = chain._sys
 @inline parent_system(chain::Chain) = parent(chain)

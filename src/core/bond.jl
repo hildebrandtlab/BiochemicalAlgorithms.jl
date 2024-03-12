@@ -171,8 +171,11 @@ end
     setproperty!(getfield(bond, :_row), name, val)
 end
 
-@inline Base.show(io::IO, ::MIME"text/plain", bond::Bond) = show(io, getfield(bond, :_row))
-@inline Base.show(io::IO, bond::Bond) = show(io, getfield(bond, :_row))
+@inline Base.show(io::IO, ::MIME"text/plain", bond::Bond) = show(io, bond)
+@inline function Base.show(io::IO, bond::Bond)
+    print(io, "$(typeof(bond)): ")
+    show(io, NamedTuple(bond._row))
+end
 
 @inline Base.parent(bond::Bond) = bond._sys
 @inline parent_system(bond::Bond) = parent(bond)

@@ -149,8 +149,11 @@ end
     setproperty!(getfield(mol, :_row), name, val)
 end
 
-@inline Base.show(io::IO, ::MIME"text/plain", mol::Molecule) = show(io, getfield(mol, :_row))
-@inline Base.show(io::IO, mol::Molecule) = show(io, getfield(mol, :_row))
+@inline Base.show(io::IO, ::MIME"text/plain", mol::Molecule) = show(io, mol)
+@inline function Base.show(io::IO, mol::Molecule)
+    print(io, "$(typeof(mol)): ")
+    show(io, NamedTuple(mol._row))
+end
 
 @inline Base.parent(mol::Molecule) = mol._sys
 @inline parent_system(mol::Molecule) = parent(mol)

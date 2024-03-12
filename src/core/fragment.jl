@@ -149,8 +149,11 @@ end
     setproperty!(getfield(frag, :_row), name, val)
 end
 
-@inline Base.show(io::IO, ::MIME"text/plain", frag::Fragment) = show(io, getfield(frag, :_row))
-@inline Base.show(io::IO, frag::Fragment) = show(io, getfield(frag, :_row))
+@inline Base.show(io::IO, ::MIME"text/plain", frag::Fragment) = show(io, frag)
+@inline function Base.show(io::IO, frag::Fragment)
+    print(io, "$(typeof(frag)): ")
+    show(io, NamedTuple(frag._row))
+end
 
 @inline Base.parent(frag::Fragment) = frag._sys
 @inline parent_system(frag::Fragment) = parent(frag)

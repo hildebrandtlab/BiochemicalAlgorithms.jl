@@ -141,8 +141,11 @@ end
     setproperty!(getfield(res, :_row), name, val)
 end
 
-@inline Base.show(io::IO, ::MIME"text/plain", res::Residue) = show(io, getfield(res, :_row))
-@inline Base.show(io::IO, res::Residue) = show(io, getfield(res, :_row))
+@inline Base.show(io::IO, ::MIME"text/plain", res::Residue) = show(io, res)
+@inline function Base.show(io::IO, res::Residue)
+    print(io, "$(typeof(res)): ")
+    show(io, NamedTuple(res._row))
+end
 
 @inline Base.parent(res::Residue) = res._sys
 @inline parent_system(res::Residue) = parent(res)
