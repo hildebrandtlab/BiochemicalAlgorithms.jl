@@ -28,19 +28,19 @@ generated using [`residues`](@ref) or filtered from other residue tables (via `B
     _idx::Vector{Int}
 end
 
-@inline _residues(rt::ResidueTable) = getfield(getfield(rt, :_sys), :_residues)
+@inline _table(rt::ResidueTable) = getfield(getfield(rt, :_sys), :_residues)
 @inline _hascolumn(::ResidueTable, nm::Symbol) = nm in _residue_table_cols_priv || nm in _residue_table_cols_set
 
 @inline function Tables.getcolumn(rt::ResidueTable, nm::Symbol)
-    col = Tables.getcolumn(_residues(rt), nm)
+    col = Tables.getcolumn(_table(rt), nm)
     _RowProjectionVector{eltype(col)}(
         col,
-        map(idx -> _residues(rt)._idx_map[idx], rt._idx)
+        map(idx -> _table(rt)._idx_map[idx], rt._idx)
     )
 end
 
-@inline Tables.columnnames(rt::ResidueTable) = Tables.columnnames(_residues(rt))
-@inline Tables.schema(rt::ResidueTable) = Tables.schema(_residues(rt))
+@inline Tables.columnnames(rt::ResidueTable) = Tables.columnnames(_table(rt))
+@inline Tables.schema(rt::ResidueTable) = Tables.schema(_table(rt))
 
 @inline function _filter_residues(f::Function, sys::System)
     ResidueTable(sys, _filter_idx(f, sys._residues))

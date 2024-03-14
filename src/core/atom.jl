@@ -47,19 +47,19 @@ generated using [`atoms`](@ref) or filtered from other atom tables (via `Base.fi
     _idx::Vector{Int}
 end
 
-@inline _atoms(at::AtomTable) = getfield(getfield(at, :_sys), :_atoms)
+@inline _table(at::AtomTable) = getfield(getfield(at, :_sys), :_atoms)
 @inline _hascolumn(::AtomTable, nm::Symbol) = nm in _atom_table_cols_priv || nm in _atom_table_cols_set
 
 @inline function Tables.getcolumn(at::AtomTable, nm::Symbol)
-    col = Tables.getcolumn(_atoms(at), nm)
+    col = Tables.getcolumn(_table(at), nm)
     _RowProjectionVector{eltype(col)}(
         col,
-        map(idx -> _atoms(at)._idx_map[idx], at._idx)
+        map(idx -> _table(at)._idx_map[idx], at._idx)
     )
 end
 
-@inline Tables.columnnames(at::AtomTable) = Tables.columnnames(_atoms(at))
-@inline Tables.schema(at::AtomTable) = Tables.schema(_atoms(at))
+@inline Tables.columnnames(at::AtomTable) = Tables.columnnames(_table(at))
+@inline Tables.schema(at::AtomTable) = Tables.schema(_table(at))
 
 @inline function _filter_atoms(f::Function, sys::System)
     AtomTable(sys, _filter_idx(f, sys._atoms))

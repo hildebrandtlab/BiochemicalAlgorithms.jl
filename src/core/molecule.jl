@@ -26,19 +26,19 @@ generated using [`molecules`](@ref) or filtered from other molecule tables (via 
     _idx::Vector{Int}
 end
 
-@inline _molecules(mt::MoleculeTable) = getfield(getfield(mt, :_sys), :_molecules)
+@inline _table(mt::MoleculeTable) = getfield(getfield(mt, :_sys), :_molecules)
 @inline _hascolumn(::MoleculeTable, nm::Symbol) = nm in _molecule_table_cols_priv || nm in _molecule_table_cols_set
 
 @inline function Tables.getcolumn(mt::MoleculeTable, nm::Symbol)
-    col = Tables.getcolumn(_molecules(mt), nm)
+    col = Tables.getcolumn(_table(mt), nm)
     _RowProjectionVector{eltype(col)}(
         col,
-        map(idx -> _molecules(mt)._idx_map[idx], mt._idx)
+        map(idx -> _table(mt)._idx_map[idx], mt._idx)
     )
 end
 
-@inline Tables.columnnames(mt::MoleculeTable) = Tables.columnnames(_molecules(mt))
-@inline Tables.schema(mt::MoleculeTable) = Tables.schema(_molecules(mt))
+@inline Tables.columnnames(mt::MoleculeTable) = Tables.columnnames(_table(mt))
+@inline Tables.schema(mt::MoleculeTable) = Tables.schema(_table(mt))
 
 @inline function _filter_molecules(f::Function, sys::System)
     MoleculeTable(sys, _filter_idx(f, sys._molecules))

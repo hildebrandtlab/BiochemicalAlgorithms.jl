@@ -31,19 +31,19 @@ generated using [`bonds`](@ref) or filtered from other bond tables (via `Base.fi
     _idx::Vector{Int}
 end
 
-@inline _bonds(bt::BondTable) = getfield(getfield(bt, :_sys), :_bonds)
+@inline _table(bt::BondTable) = getfield(getfield(bt, :_sys), :_bonds)
 @inline _hascolumn(::BondTable, nm::Symbol) = nm in _bond_table_cols_priv || nm in _bond_table_cols_set
 
 @inline function Tables.getcolumn(bt::BondTable, nm::Symbol)
-    col = Tables.getcolumn(_bonds(bt), nm)
+    col = Tables.getcolumn(_table(bt), nm)
     _RowProjectionVector{eltype(col)}(
         col,
-        map(idx -> _bonds(bt)._idx_map[idx], bt._idx)
+        map(idx -> _table(bt)._idx_map[idx], bt._idx)
     )
 end
 
-@inline Tables.columnnames(bt::BondTable) = Tables.columnnames(_bonds(bt))
-@inline Tables.schema(bt::BondTable) = Tables.schema(_bonds(bt))
+@inline Tables.columnnames(bt::BondTable) = Tables.columnnames(_table(bt))
+@inline Tables.schema(bt::BondTable) = Tables.schema(_table(bt))
 
 @inline function _filter_bonds(f::Function, sys::System)
     BondTable(sys, _filter_idx(f, sys._bonds))

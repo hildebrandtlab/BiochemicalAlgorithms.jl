@@ -26,19 +26,19 @@ generated using [`chains`](@ref) or filtered from other chain tables (via `Base.
     _idx::Vector{Int}
 end
 
-@inline _chains(ct::ChainTable) = getfield(getfield(ct, :_sys), :_chains)
+@inline _table(ct::ChainTable) = getfield(getfield(ct, :_sys), :_chains)
 @inline _hascolumn(::ChainTable, nm::Symbol) = nm in _chain_table_cols_priv || nm in _chain_table_cols_set
 
 @inline function Tables.getcolumn(ct::ChainTable, nm::Symbol)
-    col = Tables.getcolumn(_chains(ct), nm)
+    col = Tables.getcolumn(_table(ct), nm)
     _RowProjectionVector{eltype(col)}(
         col,
-        map(idx -> _chains(ct)._idx_map[idx], ct._idx)
+        map(idx -> _table(ct)._idx_map[idx], ct._idx)
     )
 end
 
-@inline Tables.columnnames(ct::ChainTable) = Tables.columnnames(_chains(ct))
-@inline Tables.schema(ct::ChainTable) = Tables.schema(_chains(ct))
+@inline Tables.columnnames(ct::ChainTable) = Tables.columnnames(_table(ct))
+@inline Tables.schema(ct::ChainTable) = Tables.schema(_table(ct))
 
 @inline function _filter_chains(f::Function, sys::System)
     ChainTable(sys, _filter_idx(f, sys._chains))

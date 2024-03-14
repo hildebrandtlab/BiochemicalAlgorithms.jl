@@ -78,6 +78,7 @@ end
     setfield!(at, nm, val)
 end
 
+@inline _table(at::AbstractSystemComponentTable) = at
 @inline _hascolumn(::AbstractSystemComponentTable, ::Symbol) = false
 
 """

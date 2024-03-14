@@ -37,19 +37,19 @@ generated using [`fragments`](@ref) or filtered from other fragment tables (via 
     _idx::Vector{Int}
 end
 
-@inline _fragments(ft::FragmentTable) = getfield(getfield(ft, :_sys), :_fragments)
+@inline _table(ft::FragmentTable) = getfield(getfield(ft, :_sys), :_fragments)
 @inline _hascolumn(::FragmentTable, nm::Symbol) = nm in _fragment_table_cols_priv || nm in _fragment_table_cols_set
 
 @inline function Tables.getcolumn(ft::FragmentTable, nm::Symbol)
-    col = Tables.getcolumn(_fragments(ft), nm)
+    col = Tables.getcolumn(_table(ft), nm)
     _RowProjectionVector{eltype(col)}(
         col,
-        map(idx -> _fragments(ft)._idx_map[idx], ft._idx)
+        map(idx -> _table(ft)._idx_map[idx], ft._idx)
     )
 end
 
-@inline Tables.columnnames(ft::FragmentTable) = Tables.columnnames(_fragments(ft))
-@inline Tables.schema(ft::FragmentTable) = Tables.schema(_fragments(ft))
+@inline Tables.columnnames(ft::FragmentTable) = Tables.columnnames(_table(ft))
+@inline Tables.schema(ft::FragmentTable) = Tables.schema(_table(ft))
 
 @inline function _filter_fragments(f::Function, sys::System)
     FragmentTable(sys, _filter_idx(f, sys._fragments))
