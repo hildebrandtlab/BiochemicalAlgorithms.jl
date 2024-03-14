@@ -66,11 +66,11 @@ end
 end
 
 @inline function _filter_fragments(f::Function, sys::System)
-    FragmentTable(sys, collect(Int, _filter_select(f, sys._fragments, :idx)))
+    FragmentTable(sys, _filter_idx(f, sys._fragments))
 end
 
 @inline function Base.filter(f::Function, ft::FragmentTable)
-    FragmentTable(ft._sys, collect(Int, _filter_select(f, ft, :idx)))
+    FragmentTable(ft._sys, _filter_idx(f, ft))
 end
 
 @inline function Base.iterate(ft::FragmentTable, st = 1)

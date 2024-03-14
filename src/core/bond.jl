@@ -60,11 +60,11 @@ end
 end
 
 @inline function _filter_bonds(f::Function, sys::System)
-    BondTable(sys, collect(Int, _filter_select(f, sys._bonds, :idx)))
+    BondTable(sys, _filter_idx(f, sys._bonds))
 end
 
 @inline function Base.filter(f::Function, bt::BondTable)
-    BondTable(bt._sys, collect(Int, _filter_select(f, bt, :idx)))
+    BondTable(bt._sys, _filter_idx(f, bt))
 end
 
 @inline function Base.iterate(bt::BondTable, st = 1)

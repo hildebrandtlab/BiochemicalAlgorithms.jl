@@ -55,11 +55,11 @@ end
 end
 
 @inline function _filter_molecules(f::Function, sys::System)
-    MoleculeTable(sys, collect(Int, _filter_select(f, sys._molecules, :idx)))
+    MoleculeTable(sys, _filter_idx(f, sys._molecules))
 end
 
 @inline function Base.filter(f::Function, mt::MoleculeTable)
-    MoleculeTable(mt._sys, collect(Int, _filter_select(f, mt, :idx)))
+    MoleculeTable(mt._sys, _filter_idx(f, mt))
 end
 
 @inline function Base.iterate(mt::MoleculeTable, st = 1)

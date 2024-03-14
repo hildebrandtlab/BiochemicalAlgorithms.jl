@@ -52,6 +52,10 @@ end
     )
 end
 
+@inline function _filter_idx(f::Function, at::AbstractColumnTable)
+    collect(Int, _filter_select(f, at, :idx))
+end
+
 @inline function _filter_select(f::Function, at::AbstractColumnTable, col::Symbol)
     (getproperty(a, col) for a in TableOperations.filter(f, at))
 end
