@@ -52,8 +52,8 @@ end
     )
 end
 
-@inline function _filter_select(itr, col::Symbol)
-    (getproperty(a, col) for a in itr)
+@inline function _filter_select(f::Function, at::AbstractColumnTable, col::Symbol)
+    (getproperty(a, col) for a in TableOperations.filter(f, at))
 end
 
 """

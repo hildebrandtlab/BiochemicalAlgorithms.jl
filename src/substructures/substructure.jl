@@ -86,32 +86,32 @@ private atom fields.
 end
 
 @inline function bonds(substruct::Substructure; kwargs...)
-    aidx = Set(_filter_select(atoms(substruct; kwargs...), :idx))
+    aidx = Set(atoms(substruct; kwargs...).idx)
     filter(row -> row.a1 in aidx || row.a2.idx, substruct._bonds)
 end
 
 @inline function molecules(substruct::Substructure; kwargs...)
-    midx = Set(_filter_select(atoms(substruct; kwargs...), :molecule_idx))
+    midx = Set(atoms(substruct; kwargs...).molecule_idx)
     filter(row -> row.idx in midx, molecules(substruct.parent))
 end
 
 @inline function chains(substruct::Substructure; kwargs...)
-    cidx = Set(_filter_select(atoms(substruct; kwargs...), :chain_idx))
+    cidx = Set(atoms(substruct; kwargs...).chain_idx)
     filter(row -> row.idx in cidx, chains(substruct.parent))
 end
 
 @inline function fragments(substruct::Substructure; kwargs...)
-    fidx = Set(_filter_select(atoms(substruct; kwargs...), :fragment_idx))
+    fidx = Set(atoms(substruct; kwargs...).fragment_idx)
     filter(row -> row.idx in fidx, fragments(substruct.parent))
 end
 
 @inline function nucleotides(substruct::Substructure; kwargs...)
-    nidx = Set(_filter_select(atoms(substruct; kwargs...), :nucleotide_idx))
+    nidx = Set(atoms(substruct; kwargs...).nucleotide_idx)
     filter(row -> row.idx in nidx, nucleotides(substruct.parent))
 end
 
 @inline function residues(substruct::Substructure; kwargs...)
-    ridx = Set(_filter_select(atoms(substruct; kwargs...), :residue_idx))
+    ridx = Set(atoms(substruct; kwargs...).residue_idx)
     filter(row -> row.idx in ridx, residues(substruct.parent))
 end
 

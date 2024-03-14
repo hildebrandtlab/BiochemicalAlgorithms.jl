@@ -60,17 +60,11 @@ end
 end
 
 @inline function _filter_bonds(f::Function, sys::System)
-    BondTable(sys, collect(Int, _filter_select(
-        TableOperations.filter(f, sys._bonds),
-        :idx
-    )))
+    BondTable(sys, collect(Int, _filter_select(f, sys._bonds, :idx)))
 end
 
 @inline function Base.filter(f::Function, bt::BondTable)
-    BondTable(bt._sys, collect(Int, _filter_select(
-        TableOperations.filter(f, bt),
-        :idx
-    )))
+    BondTable(bt._sys, collect(Int, _filter_select(f, bt, :idx)))
 end
 
 @inline function Base.iterate(bt::BondTable, st = 1)
@@ -211,7 +205,7 @@ See [`atoms`](@ref)
 """
 function bonds(sys::System; kwargs...)
     # FIXME this implementation currently ignores bonds with _two_ invalid atom IDs
-    aidx = Set(_filter_select(atoms(sys; kwargs...), :idx))
+    aidx = Set(atoms(sys; kwargs...).idx)
     _filter_bonds(
         bond -> bond.a1 in aidx || bond.a2 in aidx,
         sys

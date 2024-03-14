@@ -76,17 +76,11 @@ end
 end
 
 @inline function _filter_atoms(f::Function, sys::System)
-    AtomTable(sys, collect(Int, _filter_select(
-        TableOperations.filter(f, sys._atoms),
-        :idx
-    )))
+    AtomTable(sys, collect(Int, _filter_select(f, sys._atoms, :idx)))
 end
 
 @inline function Base.filter(f::Function, at::AtomTable)
-    AtomTable(at._sys, collect(Int, _filter_select(
-        TableOperations.filter(f, at),
-        :idx
-    )))
+    AtomTable(at._sys, collect(Int, _filter_select(f, at, :idx)))
 end
 
 @inline function Base.iterate(at::AtomTable, st = 1)

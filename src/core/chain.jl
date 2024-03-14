@@ -55,17 +55,11 @@ end
 end
 
 @inline function _filter_chains(f::Function, sys::System)
-    ChainTable(sys, collect(Int, _filter_select(
-        TableOperations.filter(f, sys._chains),
-        :idx
-    )))
+    ChainTable(sys, collect(Int, _filter_select(f, sys._chains, :idx)))
 end
 
 @inline function Base.filter(f::Function, ct::ChainTable)
-    ChainTable(ct._sys, collect(Int, _filter_select(
-        TableOperations.filter(f, ct),
-        :idx
-    )))
+    ChainTable(ct._sys, collect(Int, _filter_select(f, ct, :idx)))
 end
 
 @inline function Base.iterate(ct::ChainTable, st = 1)

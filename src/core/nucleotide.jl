@@ -57,17 +57,11 @@ end
 end
 
 @inline function _filter_nucleotides(f::Function, sys::System)
-    NucleotideTable(sys, collect(Int, _filter_select(
-        TableOperations.filter(f, sys._nucleotides),
-        :idx
-    )))
+    NucleotideTable(sys, collect(Int, _filter_select(f, sys._nucleotides, :idx)))
 end
 
 @inline function Base.filter(f::Function, nt::NucleotideTable)
-    NucleotideTable(nt._sys, collect(Int, _filter_select(
-        TableOperations.filter(f, nt),
-        :idx
-    )))
+    NucleotideTable(nt._sys, collect(Int, _filter_select(f, nt, :idx)))
 end
 
 @inline function Base.iterate(nt::NucleotideTable, st = 1)

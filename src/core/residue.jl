@@ -57,17 +57,11 @@ end
 end
 
 @inline function _filter_residues(f::Function, sys::System)
-    ResidueTable(sys, collect(Int, _filter_select(
-        TableOperations.filter(f, sys._residues),
-        :idx
-    )))
+    ResidueTable(sys, collect(Int, _filter_select(f, sys._residues, :idx)))
 end
 
 @inline function Base.filter(f::Function, rt::ResidueTable)
-    ResidueTable(rt._sys, collect(Int, _filter_select(
-        TableOperations.filter(f, rt),
-        :idx
-    )))
+    ResidueTable(rt._sys, collect(Int, _filter_select(f, rt, :idx)))
 end
 
 @inline function Base.iterate(rt::ResidueTable, st = 1)
