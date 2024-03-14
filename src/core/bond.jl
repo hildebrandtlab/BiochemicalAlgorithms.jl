@@ -32,6 +32,7 @@ generated using [`bonds`](@ref) or filtered from other bond tables (via `Base.fi
 end
 
 @inline _bonds(bt::BondTable) = getfield(getfield(bt, :_sys), :_bonds)
+@inline _hascolumn(::BondTable, nm::Symbol) = nm in _bond_table_cols_priv || nm in _bond_table_cols_set
 
 @inline function Tables.getcolumn(bt::BondTable, nm::Symbol)
     col = Tables.getcolumn(_bonds(bt), nm)
@@ -43,21 +44,6 @@ end
 
 @inline Tables.columnnames(bt::BondTable) = Tables.columnnames(_bonds(bt))
 @inline Tables.schema(bt::BondTable) = Tables.schema(_bonds(bt))
-
-@inline function Base.getproperty(bt::BondTable, nm::Symbol)
-    hasfield(typeof(bt), nm) && return getfield(bt, nm)
-    Tables.getcolumn(bt, nm)
-end
-
-@inline function Base.setproperty!(bt::BondTable, nm::Symbol, val)
-    if nm in _bond_table_cols_priv || nm in _bond_table_cols_set
-        error("BondTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
-    end
-    if !hasfield(typeof(bt), nm)
-        error("type BondTable has no field $nm")
-    end
-    setfield!(bt, nm, val)
-end
 
 @inline function _filter_bonds(f::Function, sys::System)
     BondTable(sys, _filter_idx(f, sys._bonds))

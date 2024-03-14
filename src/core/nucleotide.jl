@@ -29,6 +29,7 @@ generated using [`nucleotides`](@ref) or filtered from other nucleotide tables (
 end
 
 @inline _nucleotides(nt::NucleotideTable) = getfield(getfield(nt, :_sys), :_nucleotides)
+@inline _hascolumn(::NucleotideTable, nm::Symbol) = nm in _nucleotide_table_cols_priv || nm in _nucleotide_table_cols_set
 
 @inline function Tables.getcolumn(nt::NucleotideTable, nm::Symbol)
     col = Tables.getcolumn(_nucleotides(nt), nm)
@@ -40,21 +41,6 @@ end
 
 @inline Tables.columnnames(nt::NucleotideTable) = Tables.columnnames(_nucleotides(nt))
 @inline Tables.schema(nt::NucleotideTable) = Tables.schema(_nucleotides(nt))
-
-@inline function Base.getproperty(nt::NucleotideTable, nm::Symbol)
-    hasfield(typeof(nt), nm) && return getfield(nt, nm)
-    Tables.getcolumn(nt, nm)
-end
-
-@inline function Base.setproperty!(nt::NucleotideTable, nm::Symbol, val)
-    if nm in _nucleotide_table_cols_priv || nm in _nucleotide_table_cols_set
-        error("NucleotideTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
-    end
-    if !hasfield(typeof(nt), nm)
-        error("type NucleotideTable has no field $nm")
-    end
-    setfield!(nt, nm, val)
-end
 
 @inline function _filter_nucleotides(f::Function, sys::System)
     NucleotideTable(sys, _filter_idx(f, sys._nucleotides))

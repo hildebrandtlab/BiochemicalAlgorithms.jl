@@ -27,6 +27,7 @@ generated using [`molecules`](@ref) or filtered from other molecule tables (via 
 end
 
 @inline _molecules(mt::MoleculeTable) = getfield(getfield(mt, :_sys), :_molecules)
+@inline _hascolumn(::MoleculeTable, nm::Symbol) = nm in _molecule_table_cols_priv || nm in _molecule_table_cols_set
 
 @inline function Tables.getcolumn(mt::MoleculeTable, nm::Symbol)
     col = Tables.getcolumn(_molecules(mt), nm)
@@ -38,21 +39,6 @@ end
 
 @inline Tables.columnnames(mt::MoleculeTable) = Tables.columnnames(_molecules(mt))
 @inline Tables.schema(mt::MoleculeTable) = Tables.schema(_molecules(mt))
-
-@inline function Base.getproperty(mt::MoleculeTable, nm::Symbol)
-    hasfield(typeof(mt), nm) && return getfield(mt, nm)
-    Tables.getcolumn(mt, nm)
-end
-
-@inline function Base.setproperty!(mt::MoleculeTable, nm::Symbol, val)
-    if nm in _molecule_table_cols_priv || nm in _molecule_table_cols_set
-        error("MoleculeTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
-    end
-    if !hasfield(typeof(mt), nm)
-        error("type MoleculeTable has no field $nm")
-    end
-    setfield!(mt, nm, val)
-end
 
 @inline function _filter_molecules(f::Function, sys::System)
     MoleculeTable(sys, _filter_idx(f, sys._molecules))

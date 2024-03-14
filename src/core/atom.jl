@@ -48,6 +48,7 @@ generated using [`atoms`](@ref) or filtered from other atom tables (via `Base.fi
 end
 
 @inline _atoms(at::AtomTable) = getfield(getfield(at, :_sys), :_atoms)
+@inline _hascolumn(::AtomTable, nm::Symbol) = nm in _atom_table_cols_priv || nm in _atom_table_cols_set
 
 @inline function Tables.getcolumn(at::AtomTable, nm::Symbol)
     col = Tables.getcolumn(_atoms(at), nm)
@@ -59,21 +60,6 @@ end
 
 @inline Tables.columnnames(at::AtomTable) = Tables.columnnames(_atoms(at))
 @inline Tables.schema(at::AtomTable) = Tables.schema(_atoms(at))
-
-@inline function Base.getproperty(at::AtomTable, nm::Symbol)
-    hasfield(typeof(at), nm) && return getfield(at, nm)
-    Tables.getcolumn(at, nm)
-end
-
-@inline function Base.setproperty!(at::AtomTable, nm::Symbol, val)
-    if nm in _atom_table_cols_priv || nm in _atom_table_cols_set
-        error("AtomTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
-    end
-    if !hasfield(typeof(at), nm)
-        error("type AtomTable has no field $nm")
-    end
-    setfield!(at, nm, val)
-end
 
 @inline function _filter_atoms(f::Function, sys::System)
     AtomTable(sys, _filter_idx(f, sys._atoms))
@@ -97,7 +83,6 @@ end
 @inline function Base.getindex(at::AtomTable, I)
     AtomTable(at._sys, collect(Int, map(i -> at._idx[i], I)))
 end
-
 
 """
     $(TYPEDEF)

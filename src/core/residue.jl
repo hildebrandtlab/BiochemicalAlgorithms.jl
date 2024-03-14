@@ -29,6 +29,7 @@ generated using [`residues`](@ref) or filtered from other residue tables (via `B
 end
 
 @inline _residues(rt::ResidueTable) = getfield(getfield(rt, :_sys), :_residues)
+@inline _hascolumn(::ResidueTable, nm::Symbol) = nm in _residue_table_cols_priv || nm in _residue_table_cols_set
 
 @inline function Tables.getcolumn(rt::ResidueTable, nm::Symbol)
     col = Tables.getcolumn(_residues(rt), nm)
@@ -40,21 +41,6 @@ end
 
 @inline Tables.columnnames(rt::ResidueTable) = Tables.columnnames(_residues(rt))
 @inline Tables.schema(rt::ResidueTable) = Tables.schema(_residues(rt))
-
-@inline function Base.getproperty(rt::ResidueTable, nm::Symbol)
-    hasfield(typeof(rt), nm) && return getfield(rt, nm)
-    Tables.getcolumn(rt, nm)
-end
-
-@inline function Base.setproperty!(rt::ResidueTable, nm::Symbol, val)
-    if nm in _residue_table_cols_priv || nm in _residue_table_cols_set
-        error("ResidueTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
-    end
-    if !hasfield(typeof(rt), nm)
-        error("type ResidueTable has no field $nm")
-    end
-    setfield!(rt, nm, val)
-end
 
 @inline function _filter_residues(f::Function, sys::System)
     ResidueTable(sys, _filter_idx(f, sys._residues))

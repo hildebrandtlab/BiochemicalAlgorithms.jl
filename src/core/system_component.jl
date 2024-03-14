@@ -67,6 +67,19 @@ Abstract base type for all Tables.jl-compatible system component tables.
 """
 abstract type AbstractSystemComponentTable{T <: Real} <: AbstractColumnTable end
 
+@inline function Base.getproperty(at::T, nm::Symbol) where {T <: AbstractSystemComponentTable}
+    hasfield(T, nm) && return getfield(at, nm)
+    Tables.getcolumn(at, nm)
+end
+
+@inline function Base.setproperty!(at::T, nm::Symbol, val) where {T <: AbstractSystemComponentTable}
+    _hascolumn(at, nm) && error("$T columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
+    hasfield(T, nm) || error("type $T has no field $nm")
+    setfield!(at, nm, val)
+end
+
+@inline _hascolumn(::AbstractSystemComponentTable, ::Symbol) = false
+
 """
     $(TYPEDEF)
 

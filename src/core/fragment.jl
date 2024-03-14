@@ -38,6 +38,7 @@ generated using [`fragments`](@ref) or filtered from other fragment tables (via 
 end
 
 @inline _fragments(ft::FragmentTable) = getfield(getfield(ft, :_sys), :_fragments)
+@inline _hascolumn(::FragmentTable, nm::Symbol) = nm in _fragment_table_cols_priv || nm in _fragment_table_cols_set
 
 @inline function Tables.getcolumn(ft::FragmentTable, nm::Symbol)
     col = Tables.getcolumn(_fragments(ft), nm)
@@ -49,21 +50,6 @@ end
 
 @inline Tables.columnnames(ft::FragmentTable) = Tables.columnnames(_fragments(ft))
 @inline Tables.schema(ft::FragmentTable) = Tables.schema(_fragments(ft))
-
-@inline function Base.getproperty(ft::FragmentTable, nm::Symbol)
-    hasfield(typeof(ft), nm) && return getfield(ft, nm)
-    Tables.getcolumn(ft, nm)
-end
-
-@inline function Base.setproperty!(ft::FragmentTable, nm::Symbol, val)
-    if nm in _fragment_table_cols_priv || nm in _fragment_table_cols_set
-        error("FragmentTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
-    end
-    if !hasfield(typeof(ft), nm)
-        error("type FragmentTable has no field $nm")
-    end
-    setfield!(ft, nm, val)
-end
 
 @inline function _filter_fragments(f::Function, sys::System)
     FragmentTable(sys, _filter_idx(f, sys._fragments))

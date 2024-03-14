@@ -27,6 +27,7 @@ generated using [`chains`](@ref) or filtered from other chain tables (via `Base.
 end
 
 @inline _chains(ct::ChainTable) = getfield(getfield(ct, :_sys), :_chains)
+@inline _hascolumn(::ChainTable, nm::Symbol) = nm in _chain_table_cols_priv || nm in _chain_table_cols_set
 
 @inline function Tables.getcolumn(ct::ChainTable, nm::Symbol)
     col = Tables.getcolumn(_chains(ct), nm)
@@ -38,21 +39,6 @@ end
 
 @inline Tables.columnnames(ct::ChainTable) = Tables.columnnames(_chains(ct))
 @inline Tables.schema(ct::ChainTable) = Tables.schema(_chains(ct))
-
-@inline function Base.getproperty(ct::ChainTable, nm::Symbol)
-    hasfield(typeof(ct), nm) && return getfield(ct, nm)
-    Tables.getcolumn(ct, nm)
-end
-
-@inline function Base.setproperty!(ct::ChainTable, nm::Symbol, val)
-    if nm in _chain_table_cols_priv || nm in _chain_table_cols_set
-        error("ChainTable columns cannot be set directly! Did you mean to use broadcast assignment (.=)?")
-    end
-    if !hasfield(typeof(ct), nm)
-        error("type ChainTable has no field $nm")
-    end
-    setfield!(ct, nm, val)
-end
 
 @inline function _filter_chains(f::Function, sys::System)
     ChainTable(sys, _filter_idx(f, sys._chains))
