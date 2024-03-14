@@ -53,7 +53,7 @@ end
 end
 
 @inline function _filter_select(itr, col::Symbol)
-    Tables.getcolumn.(itr, col)
+    (getproperty(a, col) for a in itr)
 end
 
 """
