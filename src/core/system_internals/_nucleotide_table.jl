@@ -79,7 +79,7 @@ function _nucleotide_table(itr)
 end
 @inline Tables.materializer(::Type{_NucleotideTable}) = itr -> _nucleotide_table(itr)
 
-@auto_hash_equals struct _NucleotideTableRow <: Tables.AbstractRow
+@auto_hash_equals struct _NucleotideTableRow <: _AbstractColumnTableRow
     _row::Int
     _tab::_NucleotideTable
 end

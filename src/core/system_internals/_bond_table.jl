@@ -73,7 +73,7 @@ function _bond_table(itr)
 end
 Tables.materializer(::Type{_BondTable}) = _bond_table
 
-@auto_hash_equals struct _BondTableRow <: Tables.AbstractRow
+@auto_hash_equals struct _BondTableRow <: _AbstractColumnTableRow
     _row::Int
     _tab::_BondTable
 end

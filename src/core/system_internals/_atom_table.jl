@@ -142,7 +142,7 @@ function _atom_table(::Type{T}, itr) where T
 end
 @inline Tables.materializer(::Type{_AtomTable{T}}) where T = itr -> _atom_table(T, itr)
 
-@auto_hash_equals struct _AtomTableRow{T} <: Tables.AbstractRow
+@auto_hash_equals struct _AtomTableRow{T} <: _AbstractColumnTableRow
     _row::Int
     _tab::_AtomTable{T}
 end

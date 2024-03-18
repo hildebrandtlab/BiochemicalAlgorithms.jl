@@ -78,7 +78,7 @@ function _residue_table(itr)
 end
 @inline Tables.materializer(::Type{_ResidueTable}) = itr -> _residue_table(itr)
 
-@auto_hash_equals struct _ResidueTableRow <: Tables.AbstractRow
+@auto_hash_equals struct _ResidueTableRow <: _AbstractColumnTableRow
     _row::Int
     _tab::_ResidueTable
 end

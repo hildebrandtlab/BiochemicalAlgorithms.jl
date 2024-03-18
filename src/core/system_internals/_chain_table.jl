@@ -71,7 +71,7 @@ function _chain_table(itr)
 end
 @inline Tables.materializer(::Type{_ChainTable}) = itr -> _chain_table(itr)
 
-@auto_hash_equals struct _ChainTableRow <: Tables.AbstractRow
+@auto_hash_equals struct _ChainTableRow <: _AbstractColumnTableRow
     _row::Int
     _tab::_ChainTable
 end

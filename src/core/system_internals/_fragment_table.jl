@@ -79,7 +79,7 @@ function _fragment_table(itr)
 end
 @inline Tables.materializer(::Type{_FragmentTable}) = itr -> _fragment_table(itr)
 
-@auto_hash_equals struct _FragmentTableRow <: Tables.AbstractRow
+@auto_hash_equals struct _FragmentTableRow <: _AbstractColumnTableRow
     _row::Int
     _tab::_FragmentTable
 end

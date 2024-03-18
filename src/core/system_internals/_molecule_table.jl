@@ -67,7 +67,7 @@ function _molecule_table(itr)
 end
 Tables.materializer(::Type{_MoleculeTable}) = _molecule_table
 
-@auto_hash_equals struct _MoleculeTableRow <: Tables.AbstractRow
+@auto_hash_equals struct _MoleculeTableRow <: _AbstractColumnTableRow
     _row::Int
     _tab::_MoleculeTable
 end
