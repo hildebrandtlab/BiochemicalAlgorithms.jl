@@ -6,10 +6,11 @@ using DataFrames
 using DataStructures
 using DocStringExtensions
 using Graphs, GraphDataFrameBridge
-using PrettyTables
-using StaticArrays
-using Tables, TableOperations
 using Unitful, UnitfulAtomic
+
+import PrettyTables
+import StaticArrays
+import Tables, TableOperations
 
 # core definitions
 include("core/exceptions.jl")
