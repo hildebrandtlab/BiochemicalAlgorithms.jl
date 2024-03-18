@@ -9,65 +9,6 @@ export
 """
     $(TYPEDEF)
 
-Tables.jl-compatible representation of system nucleotides (or a subset thereof). Nucleotide tables can be
-generated using [`nucleotides`](@ref) or filtered from other nucleotide tables (via `Base.filter`).
-
-# Public columns
- - `idx::AbstractVector{Int}`
- - `number::AbstractVector{Int}`
- - `name::AbstractVector{String}`
-
-# Private columns
- - `properties::AbstractVector{Properties}`
- - `flags::AbstractVector{Flags}`
- - `molecule_idx::AbstractVector{Int}`
- - `chain_idx::AbstractVector{Int}`
-"""
-@auto_hash_equals struct NucleotideTable{T} <: AbstractSystemComponentTable{T}
-    _sys::System{T}
-    _idx::Vector{Int}
-end
-
-@inline _table(nt::NucleotideTable) = getfield(getfield(nt, :_sys), :_nucleotides)
-@inline _hascolumn(::NucleotideTable, nm::Symbol) = nm in _nucleotide_table_cols_priv || nm in _nucleotide_table_cols_set
-
-@inline function Tables.getcolumn(nt::NucleotideTable, nm::Symbol)
-    col = Tables.getcolumn(_table(nt), nm)
-    _RowProjectionVector{eltype(col)}(
-        col,
-        map(idx -> _table(nt)._idx_map[idx], nt._idx)
-    )
-end
-
-@inline Tables.columnnames(nt::NucleotideTable) = Tables.columnnames(_table(nt))
-@inline Tables.schema(nt::NucleotideTable) = Tables.schema(_table(nt))
-
-@inline function _filter_nucleotides(f::Function, sys::System)
-    NucleotideTable(sys, _filter_idx(f, sys._nucleotides))
-end
-
-@inline function Base.filter(f::Function, nt::NucleotideTable)
-    NucleotideTable(nt._sys, _filter_idx(f, nt))
-end
-
-@inline function Base.iterate(nt::NucleotideTable, st = 1)
-    st > length(nt) ?
-        nothing :
-        (nucleotide_by_idx(nt._sys, nt._idx[st]), st + 1)
-end
-
-@inline Base.eltype(::NucleotideTable{T}) where T = Nucleotide{T}
-@inline Base.size(nt::NucleotideTable) = (length(nt._idx), length(Tables.columnnames(nt)))
-@inline Base.getindex(nt::NucleotideTable, i::Int) = nucleotide_by_idx(nt._sys, nt._idx[i])
-@inline Base.getindex(nt::NucleotideTable, ::Colon) = nt
-
-@inline function Base.getindex(nt::NucleotideTable, I)
-    NucleotideTable(nt._sys, collect(Int, map(i -> nt._idx[i], I)))
-end
-
-"""
-    $(TYPEDEF)
-
 Mutable representation of an individual nucleotide in a system.
 
 # Public fields
@@ -108,6 +49,29 @@ end
     idx = _next_idx(sys)
     push!(sys._nucleotides, idx, number, chain.molecule_idx, chain.idx; kwargs...)
     nucleotide_by_idx(sys, idx)
+end
+
+"""
+    $(TYPEDEF)
+
+Tables.jl-compatible representation of system nucleotides (or a subset thereof). Nucleotide tables can be
+generated using [`nucleotides`](@ref) or filtered from other nucleotide tables (via `Base.filter`).
+
+# Public columns
+ - `idx::AbstractVector{Int}`
+ - `number::AbstractVector{Int}`
+ - `name::AbstractVector{String}`
+
+# Private columns
+ - `properties::AbstractVector{Properties}`
+ - `flags::AbstractVector{Flags}`
+ - `molecule_idx::AbstractVector{Int}`
+ - `chain_idx::AbstractVector{Int}`
+"""
+const NucleotideTable{T} = SystemComponentTable{T, Nucleotide{T}}
+
+@inline function _filter_nucleotides(f::Function, sys::System{T}) where T
+    NucleotideTable{T}(sys, _filter_idx(f, sys._nucleotides))
 end
 
 @inline _table(sys::System{T}, ::Type{Nucleotide{T}}) where T = sys._nucleotides

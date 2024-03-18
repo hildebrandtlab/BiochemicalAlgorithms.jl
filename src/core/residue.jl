@@ -9,65 +9,6 @@ export
 """
     $(TYPEDEF)
 
-Tables.jl-compatible representation of system residues (or a subset thereof). Residue tables can be
-generated using [`residues`](@ref) or filtered from other residue tables (via `Base.filter`).
-
-# Public columns
- - `idx::AbstractVector{Int}`
- - `number::AbstractVector{Int}`
- - `type::AbstractVector{AminoAcid}`
-
-# Private columns
- - `properties::AbstractVector{Properties}`
- - `flags::AbstractVector{Flags}`
- - `molecule_idx::AbstractVector{Int}`
- - `chain_idx::AbstractVector{Int}`
-"""
-@auto_hash_equals struct ResidueTable{T} <: AbstractSystemComponentTable{T}
-    _sys::System{T}
-    _idx::Vector{Int}
-end
-
-@inline _table(rt::ResidueTable) = getfield(getfield(rt, :_sys), :_residues)
-@inline _hascolumn(::ResidueTable, nm::Symbol) = nm in _residue_table_cols_priv || nm in _residue_table_cols_set
-
-@inline function Tables.getcolumn(rt::ResidueTable, nm::Symbol)
-    col = Tables.getcolumn(_table(rt), nm)
-    _RowProjectionVector{eltype(col)}(
-        col,
-        map(idx -> _table(rt)._idx_map[idx], rt._idx)
-    )
-end
-
-@inline Tables.columnnames(rt::ResidueTable) = Tables.columnnames(_table(rt))
-@inline Tables.schema(rt::ResidueTable) = Tables.schema(_table(rt))
-
-@inline function _filter_residues(f::Function, sys::System)
-    ResidueTable(sys, _filter_idx(f, sys._residues))
-end
-
-@inline function Base.filter(f::Function, rt::ResidueTable)
-    ResidueTable(rt._sys, _filter_idx(f, rt))
-end
-
-@inline function Base.iterate(rt::ResidueTable, st = 1)
-    st > length(rt) ?
-        nothing :
-        (residue_by_idx(rt._sys, rt._idx[st]), st + 1)
-end
-
-@inline Base.eltype(::ResidueTable{T}) where T = Residue{T}
-@inline Base.size(rt::ResidueTable) = (length(rt._idx), length(Tables.columnnames(rt)))
-@inline Base.getindex(rt::ResidueTable, i::Int) = residue_by_idx(rt._sys, rt._idx[i])
-@inline Base.getindex(rt::ResidueTable, ::Colon) = rt
-
-@inline function Base.getindex(rt::ResidueTable, I)
-    ResidueTable(rt._sys, collect(Int, map(i -> rt._idx[i], I)))
-end
-
-"""
-    $(TYPEDEF)
-
 Mutable representation of an individual residue in a system.
 
 # Public fields
@@ -109,6 +50,29 @@ end
     idx = _next_idx(sys)
     push!(sys._residues, idx, number, type, chain.molecule_idx, chain.idx; kwargs...)
     residue_by_idx(sys, idx)
+end
+
+"""
+    $(TYPEDEF)
+
+Tables.jl-compatible representation of system residues (or a subset thereof). Residue tables can be
+generated using [`residues`](@ref) or filtered from other residue tables (via `Base.filter`).
+
+# Public columns
+ - `idx::AbstractVector{Int}`
+ - `number::AbstractVector{Int}`
+ - `type::AbstractVector{AminoAcid}`
+
+# Private columns
+ - `properties::AbstractVector{Properties}`
+ - `flags::AbstractVector{Flags}`
+ - `molecule_idx::AbstractVector{Int}`
+ - `chain_idx::AbstractVector{Int}`
+"""
+const ResidueTable{T} = SystemComponentTable{T, Residue{T}}
+
+@inline function _filter_residues(f::Function, sys::System{T}) where T
+    ResidueTable{T}(sys, _filter_idx(f, sys._residues))
 end
 
 @inline _table(sys::System{T}, ::Type{Residue{T}}) where T = sys._residues

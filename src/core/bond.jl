@@ -13,64 +13,6 @@ export
 """
     $(TYPEDEF)
 
-Tables.jl-compatible representation of system bonds (or a subset thereof). Bond tables can be
-generated using [`bonds`](@ref) or filtered from other bond tables (via `Base.filter`).
-
-# Public columns
- - `idx::AbstractVector{Int}`
- - `a1::AbstractVector{Int}`
- - `a2::AbstractVector{Int}`
- - `order::AbstractVector{BondOrderType}`
-
-# Private columns
- - `properties::AbstractVector{Properties}`
- - `flags::AbstractVector{Flags}`
-"""
-@auto_hash_equals struct BondTable{T} <: AbstractSystemComponentTable{T}
-    _sys::System{T}
-    _idx::Vector{Int}
-end
-
-@inline _table(bt::BondTable) = getfield(getfield(bt, :_sys), :_bonds)
-@inline _hascolumn(::BondTable, nm::Symbol) = nm in _bond_table_cols_priv || nm in _bond_table_cols_set
-
-@inline function Tables.getcolumn(bt::BondTable, nm::Symbol)
-    col = Tables.getcolumn(_table(bt), nm)
-    _RowProjectionVector{eltype(col)}(
-        col,
-        map(idx -> _table(bt)._idx_map[idx], bt._idx)
-    )
-end
-
-@inline Tables.columnnames(bt::BondTable) = Tables.columnnames(_table(bt))
-@inline Tables.schema(bt::BondTable) = Tables.schema(_table(bt))
-
-@inline function _filter_bonds(f::Function, sys::System)
-    BondTable(sys, _filter_idx(f, sys._bonds))
-end
-
-@inline function Base.filter(f::Function, bt::BondTable)
-    BondTable(bt._sys, _filter_idx(f, bt))
-end
-
-@inline function Base.iterate(bt::BondTable, st = 1)
-    st > length(bt) ?
-        nothing :
-        (bond_by_idx(bt._sys, bt._idx[st]), st + 1)
-end
-
-@inline Base.eltype(::BondTable{T}) where T = Bond{T}
-@inline Base.size(bt::BondTable) = (length(bt._idx), length(Tables.columnnames(bt)))
-@inline Base.getindex(bt::BondTable, i::Int) = bond_by_idx(bt._sys, bt._idx[i])
-@inline Base.getindex(bt::BondTable, ::Colon) = bt
-
-@inline function Base.getindex(bt::BondTable, I)
-    BondTable(bt._sys, collect(Int, map(i -> bt._idx[i], I)))
-end
-
-"""
-    $(TYPEDEF)
-
 Mutable representation of an individual bond in a system.
 
 # Public fields
@@ -143,6 +85,28 @@ end
     kwargs...
 )
     Bond(parent(ac), a1, a2, order; kwargs...)
+end
+
+"""
+    $(TYPEDEF)
+
+Tables.jl-compatible representation of system bonds (or a subset thereof). Bond tables can be
+generated using [`bonds`](@ref) or filtered from other bond tables (via `Base.filter`).
+
+# Public columns
+ - `idx::AbstractVector{Int}`
+ - `a1::AbstractVector{Int}`
+ - `a2::AbstractVector{Int}`
+ - `order::AbstractVector{BondOrderType}`
+
+# Private columns
+ - `properties::AbstractVector{Properties}`
+ - `flags::AbstractVector{Flags}`
+"""
+const BondTable{T} = SystemComponentTable{T, Bond{T}}
+
+@inline function _filter_bonds(f::Function, sys::System{T}) where T
+    BondTable{T}(sys, _filter_idx(f, sys._bonds))
 end
 
 @inline _table(sys::System{T}, ::Type{Bond{T}}) where T = sys._bonds

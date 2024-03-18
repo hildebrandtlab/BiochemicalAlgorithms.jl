@@ -18,65 +18,6 @@ export
 """
     $(TYPEDEF)
 
-Tables.jl-compatible representation of system fragments (or a subset thereof). Fragment tables can be
-generated using [`fragments`](@ref) or filtered from other fragment tables (via `Base.filter`).
-
-# Public columns
- - `idx::AbstractVector{Int}`
- - `number::AbstractVector{Int}`
- - `name::AbstractVector{String}`
-
-# Private columns
- - `properties::AbstractVector{Properties}`
- - `flags::AbstractVector{Flags}`
- - `molecule_idx::AbstractVector{Int}`
- - `chain_idx::AbstractVector{Int}`
-"""
-@auto_hash_equals struct FragmentTable{T} <: AbstractSystemComponentTable{T}
-    _sys::System{T}
-    _idx::Vector{Int}
-end
-
-@inline _table(ft::FragmentTable) = getfield(getfield(ft, :_sys), :_fragments)
-@inline _hascolumn(::FragmentTable, nm::Symbol) = nm in _fragment_table_cols_priv || nm in _fragment_table_cols_set
-
-@inline function Tables.getcolumn(ft::FragmentTable, nm::Symbol)
-    col = Tables.getcolumn(_table(ft), nm)
-    _RowProjectionVector{eltype(col)}(
-        col,
-        map(idx -> _table(ft)._idx_map[idx], ft._idx)
-    )
-end
-
-@inline Tables.columnnames(ft::FragmentTable) = Tables.columnnames(_table(ft))
-@inline Tables.schema(ft::FragmentTable) = Tables.schema(_table(ft))
-
-@inline function _filter_fragments(f::Function, sys::System)
-    FragmentTable(sys, _filter_idx(f, sys._fragments))
-end
-
-@inline function Base.filter(f::Function, ft::FragmentTable)
-    FragmentTable(ft._sys, _filter_idx(f, ft))
-end
-
-@inline function Base.iterate(ft::FragmentTable, st = 1)
-    st > length(ft) ?
-        nothing :
-        (fragment_by_idx(ft._sys, ft._idx[st]), st + 1)
-end
-
-@inline Base.eltype(::FragmentTable{T}) where T = Fragment{T}
-@inline Base.size(ft::FragmentTable) = (length(ft._idx), length(Tables.columnnames(ft)))
-@inline Base.getindex(ft::FragmentTable, i::Int) = fragment_by_idx(ft._sys, ft._idx[i])
-@inline Base.getindex(ft::FragmentTable, ::Colon) = ft
-
-@inline function Base.getindex(ft::FragmentTable, I)
-    FragmentTable(ft._sys, collect(Int, map(i -> ft._idx[i], I)))
-end
-
-"""
-    $(TYPEDEF)
-
 Mutable representation of an individual fragment in a system.
 
 # Public fields
@@ -117,6 +58,29 @@ end
     idx = _next_idx(sys)
     push!(sys._fragments, idx, number, chain.molecule_idx, chain.idx; kwargs...)
     fragment_by_idx(sys, idx)
+end
+
+"""
+    $(TYPEDEF)
+
+Tables.jl-compatible representation of system fragments (or a subset thereof). Fragment tables can be
+generated using [`fragments`](@ref) or filtered from other fragment tables (via `Base.filter`).
+
+# Public columns
+ - `idx::AbstractVector{Int}`
+ - `number::AbstractVector{Int}`
+ - `name::AbstractVector{String}`
+
+# Private columns
+ - `properties::AbstractVector{Properties}`
+ - `flags::AbstractVector{Flags}`
+ - `molecule_idx::AbstractVector{Int}`
+ - `chain_idx::AbstractVector{Int}`
+"""
+const FragmentTable{T} = SystemComponentTable{T, Fragment{T}}
+
+@inline function _filter_fragments(f::Function, sys::System{T}) where T
+    FragmentTable{T}(sys, _filter_idx(f, sys._fragments))
 end
 
 @inline _table(sys::System{T}, ::Type{Fragment{T}}) where T = sys._fragments

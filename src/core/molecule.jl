@@ -10,62 +10,6 @@ export
 """
     $(TYPEDEF)
 
-Tables.jl-compatible representation of system molecules (or a subset thereof). Molecule tables can be
-generated using [`molecules`](@ref) or filtered from other molecule tables (via `Base.filter`).
-
-# Public columns
- - `idx::AbstractVector{Int}`
- - `name::AbstractVector{String}`
-
-# Private columns
- - `properties::AbstractVector{Properties}`
- - `flags::AbstractVector{Flags}`
-"""
-@auto_hash_equals struct MoleculeTable{T} <: AbstractSystemComponentTable{T}
-    _sys::System{T}
-    _idx::Vector{Int}
-end
-
-@inline _table(mt::MoleculeTable) = getfield(getfield(mt, :_sys), :_molecules)
-@inline _hascolumn(::MoleculeTable, nm::Symbol) = nm in _molecule_table_cols_priv || nm in _molecule_table_cols_set
-
-@inline function Tables.getcolumn(mt::MoleculeTable, nm::Symbol)
-    col = Tables.getcolumn(_table(mt), nm)
-    _RowProjectionVector{eltype(col)}(
-        col,
-        map(idx -> _table(mt)._idx_map[idx], mt._idx)
-    )
-end
-
-@inline Tables.columnnames(mt::MoleculeTable) = Tables.columnnames(_table(mt))
-@inline Tables.schema(mt::MoleculeTable) = Tables.schema(_table(mt))
-
-@inline function _filter_molecules(f::Function, sys::System)
-    MoleculeTable(sys, _filter_idx(f, sys._molecules))
-end
-
-@inline function Base.filter(f::Function, mt::MoleculeTable)
-    MoleculeTable(mt._sys, _filter_idx(f, mt))
-end
-
-@inline function Base.iterate(mt::MoleculeTable, st = 1)
-    st > length(mt) ?
-        nothing :
-        (molecule_by_idx(mt._sys, mt._idx[st]), st + 1)
-end
-
-@inline Base.eltype(::MoleculeTable{T}) where T = Molecule{T}
-@inline Base.size(mt::MoleculeTable) = (length(mt._idx), length(Tables.columnnames(mt)))
-@inline Base.getindex(mt::MoleculeTable, i::Int) = molecule_by_idx(mt._sys, mt._idx[i])
-@inline Base.getindex(mt::MoleculeTable, ::Colon) = mt
-
-@inline function Base.getindex(mt::MoleculeTable, I)
-    MoleculeTable(mt._sys, collect(Int, map(i -> mt._idx[i], I)))
-end
-
-    """
-    $(TYPEDEF)
-
 Abstract base type for all molecules.
 """
 abstract type AbstractMolecule{T} <: AbstractAtomContainer{T} end
@@ -121,6 +65,26 @@ end
 
 @inline function Molecule(; kwargs...)
     Molecule(default_system(); kwargs...)
+end
+
+"""
+    $(TYPEDEF)
+
+Tables.jl-compatible representation of system molecules (or a subset thereof). Molecule tables can be
+generated using [`molecules`](@ref) or filtered from other molecule tables (via `Base.filter`).
+
+# Public columns
+ - `idx::AbstractVector{Int}`
+ - `name::AbstractVector{String}`
+
+# Private columns
+ - `properties::AbstractVector{Properties}`
+ - `flags::AbstractVector{Flags}`
+"""
+const MoleculeTable{T} = SystemComponentTable{T, Molecule{T}}
+
+@inline function _filter_molecules(f::Function, sys::System{T}) where T
+    MoleculeTable{T}(sys, _filter_idx(f, sys._molecules))
 end
 
 @inline _table(sys::System{T}, ::Type{Molecule{T}}) where T = sys._molecules

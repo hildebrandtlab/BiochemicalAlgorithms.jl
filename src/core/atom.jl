@@ -16,77 +16,6 @@ export
 """
     $(TYPEDEF)
 
-Tables.jl-compatible representation of system atoms (or a subset thereof). Atom tables can be
-generated using [`atoms`](@ref) or filtered from other atom tables (via `Base.filter`).
-
-# Public columns
- - `idx::AbstractVector{Int}`
- - `number::AbstractVector{Int}`
- - `element::AbstractVector{ElementType}`
- - `name::AbstractVector{String}`
- - `atom_type::AbstractVector{String}`
- - `r::AbstractVector{Vector3{T}}`
- - `v::AbstractVector{Vector3{T}}`
- - `F::AbstractVector{Vector3{T}}`
- - `formal_charge::AbstractVector{Int}`
- - `charge::AbstractVector{T}`
- - `radius::AbstractVector{T}`
-
-# Private columns
- - `properties::AbstractVector{Properties}`
- - `flags::AbstractVector{Flags}`
- - `frame_id::AbstractVector{Int}`
- - `molecule_idx::AbstractVector{MaybeInt}`
- - `chain_idx::AbstractVector{MaybeInt}`
- - `fragment_idx::AbstractVector{MaybeInt}`
- - `nucleotide_idx::AbstractVector{MaybeInt}`
- - `residue_idx::AbstractVector{MaybeInt}`
-"""
-@auto_hash_equals struct AtomTable{T} <: AbstractSystemComponentTable{T}
-    _sys::System{T}
-    _idx::Vector{Int}
-end
-
-@inline _table(at::AtomTable) = getfield(getfield(at, :_sys), :_atoms)
-@inline _hascolumn(::AtomTable, nm::Symbol) = nm in _atom_table_cols_priv || nm in _atom_table_cols_set
-
-@inline function Tables.getcolumn(at::AtomTable, nm::Symbol)
-    col = Tables.getcolumn(_table(at), nm)
-    _RowProjectionVector{eltype(col)}(
-        col,
-        map(idx -> _table(at)._idx_map[idx], at._idx)
-    )
-end
-
-@inline Tables.columnnames(at::AtomTable) = Tables.columnnames(_table(at))
-@inline Tables.schema(at::AtomTable) = Tables.schema(_table(at))
-
-@inline function _filter_atoms(f::Function, sys::System)
-    AtomTable(sys, _filter_idx(f, sys._atoms))
-end
-
-@inline function Base.filter(f::Function, at::AtomTable)
-    AtomTable(at._sys, _filter_idx(f, at))
-end
-
-@inline function Base.iterate(at::AtomTable, st = 1)
-    st > length(at) ?
-        nothing :
-        (atom_by_idx(at._sys, at._idx[st]), st + 1)
-end
-
-@inline Base.eltype(::AtomTable{T}) where T = Atom{T}
-@inline Base.size(at::AtomTable) = (length(at._idx), length(Tables.columnnames(at)))
-@inline Base.getindex(at::AtomTable, i::Int) = atom_by_idx(at._sys, at._idx[i])
-@inline Base.getindex(at::AtomTable, ::Colon) = at
-
-@inline function Base.getindex(at::AtomTable, I)
-    AtomTable(at._sys, collect(Int, map(i -> at._idx[i], I)))
-end
-
-"""
-    $(TYPEDEF)
-
 Mutable representation of an individual atom in a system.
 
 # Public fields
@@ -184,6 +113,41 @@ end
     kwargs...
 )
     Atom(default_system(), number, element; kwargs...)
+end
+
+"""
+    $(TYPEDEF)
+
+Tables.jl-compatible representation of system atoms (or a subset thereof). Atom tables can be
+generated using [`atoms`](@ref) or filtered from other atom tables (via `Base.filter`).
+
+# Public columns
+ - `idx::AbstractVector{Int}`
+ - `number::AbstractVector{Int}`
+ - `element::AbstractVector{ElementType}`
+ - `name::AbstractVector{String}`
+ - `atom_type::AbstractVector{String}`
+ - `r::AbstractVector{Vector3{T}}`
+ - `v::AbstractVector{Vector3{T}}`
+ - `F::AbstractVector{Vector3{T}}`
+ - `formal_charge::AbstractVector{Int}`
+ - `charge::AbstractVector{T}`
+ - `radius::AbstractVector{T}`
+
+# Private columns
+ - `properties::AbstractVector{Properties}`
+ - `flags::AbstractVector{Flags}`
+ - `frame_id::AbstractVector{Int}`
+ - `molecule_idx::AbstractVector{MaybeInt}`
+ - `chain_idx::AbstractVector{MaybeInt}`
+ - `fragment_idx::AbstractVector{MaybeInt}`
+ - `nucleotide_idx::AbstractVector{MaybeInt}`
+ - `residue_idx::AbstractVector{MaybeInt}`
+"""
+const AtomTable{T} = SystemComponentTable{T, Atom{T}}
+
+@inline function _filter_atoms(f::Function, sys::System{T}) where T
+    AtomTable{T}(sys, _filter_idx(f, sys._atoms))
 end
 
 @inline _table(sys::System{T}, ::Type{Atom{T}}) where T = sys._atoms

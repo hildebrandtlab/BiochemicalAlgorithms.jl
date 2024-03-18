@@ -9,63 +9,6 @@ export
 """
     $(TYPEDEF)
 
-Tables.jl-compatible representation of system chains (or a subset thereof). Chain tables can be
-generated using [`chains`](@ref) or filtered from other chain tables (via `Base.filter`).
-
-# Public columns
- - `idx::AbstractVector{Int}`
- - `name::AbstractVector{String}`
-
-# Private columns
- - `properties::AbstractVector{Properties}`
- - `flags::AbstractVector{Flags}`
- - `molecule_idx::AbstractVector{Int}`
-"""
-@auto_hash_equals struct ChainTable{T} <: AbstractSystemComponentTable{T}
-    _sys::System{T}
-    _idx::Vector{Int}
-end
-
-@inline _table(ct::ChainTable) = getfield(getfield(ct, :_sys), :_chains)
-@inline _hascolumn(::ChainTable, nm::Symbol) = nm in _chain_table_cols_priv || nm in _chain_table_cols_set
-
-@inline function Tables.getcolumn(ct::ChainTable, nm::Symbol)
-    col = Tables.getcolumn(_table(ct), nm)
-    _RowProjectionVector{eltype(col)}(
-        col,
-        map(idx -> _table(ct)._idx_map[idx], ct._idx)
-    )
-end
-
-@inline Tables.columnnames(ct::ChainTable) = Tables.columnnames(_table(ct))
-@inline Tables.schema(ct::ChainTable) = Tables.schema(_table(ct))
-
-@inline function _filter_chains(f::Function, sys::System)
-    ChainTable(sys, _filter_idx(f, sys._chains))
-end
-
-@inline function Base.filter(f::Function, ct::ChainTable)
-    ChainTable(ct._sys, _filter_idx(f, ct))
-end
-
-@inline function Base.iterate(ct::ChainTable, st = 1)
-    st > length(ct) ?
-        nothing :
-        (chain_by_idx(ct._sys, ct._idx[st]), st + 1)
-end
-
-@inline Base.eltype(::ChainTable{T}) where T = Chain{T}
-@inline Base.size(ct::ChainTable) = (length(ct._idx), length(Tables.columnnames(ct)))
-@inline Base.getindex(ct::ChainTable, i::Int) = chain_by_idx(ct._sys, ct._idx[i])
-@inline Base.getindex(ct::ChainTable, ::Colon) = ct
-
-@inline function Base.getindex(ct::ChainTable, I)
-    ChainTable(ct._sys, collect(Int, map(i -> ct._idx[i], I)))
-end
-
-"""
-    $(TYPEDEF)
-
 Mutable representation of an individual chain in a system.
 
 # Public fields
@@ -102,6 +45,27 @@ end
     idx = _next_idx(sys)
     push!(sys._chains, idx, mol.idx; kwargs...)
     chain_by_idx(sys, idx)
+end
+
+"""
+    $(TYPEDEF)
+
+Tables.jl-compatible representation of system chains (or a subset thereof). Chain tables can be
+generated using [`chains`](@ref) or filtered from other chain tables (via `Base.filter`).
+
+# Public columns
+ - `idx::AbstractVector{Int}`
+ - `name::AbstractVector{String}`
+
+# Private columns
+ - `properties::AbstractVector{Properties}`
+ - `flags::AbstractVector{Flags}`
+ - `molecule_idx::AbstractVector{Int}`
+"""
+const ChainTable{T} = SystemComponentTable{T, Chain{T}}
+
+@inline function _filter_chains(f::Function, sys::System{T}) where T
+    ChainTable{T}(sys, _filter_idx(f, sys._chains))
 end
 
 @inline _table(sys::System{T}, ::Type{Chain{T}}) where T = sys._chains
