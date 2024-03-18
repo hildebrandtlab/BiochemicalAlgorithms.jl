@@ -110,6 +110,12 @@ end
     nucleotide_by_idx(sys, idx)
 end
 
+@inline _table(sys::System{T}, ::Type{Nucleotide{T}}) where T = sys._nucleotides
+
+@inline function _hascolumn(::Type{<: Nucleotide}, nm::Symbol)
+    nm in _nucleotide_table_cols_set || nm in _nucleotide_table_cols_priv
+end
+
 @inline function Base.getproperty(nuc::Nucleotide, name::Symbol)
     hasfield(typeof(nuc), name) && return getfield(nuc, name)
     getproperty(getfield(nuc, :_row), name)

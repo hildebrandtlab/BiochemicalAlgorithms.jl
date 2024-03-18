@@ -145,6 +145,12 @@ end
     Bond(parent(ac), a1, a2, order; kwargs...)
 end
 
+@inline _table(sys::System{T}, ::Type{Bond{T}}) where T = sys._bonds
+
+@inline function _hascolumn(::Type{<: Bond}, nm::Symbol)
+    nm in _bond_table_cols_set || nm in _bond_table_cols_priv
+end
+
 @inline function Base.getproperty(bond::Bond, name::Symbol)
     hasfield(typeof(bond), name) && return getfield(bond, name)
     getproperty(getfield(bond, :_row), name)

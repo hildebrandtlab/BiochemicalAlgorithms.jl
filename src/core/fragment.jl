@@ -119,6 +119,12 @@ end
     fragment_by_idx(sys, idx)
 end
 
+@inline _table(sys::System{T}, ::Type{Fragment{T}}) where T = sys._fragments
+
+@inline function _hascolumn(::Type{<: Fragment}, nm::Symbol)
+    nm in _fragment_table_cols_set || nm in _fragment_table_cols_priv
+end
+
 @inline function Base.getproperty(frag::Fragment, name::Symbol)
     hasfield(typeof(frag), name) && return getfield(frag, name)
     getproperty(getfield(frag, :_row), name)

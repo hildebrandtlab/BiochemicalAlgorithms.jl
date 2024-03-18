@@ -186,6 +186,12 @@ end
     Atom(default_system(), number, element; kwargs...)
 end
 
+@inline _table(sys::System{T}, ::Type{Atom{T}}) where T = sys._atoms
+
+@inline function _hascolumn(::Type{<: Atom}, nm::Symbol)
+    nm in _atom_table_cols_set || nm in _atom_table_cols_priv
+end
+
 @inline function Base.getproperty(atom::Atom, name::Symbol)
     hasfield(typeof(atom), name) && return getfield(atom, name)
     getproperty(getfield(atom, :_row), name)

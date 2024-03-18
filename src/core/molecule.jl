@@ -123,6 +123,12 @@ end
     Molecule(default_system(); kwargs...)
 end
 
+@inline _table(sys::System{T}, ::Type{Molecule{T}}) where T = sys._molecules
+
+@inline function _hascolumn(::Type{<: Molecule}, nm::Symbol)
+    nm in _molecule_table_cols_set || nm in _molecule_table_cols_priv
+end
+
 @inline function Base.getproperty(mol::Molecule, name::Symbol)
     hasfield(typeof(mol), name) && return getfield(mol, name)
     getproperty(getfield(mol, :_row), name)

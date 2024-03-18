@@ -111,6 +111,12 @@ end
     residue_by_idx(sys, idx)
 end
 
+@inline _table(sys::System{T}, ::Type{Residue{T}}) where T = sys._residues
+
+@inline function _hascolumn(::Type{<: Residue}, nm::Symbol)
+    nm in _residue_table_cols_set || nm in _residue_table_cols_priv
+end
+
 @inline function Base.getproperty(res::Residue, name::Symbol)
     hasfield(typeof(res), name) && return getfield(res, name)
     getproperty(getfield(res, :_row), name)

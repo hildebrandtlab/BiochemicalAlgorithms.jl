@@ -104,6 +104,12 @@ end
     chain_by_idx(sys, idx)
 end
 
+@inline _table(sys::System{T}, ::Type{Chain{T}}) where T = sys._chains
+
+@inline function _hascolumn(::Type{<: Chain}, nm::Symbol)
+    nm in _chain_table_cols_set || nm in _chain_table_cols_priv
+end
+
 @inline function Base.getproperty(chain::Chain, name::Symbol)
     hasfield(typeof(chain), name) && return getfield(chain, name)
     getproperty(getfield(chain, :_row), name)
