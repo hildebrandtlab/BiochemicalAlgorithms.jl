@@ -11,23 +11,28 @@ using StaticArrays
 using Tables, TableOperations
 using Unitful, UnitfulAtomic
 
+# core definitions
 include("core/exceptions.jl")
 include("core/constants.jl")
 include("core/types.jl")
 include("core/element.jl")
 include("core/amino_acid.jl")
 include("core/bond_order.jl")
+
+# system
 include("core/system_component.jl")
 include("core/atom_container.jl")
-include("core/system_atoms.jl")
-include("core/system_bonds.jl")
-include("core/system_molecules.jl")
-include("core/system_chains.jl")
-include("core/system_fragments.jl")
-include("core/system_nucleotides.jl")
-include("core/system_residues.jl")
+include("core/system_internals/_atom_table.jl")
+include("core/system_internals/_bond_table.jl")
+include("core/system_internals/_molecule_table.jl")
+include("core/system_internals/_chain_table.jl")
+include("core/system_internals/_fragment_table.jl")
+include("core/system_internals/_nucleotide_table.jl")
+include("core/system_internals/_residue_table.jl")
 include("core/system.jl")
-include("core/system_tables.jl")
+
+# system components
+include("core/system_component_table.jl")
 include("core/bond.jl")
 include("core/atom.jl")
 include("core/molecule.jl")
@@ -35,12 +40,16 @@ include("core/chain.jl")
 include("core/fragment.jl")
 include("core/nucleotide.jl")
 include("core/residue.jl")
+
+# molgraph
 include("core/moleculargraph_wrapper.jl")
 
+# substructures
 include("substructures/substructure.jl")
 include("substructures/smarts.jl")
 include("substructures/sssr.jl")
 
+# file formats
 include("fileformats/ball_ini_file.jl")
 module PubChem
 include("fileformats/pubchem_json.jl")
@@ -48,9 +57,11 @@ end
 include("fileformats/pdb.jl")
 include("fileformats/sdfile.jl")
 
+# mappings
 include("mappings/atom_bijection.jl")
 include("mappings/rigid_mapping.jl")
 
+# force fields
 include("forcefields/common/forcefield_parameters.jl")
 include("forcefields/common/atomtype_template.jl")
 include("forcefields/common/forcefield.jl")
@@ -64,6 +75,7 @@ include("forcefields/AMBER/amberff.jl")
 
 include("forcefields/MMFF94/mmff94_parameters.jl")
 
+# preprocessing
 include("preprocessing/fragmentDB.jl")
 include("preprocessing/normalize_names.jl")
 include("preprocessing/build_bonds.jl")

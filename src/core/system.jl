@@ -1,5 +1,7 @@
-using AutoHashEquals
-export System, default_system, parent_system
+export
+    System,
+    default_system,
+    parent_system
 
 """
     $(TYPEDEF)
