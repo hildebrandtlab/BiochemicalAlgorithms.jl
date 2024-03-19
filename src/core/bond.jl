@@ -11,7 +11,7 @@ export
     hydrogen_bonds
 
 """
-    $(TYPEDEF)
+    Bond{T} <: AbstractAtomContainer{T}
 
 Mutable representation of an individual bond in a system.
 
@@ -85,7 +85,7 @@ end
 end
 
 """
-    $(TYPEDEF)
+    BondTable{T} <: AbstractSystemComponentTable{T}
 
 Tables.jl-compatible representation of system bonds (or a subset thereof). Bond tables can be
 generated using [`bonds`](@ref) or filtered from other bond tables (via `Base.filter`).

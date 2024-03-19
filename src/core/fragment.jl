@@ -16,7 +16,7 @@ export
     parent_fragment
 
 """
-    $(TYPEDEF)
+    Fragment{T} <: AbstractAtomContainer{T}
 
 Mutable representation of an individual fragment in a system.
 
@@ -58,7 +58,7 @@ const Fragment{T} = AtomContainer{T, _FragmentTableRow}
 end
 
 """
-    $(TYPEDEF)
+    FragmentTable{T} <: AbstractSystemComponentTable{T}
 
 Tables.jl-compatible representation of system fragments (or a subset thereof). Fragment tables can be
 generated using [`fragments`](@ref) or filtered from other fragment tables (via `Base.filter`).

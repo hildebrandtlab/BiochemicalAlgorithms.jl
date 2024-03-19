@@ -7,7 +7,7 @@ export
     parent_molecule
 
 """
-    $(TYPEDEF)
+    Molecule{T} <: AbstractAtomContainer{T}
 
 Mutable representation of an individual molecule in a system.
 
@@ -57,7 +57,7 @@ end
 end
 
 """
-    $(TYPEDEF)
+    MoleculeTable{T} <: AbstractSystemComponentTable{T}
 
 Tables.jl-compatible representation of system molecules (or a subset thereof). Molecule tables can be
 generated using [`molecules`](@ref) or filtered from other molecule tables (via `Base.filter`).

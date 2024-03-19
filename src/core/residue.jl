@@ -7,7 +7,7 @@ export
     parent_residue
 
 """
-    $(TYPEDEF)
+    Residue{T} <: AbstractAtomContainer{T}
 
 Mutable representation of an individual residue in a system.
 
@@ -50,7 +50,7 @@ const Residue{T} = AtomContainer{T, _ResidueTableRow}
 end
 
 """
-    $(TYPEDEF)
+    ResidueTable{T} <: AbstractSystemComponentTable{T}
 
 Tables.jl-compatible representation of system residues (or a subset thereof). Residue tables can be
 generated using [`residues`](@ref) or filtered from other residue tables (via `Base.filter`).

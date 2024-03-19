@@ -7,7 +7,7 @@ export
     parent_nucleotide
 
 """
-    $(TYPEDEF)
+    Nucleotide{T} <: AbstractAtomContainer{T}
 
 Mutable representation of an individual nucleotide in a system.
 
@@ -49,7 +49,7 @@ const Nucleotide{T} = AtomContainer{T, _NucleotideTableRow}
 end
 
 """
-    $(TYPEDEF)
+    NucleotideTable{T} <: AbstractSystemComponentTable{T}
 
 Tables.jl-compatible representation of system nucleotides (or a subset thereof). Nucleotide tables can be
 generated using [`nucleotides`](@ref) or filtered from other nucleotide tables (via `Base.filter`).

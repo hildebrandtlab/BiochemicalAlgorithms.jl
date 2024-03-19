@@ -14,7 +14,7 @@ export
     is_vicinal
 
 """
-    $(TYPEDEF)
+    Atom{T} <: AbstractSystemComponent{T}
 
 Mutable representation of an individual atom in a system.
 
@@ -113,7 +113,7 @@ end
 end
 
 """
-    $(TYPEDEF)
+    AtomTable{T} <: AbstractSystemComponentTable{T}
 
 Tables.jl-compatible representation of system atoms (or a subset thereof). Atom tables can be
 generated using [`atoms`](@ref) or filtered from other atom tables (via `Base.filter`).
