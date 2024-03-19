@@ -126,7 +126,7 @@ end
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(res, :_row)) == 3
+        @test length(res._row) == 3
 
         # getproperty
         @test res.idx isa Int

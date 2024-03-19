@@ -135,7 +135,7 @@ end
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(nuc, :_row)) == 3
+        @test length(nuc._row) == 3
 
         # getproperty
         @test nuc.idx isa Int

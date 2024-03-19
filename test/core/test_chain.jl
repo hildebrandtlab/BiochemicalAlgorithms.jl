@@ -111,7 +111,7 @@ end
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(chain, :_row)) == 2
+        @test length(chain._row) == 2
 
         # getproperty
         @test chain.idx isa Int

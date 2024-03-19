@@ -135,7 +135,7 @@ end
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(frag, :_row)) == 3
+        @test length(frag._row) == 3
 
         # getproperty
         @test frag.idx isa Int

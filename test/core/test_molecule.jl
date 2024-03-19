@@ -101,7 +101,7 @@ end
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(mol, :_row)) == 2
+        @test length(mol._row) == 2
 
         # getproperty
         @test mol.idx isa Int

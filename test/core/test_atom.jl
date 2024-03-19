@@ -231,7 +231,7 @@ end
             Make sure we test for the correct number of fields.
             Add missing tests if the following test fails!
         =#
-        @test length(getfield(atom, :_row)) == 11
+        @test length(atom._row) == 11
 
         # getproperty
         @test atom.idx isa Int
