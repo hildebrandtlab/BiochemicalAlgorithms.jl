@@ -51,7 +51,7 @@ Bond(
 ```
 Creates a new `Bond{Float32}` in the default system.
 """
-const Bond{T} = SystemComponent{T, _BondTableRow}
+const Bond{T} = AtomContainer{T, _BondTableRow}
 
 @inline function Bond(
     sys::System{T}, 

@@ -1,6 +1,7 @@
 export
     AbstractAtomContainer,
     AbstractSystemComponent,
+    AtomContainer,
     System,
     SystemComponent,
     default_system,
@@ -214,10 +215,37 @@ end
 end
 
 @inline Base.show(io::IO, ::MIME"text/plain", sc::SystemComponent) = show(io, sc)
-@inline function Base.show(io::IO, sc::SystemComponent)
-    print(io, "$(typeof(sc)): ")
+@inline function Base.show(io::IO, sc::SystemComponent; display_name::String=repr(typeof(sc)))
+    print(io, "$display_name: ")
     show(io, NamedTuple(sc._row))
 end
 
 @inline Base.parent(sc::SystemComponent) = sc._sys
 @inline parent_system(sc::SystemComponent) = parent(sc)
+
+@auto_hash_equals struct AtomContainer{T, R <: _AbstractColumnTableRow} <: AbstractAtomContainer{T}
+    _comp::SystemComponent{T, R}
+
+    function AtomContainer{T, R}(
+        sys::System{T},
+        row::R
+    ) where {T, R <: _AbstractColumnTableRow}
+        new(SystemComponent(sys, row))
+    end
+end
+
+@inline function Base.getproperty(ac::AtomContainer, name::Symbol)
+    name === :_comp && return getfield(ac, :_comp)
+    getproperty(getfield(ac, :_comp), name)
+end
+
+@inline function Base.setproperty!(ac::AtomContainer, name::Symbol, val)
+    name === :_comp && return setfield!(ac, :_comp, val)
+    setproperty!(getfield(ac, :_comp), name, val)
+end
+
+@inline Base.show(io::IO, ::MIME"text/plain", ac::AtomContainer) = show(io, ac)
+@inline Base.show(io::IO, ac::AtomContainer) = show(io, ac._comp; display_name = repr(typeof(ac)))
+
+@inline Base.parent(at::AtomContainer) = parent(at._comp)
+@inline parent_system(at::AtomContainer) = parent_system(at._comp)

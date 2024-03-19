@@ -44,7 +44,7 @@ Fragment(
 ```
 Creates a new `Fragment{T}` in the given chain.
 """
-const Fragment{T} = SystemComponent{T, _FragmentTableRow}
+const Fragment{T} = AtomContainer{T, _FragmentTableRow}
 
 @inline function Fragment(
     chain::Chain{T},

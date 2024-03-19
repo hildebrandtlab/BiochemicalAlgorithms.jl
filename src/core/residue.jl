@@ -35,7 +35,7 @@ Residue(
 ```
 Creates a new `Residue{T}` in the given chain.
 """
-const Residue{T} = SystemComponent{T, _ResidueTableRow}
+const Residue{T} = AtomContainer{T, _ResidueTableRow}
 
 @inline function Residue(
     chain::Chain{T},

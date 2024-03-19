@@ -35,7 +35,7 @@ Nucleotide(
 ```
 Creates a new `Nucleotide{T}` in the given chain.
 """
-const Nucleotide{T} = SystemComponent{T, _NucleotideTableRow}
+const Nucleotide{T} = AtomContainer{T, _NucleotideTableRow}
 
 @inline function Nucleotide(
     chain::Chain{T},
