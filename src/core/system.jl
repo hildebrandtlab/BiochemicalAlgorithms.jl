@@ -1,7 +1,84 @@
 export
+    AbstractAtomContainer,
+    AbstractSystemComponent,
     System,
+    SystemComponent,
     default_system,
-    parent_system
+    frame_ids,
+    get_property,
+    has_flag,
+    has_property,
+    nframes,
+    parent_system,
+    set_flag!,
+    set_property!,
+    unset_flag!
+
+"""
+    $(TYPEDEF)
+
+Abstract base type for all components of a system, including the system itself.
+"""
+abstract type AbstractSystemComponent{T <: Real} end
+
+"""
+    $(TYPEDSIGNATURES)
+
+Returns a `Bool` indicating whether the given system component has the given property.
+"""
+@inline has_property(ac::AbstractSystemComponent, key::Symbol) = haskey(ac.properties, key)
+
+"""
+    $(TYPEDSIGNATURES)
+
+Returns the property associated with the given key in `ac`.
+"""
+@inline get_property(ac::AbstractSystemComponent, key::Symbol) = ac.properties[key]
+
+"""
+    $(TYPEDSIGNATURES)
+
+Returns the property associated with the given key in `ac`. If no such property exists, returns `default`.
+"""
+@inline get_property(ac::AbstractSystemComponent, key::Symbol, default) = get(ac.properties, key, default)
+
+"""
+    $(TYPEDSIGNATURES)
+
+Sets the property associated with the given key in `ac` to the given `value`.
+"""
+@inline set_property!(ac::AbstractSystemComponent, key::Symbol, value) = ac.properties[key] = value
+
+"""
+    $(TYPEDSIGNATURES)
+
+Returns a `Bool` indicating whether the given system component has the given flag.
+"""
+@inline has_flag(ac::AbstractSystemComponent, flag::Symbol) = flag in ac.flags
+
+"""
+    $(TYPEDSIGNATURES)
+
+Adds the given flag to `ac`.
+"""
+@inline set_flag!(ac::AbstractSystemComponent, flag::Symbol) = push!(ac.flags, flag)
+
+"""
+    $(TYPEDSIGNATURES)
+
+Removes the given flag from `ac`.
+"""
+@inline unset_flag!(ac::AbstractSystemComponent, flag::Symbol) = delete!(ac.flags, flag)
+
+"""
+    $(TYPEDEF)
+
+Abstract base type for all atom containers.
+"""
+abstract type AbstractAtomContainer{T} <: AbstractSystemComponent{T} end
+
+@inline frame_ids(ac::AbstractAtomContainer) = unique(atoms(ac).frame_id)
+@inline nframes(ac::AbstractAtomContainer) = length(frame_ids(ac))
 
 """
     $(TYPEDEF)
@@ -120,3 +197,27 @@ Returns the `System{T}` containing the given object. Alias for
 [`Base.parent`](@ref Base.parent(::System)).
 """ parent_system
 parent_system(s::System) = s
+
+@auto_hash_equals struct SystemComponent{T, R <: _AbstractColumnTableRow} <: AbstractSystemComponent{T}
+    _sys::System{T}
+    _row::R
+end
+
+@inline function Base.getproperty(sc::SystemComponent, name::Symbol)
+    (name === :_sys || name === :_row) && return getfield(sc, name)
+    getproperty(getfield(sc, :_row), name)
+end
+
+@inline function Base.setproperty!(sc::SystemComponent, name::Symbol, val)
+    (name === :_sys || name === :_row) && return setfield!(sc, name, val)
+    setproperty!(getfield(sc, :_row), name, val)
+end
+
+@inline Base.show(io::IO, ::MIME"text/plain", sc::SystemComponent) = show(io, sc)
+@inline function Base.show(io::IO, sc::SystemComponent)
+    print(io, "$(typeof(sc)): ")
+    show(io, NamedTuple(sc._row))
+end
+
+@inline Base.parent(sc::SystemComponent) = sc._sys
+@inline parent_system(sc::SystemComponent) = parent(sc)
