@@ -44,10 +44,7 @@ Fragment(
 ```
 Creates a new `Fragment{T}` in the given chain.
 """
-@auto_hash_equals struct Fragment{T} <: AbstractAtomContainer{T}
-    _sys::System{T}
-    _row::_FragmentTableRow
-end
+const Fragment{T} = SystemComponent{T, _FragmentTableRow}
 
 @inline function Fragment(
     chain::Chain{T},
@@ -89,24 +86,6 @@ end
     nm in _fragment_table_cols_set || nm in _fragment_table_cols_priv
 end
 
-@inline function Base.getproperty(frag::Fragment, name::Symbol)
-    hasfield(typeof(frag), name) && return getfield(frag, name)
-    getproperty(getfield(frag, :_row), name)
-end
-
-@inline function Base.setproperty!(frag::Fragment, name::Symbol, val)
-    hasfield(typeof(frag), name) && return setfield!(frag, name, val)
-    setproperty!(getfield(frag, :_row), name, val)
-end
-
-@inline Base.show(io::IO, ::MIME"text/plain", frag::Fragment) = show(io, frag)
-@inline function Base.show(io::IO, frag::Fragment)
-    print(io, "$(typeof(frag)): ")
-    show(io, NamedTuple(frag._row))
-end
-
-@inline Base.parent(frag::Fragment) = frag._sys
-@inline parent_system(frag::Fragment) = parent(frag)
 @inline parent_molecule(frag::Fragment) = molecule_by_idx(parent(frag), frag.molecule_idx)
 @inline parent_chain(frag::Fragment) = chain_by_idx(parent(frag), frag.chain_idx)
 

@@ -49,10 +49,7 @@ Molecule(;
 ```
 Creates a new `Molecule{Float32}` in the default system.
 """
-@auto_hash_equals struct Molecule{T} <: AbstractMolecule{T}
-    _sys::System{T}
-    _row::_MoleculeTableRow
-end
+const Molecule{T} = SystemComponent{T, _MoleculeTableRow}
 
 @inline function Molecule(
     sys::System{T};
@@ -92,25 +89,6 @@ end
 @inline function _hascolumn(::Type{<: Molecule}, nm::Symbol)
     nm in _molecule_table_cols_set || nm in _molecule_table_cols_priv
 end
-
-@inline function Base.getproperty(mol::Molecule, name::Symbol)
-    hasfield(typeof(mol), name) && return getfield(mol, name)
-    getproperty(getfield(mol, :_row), name)
-end
-
-@inline function Base.setproperty!(mol::Molecule, name::Symbol, val)
-    hasfield(typeof(mol), name) && return setfield!(mol, name, val)
-    setproperty!(getfield(mol, :_row), name, val)
-end
-
-@inline Base.show(io::IO, ::MIME"text/plain", mol::Molecule) = show(io, mol)
-@inline function Base.show(io::IO, mol::Molecule)
-    print(io, "$(typeof(mol)): ")
-    show(io, NamedTuple(mol._row))
-end
-
-@inline Base.parent(mol::Molecule) = mol._sys
-@inline parent_system(mol::Molecule) = parent(mol)
 
 @doc raw"""
     parent_molecule(::Atom)

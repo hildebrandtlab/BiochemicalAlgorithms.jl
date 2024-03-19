@@ -32,10 +32,7 @@ Chain(
 ```
 Creates a new `Chain{T}` in the given molecule.
 """
-@auto_hash_equals struct Chain{T} <: AbstractAtomContainer{T}
-    _sys::System{T}
-    _row::_ChainTableRow
-end
+const Chain{T} = SystemComponent{T, _ChainTableRow}
 
 @inline function Chain(
     mol::Molecule;
@@ -74,24 +71,6 @@ end
     nm in _chain_table_cols_set || nm in _chain_table_cols_priv
 end
 
-@inline function Base.getproperty(chain::Chain, name::Symbol)
-    hasfield(typeof(chain), name) && return getfield(chain, name)
-    getproperty(getfield(chain, :_row), name)
-end
-
-@inline function Base.setproperty!(chain::Chain, name::Symbol, val)
-    hasfield(typeof(chain), name) && return setfield!(chain, name, val)
-    setproperty!(getfield(chain, :_row), name, val)
-end
-
-@inline Base.show(io::IO, ::MIME"text/plain", chain::Chain) = show(io, chain)
-@inline function Base.show(io::IO, chain::Chain)
-    print(io, "$(typeof(chain)): ")
-    show(io, NamedTuple(chain._row))
-end
-
-@inline Base.parent(chain::Chain) = chain._sys
-@inline parent_system(chain::Chain) = parent(chain)
 @inline parent_molecule(chain::Chain) = molecule_by_idx(parent(chain), chain.molecule_idx)
 
 @doc raw"""

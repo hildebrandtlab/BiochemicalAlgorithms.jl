@@ -51,10 +51,7 @@ Bond(
 ```
 Creates a new `Bond{Float32}` in the default system.
 """
-@auto_hash_equals struct Bond{T} <: AbstractSystemComponent{T}
-    _sys::System{T}
-    _row::_BondTableRow
-end
+const Bond{T} = SystemComponent{T, _BondTableRow}
 
 @inline function Bond(
     sys::System{T}, 
@@ -114,26 +111,6 @@ end
 @inline function _hascolumn(::Type{<: Bond}, nm::Symbol)
     nm in _bond_table_cols_set || nm in _bond_table_cols_priv
 end
-
-@inline function Base.getproperty(bond::Bond, name::Symbol)
-    hasfield(typeof(bond), name) && return getfield(bond, name)
-    getproperty(getfield(bond, :_row), name)
-end
-
-@inline function Base.setproperty!(bond::Bond, name::Symbol, val)
-    hasfield(typeof(bond), name) && return setfield!(bond, name, val)
-    setproperty!(getfield(bond, :_row), name, val)
-end
-
-@inline Base.show(io::IO, ::MIME"text/plain", bond::Bond) = show(io, bond)
-@inline function Base.show(io::IO, bond::Bond)
-    print(io, "$(typeof(bond)): ")
-    show(io, NamedTuple(bond._row))
-end
-
-@inline Base.parent(bond::Bond) = bond._sys
-@inline parent_system(bond::Bond) = parent(bond)
-# TODO other parent_ functions
 
 """
     $(TYPEDSIGNATURES)

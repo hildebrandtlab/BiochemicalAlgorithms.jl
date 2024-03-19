@@ -35,10 +35,7 @@ Residue(
 ```
 Creates a new `Residue{T}` in the given chain.
 """
-@auto_hash_equals struct Residue{T} <: AbstractAtomContainer{T}
-    _sys::System{T}
-    _row::_ResidueTableRow
-end
+const Residue{T} = SystemComponent{T, _ResidueTableRow}
 
 @inline function Residue(
     chain::Chain{T},
@@ -81,24 +78,6 @@ end
     nm in _residue_table_cols_set || nm in _residue_table_cols_priv
 end
 
-@inline function Base.getproperty(res::Residue, name::Symbol)
-    hasfield(typeof(res), name) && return getfield(res, name)
-    getproperty(getfield(res, :_row), name)
-end
-
-@inline function Base.setproperty!(res::Residue, name::Symbol, val)
-    hasfield(typeof(res), name) && return setfield!(res, name, val)
-    setproperty!(getfield(res, :_row), name, val)
-end
-
-@inline Base.show(io::IO, ::MIME"text/plain", res::Residue) = show(io, res)
-@inline function Base.show(io::IO, res::Residue)
-    print(io, "$(typeof(res)): ")
-    show(io, NamedTuple(res._row))
-end
-
-@inline Base.parent(res::Residue) = res._sys
-@inline parent_system(res::Residue) = parent(res)
 @inline parent_molecule(res::Residue) = molecule_by_idx(parent(res), res.molecule_idx)
 @inline parent_chain(res::Residue) = chain_by_idx(parent(res), res.chain_idx)
 

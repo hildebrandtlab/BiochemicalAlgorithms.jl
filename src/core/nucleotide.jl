@@ -35,10 +35,7 @@ Nucleotide(
 ```
 Creates a new `Nucleotide{T}` in the given chain.
 """
-@auto_hash_equals struct Nucleotide{T} <: AbstractAtomContainer{T}
-    _sys::System{T}
-    _row::_NucleotideTableRow
-end
+const Nucleotide{T} = SystemComponent{T, _NucleotideTableRow}
 
 @inline function Nucleotide(
     chain::Chain{T},
@@ -80,24 +77,6 @@ end
     nm in _nucleotide_table_cols_set || nm in _nucleotide_table_cols_priv
 end
 
-@inline function Base.getproperty(nuc::Nucleotide, name::Symbol)
-    hasfield(typeof(nuc), name) && return getfield(nuc, name)
-    getproperty(getfield(nuc, :_row), name)
-end
-
-@inline function Base.setproperty!(nuc::Nucleotide, name::Symbol, val)
-    hasfield(typeof(nuc), name) && return setfield!(nuc, name, val)
-    setproperty!(getfield(nuc, :_row), name, val)
-end
-
-@inline Base.show(io::IO, ::MIME"text/plain", nuc::Nucleotide) = show(io, nuc)
-@inline function Base.show(io::IO, nuc::Nucleotide)
-    print(io, "$(typeof(nuc)): ")
-    show(io, NamedTuple(nuc._row))
-end
-
-@inline Base.parent(nuc::Nucleotide) = nuc._sys
-@inline parent_system(nuc::Nucleotide) = parent(nuc)
 @inline parent_molecule(nuc::Nucleotide) = molecule_by_idx(parent(nuc), nuc.molecule_idx)
 @inline parent_chain(nuc::Nucleotide) = chain_by_idx(parent(nuc), nuc.chain_idx)
 

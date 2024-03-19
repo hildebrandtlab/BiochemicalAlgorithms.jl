@@ -77,10 +77,7 @@ Atom(
 ```
 Creates a new `Atom{Float32}` in the default system. Supports the same keyword arguments as above.
 """
-@auto_hash_equals struct Atom{T} <: AbstractSystemComponent{T}
-    _sys::System{T}
-    _row::_AtomTableRow{T}
-end
+const Atom{T} = SystemComponent{T, _AtomTableRow{T}}
 
 @inline function Atom(
     sys::System{T},
@@ -155,25 +152,6 @@ end
 @inline function _hascolumn(::Type{<: Atom}, nm::Symbol)
     nm in _atom_table_cols_set || nm in _atom_table_cols_priv
 end
-
-@inline function Base.getproperty(atom::Atom, name::Symbol)
-    hasfield(typeof(atom), name) && return getfield(atom, name)
-    getproperty(getfield(atom, :_row), name)
-end
-
-@inline function Base.setproperty!(atom::Atom, name::Symbol, val)
-    hasfield(typeof(atom), name) && return setfield!(atom, name, val)
-    setproperty!(getfield(atom, :_row), name, val)
-end
-
-@inline Base.show(io::IO, ::MIME"text/plain", atom::Atom) = show(io, atom)
-@inline function Base.show(io::IO, atom::Atom)
-    print(io, "$(typeof(atom)): ")
-    show(io, NamedTuple(atom._row))
-end
-
-@inline Base.parent(atom::Atom) = atom._sys
-@inline parent_system(atom::Atom) = parent(atom)
 
 @inline function parent_molecule(atom::Atom) 
     isnothing(atom.molecule_idx) ?
