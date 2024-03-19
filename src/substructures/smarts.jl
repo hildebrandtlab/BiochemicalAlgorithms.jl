@@ -21,7 +21,7 @@ function _to_substructure(name, mol, m; adjacent_bonds=false)
     )
 end
 
-function Base.match(query::SMARTSQuery, mol::AbstractMolecule; adjacent_bonds=false)
+function Base.match(query::SMARTSQuery, mol::AbstractAtomContainer; adjacent_bonds=false)
     mg_mol = convert(GraphMol{SDFileAtom, SDFileBond}, mol)
     matches = substructmatches(mg_mol, query.query_graph)
 

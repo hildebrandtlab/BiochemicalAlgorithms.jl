@@ -14,7 +14,7 @@ function load_sdfile(fname::String, T=Float32)
     sys
 end
 
-function write_sdfile(fname::String, mol::AbstractMolecule)
+function write_sdfile(fname::String, mol::AbstractAtomContainer)
     mg_mol = convert(GraphMol{SDFileAtom, SDFileBond}, mol)
 
     sdfilewriter(fname, [mg_mol])

@@ -13,7 +13,6 @@ AbstractColumnTable
 AbstractSystemComponentTable
 AbstractSystemComponent
 AbstractAtomContainer
-AbstractMolecule
 ```
 
 ## Common functions

@@ -38,7 +38,7 @@ end
 @testitem "Writing" begin
     using DataFrames
 
-    function _compare_without_system(m1::AbstractMolecule, m2::AbstractMolecule)
+    function _compare_without_system(m1::AbstractAtomContainer, m2::AbstractAtomContainer)
         result =       m1.name == m2.name &&
                  DataFrame(atoms(m1))  == DataFrame(atoms(m2)) &&
                  DataFrame(bonds(m1))  == DataFrame(bonds(m2)) &&

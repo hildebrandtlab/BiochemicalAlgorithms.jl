@@ -1,6 +1,6 @@
 export Substructure, filter_atoms
 
-@auto_hash_equals struct Substructure{T<:Real, A<:AbstractAtomContainer{T}} <: AbstractMolecule{T}
+@auto_hash_equals struct Substructure{T<:Real, A<:AbstractAtomContainer{T}} <: AbstractAtomContainer{T}
     name::String
 
     parent::A

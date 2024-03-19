@@ -1,18 +1,10 @@
 export
-    AbstractMolecule,
     Molecule,
     MoleculeTable,
     molecule_by_idx,
     molecules,
     nmolecules,
     parent_molecule
-
-"""
-    $(TYPEDEF)
-
-Abstract base type for all molecules.
-"""
-abstract type AbstractMolecule{T} <: AbstractAtomContainer{T} end
 
 """
     $(TYPEDEF)
