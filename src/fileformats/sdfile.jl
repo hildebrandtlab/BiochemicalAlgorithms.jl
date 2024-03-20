@@ -14,11 +14,12 @@ function load_sdfile(fname::String, T=Float32)
     sys
 end
 
-# Currently broken due to changes in MolecularGraph.jl
-#@inline function write_sdfile(fname::String, mol::AbstractAtomContainer)
-#    MolecularGraph.sdfilewriter(fname, [convert(MolecularGraph.SDFMolGraph, mol)])
-#end
+@inline function write_sdfile(fname::String, mol::AbstractAtomContainer)
+    @warn "write_sdfile: writer only supports 2D data; projecting atoms onto xy-plane..."
+    MolecularGraph.sdfilewriter(fname, [convert(MolecularGraph.SDFMolGraph, mol)])
+end
 
-#@inline function write_sdfile(fname::String, sys::System)
-#    MolecularGraph.sdfilewriter(fname, convert.(MolecularGraph.SDFMolGraph, molecules(sys)))
-#end
+@inline function write_sdfile(fname::String, sys::System)
+    @warn "write_sdfile: writer only supports 2D data; projecting atoms onto xy-plane..."
+    MolecularGraph.sdfilewriter(fname, convert.(MolecularGraph.SDFMolGraph, molecules(sys)))
+end

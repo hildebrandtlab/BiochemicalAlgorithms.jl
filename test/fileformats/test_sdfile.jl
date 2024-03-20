@@ -22,8 +22,7 @@
     @test met["SlogP"] == "1.1878"
 end
 
-"""
-@testitem "Writing" begin
+@testitem "SDFile Writing" begin
     using DataFrames
 
     @inline function _compare_without_system(m1::AbstractAtomContainer, m2::AbstractAtomContainer)
@@ -38,13 +37,16 @@ end
 
     (single_name, single_file) = mktemp(;cleanup = true)
 
-    write_sdfile(single_name, mols[1])
-    m_sd = molecules(load_sdfile(single_name))[1]
+    write_sdfile(single_name, first(mols))
+    m_sd = first(molecules(load_sdfile(single_name)))
+
+    # set third component of all positions to mimic `write_sdfile` behavior
+    atoms(sys).r .= map(r -> Vector3{Float32}(r[1], r[2], zero(Float32)), atoms(sys).r)
 
     # since the molecules have different systems, we cannot simply compare them directly
     # also, m_sd contains the atom_idx property due to the GraphMol conversion
     m_sd.properties = filter(((k,v),) -> k != :atom_idx, m_sd.properties)
-    @test _compare_without_system(m_sd, mols[1])
+    @test _compare_without_system(m_sd, first(mols))
 
     (set_name, set_file) = mktemp(;cleanup = true)
 
@@ -53,6 +55,5 @@ end
 
     ms_sd = map(m -> begin m.properties = filter(((k,v),) -> k != :atom_idx, m.properties); m end, ms_sd)
 
-    @test all([_compare_without_system(ms_sd[i], mols[i]) for i in 1:length(ms_sd)])
+    @test all([_compare_without_system(ms_sd[i], mols[i]) for i in eachindex(ms_sd)])
 end
-"""
