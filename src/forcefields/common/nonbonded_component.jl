@@ -90,7 +90,7 @@ end
     switching_function::CubicSwitchingFunction{T}
 end
 
-@auto_hash_equals struct ElecrostaticInteraction{T<:Real}
+@auto_hash_equals struct ElectrostaticInteraction{T<:Real}
     q1q2::T
     distance::T
     scaling_factor::T
@@ -129,7 +129,7 @@ end
 
     lj_interactions::Deque{LennardJonesInteraction{T, 12, 6}}
     hydrogen_bonds::Deque{LennardJonesInteraction{T, 12, 10}}
-    electrostatic_interactions::Deque{ElecrostaticInteraction{T}}
+    electrostatic_interactions::Deque{ElectrostaticInteraction{T}}
 
     function NonBondedComponent{T}(ff::ForceField{T}) where {T<:Real}
         new("NonBonded", ff, NonBondedComponentCache{T}(), Dict{String, T}(), Tuple{Atom{T},Atom{T}}[])
@@ -371,7 +371,7 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
     hint = Int(round(1.2 * natoms(ff.system)))
     lj_interactions = Deque{LennardJonesInteraction{T, 12, 6}}(hint)
     hydrogen_bonds  = Deque{LennardJonesInteraction{T, 12, 10}}(hint)
-    electrostatic_interactions = Deque{ElecrostaticInteraction{T}}(hint)
+    electrostatic_interactions = Deque{ElectrostaticInteraction{T}}(hint)
 
     idx_cache    = atom_cache.idx
     charge_cache = atom_cache.charge
@@ -400,7 +400,7 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
         q1q2 = charge_cache[lj_1]*charge_cache[lj_2]
 
         if q1q2 ≠ zero(T)
-            es = ElecrostaticInteraction{T}(
+            es = ElectrostaticInteraction{T}(
                 q1q2,
                 lj_candidate[3],
                 vicinal_pair ? scaling_es_1_4 : T(1.0),
@@ -485,7 +485,7 @@ end
     hb.distance^-12 * hb.A - hb.distance^-10 * hb.B * hb.scaling_factor * switching_function(hb.switching_function, hb.distance^2)
 end
 
-@inline function compute_energy(esi::ElecrostaticInteraction{T})::T where {T<:Real}
+@inline function compute_energy(esi::ElectrostaticInteraction{T})::T where {T<:Real}
     energy::T = esi.distance_dependent_dielectric ? esi.q1q2 / 4 / esi.distance^2 : esi.q1q2 / esi.distance
 
     energy * esi.scaling_factor * switching_function(esi.switching_function, esi.distance^2) * T(ES_Prefactor)
@@ -580,7 +580,7 @@ function compute_forces(hb::LennardJonesInteraction{T, 12, 10}) where {T<:Real}
     end
 end
 
-function compute_forces(esi::ElecrostaticInteraction{T}) where {T<:Real}
+function compute_forces(esi::ElectrostaticInteraction{T}) where {T<:Real}
     direction = esi.a1r .- esi.a2r
 
     sq_distance = squared_norm(direction)
