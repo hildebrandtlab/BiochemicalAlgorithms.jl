@@ -27,7 +27,7 @@ StructTypes.StructType(::Type{DBNode}) = StructTypes.Struct()
         raw_data = split(n.value)
 
         if length(raw_data) == 4
-            element = parse(Elements, raw_data[1])
+            element = parse(ElementType, raw_data[1])
 
             r = Vector3(map(d -> parse(T, d), raw_data[2:4]))
 
