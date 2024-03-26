@@ -126,4 +126,4 @@ end
 
 const ElementType = Elements.T
 
-@inline Base.parse(::Type{ElementType}, s) = getproperty(Elements, Symbol(s))
+@inline Base.parse(::Type{ElementType}, s) = getproperty(Elements, Symbol(titlecase(s)))

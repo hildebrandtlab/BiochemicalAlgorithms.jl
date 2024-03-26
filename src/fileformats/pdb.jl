@@ -36,8 +36,8 @@ function parse_element_string(es::String)
         result = Elements.Unknown
     else
         try
-            result = parse(ElementType, titlecase(es))
-        catch e
+            result = parse(ElementType, es)
+        catch
             @warn "BiochemicalAlgorithms::PDB::parse_element_string: could not parse element from $(es); returning Unknown"
         end
     end

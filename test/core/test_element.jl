@@ -122,7 +122,9 @@
     @test_throws ArgumentError ElementType(-1)
     @test_throws ArgumentError ElementType(119)
 
-    # see https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/pull/28
-    @test_broken parse(ElementType, "MG") == Elements.Mg 
-    @test_broken parse(ElementType, "ZN") == Elements.Zn
+    @test parse(ElementType, "c") == Elements.C
+    @test parse(ElementType, "C") == Elements.C
+    @test parse(ElementType, "mg") == Elements.Mg
+    @test parse(ElementType, "Mg") == Elements.Mg
+    @test parse(ElementType, "MG") == Elements.Mg
 end
