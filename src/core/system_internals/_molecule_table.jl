@@ -4,7 +4,7 @@ const _molecule_table_schema = Tables.Schema(
 )
 const _molecule_table_cols = _molecule_table_schema.names
 const _molecule_table_cols_set = Set(_molecule_table_cols)
-const _molecule_table_cols_priv = Set([:properties, :flags])
+const _molecule_table_cols_priv = Set([:variant, :properties, :flags])
 
 @auto_hash_equals struct _MoleculeTable <: AbstractColumnTable
     # public columns
@@ -12,6 +12,7 @@ const _molecule_table_cols_priv = Set([:properties, :flags])
     name::Vector{String}
 
     # private columns
+    variant::Vector{MoleculeVariantType}
     properties::Vector{Properties}
     flags::Vector{Flags}
 
@@ -22,6 +23,7 @@ const _molecule_table_cols_priv = Set([:properties, :flags])
         new(
             Int[],
             String[],
+            MoleculeVariantType[],
             Properties[],
             Flags[],
             Dict{Int,Int}()
@@ -43,12 +45,14 @@ function Base.push!(
     mt::_MoleculeTable,
     idx::Int = 0;
     name::String = "",
+    variant::MoleculeVariantType = MoleculeVariant.None,
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )
     mt._idx_map[idx] = length(mt.idx) + 1
     push!(mt.idx, idx)
     push!(mt.name, name)
+    push!(mt.variant, variant)
     push!(mt.properties, properties)
     push!(mt.flags, flags)
     mt
@@ -59,6 +63,7 @@ function _molecule_table(itr)
     for m in itr
         push!(mt, m.idx;
             name = m.name,
+            variant = m.variant,
             properties = m.properties,
             flags = m.flags
         )
