@@ -1,10 +1,15 @@
 export
+    Protein,
     Molecule,
     MoleculeTable,
+    isprotein,
     molecule_by_idx,
     molecules,
     nmolecules,
-    parent_molecule
+    nproteins,
+    parent_molecule,
+    protein_by_idx,
+    proteins
 
 """
     Molecule{T} <: AbstractAtomContainer{T}
@@ -16,6 +21,7 @@ Mutable representation of an individual molecule in a system.
  - `name::String`
 
 # Private fields
+ - `variant::MoleculeVariantType`
  - `properties::Properties`
  - `flags::Flags`
 
@@ -25,6 +31,7 @@ Molecule(
     sys::System{T};
     # keyword arguments
     name::String = "",
+    variant::MoleculeVariantType = MoleculeVariant.None,
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )
@@ -35,6 +42,7 @@ Creates a new `Molecule{T}` in the given system.
 Molecule(;
     #keyword arguments
     name::String = "",
+    variant::MoleculeVariantType = MoleculeVariant.None,
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )
@@ -67,6 +75,7 @@ generated using [`molecules`](@ref) or filtered from other molecule tables (via 
  - `name::AbstractVector{String}`
 
 # Private columns
+ - `variant::AbstractVector{MoleculeVariantType}`
  - `properties::AbstractVector{Properties}`
  - `flags::AbstractVector{Flags}`
 """
@@ -101,6 +110,7 @@ new `idx`.
 @inline function Base.push!(sys::System{T}, mol::Molecule{T}) where T
     Molecule(sys;
         name = mol.name,
+        variant = mol.variant,
         properties = mol.properties,
         flags = mol.flags
     )
@@ -162,3 +172,28 @@ end
 =#
 @inline bonds(mol::Molecule; kwargs...) = bonds(parent(mol); molecule_idx = mol.idx, kwargs...)
 @inline nbonds(mol::Molecule; kwargs...) = nbonds(parent(mol); molecule_idx = mol.idx, kwargs...)
+
+#=
+    Variant: Protein
+=#
+@inline function Protein(sys::System; kwargs...)
+    Molecule(sys; variant = MoleculeVariant.Protein, kwargs...)
+end
+
+@inline function isprotein(mol::Molecule)
+    mol.variant === MoleculeVariant.Protein
+end
+
+@inline function protein_by_idx(sys::System, idx::Int)
+    mol = molecule_by_idx(sys, idx)
+    isprotein(mol) || throw(KeyError(idx))
+    mol
+end
+
+@inline function proteins(sys::System)
+    filter(isprotein, molecules(sys))
+end
+
+@inline function nproteins(sys::System)
+    length(proteins(sys))
+end
