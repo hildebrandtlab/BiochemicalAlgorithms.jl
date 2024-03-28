@@ -27,6 +27,7 @@ include("core/tables.jl")
 include("core/element.jl")
 include("core/amino_acid.jl")
 include("core/bond_order.jl")
+include("core/variants.jl")
 
 # system
 include("core/system_internals/_atom_table.jl")
