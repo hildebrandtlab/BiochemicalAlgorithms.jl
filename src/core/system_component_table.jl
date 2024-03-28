@@ -61,6 +61,6 @@ end
 @inline Base.getindex(ct::SystemComponentTable, i::Int) = _element_by_idx(ct, ct._idx[i])
 @inline Base.getindex(ct::SystemComponentTable, ::Colon) = ct
 
-@inline function Base.getindex(ct::SystemComponentTable{T, C}, I) where {T, C}
+@inline function Base.getindex(ct::SystemComponentTable{T, C}, I::AbstractArray) where {T, C}
     SystemComponentTable{T, C}(ct._sys, collect(Int, map(i -> ct._idx[i], I)))
 end
