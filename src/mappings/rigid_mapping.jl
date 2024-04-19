@@ -1,8 +1,12 @@
 using Statistics: mean
 using LinearAlgebra: Hermitian, eigen
+using Rotations
+using Quaternions
 
 export 
-    AbstractRMSDMinimizer, 
+    AbstractRMSDMinimizer,
+    RMSDMinimizerKabsch,
+    RMSDMinimizerCoutsias, 
     RigidTransform, 
     rigid_transform!, 
     compute_rmsd_minimizer, 
@@ -12,15 +16,21 @@ export
     match_points
 
 abstract type AbstractRMSDMinimizer end
-abstract type RMSDMinimizerKabsch <: AbstractRMSDMinimizer end
+
+abstract type RMSDMinimizerKabsch   <: AbstractRMSDMinimizer end
+abstract type RMSDMinimizerCoutsias <: AbstractRMSDMinimizer end
 
 struct RigidTransform{T<:Real}
-    rotation::Matrix3{T}
+    rotation::RotMatrix3{T}
     translation::Vector3{T}
 
-    function RigidTransform{T}(r::Matrix3{T}, t::Vector3{T}) where {T<:Real}
+    function RigidTransform{T}(r::RotMatrix3{T}, t::Vector3{T}) where {T<:Real}
         new(r, t)
     end
+    function RigidTransform{T}(r::Matrix3{T}, t::Vector3{T}) where {T<:Real}
+        new(RotMatrix3(r), t)
+    end
+
 end
 
 RigidTransform(r::Matrix3, t::Vector3) = RigidTransform{Float32}(r, t)
@@ -48,30 +58,81 @@ function compute_rmsd(A::AbstractAtomContainer, B::AbstractAtomContainer)
     sqrt(mean(squared_norm.(atoms(A).r .- atoms(B).r)))
 end
 
-function compute_rmsd_minimizer(f::AbstractAtomBijection{T}) where {T<:Real}
+function compute_rmsd_minimizer(f::AbstractAtomBijection{T}, mini::Type{<: AbstractRMSDMinimizer}=RMSDMinimizerCoutsias) where {T<:Real}
     mean_A = mean(f.atoms_A.r)
 
     mean_B = mean(f.atoms_B.r)
 
     R = mapreduce(t -> t[1] * transpose(t[2]), +, zip(f.atoms_B.r .- Ref(mean_B), f.atoms_A.r .- Ref(mean_A)))
 
+    rot_matrix = _compute_rotation(R, mini)
+
+    RigidTransform{T}(rot_matrix, mean_B - mean_A)
+    
+end
+
+function _compute_rotation(R::Matrix3{T}, ::Type{RMSDMinimizerKabsch}) where {T<:Real}
+   
     C = Hermitian(transpose(R) * R)
     μ, a = eigen(C)
 
-    RigidTransform{T}(mapreduce(i -> 1/√μ[i] * (R * a[:, i]) * transpose(a[:, i]), +, 1:3), mean_B - mean_A)
+    # check eigen values for 
+    if minimum(μ) <= 0
+        @warn("Correlation matrix not positive definit. Rotation Matrix will be computed by Coutsias.")
+        rot = _compute_rotation(R, RMSDMinimizerCoutsias)
+        rot
+    end
+
+    RotMatrix3{T}(mapreduce(i -> 1/√μ[i] * (R * a[:, i]) * transpose(a[:, i]), +, 1:3))
 end
 
-compute_rmsd_minimizer(f) = compute_rmsd_minimizer{Float32}(f)
+function _compute_rotation(R::Matrix3{T}, ::Type{RMSDMinimizerCoutsias}) where {T<:Real}
+    # Residual matrix F
+    F = zeros(4,4)
+    F[1,1] = R[1,1] + R[2,2] + R[3,3]
+    F[2,1] = R[2,3] - R[3,2]
+    F[3,1] = R[3,1] - R[1,3]
+    F[4,1] = R[1,2] - R[2,1]
+
+    F[1,2] = R[2,3] - R[3,2]
+    F[2,2] = R[1,1] - R[2,2] - R[3,3]
+    F[3,2] = R[1,2] + R[2,1]
+    F[4,2] = R[1,3] + R[3,1]
+
+    F[1,3] = R[3,1] - R[1,3]
+    F[2,3] = R[1,2] + R[2,1]
+    F[3,3] = -R[1,1] + R[2,2] - R[3,3]
+    F[4,3] = R[2,3] + R[3,2]
+
+    F[1,4] = R[1,2] - R[2,1]
+    F[2,4] = R[1,3] + R[3,1]
+    F[3,4] = R[2,3] + R[3,2]
+    F[4,4] = -R[1,1] - R[2,2] + R[3,3]
+
+    μ, a = eigen(F)
+
+    q_max, i = findmax(μ)
+
+    q_r = QuatRotation(quat(a[1,i], a[2,i], a[3,i], a[4,i]))
+
+    Matrix3{T}(q_r)
+
+end
+
+
 
 function map_rigid!(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T}; heavy_atoms_only::Bool = false) where {T<:Real}
+    # first map proteins onto the origin
+    atoms(A).r .= atoms(A).r .- Ref(mean(atoms(A).r))
+
     atoms_A = atoms(A)
     if heavy_atoms_only
         atoms_A = filter(atom -> atom.element != Elements.H)
     end
 
-    U = compute_rmsd_minimizer(TrivialAtomBijection(atoms_A, B))
+    rt = compute_rmsd_minimizer(TrivialAtomBijection(atoms_A, B))
 
-    rigid_transform!(A, U)
+    rigid_transform!(A, rt)
 
     A
 end
