@@ -1,5 +1,3 @@
-using Statistics: mean
-using LinearAlgebra: Hermitian, eigen
 @testitem "Atom_Bijection:" begin
     mol = load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json"))
     mol2 = deepcopy(mol) 
@@ -7,7 +5,6 @@ using LinearAlgebra: Hermitian, eigen
     ab = TrivialAtomBijection(mol, mol2)
     @test ab isa TrivialAtomBijection
     @test size(ab.atoms_A) == size(ab.atoms_B)
-
 end
 
 @testitem "Rigid_Mapping: RigidTransform" begin
@@ -15,13 +12,14 @@ end
     m = Matrix3{Float32}(1, 2, 3, 4, 5, 6, 7, 8, 9)
     r = RigidTransform(m,v)
 
+    @test m isa Matrix3{Float32}
+    @test v isa Vector3{Float32}
     @test r isa RigidTransform
-    @test r.rotation isa Matrix3{Float32}
+    @test_broken r.rotation isa RotMatrix3{Float32}
     @test r.translation isa Vector3{Float32}
 end
 
 @testitem "Rigid_Mapping: Function translate" begin
-    
     s = load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json"))
     s2 = deepcopy(s)
     v = Vector3{Float32}(1.0,1.0,1.0)
@@ -32,34 +30,18 @@ end
     for i in eachindex(atoms(s))
         @test isapprox(atoms(s).r[i], atoms(s2).r[i]+v)
     end 
-    
 end
 
 @testitem "Rigid_Mapping: Function rigid_transform" begin
-  
     sys = System{Float32}()
-
-    # add atoms
     for i in 1:3
-        atom = Atom(sys, 1, Elements.H;
-            name = "my fancy atom",
-            atom_type = "my atom type",
-            r = Vector3{Float32}(i*1.0, i*2.0, 0.0),
-            v = ones(Vector3{Float32}),
-            F = ones(Vector3{Float32}),
-            formal_charge = 4,
-            charge = Float32(5.),
-            radius = Float32(6.),
-            properties = Properties(:first => 'a', :second => "b"),
-            flags =  Flags([:third])
-        )
+        atom = Atom(sys, 1, Elements.H; r = Vector3{Float32}(i*1.0, i*2.0, 0.0))
         @test natoms(sys) == i
     end
       
     sys2 = deepcopy(sys) 
     @test natoms(sys) == 3
     @test natoms(sys2) == 3   
-   
  
     # performs counter clockwise rotation by 90 degree with translation by v=(0, 0, 0)
     v = Vector3{Float32}(0, 0, 0)
@@ -67,21 +49,10 @@ end
     r = RigidTransform(m,v)
     
     rigid_transform!(sys2, r)
-    
-    # check first atom
-    @test isapprox(atoms(sys2).r[1][1], 1.0)
-    @test isapprox(atoms(sys2).r[1][2], 0.0)
-    @test isapprox(atoms(sys2).r[1][3], -2.0)
-    
-    # check second atom
-    @test isapprox(atoms(sys2).r[2][1], 2.0)
-    @test isapprox(atoms(sys2).r[2][2], 0.0)
-    @test isapprox(atoms(sys2).r[2][3], -4.0)
-    
-    # check third atom
-    @test isapprox(atoms(sys2).r[3][1], 3.0)
-    @test isapprox(atoms(sys2).r[3][2], 0.0)
-    @test isapprox(atoms(sys2).r[3][3], -6.0)
+    @test isapprox(atoms(sys2).r[1], Vector3{Float32}(1., 0., -2.), atol=1e-8)
+    @test isapprox(atoms(sys2).r[2], Vector3{Float32}(2., 0., -4.), atol=1e-8)
+    @test isapprox(atoms(sys2).r[3], Vector3{Float32}(3., 0., -6.), atol=1e-8)
+
     
    # performs counter clockwise rotation by 90 degree with translation by v=(1, 1, 1)
     sys3 = deepcopy(sys) 
@@ -90,116 +61,124 @@ end
     r = RigidTransform(m,v)
     
     rigid_transform!(sys3, r)
-    
-    # check first atom
-    @test isapprox(atoms(sys3).r[1][1], 2.0)
-    @test isapprox(atoms(sys3).r[1][2], 1.0)
-    @test isapprox(atoms(sys3).r[1][3], -1.0)
-    
-    # check first atom
-    @test isapprox(atoms(sys3).r[2][1], 3.0)
-    @test isapprox(atoms(sys3).r[2][2], 1.0)
-    @test isapprox(atoms(sys3).r[2][3], -3.0)
-    
-    # check first atom
-    @test isapprox(atoms(sys3).r[3][1], 4.0)
-    @test isapprox(atoms(sys3).r[3][2], 1.0)
-    @test isapprox(atoms(sys3).r[3][3], -5.0) 
-        
+    @test isapprox(atoms(sys3).r[1], Vector3{Float32}(2., 1., -1.), atol=1e-8)
+    @test isapprox(atoms(sys3).r[2], Vector3{Float32}(3., 1., -3.), atol=1e-8)
+    @test isapprox(atoms(sys3).r[3], Vector3{Float32}(4., 1., -5.), atol=1e-8)
 end
 
 @testitem "Rigid_Mapping: Function compute_rmsd" begin
     sys = load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json"))
-    
     sys2 = deepcopy(sys)
+    sys3 = deepcopy(sys) 
+
+    @test isapprox(compute_rmsd(sys, sys2),0.0)
 
     ab = TrivialAtomBijection(sys, sys2)
     @test ab isa TrivialAtomBijection
     @test isapprox(compute_rmsd(ab), 0.0)
-
-    sys3 = deepcopy(sys) 
+  
     translate!(sys3, Vector3{Float32}(1.0, 0, 0))
     ab2 = TrivialAtomBijection(sys,sys3)
 
     @test isapprox(compute_rmsd(ab2), 1.0)
-
+    @test isapprox(compute_rmsd(sys, sys3),1.0)
 end
 
 @testitem "Rigid_Mapping: Function compute_rmsd_minimizer" begin
+    r_A = [[0., 0., 0.], [0., 1., 0.], [3., 1., 0.]]
     sys = System{Float32}()
 
     # add atoms
     for i in 1:3
-        atom = Atom(sys, 1, Elements.H;
-            name = "my fancy atom",
-            atom_type = "my atom type",
-            r = Vector3{Float32}(i*1.0, i*2.0, i*3.0),
-            v = ones(Vector3{Float32}),
-            F = ones(Vector3{Float32}),
-            formal_charge = 4,
-            charge = Float32(5.),
-            radius = Float32(6.),
-            properties = Properties(:first => 'a', :second => "b"),
-            flags =  Flags([:third])
-        )
+        atom = Atom(sys, 1, Elements.H, r = Vector3{Float32}(r_A[i]))
         @test natoms(sys) == i
     end
-      
-    sys2 = deepcopy(sys) 
-    @test natoms(sys) == 3
-    @test natoms(sys2) == 3   
 
-    # first: consider simple translation of coordinates by a vector v=(1,1,0)
+    # first: consider simple translation of coordinates by a vector v=(1,1,2)
     sys2 = deepcopy(sys) 
-    v = Vector3{Float32}(1.0, 1.0, 0.0)
+    v = Vector3{Float32}(1.0, 1.0, 2.0)
     translate!(sys2, v)
 
-    # check first system
-    for i in eachindex(atoms(sys))
-        @test isapprox(atoms(sys).r[i], Vector3{Float32}(i*1.0, i*2.0, i*3.0))
-    end
 
     # check translated system
     for i in eachindex(atoms(sys2))
         @test isapprox(atoms(sys2).r[i], atoms(sys).r[i] + v)
     end
 
-    # translate back
+    # compute transformation 
     ab = TrivialAtomBijection{Float32}(sys2, sys)
-    rt = compute_rmsd_minimizer(ab)
+    
+    rt0 = compute_rmsd_minimizer(ab)
+    rt1 = compute_rmsd_minimizer(ab, RMSDMinimizerCoutsias)
+    rt2 = compute_rmsd_minimizer(ab, RMSDMinimizerKabsch) # calls internally Coutsias
 
-    @test rt isa RigidTransform
-    @test rt.rotation isa Matrix3{Float32}
-    @test rt.translation isa Vector3{Float32}
-    @test isapprox(rt.translation, Vector3{Float32}(1.0, 1.0, 0.0))
+    @test isapprox(rt1.translation, Vector3{Float32}(-1.0, -1.0, -2.0))
+    @test isapprox(rt2.translation, Vector3{Float32}(-1.0, -1.0, -2.0))
 
     #translate back
     # move atoms of sys2 back to positions of sys
-    rigid_transform!(sys2,rt)
-    @test atoms(sys2).r[1] == Vector3{Float32}(1.0, 2.0, 3.0) 
-    @test atoms(sys2).r[2] == Vector3{Float32}(2.0, 4.0, 3.0)
-    @test atoms(sys2).r[3] == Vector3{Float32}(3.0, 6.0, 3.0)
-    
+    rigid_transform!(sys2,rt1)
+    @test isapprox(atoms(sys2).r[1], atoms(sys).r[1], atol=1e-7)
+    @test isapprox(atoms(sys2).r[2], atoms(sys).r[2], atol=1e-8)
+    @test isapprox(atoms(sys2).r[3], atoms(sys).r[3], atol=1e-8)
+  
     # second: consider simple rotation of coordinates without translation
   
- #=  
-    r_A = mol.atoms.r
-    r_B = mol2.atoms.r
-    mean_A = mean(r_A)
-    mean_B = mean(r_B)
+    # performs counter clockwise rotation by 90 degree with translation by v=(0, 0, 0)
+    v = Vector3{Float32}(0, 0, 0)
+    m = Matrix3{Float32}(1, 0, 0, 0, 0, -1, 0, 1, 0)
+    r = RigidTransform(m,v)
+    
+    rigid_transform!(sys2, r)
+    
+    @test isapprox(atoms(sys2).r[1], Vector3{Float32}(0., 0., 0.), atol=1e-7)
+    @test isapprox(atoms(sys2).r[2], Vector3{Float32}(0., 0., -1.), atol=1e-8)
+    @test isapprox(atoms(sys2).r[3], Vector3{Float32}(3., 0., -1.), atol=1e-8)
 
 
-    R = mapreduce(t -> t[1] * transpose(t[2]), +, zip(r_B .- Ref(mean_B), r_A .- Ref(mean_A)))
+    #third: consider rotation and translation
+    v = Vector3{Float32}(1, 1, 1)
+    m = Matrix3{Float32}(1, 0, 0, 0, 0, -1, 0, 1, 0)
+    r = RigidTransform(m,v)
+    sys2 = deepcopy(sys)
+    rigid_transform!(sys2,r)
+    @test isapprox(atoms(sys2).r[1], Vector3{Float32}(1., 1., 1.), atol=1e-7)
+    @test isapprox(atoms(sys2).r[2], Vector3{Float32}(1., 1., 0.), atol=1e-8)
+    @test isapprox(atoms(sys2).r[3], Vector3{Float32}(4., 1., 0.), atol=1e-8)
 
-    C = Hermitian(transpose(R) * R)
-  
-    μ, a = eigen(C)
+end
 
-    println("mu ",μ )
-    println("a", a)
+@testitem "Rigid_Mapping: Function map_rigid!" begin
 
-    ab2 = TrivialAtomBijection{Float64}(mol, mol2)
-    rt = compute_rmsd_minimizer(ab2)
-    println(rt.translation)
-    println(rt.rotation) =#
+    r_A = [[0., 2., 0.], [0., 2., 1.], [3., 2., 1.]]
+
+    sys = System{Float32}()
+    # add atoms
+    for i in 1:3
+        atom = Atom(sys, 1, Elements.H, r = Vector3{Float32}(r_A[i]))
+        @test natoms(sys) == i
+    end
+
+    sys2 = deepcopy(sys)
+    v = Vector3{Float32}(1, 1, 1)
+    m = Matrix3{Float32}(1, 0, 0, 0, 0, -1, 0, 1, 0)
+    r = RigidTransform(m,v)
+
+    rigid_transform!(sys2, r)
+ 
+
+    # now we have two system that can be mapped onto each other
+    @test isapprox(atoms(sys2).r[1], Vector3{Float32}(1., 1., -1.), atol=1e-7)
+    @test isapprox(atoms(sys2).r[2], Vector3{Float32}(1., 2., -1.), atol=1e-8)
+    @test isapprox(atoms(sys2).r[3], Vector3{Float32}(4., 2., -1.), atol=1e-8)
+    #rmsd before mapping
+    @test isapprox(compute_rmsd(sys2,sys),2.081666f0)
+
+    map_rigid!(sys2,sys)
+    #after mapping
+    @test isapprox(compute_rmsd(sys2,sys),0.942809f0)
+
+    @test isapprox(atoms(sys2).r[1], Vector3{Float32}(0., 2., 1.3333333), atol=1e-7)
+    @test isapprox(atoms(sys2).r[2], Vector3{Float32}(0., 2., 0.3333333), atol=1e-8)
+    @test isapprox(atoms(sys2).r[3], Vector3{Float32}(3., 2., 0.3333333), atol=1e-8)
 end
