@@ -4,7 +4,7 @@ const _fragment_table_schema = Tables.Schema(
 )
 const _fragment_table_cols = _fragment_table_schema.names
 const _fragment_table_cols_set = Set(_fragment_table_cols)
-const _fragment_table_cols_priv = Set([:properties, :flags, :molecule_idx, :chain_idx])
+const _fragment_table_cols_priv = Set([:variant, :properties, :flags, :molecule_idx, :chain_idx])
 
 @auto_hash_equals struct _FragmentTable <: AbstractColumnTable
     # public columns
@@ -13,6 +13,7 @@ const _fragment_table_cols_priv = Set([:properties, :flags, :molecule_idx, :chai
     name::Vector{String}
 
     # private columns
+    variant::Vector{FragmentVariantType}
     properties::Vector{Properties}
     flags::Vector{Flags}
     molecule_idx::Vector{Int}
@@ -26,6 +27,7 @@ const _fragment_table_cols_priv = Set([:properties, :flags, :molecule_idx, :chai
             Int[],
             Int[],
             String[],
+            FragmentVariantType[],
             Properties[],
             Flags[],
             Int[],
@@ -52,6 +54,7 @@ function Base.push!(
     molecule_idx::Int,
     chain_idx::Int;
     name::String = "",
+    variant::FragmentVariantType = FragmentVariant.None,
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )
@@ -59,6 +62,7 @@ function Base.push!(
     push!(ft.idx, idx)
     push!(ft.number, number)
     push!(ft.name, name)
+    push!(ft.variant, variant)
     push!(ft.properties, properties)
     push!(ft.flags, flags)
     push!(ft.molecule_idx, molecule_idx)
@@ -71,6 +75,7 @@ function _fragment_table(itr)
     for f in itr
         push!(ft, f.idx, f.number, f.molecule_idx, f.chain_idx;
             name = f.name,
+            variant = f.variant,
             properties = f.properties,
             flags = f.flags
        )
