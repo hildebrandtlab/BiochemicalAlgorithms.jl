@@ -26,6 +26,7 @@ Mutable representation of an individual fragment in a system.
  - `name::String`
 
 # Private fields
+ - `variant::FragmentVariantType`
  - `properties::Properties`
  - `flags::Flags`
  - `molecule_idx::Int`
@@ -38,6 +39,7 @@ Fragment(
     number::Int;
     # keyword arguments
     name::String = "",
+    variant::FragmentVariantType = FragmentVariant.None,
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )
@@ -69,6 +71,7 @@ generated using [`fragments`](@ref) or filtered from other fragment tables (via 
  - `name::AbstractVector{String}`
 
 # Private columns
+ - `variant::AbstractVector{FragmentVariantType}`
  - `properties::AbstractVector{Properties}`
  - `flags::AbstractVector{Flags}`
  - `molecule_idx::AbstractVector{Int}`
@@ -172,6 +175,7 @@ new `idx`.
 @inline function Base.push!(chain::Chain{T}, frag::Fragment{T}) where T
     Fragment(chain, frag.number;
         name = frag.name,
+        variant = frag.variant,
         properties = frag.properties,
         flags = frag.flags
     )
