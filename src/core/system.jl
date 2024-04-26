@@ -110,8 +110,6 @@ Creates a new and empty `System{T}`.
     _molecules::_MoleculeTable
     _chains::_ChainTable
     _fragments::_FragmentTable
-    _nucleotides::_NucleotideTable
-    _residues::_ResidueTable
     _curr_idx::Int
 
     function System{T}(
@@ -128,8 +126,6 @@ Creates a new and empty `System{T}`.
             _MoleculeTable(),
             _ChainTable(),
             _FragmentTable(),
-            _NucleotideTable(),
-            _ResidueTable(),
             0
         )
     end
@@ -176,8 +172,6 @@ Base.show(io::IO, sys::System) = print(io,
     parent(::Chain)
     parent(::Fragment)
     parent(::Molecule)
-    parent(::Nucleotide)
-    parent(::Residue)
     parent(::System)
 
 Returns the `System{T}` containing the given object.
@@ -190,8 +184,6 @@ Base.parent(s::System) = s
     parent_system(::Chain)
     parent_system(::Fragment)
     parent_system(::Molecule)
-    parent_system(::Nucleotide)
-    parent_system(::Residue)
     parent_system(::System)
 
 Returns the `System{T}` containing the given object. Alias for 
