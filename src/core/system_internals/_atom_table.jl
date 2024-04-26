@@ -1,6 +1,6 @@
 const _atom_table_cols = (:idx, :number, :element, :name, :atom_type, :r, :v, :F, :formal_charge, :charge, :radius)
 const _atom_table_cols_set = Set(_atom_table_cols)
-const _atom_table_cols_priv = Set([:properties, :flags, :frame_id, :molecule_idx, :chain_idx, :fragment_idx, :nucleotide_idx, :residue_idx])
+const _atom_table_cols_priv = Set([:properties, :flags, :frame_id, :molecule_idx, :chain_idx, :fragment_idx])
 
 @auto_hash_equals struct _AtomTable{T <: Real} <: AbstractColumnTable
     # public columns
@@ -23,8 +23,6 @@ const _atom_table_cols_priv = Set([:properties, :flags, :frame_id, :molecule_idx
     molecule_idx::Vector{MaybeInt}
     chain_idx::Vector{MaybeInt}
     fragment_idx::Vector{MaybeInt}
-    nucleotide_idx::Vector{MaybeInt}
-    residue_idx::Vector{MaybeInt}
 
     # internals
     _idx_map::Dict{Int,Int}
@@ -45,8 +43,6 @@ const _atom_table_cols_priv = Set([:properties, :flags, :frame_id, :molecule_idx
             Properties[],
             Flags[],
             Int[],
-            MaybeInt[],
-            MaybeInt[],
             MaybeInt[],
             MaybeInt[],
             MaybeInt[],
@@ -89,9 +85,7 @@ function Base.push!(
     frame_id::Int = 1,
     molecule_idx::MaybeInt = nothing,
     chain_idx::MaybeInt = nothing,
-    fragment_idx::MaybeInt = nothing,
-    nucleotide_idx::MaybeInt = nothing,
-    residue_idx::MaybeInt = nothing
+    fragment_idx::MaybeInt = nothing
 ) where T
     at._idx_map[idx] = length(at.idx) + 1
     push!(at.idx, idx)
@@ -111,8 +105,6 @@ function Base.push!(
     push!(at.molecule_idx, molecule_idx)
     push!(at.chain_idx, chain_idx)
     push!(at.fragment_idx, fragment_idx)
-    push!(at.nucleotide_idx, nucleotide_idx)
-    push!(at.residue_idx, residue_idx)
     at
 end
 
@@ -133,9 +125,7 @@ function _atom_table(::Type{T}, itr) where T
             frame_id = a.frame_id,
             molecule_idx = a.molecule_idx,
             chain_idx = a.chain_idx,
-            fragment_idx = a.fragment_idx,
-            nucleotide_idx = a.nucleotide_idx,
-            residue_idx = a.residue_idx
+            fragment_idx = a.fragment_idx
         )
     end
     at

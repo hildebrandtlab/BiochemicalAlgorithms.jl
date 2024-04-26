@@ -53,8 +53,6 @@ function Base.copy(substruct::Substructure{T}) where T
     sys._molecules   = _molecule_table(deepcopy(molecules(substruct)))
     sys._chains      = _chain_table(deepcopy(chains(substruct)))
     sys._fragments   = _fragment_table(deepcopy(fragments(substruct)))
-    sys._nucleotides = _nucleotide_table(deepcopy(nucleotides(substruct)))
-    sys._residues    = _residue_table(deepcopy(residues(substruct)))
 
     sys
 end
@@ -70,17 +68,13 @@ private atom fields.
     frame_id::MaybeInt = 1,
     molecule_idx::Union{MaybeInt, Some{Nothing}} = nothing,
     chain_idx::Union{MaybeInt, Some{Nothing}} = nothing,
-    fragment_idx::Union{MaybeInt, Some{Nothing}} = nothing,
-    nucleotide_idx::Union{MaybeInt, Some{Nothing}} = nothing,
-    residue_idx::Union{MaybeInt, Some{Nothing}} = nothing
+    fragment_idx::Union{MaybeInt, Some{Nothing}} = nothing
 ) where T
     filter(row ->
         (isnothing(frame_id)       || row.frame_id == frame_id) &&
         (isnothing(molecule_idx)   || row.molecule_idx == something(molecule_idx)) &&
         (isnothing(chain_idx)      || row.chain_idx == something(chain_idx)) &&
-        (isnothing(fragment_idx)   || row.fragment_idx == something(fragment_idx)) &&
-        (isnothing(nucleotide_idx) || row.nucleotide_idx == something(nucleotide_idx)) &&
-        (isnothing(residue_idx)    || row.residue_idx == something(residue_idx)),
+        (isnothing(fragment_idx)   || row.fragment_idx == something(fragment_idx)),
         substruct._atoms
     )
 end
@@ -103,16 +97,6 @@ end
 @inline function fragments(substruct::Substructure; kwargs...)
     fidx = Set(atoms(substruct; kwargs...).fragment_idx)
     filter(row -> row.idx in fidx, fragments(substruct.parent))
-end
-
-@inline function nucleotides(substruct::Substructure; kwargs...)
-    nidx = Set(atoms(substruct; kwargs...).nucleotide_idx)
-    filter(row -> row.idx in nidx, nucleotides(substruct.parent))
-end
-
-@inline function residues(substruct::Substructure; kwargs...)
-    ridx = Set(atoms(substruct; kwargs...).residue_idx)
-    filter(row -> row.idx in ridx, residues(substruct.parent))
 end
 
 @inline function natoms(substruct::Substructure; kwargs...)

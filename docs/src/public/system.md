@@ -89,25 +89,3 @@ nfragments
 parent_fragment
 Base.push!(::Chain{T}, ::Fragment{T}) where T
 ```
-
-## Nucleotides
-```@docs
-Nucleotide
-NucleotideTable
-nnucleotides
-nucleotide_by_idx
-nucleotides
-parent_nucleotide
-Base.push!(::Chain{T}, ::Nucleotide{T}) where T
-```
-
-## Residues
-```@docs
-Residue
-ResidueTable
-nresidues
-parent_residue
-residue_by_idx
-residues
-Base.push!(::Chain{T}, ::Residue{T}) where T
-```

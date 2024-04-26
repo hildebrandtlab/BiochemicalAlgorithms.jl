@@ -13,8 +13,6 @@
     @test nmolecules(sys) == 1
     @test nchains(sys) == 1
     @test nfragments(sys) == 58
-    @test nresidues(sys) == 0
-    @test nnucleotides(sys) == 0
 
     sys = load_pdb(ball_data_path("../test/data/5PTI.pdb"))
     @test sys.name == "5PTI.pdb"
@@ -23,8 +21,6 @@
     @test nmolecules(sys) == 1
     @test nchains(sys) == 1
     @test nfragments(sys) == 123
-    @test nresidues(sys) == 0
-    @test nnucleotides(sys) == 0
 
     sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
     orig = read(ball_data_path("../test/data/2ptc.pdb"), PDBFormat)
