@@ -1,6 +1,8 @@
 export
     Fragment,
     FragmentTable,
+    Nucleotide,
+    Residue,
     fragment_by_idx,
     fragments,
     get_full_name,
@@ -12,8 +14,16 @@ export
     is_c_terminal,
     is_n_terminal,
     is_nucleotide,
+    isnucleotide,
+    isresidue,
     nfragments,
-    parent_fragment
+    nnucleotides,
+    nresidues,
+    nucleotide_by_idx,
+    nucleotides,
+    parent_fragment,
+    residue_by_idx,
+    residues
 
 """
     Fragment{T} <: AbstractAtomContainer{T}
@@ -212,6 +222,56 @@ end
 =#
 @inline bonds(frag::Fragment; kwargs...) = bonds(parent(frag); fragment_idx = frag.idx, kwargs...)
 @inline nbonds(frag::Fragment; kwargs...) = nbonds(parent(frag); fragment_idx = frag.idx, kwargs...)
+
+#=
+    Variant: Nucleotide
+=#
+@inline function Nucleotide(sys::System; kwargs...)
+    Fragment(sys; variant = FragmentVariant.Nucleotide, kwargs...)
+end
+
+@inline function isnucleotide(frag::Fragment)
+    frag.variant === FragmentVariant.Nucleotide
+end
+
+@inline function nucleotide_by_idx(sys::System, idx::Int)
+    frag = fragment_by_idx(sys, idx)
+    isnucleotide(frag) || throw(KeyError(idx))
+    frag
+end
+
+@inline function nucleotides(sys::System)
+    filter(isnucleotide, fragments(sys))
+end
+
+@inline function nnucleotides(sys::System)
+    length(nucleotides(sys))
+end
+
+#=
+    Variant: Residue
+=#
+@inline function Residue(sys::System, kwargs...)
+    Fragment(sys; variant = FragmentVariant.Residue, kwargs...)
+end
+
+@inline function isresidue(frag::Fragment)
+    frag.variant === FragmentVariant.Residue
+end
+
+@inline function residue_by_idx(sys::System, idx::Int)
+    frag = fragment_by_idx(sys, idx)
+    isresidue(frag) || throw(KeyError(idx))
+    frag
+end
+
+@inline function residues(sys::System)
+    filter(isresidue, fragments(sys))
+end
+
+@inline function nresidues(sys::System)
+    length(residues(sys))
+end
 
 # TODO adapt to variants
 @inline function is_amino_acid(frag::Fragment)
