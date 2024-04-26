@@ -213,13 +213,18 @@ end
 @inline bonds(frag::Fragment; kwargs...) = bonds(parent(frag); fragment_idx = frag.idx, kwargs...)
 @inline nbonds(frag::Fragment; kwargs...) = nbonds(parent(frag); fragment_idx = frag.idx, kwargs...)
 
+# TODO adapt to variants
 @inline function is_amino_acid(frag::Fragment)
     is_amino_acid(frag.name)
 end
 
+# TODO adapt to variants
 @inline function is_nucleotide(frag::Fragment)
     is_nucleotide(frag.name)
 end
+
+# TODO: we should come up with a better test than just checking the name
+is_nucleotide(name::String) = name ∈ ["A", "C", "G", "T", "U", "I", "DA", "DC", "DG", "DT", "DU", "DI"]
 
 # TODO: these should really be defined in Residue, not Fragment
 @inline function is_n_terminal(frag::Fragment; precomputed=true)

@@ -212,29 +212,11 @@ end
         @test natoms(chain) == 1
         @test natoms(chain) == natoms(sys, chain_idx = chain.idx)
 
-        nuc = Nucleotide(chain, 1)
-        Atom(nuc, 2, Elements.C)
-        @test length(atoms(chain)) == 2
-        @test atoms(chain) == atoms(sys, chain_idx = chain.idx)
-        @test natoms(chain) == 2
-        @test natoms(chain) == natoms(sys, chain_idx = chain.idx)
-
-        res = Residue(chain, 1, AminoAcid('A'))
-        Atom(res, 3, Elements.O)
-        @test length(atoms(chain)) == 3
-        @test atoms(chain) == atoms(sys, chain_idx = chain.idx)
-        @test natoms(chain) == 3
-        @test natoms(chain) == natoms(sys, chain_idx = chain.idx)
-
         for atom in atoms(chain)
             @test parent_chain(atom) === chain
         end
         @test parent_chain(frag) === chain
-        @test parent_chain(nuc) === chain
-        @test parent_chain(res) === chain
         @test parent_chain(Atom(frag, 1, Elements.H)) === chain
-        @test parent_chain(Atom(nuc, 2, Elements.C)) === chain
-        @test parent_chain(Atom(res, 3, Elements.O)) === chain
 
         # chain bonds
         @test length(bonds(chain)) == 0
@@ -246,18 +228,6 @@ end
         @test length(bonds(chain)) == 1
         @test bonds(chain) == bonds(sys, chain_idx = chain.idx)
         @test nbonds(chain) == 1
-        @test nbonds(chain) == nbonds(sys, chain_idx = chain.idx)
-
-        Bond(chain, Atom(nuc, 1, Elements.H).idx, Atom(nuc, 2, Elements.C).idx, BondOrder.Single)
-        @test length(bonds(chain)) == 2
-        @test bonds(chain) == bonds(sys, chain_idx = chain.idx)
-        @test nbonds(chain) == 2
-        @test nbonds(chain) == nbonds(sys, chain_idx = chain.idx)
-
-        Bond(chain, Atom(res, 1, Elements.H).idx, Atom(res, 2, Elements.C).idx, BondOrder.Single)
-        @test length(bonds(chain)) == 3
-        @test bonds(chain) == bonds(sys, chain_idx = chain.idx)
-        @test nbonds(chain) == 3
         @test nbonds(chain) == nbonds(sys, chain_idx = chain.idx)
     end
 end

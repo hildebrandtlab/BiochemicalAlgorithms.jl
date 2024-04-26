@@ -95,8 +95,6 @@ end
     parent_molecule(::Atom)
     parent_molecule(::Chain)
     parent_molecule(::Fragment)
-    parent_molecule(::Nucleotide)
-    parent_molecule(::Residue)
 
 Returns the `Molecule{T}` containing the given object. Returns `nothing` if no such molecule exists.
 """ parent_molecule

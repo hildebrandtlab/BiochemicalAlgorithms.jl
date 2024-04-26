@@ -76,8 +76,6 @@ end
 @doc raw"""
     parent_chain(::Atom)
     parent_chain(::Fragment)
-    parent_chain(::Nucleotide)
-    parent_chain(::Residue)
 
 Returns the `Chain{T}` containing the given object. Returns `nothing` if no such chain exists.
 """ parent_chain

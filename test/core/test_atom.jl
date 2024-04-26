@@ -72,10 +72,6 @@
         @test at.chain_idx == [a1.chain_idx, a2.chain_idx]
         @test at.fragment_idx isa AbstractVector{MaybeInt}
         @test at.fragment_idx == [a1.fragment_idx, a2.fragment_idx]
-        @test at.nucleotide_idx isa AbstractVector{MaybeInt}
-        @test at.nucleotide_idx == [a1.nucleotide_idx, a2.nucleotide_idx]
-        @test at.residue_idx isa AbstractVector{MaybeInt}
-        @test at.residue_idx == [a1.residue_idx, a2.residue_idx]
 
         # Tables.getcolumn
         @test Tables.getcolumn(at, :idx) isa AbstractVector{Int}
@@ -124,10 +120,6 @@
         @test Tables.getcolumn(at, :chain_idx) == [a1.chain_idx, a2.chain_idx]
         @test Tables.getcolumn(at, :fragment_idx) isa AbstractVector{MaybeInt}
         @test Tables.getcolumn(at, :fragment_idx) == [a1.fragment_idx, a2.fragment_idx]
-        @test Tables.getcolumn(at, :nucleotide_idx) isa AbstractVector{MaybeInt}
-        @test Tables.getcolumn(at, :nucleotide_idx) == [a1.nucleotide_idx, a2.nucleotide_idx]
-        @test Tables.getcolumn(at, :residue_idx) isa AbstractVector{MaybeInt}
-        @test Tables.getcolumn(at, :residue_idx) == [a1.residue_idx, a2.residue_idx]
 
         # setproperty!
         @test_throws ErrorException at.idx = [999, 998]
@@ -148,8 +140,6 @@
         @test_throws ErrorException at.molecule_idx = [986, 985]
         @test_throws ErrorException at.chain_idx = [984, 983]
         @test_throws ErrorException at.fragment_idx = [982, 981]
-        @test_throws ErrorException at.nucleotide_idx = [980, 979]
-        @test_throws ErrorException at.residue_idx = [978, 977]
 
         # getindex
         @test at[1] === a1
@@ -208,8 +198,6 @@ end
         @test isnothing(parent_molecule(atom))
         @test isnothing(parent_chain(atom))
         @test isnothing(parent_fragment(atom))
-        @test isnothing(parent_nucleotide(atom))
-        @test isnothing(parent_residue(atom))
 
         atom2 = Atom(sys, at.number, at.element;
             name = at.name,
@@ -222,9 +210,7 @@ end
             frame_id = 10,
             molecule_idx = 11,
             chain_idx = 12,
-            fragment_idx = 13,
-            nucleotide_idx = 14,
-            residue_idx = 15
+            fragment_idx = 13
         )
 
         #=
@@ -265,8 +251,6 @@ end
         @test isnothing(atom.molecule_idx)
         @test isnothing(atom.chain_idx)
         @test isnothing(atom.fragment_idx)
-        @test isnothing(atom.nucleotide_idx)
-        @test isnothing(atom.residue_idx)
 
         @test atom._sys isa System{T}
         @test atom._row isa BiochemicalAlgorithms._AtomTableRow{T}
@@ -279,10 +263,6 @@ end
         @test atom2.chain_idx == 12
         @test atom2.fragment_idx isa Int
         @test atom2.fragment_idx == 13
-        @test atom2.nucleotide_idx isa Int
-        @test atom2.nucleotide_idx == 14
-        @test atom2.residue_idx isa Int
-        @test atom2.residue_idx == 15
 
         # setproperty!
         atom.number = 42
@@ -324,10 +304,6 @@ end
         @test atom3.chain_idx == 997
         atom3.fragment_idx = 996
         @test atom3.fragment_idx == 996
-        atom3.nucleotide_idx = 995
-        @test atom3.nucleotide_idx == 995
-        atom3.residue_idx = 994
-        @test atom3.residue_idx == 994
 
         # atom_by_idx
         @test_throws KeyError atom_by_idx(sys, -1)
@@ -354,8 +330,7 @@ end
         @test length(atoms(sys, frame_id = 2)) == 0
         @test length(atoms(sys, frame_id = 10)) == 2
         @test length(atoms(sys, frame_id = nothing)) == 3
-        @test length(atoms(sys, frame_id = nothing, molecule_idx =11, chain_idx = 12, fragment_idx = 13,
-            nucleotide_idx = 14, residue_idx = 15)) == 1
+        @test length(atoms(sys, frame_id = nothing, molecule_idx =11, chain_idx = 12, fragment_idx = 13)) == 1
 
         # natoms + push!
         @test natoms(sys) isa Int
@@ -364,13 +339,11 @@ end
         @test natoms(sys, frame_id = 2) == 0
         @test natoms(sys, frame_id = 10) == 2
         @test natoms(sys, frame_id = nothing) == 3
-        @test natoms(sys, frame_id = nothing, molecule_idx =11, chain_idx = 12, fragment_idx = 13,
-            nucleotide_idx = 14, residue_idx = 15) == 1
+        @test natoms(sys, frame_id = nothing, molecule_idx =11, chain_idx = 12, fragment_idx = 13) == 1
 
         @test push!(sys, atom) === sys
         @test natoms(sys) == 2
-        @test push!(sys, atom, frame_id = 100, molecule_idx = 101, chain_idx = 102, fragment_idx = 103, 
-            nucleotide_idx = 104, residue_idx = 105) === sys
+        @test push!(sys, atom, frame_id = 100, molecule_idx = 101, chain_idx = 102, fragment_idx = 103) === sys
         @test natoms(sys) == 2
         @test natoms(sys, frame_id = 100) == 1
 
@@ -392,8 +365,6 @@ end
         @test latom.molecule_idx == atom.molecule_idx
         @test latom.chain_idx == atom.chain_idx
         @test latom.fragment_idx == atom.fragment_idx
-        @test latom.nucleotide_idx == atom.nucleotide_idx
-        @test latom.residue_idx == atom.residue_idx
 
         # test is_geminal, is_vicinal
         a = Atom(sys, at.number, at.element)

@@ -35,8 +35,6 @@ include("core/system_internals/_bond_table.jl")
 include("core/system_internals/_molecule_table.jl")
 include("core/system_internals/_chain_table.jl")
 include("core/system_internals/_fragment_table.jl")
-include("core/system_internals/_nucleotide_table.jl")
-include("core/system_internals/_residue_table.jl")
 include("core/system.jl")
 
 # system components
@@ -46,8 +44,6 @@ include("core/atom.jl")
 include("core/molecule.jl")
 include("core/chain.jl")
 include("core/fragment.jl")
-include("core/nucleotide.jl")
-include("core/residue.jl")
 
 # molgraph
 include("core/moleculargraph_wrapper.jl")
