@@ -1,5 +1,3 @@
-using BiochemicalAlgorithms
-
 @testitem "AmberFF" begin
     fdb = FragmentDB()
     p = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
