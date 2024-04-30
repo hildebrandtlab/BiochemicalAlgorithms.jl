@@ -8,6 +8,8 @@
 end
 
 @testitem "Rigid_Mapping: RigidTransform" begin
+    using Rotations: RotMatrix3
+    
     v = Vector3{Float32}(1, 1, 1)
     m = Matrix3{Float32}(1, 2, 3, 4, 5, 6, 7, 8, 9)
     r = RigidTransform(m,v)
@@ -15,7 +17,7 @@ end
     @test m isa Matrix3{Float32}
     @test v isa Vector3{Float32}
     @test r isa RigidTransform
-    @test_broken r.rotation isa RotMatrix3{Float32}
+    @test r.rotation isa RotMatrix3{Float32}
     @test r.translation isa Vector3{Float32}
 end
 
@@ -82,6 +84,11 @@ end
 
     @test isapprox(compute_rmsd(ab2), 1.0)
     @test isapprox(compute_rmsd(sys, sys3),1.0)
+
+    atom = Atom(sys3, 22, Elements.H, r = atoms(sys).r[1])
+    @test natoms(sys3) == 22
+    @test natoms(sys) == 21
+    @test_throws DimensionMismatch compute_rmsd(sys,sys3)
 end
 
 @testitem "Rigid_Mapping: Function compute_rmsd_minimizer" begin
