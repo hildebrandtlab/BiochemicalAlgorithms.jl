@@ -8,8 +8,10 @@ const pages = Any[
     "Library" => Any[
         "System representation" => "public/system.md",
         "Force fields" => "public/forcefields.md",
+        "Mappings" => "public/mappings.md",
         "Internals" => Any[
             "System representation" => "private/system.md"
+            "Mappings" => "private/mappings.md"
         ]
     ]
 ]
