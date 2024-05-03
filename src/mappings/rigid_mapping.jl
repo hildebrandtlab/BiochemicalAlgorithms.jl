@@ -25,7 +25,7 @@ abstract type RMSDMinimizerKabsch   <: AbstractRMSDMinimizer end
 """
     $(TYPEDEF)
 
-Abstract base type for minimizer as described by [Coutsias et al](https://doi.org/10.1002/jcc.20110), which is used as default.
+Abstract base type for minimizer as described by [Coutsias et al.](https://doi.org/10.1002/jcc.20110), which is used as default.
 """
 abstract type RMSDMinimizerCoutsias <: AbstractRMSDMinimizer end
 """
@@ -38,19 +38,24 @@ Mutable representation of a rigid transform.
  - `translation::Vector3`
 
 # Constructors
-    RigidTransform{T}(r::RotMatrix3{T}, t::Vector3{T}) where {T<:Real}
-
+```julia
+RigidTransform{T}(r::RotMatrix3{T}, t::Vector3{T}) where {T<:Real}
+```
 Creates a new `RigidTransform{T}` with the given parameters.
 
-    RigidTransform{T}(r::Matrix3{T}, t::Vector3{T}) where {T<:Real} 
+```julia
+RigidTransform{T}(r::Matrix3{T}, t::Vector3{T}) where {T<:Real} 
+```
+Creates a new `RigidTransform{T}` and converts the given `Matrix3{T}` to a `RotMatrix3` object.
 
-Creates a new `RigidTransform{T}` and converts the given Matrix3{T} to a RotMatrix3.
-    Note: From the documentation of Rotations.jl
-    _The given Matrix3{T} should have the property `I =RR^T`, but this isn't enforced by the constructor._
+!!! note
+    From the documentation of Rotations.jl:
+    > The given `Matrix3{T}` should have the property `I =RR^T`, but this isn't enforced by the constructor.
 
-    RigidTransform(r::Matrix3, t::Vector3) = RigidTransform{Float32}(r, t)
+```julia
+RigidTransform(r::Matrix3, t::Vector3) = RigidTransform{Float32}(r, t)
+```
 Creates a new `RigidTransform{Float32}` with the given parameters.
-
 """
 struct RigidTransform{T<:Real}
     rotation::RotMatrix3{T}
@@ -72,7 +77,7 @@ RigidTransform(r::Matrix3, t::Vector3) = RigidTransform{Float32}(r, t)
 """
     $(TYPEDSIGNATURES)
 
-    Moves the atoms of the atom container to new positions by adding the values given by the vector t the current positions.
+Moves the atoms of the atom container to new positions by adding the values given by the vector `t` the current positions.
 """
 function translate!(m::AbstractAtomContainer{T}, t::Vector3{T}) where {T<:Real}
     atoms(m).r .+= Ref(t)
@@ -82,8 +87,8 @@ end
 """
     $(TYPEDSIGNATURES)
 
-    Performs a rigid transformation on the atom positions of `m`. 
-    First, atoms are rotated by the rotation matrix of the RigidTransform `r` followed by translation.
+Performs a rigid transformation on the atom positions of `m`. 
+First, atoms are rotated by the rotation matrix of the RigidTransform `r` followed by translation.
 """
 function rigid_transform!(m::AbstractAtomContainer{T}, transform::RigidTransform{T}) where {T<:Real}
     r = atoms(m).r
@@ -94,7 +99,7 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Computes the root mean square deviation [RMSD](https://en.wikipedia.org/wiki/Root-mean-square_deviation_of_atomic_positions) of the given `AbstractAtomBijection` .
+Computes the root mean square deviation ([RMSD](https://en.wikipedia.org/wiki/Root-mean-square_deviation_of_atomic_positions)) of the given `AbstractAtomBijection`.
 """
 function compute_rmsd(f::AbstractAtomBijection{T}) where {T<:Real}
     r_BA = f.atoms_A.r .- f.atoms_B.r
@@ -102,11 +107,12 @@ function compute_rmsd(f::AbstractAtomBijection{T}) where {T<:Real}
 end
 
 """
-    $(TYPEDSIGNATURES)  
+    $(TYPEDSIGNATURES)
 
-Computes the root mean square deviation[RMSD](https://en.wikipedia.org/wiki/Root-mean-square_deviation_of_atomic_positions) based on two sets of atoms.
-Note: AtomContainers must have the same number of atoms.
+Computes the root mean square deviation ([RMSD](https://en.wikipedia.org/wiki/Root-mean-square_deviation_of_atomic_positions)) based on two sets of atoms.
 
+!!! note
+    AtomContainers must have the same number of atoms.
 """
 function compute_rmsd(A::AbstractAtomContainer, B::AbstractAtomContainer)
     sqrt(mean(squared_norm.(atoms(A).r .- atoms(B).r)))
@@ -114,13 +120,16 @@ end
 
 """
     $(TYPEDSIGNATURES)
-Computes the transformation required to map two atom sets given as the atom bijection. 
+
+Computes the transformation required to map two atom sets given as the atom bijection.
 
 Returns a `RigidTransformation` object. The translation is given by the difference of the means of the atom sets.
-The corresponding rotation matrix can be computed by the approach of [Coutsias et al](https://doi.org/10.1002/jcc.20110) (default) or [Kabsch](https://doi.org/10.1107/S0567739476001873), 
-implemented by `RMSDMinimizerCoutsias` and `RMSDMinimizerKabsch`, respectively.  Both implementation rely on solving an eigen value problem. 
-Coutsias et al. represents rotation matrices as quaternions (use of Package Quaternions.jl). 
-Note: In order to map the two atom sets with the resulting `RigidTransform` the System to be mapped hast to be transferred to the origin first (before the `RigidTransform` is applied). 
+The corresponding rotation matrix can be computed by the approach of [Coutsias et al.](https://doi.org/10.1002/jcc.20110) (default) or [Kabsch](https://doi.org/10.1107/S0567739476001873),
+implemented by `RMSDMinimizerCoutsias` and `RMSDMinimizerKabsch`, respectively.  Both implementation rely on solving an eigen value problem.
+Coutsias et al. represents rotation matrices as quaternions (use of Package Quaternions.jl).
+
+!!! note
+    In order to map the two atom sets with the resulting `RigidTransform` the system to be mapped hast to be transferred to the origin first (before the `RigidTransform` is applied).
 """
 function compute_rmsd_minimizer(f::AbstractAtomBijection{T}, mini::Type{<: AbstractRMSDMinimizer}=RMSDMinimizerCoutsias) where {T<:Real}
     mean_A = mean(f.atoms_A.r)
@@ -136,8 +145,9 @@ end
 
 """
     $(TYPEDSIGNATURES)
-Computes the rotation matrix by solving the eigen value problem given as the correlation matrix C.
-Uses all resulting eigenvalues and eigenvectors. 
+
+Computes the rotation matrix by solving the eigen value problem given as the correlation matrix `C`.
+Uses all resulting eigenvalues and eigenvectors.
 Warns if the correlation matrix is not positive definit (contains negative eigenvalues or eigenvalues equal to 0)
 and uses the alternative approch `RMSDMinimizerCoutsias` instead.
 Returns a `RotMatrix3`.
@@ -158,7 +168,8 @@ end
 
 """
     $(TYPEDSIGNATURES)
-Computes the rotation matrix by solving the eigen value problem given as the residual matrix F.
+
+Computes the rotation matrix by solving the eigen value problem given as the residual matrix `F`.
 Uses only the largest of the resulting eigenvalues to generate the Quaternion describing the 
 optimal rotation that maps the atoms onto each other.
 Returns a `RotMatrix3`.
@@ -197,9 +208,11 @@ function _compute_rotation(R::Matrix3{T}, ::Type{RMSDMinimizerCoutsias}) where {
 end
 
 """
-Maps `AbstractAtomContainer` A onto `AbstractAtomContainer` B
-by first moving A to the origin and then computing the `RigidTransform` by using `RMSDMinimizerCoutsias`.
-Returns the mapped `AbstractAtomContainer` A .
+    $(TYPEDSIGNATURES)
+
+Maps `AbstractAtomContainer` `A` onto `AbstractAtomContainer` `B`
+by first moving `A` to the origin and then computing the `RigidTransform` by using `RMSDMinimizerCoutsias`.
+Returns the mapped `AbstractAtomContainer` `A`.
 """
 function map_rigid!(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T}; heavy_atoms_only::Bool = false) where {T<:Real}
     # first map proteins onto the origin
@@ -220,10 +233,10 @@ end
 """
     $(TYPEDSIGNATURES)
 
-        The transformation maps 
-        (1) the point(vector3) w1 onto the point v1 and  
-        (2) the point w2 onto the ray that starts in v1 and goes through v2
-        (3) the point w3 into the plane generated by v1, v2 and v3
+The transformation maps
+ 1. the point `w1` onto the point `v1` and
+ 2. the point `w2` onto the ray that starts in `v1` and goes through `v2`
+ 3. the point `w3` into the plane generated by `v1`, `v2` and `v3`
 """
 function match_points(
         w1::Vector3{T}, w2::Vector3{T}, w3::Vector3{T},

@@ -2,26 +2,29 @@ export AbstractAtomBijection, TrivialAtomBijection
 """
     $(TYPEDEF)
 
-Abstract base type for AtomBijections. 
-    
+Abstract base type for AtomBijections.
 """
 abstract type AbstractAtomBijection{T} end
 
 """
     TrivialAtomBijection{T} <: AbstractAtomBijection{T}
-Mutable representation of a bijection of atoms based on the order of atoms in the individual atom containers, i.e., atom 1 of con
+
+Mutable representation of a bijection of atoms based on the order of atoms in the individual atom containers.
 
 # Public fields
 - `atoms_A::AtomTable{T}`
 - `atoms_B::AtomTable{T}`
 
 # Constructors
-`TrivialAtomBijection{T}(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T}) where T`
-
+```julia
+TrivialAtomBijection{T}(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T}) where T
+```
 Creates a new `TrivialAtomBijection{T}` with the atoms of the individual atom containers. 
 
-`TrivialAtomBijection{T}(atoms_A, B::AbstractAtomContainer{T}) where T`
-Creates a new `TrivialAtomBijection{T}`based on the unique set of atom_numbers of `atoms_A`.
+```julia
+TrivialAtomBijection{T}(atoms_A, B::AbstractAtomContainer{T}) where T
+```
+Creates a new `TrivialAtomBijection{T}`based on the unique set of atom numbers of `atoms_A`.
 """
 struct TrivialAtomBijection{T} <: AbstractAtomBijection{T}
     atoms_A::AtomTable{T}
@@ -48,6 +51,6 @@ TrivialAtomBijection(A::AbstractAtomContainer, B::AbstractAtomContainer) = Trivi
 """
     TrivialAtomBijection(A::AbstractAtomContainer, B::AbstractAtomContainer)
 
-Creates a new `TrivialAtomBijection{Float32}` based on the unique set of atom_numbers of `atoms_A`.
+Creates a new `TrivialAtomBijection{Float32}` based on the unique set of atom numbers of `atoms_A`.
 """
 TrivialAtomBijection(atoms_A, B::AbstractAtomContainer) = TrivialAtomBijection{Float32}(atoms_A, B)
