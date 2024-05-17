@@ -217,10 +217,9 @@ Returns the mapped `AbstractAtomContainer` `A`.
 function map_rigid!(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T}; heavy_atoms_only::Bool = false) where {T<:Real}
     # first map proteins onto the origin
     atoms(A).r .= atoms(A).r .- Ref(mean(atoms(A).r))
-    
     atoms_A = atoms(A)
     if heavy_atoms_only
-        atoms_A = filter(atom -> atom.element != Elements.H, atoms(A))
+        atoms_A = filter(atom -> atom.element != Elements.H, atoms_A)
     end
 
     rt = compute_rmsd_minimizer(TrivialAtomBijection(atoms_A, B))
