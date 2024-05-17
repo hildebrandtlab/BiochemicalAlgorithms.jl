@@ -172,7 +172,6 @@ end
     r = RigidTransform(m,v)
 
     rigid_transform!(sys2, r)
- 
 
     # now we have two system that can be mapped onto each other
     @test isapprox(atoms(sys2).r[1], Vector3{Float32}(1., 1., -1.), atol=1e-7)
@@ -188,4 +187,25 @@ end
     @test isapprox(atoms(sys2).r[1], Vector3{Float32}(0., 2., 1.3333333), atol=1e-7)
     @test isapprox(atoms(sys2).r[2], Vector3{Float32}(0., 2., 0.3333333), atol=1e-8)
     @test isapprox(atoms(sys2).r[3], Vector3{Float32}(3., 2., 0.3333333), atol=1e-8)
+
+    # test mapping only for heavy atoms
+
+    sys3 = load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json"))
+
+    # create a translated and rotated version
+    sys4 = deepcopy(sys3)
+    v = Vector3{Float32}(2, 1, 1)
+    m = Matrix3{Float32}(1, 0, 0, 0, 1, 0, 0, 0, 1)
+    r = RigidTransform(m,v)
+
+    rigid_transform!(sys4, r)
+
+    #rmsd before mapping
+    @test isapprox(compute_rmsd(sys4,sys3), 2.4494898f0)
+ 
+    map_rigid!(sys4, sys3; heavy_atoms_only=true)
+
+    #after mapping
+    @test isapprox(compute_rmsd(sys4,sys3), 9.472233f-8)
+
 end
