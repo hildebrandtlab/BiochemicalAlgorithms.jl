@@ -1,7 +1,7 @@
 function prepare_mol(fname)
     fdb = FragmentDB()
 
-    m = load_pdb("../benchmark/data/$(fname)")
+    m = load_pdb(ball_data_path("../benchmark/data/$(fname)"))
 
     function atom_filter(a_idx)
         a = atom_by_idx(m, a_idx.idx)
