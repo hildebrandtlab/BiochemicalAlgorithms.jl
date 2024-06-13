@@ -36,3 +36,7 @@ update!(a_ff)
 
 amber_suite["compute_energy!"] = @benchmarkable compute_energy!($a_ff)
 amber_suite["compute_forces!"] = @benchmarkable compute_forces!($a_ff)
+
+for i in a_ff.components
+    amber_suite[i.name * "_comp"] = @benchmarkable compute_energy($i)
+end
