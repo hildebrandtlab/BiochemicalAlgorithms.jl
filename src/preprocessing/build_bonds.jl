@@ -49,6 +49,8 @@ function build_fragment_bonds!(
             partner_atoms = filter(a -> strip(a.name) == strip(tpl_partner), fatoms)
 
             if length(partner_atoms) > 1
+                @show _show(stdout, fatoms)
+                @show _show(stdout, partner_atoms)
                 throw("build_bonds!(): corrupt FragmentDB - data encountered. Fragment atoms not unique!")
             end
 
@@ -119,13 +121,13 @@ function try_build_connection!(a1::Atom, con_1::DBConnection, a2::Atom, con_2::D
         @warn "build_bonds!(): inconsistent bond orders"
     end
 
-    # mark disulfide bridges
-    props = Properties()
+    # mark disulphide bridges
+    flags = Flags()
     if a1.name == "SG" && a2.name == "SG"
-        props[:DISULPHIDE_BOND] = true
+        push!(flags, :DISULPHIDE_BOND)
     end
 
-    Bond(parent_system(a1), a1.idx, a2.idx, con_1.order; properties = props)
+    Bond(parent_system(a1), a1.idx, a2.idx, con_1.order; flags = flags)
 
     return true
 end
