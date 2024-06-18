@@ -24,7 +24,7 @@ abstract type AbstractColumnTable <: Tables.AbstractColumns end
 end
 
 @inline function Base.show(io::IO, ::MIME"text/html", at::AbstractColumnTable)
-    show(io, at; backend = Val(:html))
+    _show(io, at; backend = Val(:html))
 end
 
 @inline function Base.show(io::IO, ::MIME"text/plain", at::AbstractColumnTable)
