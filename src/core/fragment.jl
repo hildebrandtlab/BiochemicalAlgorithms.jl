@@ -798,7 +798,7 @@ function get_full_name(
             suffix = "-M"
         end
 
-        if (has_property(f, :PROPERTY__HAS_SSBOND))
+        if (has_flag(f, :PROPERTY__HAS_SSBOND))
             suffix *= "S"
         end
 

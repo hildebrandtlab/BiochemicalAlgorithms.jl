@@ -186,9 +186,37 @@ function Base.convert(::Type{System{T}}, orig_pdb::MolecularStructure) where {T<
     sys
 end
 
+function load_pdb(filename::String, T; 
+        keep_metadata=true,
+        strict_line_checking=false,
+        selected_model=-1,
+        ignore_xplor_pseudo_atoms=true,
+        create_coils=true)
+    PDBDetails.load_pdb(filename, T; 
+        keep_metadata=keep_metadata,
+        strict_line_checking=strict_line_checking,
+        selected_model=selected_model,
+        ignore_xplor_pseudo_atoms=ignore_xplor_pseudo_atoms,
+        create_coils=create_coils)
+end
+
+function load_pdb(filename::String; 
+        keep_metadata=true,
+        strict_line_checking=false,
+        selected_model=-1,
+        ignore_xplor_pseudo_atoms=true,
+        create_coils=true)
+    load_pdb(filename, Float32; 
+        keep_metadata=keep_metadata,
+        strict_line_checking=strict_line_checking,
+        selected_model=selected_model,
+        ignore_xplor_pseudo_atoms=ignore_xplor_pseudo_atoms,
+        create_coils=create_coils)
+end
+
 # Note: models are stored as frames
 # TODO: how to handle disordered atoms properly?
-function load_pdb(fname::String, T=Float32)
+function load_pdb_biostructures(fname::String, T=Float32)
     # first, read the structure using BioStructures.jl
     orig_pdb = read(fname, PDBFormat)
     convert(System{T}, orig_pdb)

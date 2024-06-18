@@ -62,6 +62,13 @@ include("substructures/sssr.jl")
 include("fileformats/ball_ini_file.jl")
 include("fileformats/pdb.jl")
 include("fileformats/pubchem_json.jl")
+
+module PDBDetails
+include("fileformats/pdb/pdb_defs.jl")
+include("fileformats/pdb/pdb_general.jl")
+end
+#include("fileformats/pdb_old.jl")
+
 include("fileformats/sdfile.jl")
 
 # mappings
