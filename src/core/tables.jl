@@ -23,12 +23,12 @@ abstract type AbstractColumnTable <: Tables.AbstractColumns end
     print(io, "$(typeof(at)) with $(length(at)) rows")
 end
 
-@inline function Base.show(io::IO, ::MIME"text/html", at::AbstractColumnTable)
-    _show(io, at; backend = Val(:html))
+@inline function Base.show(io::IO, ::MIME"text/html", at::AbstractColumnTable; kwargs...)
+    _show(io, at; backend = Val(:html), kwargs...)
 end
 
-@inline function Base.show(io::IO, ::MIME"text/plain", at::AbstractColumnTable)
-    _show(io, at; reserved_display_lines = 2)
+@inline function Base.show(io::IO, ::MIME"text/plain", at::AbstractColumnTable; kwargs...)
+    _show(io, at; reserved_display_lines = 2, kwargs...)
 end
 
 @inline function _show(io::IO, at::AbstractColumnTable; kwargs...)
