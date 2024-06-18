@@ -35,7 +35,6 @@ end
     PrettyTables.pretty_table(io, at;
         alignment = :l,
         header = collect(Tables.columnnames(at)),
-        max_num_of_rows = 50,
         row_number_column_title = "#",
         show_row_number = true,
         title  = "$(typeof(at)) with $(length(at)) rows:",
