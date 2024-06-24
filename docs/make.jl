@@ -13,6 +13,11 @@ const pages = Any[
             "System representation" => "private/system.md"
             "Mappings" => "private/mappings.md"
         ]
+    ],
+    "Notebooks" => [
+        "tutorials/1_iteration.md",
+        "tutorials/2_Input_Output.md",
+        "tutorials/3_Handling_Molecules.md"
     ]
 ]
 
