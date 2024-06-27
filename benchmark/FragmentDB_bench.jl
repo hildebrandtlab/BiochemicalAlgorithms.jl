@@ -20,13 +20,13 @@ end
 
 fdb_suite = SUITE["FragmentDB"]
 
-fdb_suite["Creation"] = @benchmarkable FragmentDB() samples = 20
+fdb_suite["Creation"] = @benchmarkable FragmentDB()
 
 
 fdb = FragmentDB()
 
-fdb_suite["Normalize_Name"] = @benchmarkable normalize_names!(sys, $fdb) setup=(sys = prepare_mol($fdb,1)) samples = 50
+fdb_suite["Normalize_Name"] = @benchmarkable normalize_names!(sys, $fdb) setup=(sys = prepare_mol($fdb,1))
 
-fdb_suite["Reconstruct_Fragments"] = @benchmarkable reconstruct_fragments!(sys, $fdb) setup=(sys = prepare_mol($fdb, 2)) samples = 50
+fdb_suite["Reconstruct_Fragments"] = @benchmarkable reconstruct_fragments!(sys, $fdb) setup=(sys = prepare_mol($fdb, 2))
 
-fdb_suite["Building_Bonds"] = @benchmarkable normalize_names!(sys, $fdb) (setup=(sys = prepare_mol($fdb, 3))) samples = 50
+fdb_suite["Building_Bonds"] = @benchmarkable normalize_names!(sys, $fdb) (setup=(sys = prepare_mol($fdb, 3)))
