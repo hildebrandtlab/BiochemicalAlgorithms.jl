@@ -4,9 +4,9 @@ using BioStructures:
     collectatoms, 
     collectchains, 
     collectresidues, 
-    PDB,
-    MMCIF,
-    ProteinStructure,
+    PDBFormat,
+    MMCIFFormat,
+    MolecularStructure,
     Model,
     unsafe_addatomtomodel!,
     AtomRecord,
@@ -74,7 +74,7 @@ function extract_element(pdb_element::String, atom_name::String)
     return element
 end
 
-function Base.convert(::Type{System{T}}, orig_pdb::ProteinStructure) where {T<:Real}
+function Base.convert(::Type{System{T}}, orig_pdb::MolecularStructure) where {T<:Real}
     orig_df  = DataFrame(collectatoms(orig_pdb))
 
     # then, convert to our representation
@@ -189,7 +189,7 @@ end
 # TODO: how to handle disordered atoms properly?
 function load_pdb(fname::String, T=Float32)
     # first, read the structure using BioStructures.jl
-    orig_pdb = read(fname, PDB)
+    orig_pdb = read(fname, PDBFormat)
     convert(System{T}, orig_pdb)
 end
 
@@ -197,7 +197,7 @@ end
 # TODO: how to handle disordered atoms properly?
 function load_mmcif(fname::String, T=Float32)
     # first, read the structure using BioStructures.jl
-    orig_mmcif = read(fname, MMCIF)
+    orig_mmcif = read(fname, MMCIFFormat)
     convert(System{T}, orig_mmcif)
 end
 
@@ -222,9 +222,9 @@ function _to_atom_record(a::Atom{T}) where {T<:Real}
     )
 end
 
-function Base.convert(::Type{ProteinStructure}, ac::AbstractAtomContainer{T}) where {T<:Real}
-    # Build a ProteinStructure and add to it incrementally
-    struc = ProteinStructure(ac.name)
+function Base.convert(::Type{MolecularStructure}, ac::AbstractAtomContainer{T}) where {T<:Real}
+    # Build a MolecularStructure and add to it incrementally
+    struc = MolecularStructure(ac.name)
 
     # figure out if all molecules in the atom container have the same frames
     sys_frame_ids = frame_ids(ac)
@@ -253,11 +253,11 @@ function Base.convert(::Type{ProteinStructure}, ac::AbstractAtomContainer{T}) wh
 end
 
 function write_pdb(fname::String, ac::AbstractAtomContainer{T}) where {T<:Real}
-    ps = convert(ProteinStructure, ac)
+    ps = convert(MolecularStructure, ac)
     writepdb(fname, ps)
 end
 
 function write_mmcif(fname::String, ac::AbstractAtomContainer{T}) where {T<:Real}
-    ps = convert(ProteinStructure, ac)
+    ps = convert(MolecularStructure, ac)
     writemmcif(fname, ps)
 end
