@@ -37,7 +37,7 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 [compat]
 Aqua = "0.8"
 AutoHashEquals = "2"
-BioStructures = "2, 3"
+BioStructures = "4"
 BioSymbols = "5"
 CSV = "0.10"
 CellListMap = "0.8, 0.9"
