@@ -1,6 +1,5 @@
 ---
 title: Welcome to BiochemicalAlgorithms.jl
-jupyter: julia-1.10
 ---
 
 In this tutorial, you will learn about the basic concepts of the ```BiochemicalAlgorithms.jl```-library (sometimes shortened to ```BALL.jl```) -- a complete rewrite of the C++-framework ```BALL``` in Julia.
