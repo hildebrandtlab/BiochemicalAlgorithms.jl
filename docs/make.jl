@@ -24,12 +24,12 @@ Arguments
     )
     exit(0)
 end
-
+using Pkg
 #
 # (a) if docs is not the current active environment, switch to it
 # (from https://github.com/JuliaIO/HDF5.jl/pull/1020/) 
 if Base.active_project() != joinpath(@__DIR__, "Project.toml")
-    using Pkg
+    
     Pkg.activate(@__DIR__)
     Pkg.develop(PackageSpec(; path=(@__DIR__) * "/../"))
     Pkg.resolve()
@@ -73,6 +73,9 @@ DocMeta.setdocmeta!(BiochemicalAlgorithms, :DocTestSetup, :(using BiochemicalAlg
 tutorials_menu =
     "How to..." => [
         "get started" => "tutorials/getting_started.md",
+        "iterate" => "tutorials/iterate.md",
+        "read and write" => "tutorials/read_and_write.md",
+        "handle molecules" =>"tutorials/handle_molecules.md"
     ]
 
 const pages = Any[
