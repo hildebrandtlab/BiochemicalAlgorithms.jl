@@ -1,6 +1,5 @@
 # All on iteration
 
-
 When working with molecular entities, we want to run over all atoms of a
 system, over all chains, … in this tutorial we will learn how this can
 be done.
@@ -25,13 +24,13 @@ We can easily iterate over *all atoms* of this *system*.
 
 ``` julia
 for a in atoms(s)
-    print(a.name)
+    println(a.name)
 end
 ```
 
 ``` julia
 # we can actually write
-print.(a.name for a in atoms(s))
+println.(a.name for a in atoms(s))
 ```
 
 # How can I iterate over specific atoms?
@@ -70,18 +69,11 @@ mol = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 println.(a.name for a in atoms(mol))
 ```
 
-# How can I iterate over all atoms of a residue?
-
-``` julia
-residue = residue_by_idx(s,1)
-println.(a.element for a in atoms(res) )
-```
-
 # How can I iterate over all bonds of a system?
 
-Bonds are not explicitely stored in the pdb-Format but are rather
+Bonds are not explicitely stored in the PDB format but are rather
 inferred after reading the data into a system using the
-FragmentDataBase:
+Fragment Database:
 
 ``` julia
 # bonds are not contained in the pdb
@@ -99,7 +91,7 @@ nbonds(s)
 Similar to the atom iteration, we can iterate over all bonds of a sysem:
 
 ``` julia
-print.(b.order for b in bonds(s))
+println.(b.order for b in bonds(s))
 ```
 
 # How can I iterate over all bonds of an atom?
@@ -107,7 +99,7 @@ print.(b.order for b in bonds(s))
 Or only iterate over the bonds of a specific atom:
 
 ``` julia
-atom = atom_by_idx(s, 166) 
+atom = first(atoms(s)) 
 bds = filter(bond -> bond.a1 == atom.idx || bond.a2 == atom.idx, bonds(s))
 println.(b for b in bds)
 ```
