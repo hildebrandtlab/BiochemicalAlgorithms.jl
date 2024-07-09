@@ -31,12 +31,10 @@ fdb = FragmentDB()
 normalize_names!(pdb_sys,fdb)
 reconstruct_fragments!(pdb_sys, fdb)
 build_bonds!(pdb_sys, fdb)
-write_pdb(ball_data_path("../test/data/Ala_out.pdb"), pdb_sys)
+write_pdb("Ala_out.pdb", pdb_sys)
 ```
 
-## MMCIF
-
-We can also read and write mmcif files:
+## PubChem
 
 In addition to PDB, the [pubchem data
 base](https://pubchem.ncbi.nlm.nih.gov/) plays an important role as a
@@ -53,7 +51,7 @@ build_bonds!(pdb_sys, fdb)
 
 for atom in atoms(pdb_sys)
     if atom.element == Elements.S
-        print(atom.number)
+        println(atom.number)
     end
 end
 ```
@@ -70,7 +68,7 @@ build_bonds!(sd_sys, fdb)
 
 for atom in atoms(sd_sys)
     if atom.element == Elements.S
-        print(atom.number)
+        println(atom.number)
     end
 end
 
