@@ -1,6 +1,6 @@
 # BiochemicalAlgorithms
 
-<!--[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/stable)-->
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/dev)
 [![Build Status](https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/actions/workflows/CI.yml/badge.svg?branch=develop)](https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/actions/workflows/CI.yml?query=branch%3Adevelop)
 
@@ -8,11 +8,11 @@
 BiochemicalAlgorithms.jl is a redesign of the popular [Biochemical Algorithms Library (BALL)](https://github.com/BALL-Project/ball), the largest open source C++-framework of its kind. We focused on three main design goals: efficiency, ease of use and rapid application development (RAD). Our library provides functionality for file I/O, molecular modelling, molecular mechanics methods, and molecular visualization, and hence can serve as a foundation for developing applications within the Julia ecosystem.
 
 # Installation
-BiochemicalAlgorithms is not yet registered as a Julia package. To install BiochemicalAlgorithms, open a Julia REPL, switch to the package mode by pressing `]`, and type
+To install BiochemicalAlgorithms, open a Julia REPL, switch to the package mode by pressing `]`, and type
 
 
 ```julia
-pkg> add https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl
+pkg> add BiochemicalAlgorithms
 ``` 
 
 # Usage
@@ -45,16 +45,10 @@ println(amber.energy)
 
 # Documentation
 
-If the previous section whetted your appetite, have a look at our [tutorials](https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/dev/) to get started.
+If the previous section whetted your appetite, have a look at our [tutorials](https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/stable/) to get started.
 
 
 # Contributing
 
 You have ideas for improvements, criticism, or ran into problems?  You are looking for a feature that you know from BALL? 
 Feedback and contributions are very welcome. Check out our [guidelines](CONTRIBUTING.md) and use our [issue tracker](https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/issues) or contact us [via e-mail](mailto:hildebrandtlab@uni-mainz.de?subject=BiochemicalAlgorithms.jl).
-
-
-# Further information
-
-Join our talk on [JuliaCon 2024](https://pretalx.com/juliacon2024/talk/DFNXCK/). Hope to see you there!
-
