@@ -7,8 +7,8 @@ a complete rewrite of the C++-framework `BALL` in Julia.
 To use `BiochemicalAlgorithms.jl` in your code, add it to your project
 
 ``` julia
-import Pkg
-Pkg.add(url="https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl")
+using Pkg
+Pkg.add("BiochemicalAlgorithms")
 ```
 
 and use it in your code:
