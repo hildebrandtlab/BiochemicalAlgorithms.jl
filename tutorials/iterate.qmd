@@ -1,0 +1,118 @@
+---
+title: All on iteration
+---
+
+```{julia}
+#| echo: false
+#| output: false
+
+using BiochemicalAlgorithms
+```
+
+When working with molecular entities, we want to run over all atoms of a system, over all chains, etc. In this tutorial we will learn how this can be done.
+
+
+# Molecular systems
+In `BiochemicalAlgorithms.jl` atoms and bonds are existing inside a `System`. Typically, molecular data is stored in molecular data formats such as PDB. The latter can be directly read into a system.
+
+```{julia}
+sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+```
+
+You can, e.g., print all atoms of the given system as a table:
+```{julia}
+atoms(sys)
+```
+
+Single columns can be directly accessed by their name:
+```{julia}
+atoms(sys).name
+```
+
+You can also directly query the number of atoms via `natoms`:
+```{julia}
+natoms(sys)
+```
+
+Similar functions exist for other system components, including bonds, molecules, chains, and fragments.
+
+
+# How can I iterate over all atoms of a system? 
+We can just as easily iterate over all atoms:
+```{julia}
+for atom in atoms(sys)
+    # do something with this atom
+end
+```
+
+Or, for individual columns:
+```{julia}
+for atom_name in atoms(sys).name
+    # do something with this atom name
+end
+```
+
+# How can I iterate over specific atoms?
+In many scenarios, we only want to iterate over a subset of atoms fulfilling a specific criteria. For example, here we only want to get the positions of the $C_\alpha$ atoms:
+
+```{julia}
+ca_atoms = filter(atom -> atom.name == "CA", atoms(sys))
+```
+
+And here we only want the heavy atoms:
+
+```{julia}
+heavy_atoms = filter(atom -> atom.element != Elements.H, atoms(sys))
+```
+
+Instead of a system, we can use any other system component as an argument to the `atoms` function to only list the atoms of the same component. For example, the following system contains two chains:
+
+```{julia}
+sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
+chains(sys)
+```
+
+In order to get all atoms of the first chain, we can use:
+
+```{julia}
+chainE = first(chains(sys))
+for atom in atoms(chainE)
+    # do something with this atom of the first chain
+end
+```
+
+We can even combine this approach with filtering to get, e.g., only the $C_\alpha$ atoms of the first chain:
+
+```{julia}
+for atom in filter(atom -> atom.name == "CA", atoms(chainE))
+    # do something with this CA atom of the first chain
+end
+```
+
+
+# How can I iterate over all bonds of a system?
+Bonds are not explicitely stored in the PDB format but are rather inferred after reading the data into a system using the fragment database `FragmentDB`:
+```{julia}
+sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+
+# bonds are not contained in the pdb file
+nbonds(sys)
+```
+
+```{julia}
+# use the fragment database for normalizing naming schemas between molecular file formats, reconstruction of missing parts of the structure and building the bonds
+fdb = FragmentDB()
+
+normalize_names!(sys, fdb)
+reconstruct_fragments!(sys, fdb)
+build_bonds!(sys, fdb)
+
+nbonds(sys)
+```
+
+Similar to the atom iteration, we can iterate over all bonds of a sysem:
+```{julia}
+for bond in bonds(sys)
+    # do something with this bond
+end
+```
