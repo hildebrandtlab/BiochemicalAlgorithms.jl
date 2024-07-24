@@ -5,7 +5,7 @@ export
 function load_sdfile(fname::String, T=Float32)
     mg_mols = [m for m in MolecularGraph.sdfilereader(fname)]
 
-    sys = System{T}(fname)
+    sys = System{T}(basename(fname))
 
     for mg_mol in mg_mols
         convert(Molecule{T}, mg_mol; system=sys)
