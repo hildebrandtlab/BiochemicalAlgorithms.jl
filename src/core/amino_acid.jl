@@ -52,13 +52,17 @@ const AminoAcidProperties = Dict{AminoAcid, AminoAcidDetails}(
     AA_Term => (name="Termination codon", three_letter_code="TER", one_letter_code="*"),
     
     AA_Gap => (name="Gap", three_letter_code="GAP", one_letter_code="---")
- )
+)
 
 ### Functions
 
 name(aa::AminoAcid) = AminoAcidProperties[aa].name
 three_letter_code(aa::AminoAcid) = AminoAcidProperties[aa].three_letter_code
 one_letter_code(aa::AminoAcid) = AminoAcidProperties[aa].one_letter_code
+
+@inline function one_letter_code(three_letter_code::String)
+    AminoAcidProperties[BioSymbols.threeletter_to_aa[three_letter_code]].one_letter_code
+end
 
 # TODO: we should come up with a better test than just checking the name
 is_amino_acid(name::String) = name ∈ keys(BioSymbols.threeletter_to_aa)
