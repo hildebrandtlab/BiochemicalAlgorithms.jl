@@ -33,8 +33,6 @@ println("Number of bonds: ", nbonds(h2o))
 
 # How can I determine the element type of an atom (C, N, …)?
 
-The element of an atom is represented by `elements.jl`:
-
 ``` julia
 sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 for atom in atoms(sys)
@@ -125,7 +123,7 @@ end
 sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
 for chain in chains(sys)
     # get all residues from the current chain
-    res = [res.name for res in fragments(chain) if is_amino_acid(res.name)]
+    res = filter(is_amino_acid, fragments(chain)).name
     println("> Chain $(chain.name)")
     println(join(one_letter_code.(res), ""))
 end
