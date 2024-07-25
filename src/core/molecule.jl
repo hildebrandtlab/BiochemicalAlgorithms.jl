@@ -174,7 +174,7 @@ end
 #=
     Variant: Protein
 =#
-@inline function Protein(sys::System; kwargs...)
+@inline function Protein(sys::System = default_system(); kwargs...)
     Molecule(sys; variant = MoleculeVariant.Protein, kwargs...)
 end
 
@@ -188,10 +188,14 @@ end
     mol
 end
 
-@inline function proteins(sys::System)
+@inline function protein_by_idx(idx::Int)
+    protein_by_idx(default_system(), idx)
+end
+
+@inline function proteins(sys::System = default_system())
     filter(isprotein, molecules(sys))
 end
 
-@inline function nproteins(sys::System)
+@inline function nproteins(sys::System = default_system())
     length(proteins(sys))
 end

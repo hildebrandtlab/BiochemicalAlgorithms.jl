@@ -240,11 +240,15 @@ end
     frag
 end
 
-@inline function nucleotides(sys::System)
+@inline function nucleotide_by_idx(idx::Int)
+    nucleotide_by_idx(default_system(), idx)
+end
+
+@inline function nucleotides(sys::System = default_system())
     filter(isnucleotide, fragments(sys))
 end
 
-@inline function nnucleotides(sys::System)
+@inline function nnucleotides(sys::System = default_system())
     length(nucleotides(sys))
 end
 
@@ -265,11 +269,15 @@ end
     frag
 end
 
-@inline function residues(sys::System)
+@inline function residue_by_idx(idx::Int)
+    residue_by_idx(default_system(), idx)
+end
+
+@inline function residues(sys::System = default_system())
     filter(isresidue, fragments(sys))
 end
 
-@inline function nresidues(sys::System)
+@inline function nresidues(sys::System = default_system())
     length(residues(sys))
 end
 
