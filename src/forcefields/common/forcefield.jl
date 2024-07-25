@@ -165,11 +165,14 @@ function setup!(ff::ForceField{T}) where {T<:Real}
 end
 
 """
-   Update the internal data structures of the force field when the system changes
-   (e.g., through coordinate updates)
+    $(TYPEDSIGNATURES)
 
-   Please note that changes to the options or the topology require a call to ```setup!````
-   prior to the call to ```update!````.
+Update the internal data structures of the force field when the system changes
+(e.g., through coordinate updates).
+
+!!! note
+    Changes to the options or the topology require a call to `setup!` prior to
+    the call to `update!`.
 """
 @inline function update!(ff::ForceField{T}) where {T<:Real}
     map(update!, ff.components)
