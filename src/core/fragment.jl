@@ -226,14 +226,37 @@ end
 #=
     Variant: Nucleotide
 =#
+"""
+    Nucleotide(chain::Chain, number::Int)
+
+`Fragment` constructor defaulting to the [`FragmentVariant.Nucleotide`](@ref FragmentVariant) variant.
+
+# Supported keyword arguments
+See [`Fragment`](@ref)
+"""
 @inline function Nucleotide(chain::Chain, number::Int; kwargs...)
     Fragment(chain, number; variant = FragmentVariant.Nucleotide, kwargs...)
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Returns `true` if the given fragment is a [`FragmentVariant.Nucleotide`](@ref FragmentVariant),
+`false` otherwise.
+"""
 @inline function isnucleotide(frag::Fragment)
     frag.variant === FragmentVariant.Nucleotide
 end
 
+"""
+    nucleotide_by_idx(
+        sys::System{T} = default_system(),
+        idx::Int
+    ) -> Fragment{T}
+
+Returns the `Fragment{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
+fragment exists or if the fragment is not a [`FragmentVariant.Nucleotide`](@ref FragmentVariant).
+"""
 @inline function nucleotide_by_idx(sys::System, idx::Int)
     frag = fragment_by_idx(sys, idx)
     isnucleotide(frag) || throw(KeyError(idx))
@@ -244,10 +267,22 @@ end
     nucleotide_by_idx(default_system(), idx)
 end
 
+"""
+    nucleotides(sys::System{T} = default_system())
+
+Returns a `FragmentTable{T}` containing all [`FragmentVariant.Nucleotide`](@ref FragmentVariant)
+fragments of the given system.
+"""
 @inline function nucleotides(sys::System = default_system())
     filter(isnucleotide, fragments(sys))
 end
 
+"""
+    nnucleotides(sys::System = default_system())
+
+Returns the number of [`FragmentVariant.Nucleotide`](@ref FragmentVariant) fragments in the given
+system.
+"""
 @inline function nnucleotides(sys::System = default_system())
     length(nucleotides(sys))
 end
@@ -255,14 +290,37 @@ end
 #=
     Variant: Residue
 =#
+"""
+    Residue(chain::Chain, number::Int)
+
+`Fragment` constructor defaulting to the [`FragmentVariant.Residue`](@ref FragmentVariant) variant.
+
+# Supported keyword arguments
+See [`Fragment`](@ref)
+"""
 @inline function Residue(chain::Chain, number::Int; kwargs...)
     Fragment(chain, number; variant = FragmentVariant.Residue, kwargs...)
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Returns `true` if the given fragment is a [`FragmentVariant.Residue`](@ref FragmentVariant),
+`false` otherwise.
+"""
 @inline function isresidue(frag::Fragment)
     frag.variant === FragmentVariant.Residue
 end
 
+"""
+    residue_by_idx(
+        sys::System{T} = default_system(),
+        idx::Int
+    ) -> Fragment{T}
+
+Returns the `Fragment{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
+fragment exists or if the fragment is not a [`FragmentVariant.Residue`](@ref FragmentVariant).
+"""
 @inline function residue_by_idx(sys::System, idx::Int)
     frag = fragment_by_idx(sys, idx)
     isresidue(frag) || throw(KeyError(idx))
@@ -273,10 +331,22 @@ end
     residue_by_idx(default_system(), idx)
 end
 
+"""
+    residues(sys::System{T} = default_system())
+
+Returns a `FragmentTable{T}` containing all [`FragmentVariant.Residue`](@ref FragmentVariant)
+fragments of the given system.
+"""
 @inline function residues(sys::System = default_system())
     filter(isresidue, fragments(sys))
 end
 
+"""
+    nresidues(sys::System = default_system())
+
+Returns the number of [`FragmentVariant.Residue`](@ref FragmentVariant) fragments in the given
+system.
+"""
 @inline function nresidues(sys::System = default_system())
     length(residues(sys))
 end
