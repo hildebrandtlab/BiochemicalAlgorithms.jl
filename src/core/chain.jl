@@ -83,7 +83,10 @@ Returns the `Chain{T}` containing the given object. Returns `nothing` if no such
 """ parent_chain
 
 """
-    $(TYPEDSIGNATURES)
+    chain_by_idx(
+        sys::System{T} = default_system(),
+        idx::Int
+    ) -> Chain{T}
 
 Returns the `Chain{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
 chain exists.
@@ -92,9 +95,13 @@ chain exists.
     Chain{T}(sys, _row_by_idx(sys._chains, idx))
 end
 
+@inline function chain_by_idx(idx::Int)
+    chain_by_idx(default_system(), idx)
+end
+
 """
     chains(::Molecule)
-    chains(::System; kwargs...)
+    chains(::System = default_system(); kwargs...)
 
 Returns a `ChainTable{T}` containing all chains of the given atom container.
 
@@ -102,21 +109,24 @@ Returns a `ChainTable{T}` containing all chains of the given atom container.
  - `molecule_idx::MaybeInt = nothing`: \
 Any value other than `nothing` limits the result to chains belonging to the molecule with the given ID.
 """
-@inline function chains(sys::System{T}; molecule_idx::MaybeInt = nothing) where T
+@inline function chains(
+    sys::System{T} = default_system();
+    molecule_idx::MaybeInt = nothing
+) where T
     isnothing(molecule_idx) && return ChainTable{T}(sys, sys._chains.idx)
     _filter_chains(chain -> chain.molecule_idx == molecule_idx, sys)
 end
 
 """
     nchains(::Molecule)
-    nchains(::System; kwargs...)
+    nchains(::System = default_system(); kwargs...)
 
 Returns the number of chains in the given atom container.
 
 # Supported keyword arguments
 See [`chains`](@ref)
 """
-@inline function nchains(sys::System; kwargs...)
+@inline function nchains(sys::System = default_system(); kwargs...)
     length(chains(sys; kwargs...))
 end
 
