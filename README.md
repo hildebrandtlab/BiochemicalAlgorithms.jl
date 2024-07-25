@@ -29,23 +29,23 @@ sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 println("Number of atoms: ", natoms(sys))
 println("Number of bonds: ", nbonds(sys))
 
-# Prepare Molecule
+# Prepare molecule
 fdb = FragmentDB()
 normalize_names!(sys, fdb)
 reconstruct_fragments!(sys, fdb)
 build_bonds!(sys, fdb)
 println("Number of bonds: ", nbonds(sys))
 
-# Create Amber ForceField and compute the energy of the system
+# Create Amber force field and compute the energy of the system
 amber = AmberFF(sys)
 compute_energy(amber)
-println(amber.energy) 
+println(amber.energy)
 ```
 
 
 # Documentation
 
-If the previous section whetted your appetite, have a look at our [tutorials](https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/stable/) to get started.
+If the previous section whetted your appetite, have a look at our [tutorials](https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/stable/tutorials/getting_started/) to get started.
 
 
 # Contributing
