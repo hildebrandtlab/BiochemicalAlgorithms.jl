@@ -174,14 +174,37 @@ end
 #=
     Variant: Protein
 =#
+"""
+    Protein(sys::System = default_system())
+
+`Molecule` constructor defaulting to the [`MoleculeVariant.Protein`](@ref MoleculeVariant) variant.
+
+# Supported keyword arguments
+See [`Molecule`](@ref)
+"""
 @inline function Protein(sys::System = default_system(); kwargs...)
     Molecule(sys; variant = MoleculeVariant.Protein, kwargs...)
 end
 
+"""
+    $(TYPEDSIGNATURES)
+
+Returns `true` if the given molecule is a [`MoleculeVariant.Protein`](@ref MoleculeVariant),
+`false` otherwise.
+"""
 @inline function isprotein(mol::Molecule)
     mol.variant === MoleculeVariant.Protein
 end
 
+"""
+    protein_by_idx(
+        sys::System{T} = default_system(),
+        idx::Int
+    ) -> Molecule{T}
+
+Returns the `Molecule{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
+molecule exists or if the molecule is not a [`MoleculeVariant.Protein`](@ref MoleculeVariant).
+"""
 @inline function protein_by_idx(sys::System, idx::Int)
     mol = molecule_by_idx(sys, idx)
     isprotein(mol) || throw(KeyError(idx))
@@ -192,10 +215,21 @@ end
     protein_by_idx(default_system(), idx)
 end
 
+"""
+    proteins(::System{T} = default_system())
+
+Returns a `MoleculeTable{T}` containing all [`MoleculeVariant.Protein`](@ref MoleculeVariant) molecules
+of the given system.
+"""
 @inline function proteins(sys::System = default_system())
     filter(isprotein, molecules(sys))
 end
 
+"""
+    nproteins(::System = default_system())
+
+Returns the number of [`MoleculeVariant.Protein`](@ref MoleculeVariant) molecules in the given system.
+"""
 @inline function nproteins(sys::System = default_system())
     length(proteins(sys))
 end
