@@ -226,8 +226,8 @@ end
 #=
     Variant: Nucleotide
 =#
-@inline function Nucleotide(sys::System; kwargs...)
-    Fragment(sys; variant = FragmentVariant.Nucleotide, kwargs...)
+@inline function Nucleotide(chain::Chain, number::Int; kwargs...)
+    Fragment(chain, number; variant = FragmentVariant.Nucleotide, kwargs...)
 end
 
 @inline function isnucleotide(frag::Fragment)
@@ -251,8 +251,8 @@ end
 #=
     Variant: Residue
 =#
-@inline function Residue(sys::System, kwargs...)
-    Fragment(sys; variant = FragmentVariant.Residue, kwargs...)
+@inline function Residue(chain::Chain, number::Int; kwargs...)
+    Fragment(chain, number; variant = FragmentVariant.Residue, kwargs...)
 end
 
 @inline function isresidue(frag::Fragment)
