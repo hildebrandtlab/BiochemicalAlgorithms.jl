@@ -61,11 +61,22 @@ Base.push!(::System{T}, ::Bond{T}) where T
 ```@docs
 Molecule
 MoleculeTable
+MoleculeVariant
+MoleculeVariantType
 molecule_by_idx
 molecules
 nmolecules
 parent_molecule
 Base.push!(::System{T}, ::Molecule{T}) where T
+```
+
+### Proteins (molecule variant)
+```@docs
+Protein
+isprotein
+nproteins
+protein_by_idx
+proteins
 ```
 
 ## Chains
@@ -83,9 +94,29 @@ Base.push!(::Molecule{T}, ::Chain{T}) where T
 ```@docs
 Fragment
 FragmentTable
+FragmentVariant
+FragmentVariantType
 fragment_by_idx
 fragments
 nfragments
 parent_fragment
 Base.push!(::Chain{T}, ::Fragment{T}) where T
+```
+
+### Nucleotides (fragment variant)
+```@docs
+Nucleotide
+isnucleotide
+nnucleotides
+nucleotide_by_idx
+nucleotides
+```
+
+### Residues (fragment variant)
+```@docs
+Residue
+isresidue
+nresidues
+residue_by_idx
+residues
 ```
