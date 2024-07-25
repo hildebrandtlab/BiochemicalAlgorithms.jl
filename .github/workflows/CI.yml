@@ -3,7 +3,7 @@ on:
   push:
     paths:
       - '**.jl'
-      - 'docs/src/**.md'
+      - '**.md'
       - 'Project.toml'
   pull_request:
   schedule:
