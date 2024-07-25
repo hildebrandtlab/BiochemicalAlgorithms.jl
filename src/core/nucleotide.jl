@@ -87,7 +87,10 @@ Returns the `Nucleotide{T}` containing the given atom. Returns `nothing` if no s
 """ parent_nucleotide
 
 """
-    $(TYPEDSIGNATURES)
+    nucleotide_by_idx(
+        sys::System{T} = default_system(),
+        idx::Int
+    ) -> Nucleotide{T}
 
 Returns the `Nucleotide{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
 nucleotide exists.
@@ -96,10 +99,14 @@ nucleotide exists.
     Nucleotide{T}(sys, _row_by_idx(sys._nucleotides, idx))
 end
 
+@inline function nucleotide_by_idx(idx::Int)
+    nucleotide_by_idx(default_system(), idx)
+end
+
 """
     nucleotides(::Chain)
     nucleotides(::Molecule)
-    nucleotides(::System)
+    nucleotides(::System = default_system())
 
 Returns a `NucleotideTable{T}` containing all nucleotides of the given atom container.
 
@@ -109,7 +116,7 @@ Returns a `NucleotideTable{T}` containing all nucleotides of the given atom cont
 All keyword arguments limit the results to nucleotides matching the given IDs. Keyword arguments set to
 `nothing` are ignored.
 """
-function nucleotides(sys::System{T};
+function nucleotides(sys::System{T} = default_system();
     molecule_idx::MaybeInt = nothing,
     chain_idx::MaybeInt = nothing
 ) where T
@@ -124,14 +131,14 @@ end
 """
     nnucleotides(::Chain)
     nnucleotides(::Molecule)
-    nnucleotides(::System)
+    nnucleotides(::System = default_system())
 
 Returns the number of nucleotides in the given atom container.
 
 # Supported keyword arguments
 See [`nucleotides`](@ref)
 """
-@inline function nnucleotides(sys::System; kwargs...)
+@inline function nnucleotides(sys::System = default_system(); kwargs...)
     length(nucleotides(sys; kwargs...))
 end
 

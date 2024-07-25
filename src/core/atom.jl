@@ -181,7 +181,10 @@ end
 end
 
 """
-    $(TYPEDSIGNATURES)
+    atom_by_idx(
+        sys::System{T} = default_system(),
+        idx::Int
+    ) -> Atom{T}
 
 Returns the `Atom{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
 atom exists.
@@ -190,8 +193,15 @@ atom exists.
     Atom{T}(sys, _row_by_idx(sys._atoms, idx))
 end
 
+@inline function atom_by_idx(idx::Int)
+    atom_by_idx(default_system(), idx)
+end
+
 """
-    $(TYPEDSIGNATURES)
+    atom_by_name(
+        ac::AbstractAtomContainer{T} = default_system(),
+        name::String
+    ) -> Union{Nothing, Atom{T}}
 
 Returns the first `Atom{T}` associated with the given `name` in `ac`. Returns nothing if no such
 atom exists.
@@ -209,13 +219,17 @@ Any value other than `nothing` limits the result to atoms matching this frame ID
     isempty(idx) ? nothing : atom_by_idx(parent(ac), first(idx))
 end
 
+@inline function atom_by_name(name::String; kwargs...)
+    atom_by_name(default_system(), name; kwargs...)
+end
+
 """
     atoms(::Chain)
     atoms(::Fragment)
     atoms(::Molecule)
     atoms(::Nucleotide)
     atoms(::Residue)
-    atoms(::System)
+    atoms(::System = default_system())
 
 Returns an `AtomTable{T}` containing all atoms of the given atom container.
 
@@ -229,7 +243,7 @@ Returns an `AtomTable{T}` containing all atoms of the given atom container.
 All keyword arguments limit the results to atoms matching the given IDs. Keyword arguments set to
 `nothing` are ignored. You can use `Some(nothing)` to explicitly filter for ID values of `nothing`.
 """
-@inline function atoms(sys::System{T};
+@inline function atoms(sys::System{T} = default_system();
     frame_id::MaybeInt = 1,
     molecule_idx::Union{MaybeInt, Some{Nothing}} = nothing,
     chain_idx::Union{MaybeInt, Some{Nothing}} = nothing,
@@ -254,14 +268,14 @@ end
     natoms(::Molecule)
     natoms(::Nucleotide)
     natoms(::Residue)
-    natoms(::System)
+    natoms(::System = default_system())
 
 Returns the number of atoms in the given atom container.
 
 # Supported keyword arguments
 See [`atoms`](@ref)
 """
-@inline function natoms(sys::System; kwargs...)
+@inline function natoms(sys::System = default_system(); kwargs...)
     length(atoms(sys; kwargs...))
 end
 

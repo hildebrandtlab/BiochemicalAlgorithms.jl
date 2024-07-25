@@ -113,7 +113,10 @@ end
 end
 
 """
-    $(TYPEDSIGNATURES)
+    bond_by_idx(
+        sys::System{T} = default_system(),
+        idx::Int
+    ) -> Bond{T}
 
 Returns the `Bond{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
 bond exists.
@@ -122,13 +125,17 @@ bond exists.
     Bond{T}(sys, _row_by_idx(sys._bonds, idx))
 end
 
+@inline function bond_by_idx(idx::Int)
+    bond_by_idx(default_system(), idx)
+end
+
 """
     bonds(::Chain)
     bonds(::Fragment)
     bonds(::Molecule)
     bonds(::Nucleotide)
     bonds(::Residue)
-    bonds(::System)
+    bonds(::System = default_system())
 
 Returns a `BondTable{T}` containing all bonds of the given atom container where at least one
 associated atom is contained in the same container.
@@ -136,7 +143,7 @@ associated atom is contained in the same container.
 # Supported keyword arguments
 See [`atoms`](@ref)
 """
-function bonds(sys::System; kwargs...)
+function bonds(sys::System = default_system(); kwargs...)
     # FIXME this implementation currently ignores bonds with _two_ invalid atom IDs
     aidx = Set(atoms(sys; kwargs...).idx)
     _filter_bonds(
@@ -151,7 +158,7 @@ end
     nbonds(::Molecule)
     nbonds(::Nucleotide)
     nbonds(::Residue)
-    nbonds(::System)
+    nbonds(::System = default_system())
 
 Returns the number of bonds in the given atom container where at least one associated atom
 is contained in the same container.
@@ -159,7 +166,7 @@ is contained in the same container.
 # Supported keyword arguments
 See [`atoms`](@ref)
 """
-function nbonds(sys::System{T}; kwargs...) where T
+function nbonds(sys::System = default_system(); kwargs...)
     length(bonds(sys; kwargs...))
 end
 
