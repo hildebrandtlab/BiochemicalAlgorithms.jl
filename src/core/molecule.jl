@@ -108,7 +108,10 @@ new `idx`.
 end
 
 """
-    $(TYPEDSIGNATURES)
+    molecule_by_idx(
+        sys::System{T} = default_system(),
+        idx::Int
+    ) -> Molecule{T}
 
 Returns the `Molecule{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
 molecule exists.
@@ -117,21 +120,25 @@ molecule exists.
     Molecule{T}(sys, _row_by_idx(sys._molecules, idx))
 end
 
+@inline function molecule_by_idx(idx::Int)
+    molecule_by_idx(default_system(), idx)
+end
+
 """
-    $(TYPEDSIGNATURES)
+    molecules(::System{T} = default_system())
 
 Returns a `MoleculeTable{T}` containing all molecules of the given system.
 """
-@inline function molecules(sys::System{T}) where T
+@inline function molecules(sys::System{T} = default_system()) where T
     MoleculeTable{T}(sys, sys._molecules.idx)
 end
 
 """
-    $(TYPEDSIGNATURES)
+    nmolecules(::System = default_system())
 
 Returns the number of molecules in the given system.
 """
-function nmolecules(sys::System)
+function nmolecules(sys::System = default_system())
     length(sys._molecules)
 end
 

@@ -88,7 +88,10 @@ Returns the `Residue{T}` containing the given atom. Returns `nothing` if no such
 """ parent_residue
 
 """
-    $(TYPEDSIGNATURES)
+    residue_by_idx(
+        sys::System{T} = default_system(),
+        idx::Int
+    ) -> Residue{T}
 
 Returns the `Residue{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
 residue exists.
@@ -97,10 +100,14 @@ residue exists.
     Residue{T}(sys, _row_by_idx(sys._residues, idx))
 end
 
+@inline function residue_by_idx(idx::Int)
+    residue_by_idx(default_system(), idx)
+end
+
 """
     residues(::Chain)
     residues(::Molecule)
-    residues(::System)
+    residues(::System = default_system())
 
 Returns a `ResidueTable{T}` containing all residues of the given atom container.
 
@@ -110,7 +117,7 @@ Returns a `ResidueTable{T}` containing all residues of the given atom container.
 All keyword arguments limit the results to residues matching the given IDs. Keyword arguments set to
 `nothing` are ignored.
 """
-function residues(sys::System{T};
+function residues(sys::System{T} = default_system();
     molecule_idx::MaybeInt = nothing,
     chain_idx::MaybeInt = nothing
 ) where T
@@ -125,14 +132,14 @@ end
 """
     nresidues(::Chain)
     nresidues(::Molecule)
-    nresidues(::System)
+    nresidues(::System = default_system())
 
 Returns the number of residues in the given atom container.
 
 # Supported keyword arguments
 See [`residues`](@ref)
 """
-@inline function nresidues(sys::System; kwargs...)
+@inline function nresidues(sys::System = default_system(); kwargs...)
     length(residues(sys; kwargs...))
 end
 

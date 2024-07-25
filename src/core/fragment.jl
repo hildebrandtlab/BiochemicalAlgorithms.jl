@@ -96,7 +96,10 @@ Returns the `Fragment{T}` containing the given atom. Returns `nothing` if no suc
 """ parent_fragment
 
 """
-    $(TYPEDSIGNATURES)
+    fragment_by_idx(
+        sys::System{T} = default_system(),
+        idx::Int
+    ) -> Fragment{T}
 
 Returns the `Fragment{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
 fragment exists.
@@ -105,10 +108,14 @@ fragment exists.
     Fragment{T}(sys, _row_by_idx(sys._fragments, idx))
 end
 
+@inline function fragment_by_idx(idx::Int)
+    fragment_by_idx(default_system(), idx)
+end
+
 """
     fragments(::Chain)
     fragments(::Molecule)
-    fragments(::System)
+    fragments(::System = default_system())
 
 Returns a `FragmentTable{T}` containing all fragments of the given atom container.
 
@@ -118,7 +125,7 @@ Returns a `FragmentTable{T}` containing all fragments of the given atom containe
 All keyword arguments limit the results to fragments matching the given IDs. Keyword arguments set to
 `nothing` are ignored.
 """
-function fragments(sys::System{T};
+function fragments(sys::System{T} = default_system();
     molecule_idx::MaybeInt = nothing,
     chain_idx::MaybeInt = nothing
 ) where T
@@ -133,14 +140,14 @@ end
 """
     nfragments(::Chain)
     nfragments(::Molecule)
-    nfragments(::System)
+    nfragments(::System = default_system())
 
 Returns the number of fragments in the given atom container.
 
 # Supported keyword arguments
 See [`fragments`](@ref)
 """
-@inline function nfragments(sys::System; kwargs...)
+@inline function nfragments(sys::System = default_system(); kwargs...)
     length(fragments(sys; kwargs...))
 end
 
