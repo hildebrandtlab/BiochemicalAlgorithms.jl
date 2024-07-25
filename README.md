@@ -5,7 +5,7 @@
 [![Build Status](https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/actions/workflows/CI.yml/badge.svg?branch=develop)](https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/actions/workflows/CI.yml?query=branch%3Adevelop)
 
 
-BiochemicalAlgorithms.jl is a redesign of the popular [Biochemical Algorithms Library (BALL)](https://github.com/BALL-Project/ball), the largest open source C++-framework of its kind. We focused on three main design goals: efficiency, ease of use and rapid application development (RAD). Our library provides functionality for file I/O, molecular modelling, molecular mechanics methods, and molecular visualization, and hence can serve as a foundation for developing applications within the Julia ecosystem.
+BiochemicalAlgorithms.jl is a redesign of the popular [Biochemical Algorithms Library (BALL)](https://github.com/BALL-Project/ball), the largest open source C++-framework of its kind. We focused on three main design goals: efficiency, ease of use and rapid application development (RAD). Our library provides functionality for file I/O, molecular modeling, molecular mechanics methods, and molecular visualization, and hence can serve as a foundation for developing applications within the Julia ecosystem.
 
 # Installation
 To install BiochemicalAlgorithms, open a Julia REPL, switch to the package mode by pressing `]`, and type
@@ -18,7 +18,7 @@ pkg> add BiochemicalAlgorithms
 # Usage
 
 Here is a simple impression of what you can do with BiochemicalAlgorithms.jl. 
-Central to every application is a `System`, which is filled with structures by reading in atom coordinates from PDB or PubChem JSON files. The system is preprocessed by the `FragementDB` performing three steps: name normalization, reconstruction of missing atoms, and the construction of atomic bonds. The energy of the structure is evaluated using Amber forcefield.  With the help of [BiochemicalVisualization.jl](https://github.com/hildebrandtlab/BiochemicalVisualization.jl) the structure can be visualized as a ball-and-stick model.
+Central to every application is a `System`, which is filled with structures by reading in atom coordinates from PDB or PubChem JSON files. The system is preprocessed by the `FragmentDB` performing three steps: name normalization, reconstruction of missing atoms, and the construction of atomic bonds. The energy of the structure is evaluated using Amber forcefield.  With the help of [BiochemicalVisualization.jl](https://github.com/hildebrandtlab/BiochemicalVisualization.jl) the structure can be visualized as a ball-and-stick model.
 
 ```julia
 using BiochemicalAlgorithms
