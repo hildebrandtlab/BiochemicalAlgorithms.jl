@@ -286,6 +286,16 @@ end
     is_amino_acid(frag.name)
 end
 
+@inline function three_letter_code(frag::Fragment)
+    @assert is_amino_acid(frag)
+    frag.name
+end
+
+@inline function one_letter_code(frag::Fragment)
+    @assert is_amino_acid(frag)
+    one_letter_code(frag.name)
+end
+
 # TODO adapt to variants
 @inline function is_nucleotide(frag::Fragment)
     is_nucleotide(frag.name)
