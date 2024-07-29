@@ -133,17 +133,23 @@ end
 Returns a `FragmentTable{T}` containing all fragments of the given atom container.
 
 # Supported keyword arguments
+ - `variant::Union{Nothing, FragmentVariantType} = nothing`
  - `molecule_idx::MaybeInt = nothing`
  - `chain_idx::MaybeInt = nothing`
-All keyword arguments limit the results to fragments matching the given IDs. Keyword arguments set to
-`nothing` are ignored.
+All keyword arguments limit the results to fragments matching the given IDs or variant type.
+Keyword arguments set to `nothing` are ignored.
 """
 function fragments(sys::System{T} = default_system();
+    variant::Union{Nothing, FragmentVariantType} = nothing,
     molecule_idx::MaybeInt = nothing,
     chain_idx::MaybeInt = nothing
 ) where T
-    isnothing(molecule_idx) && isnothing(chain_idx) && return FragmentTable{T}(sys, sys._fragments.idx)
+    isnothing(variant) &&
+        isnothing(molecule_idx) &&
+        isnothing(chain_idx) &&
+        return FragmentTable{T}(sys, sys._fragments.idx)
     _filter_fragments(frag ->
+        (isnothing(variant)      || frag.variant      == something(variant)) &&
         (isnothing(molecule_idx) || frag.molecule_idx == something(molecule_idx)) &&
         (isnothing(chain_idx)    || frag.chain_idx    == something(chain_idx)),
         sys
@@ -272,9 +278,12 @@ end
 
 Returns a `FragmentTable{T}` containing all [`FragmentVariant.Nucleotide`](@ref FragmentVariant)
 fragments of the given system.
+
+# Supported keyword arguments
+See [`fragments`](@ref)
 """
-@inline function nucleotides(sys::System = default_system())
-    filter(isnucleotide, fragments(sys))
+@inline function nucleotides(sys::System = default_system(); kwargs...)
+    fragments(sys; variant = FragmentVariant.Nucleotide, kwargs...)
 end
 
 """
@@ -282,9 +291,12 @@ end
 
 Returns the number of [`FragmentVariant.Nucleotide`](@ref FragmentVariant) fragments in the given
 system.
+
+# Supported keyword arguments
+See [`fragments`](@ref)
 """
-@inline function nnucleotides(sys::System = default_system())
-    length(nucleotides(sys))
+@inline function nnucleotides(sys::System = default_system(); kwargs...)
+    nfragments(sys; variant = FragmentVariant.Nucleotide, kwargs...)
 end
 
 #=
@@ -336,9 +348,12 @@ end
 
 Returns a `FragmentTable{T}` containing all [`FragmentVariant.Residue`](@ref FragmentVariant)
 fragments of the given system.
+
+# Supported keyword arguments
+See [`fragments`](@ref)
 """
-@inline function residues(sys::System = default_system())
-    filter(isresidue, fragments(sys))
+@inline function residues(sys::System = default_system(); kwargs...)
+    fragments(sys; variant = FragmentVariant.Residue, kwargs...)
 end
 
 """
@@ -346,9 +361,12 @@ end
 
 Returns the number of [`FragmentVariant.Residue`](@ref FragmentVariant) fragments in the given
 system.
+
+# Supported keyword arguments
+See [`fragments`](@ref)
 """
-@inline function nresidues(sys::System = default_system())
-    length(residues(sys))
+@inline function nresidues(sys::System = default_system(); kwargs...)
+    nfragments(sys; variant = FragmentVariant.Residue, kwargs...)
 end
 
 # TODO adapt to variants
