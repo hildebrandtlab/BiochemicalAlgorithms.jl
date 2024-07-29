@@ -136,18 +136,29 @@ end
     molecules(::System{T} = default_system())
 
 Returns a `MoleculeTable{T}` containing all molecules of the given system.
+
+# Supported keyword arguments
+ - `variant::Union{Nothing, MoleculeVariantType} = nothing`
+The keyword argument limits the results to molecules matching the given variant type.
+Keyword arguments set to `nothing` are ignored.
 """
-@inline function molecules(sys::System{T} = default_system()) where T
-    MoleculeTable{T}(sys, sys._molecules.idx)
+@inline function molecules(sys::System{T} = default_system();
+    variant::Union{Nothing, MoleculeVariantType} = nothing
+) where T
+    isnothing(variant) && return MoleculeTable{T}(sys, sys._molecules.idx)
+    _filter_molecules(mol -> mol.variant == something(variant), sys)
 end
 
 """
     nmolecules(::System = default_system())
 
 Returns the number of molecules in the given system.
+
+# Supported keyword arguments
+See [`molecules`](@ref)
 """
-function nmolecules(sys::System = default_system())
-    length(sys._molecules)
+function nmolecules(sys::System = default_system(); kwargs...)
+    length(molecules(sys; kwargs...))
 end
 
 #=
@@ -220,16 +231,22 @@ end
 
 Returns a `MoleculeTable{T}` containing all [`MoleculeVariant.Protein`](@ref MoleculeVariant) molecules
 of the given system.
+
+# Supported keyword arguments
+See [`molecules`](@ref)
 """
-@inline function proteins(sys::System = default_system())
-    filter(isprotein, molecules(sys))
+@inline function proteins(sys::System = default_system(); kwargs...)
+    molecules(sys; variant = MoleculeVariant.Protein, kwargs...)
 end
 
 """
     nproteins(::System = default_system())
 
 Returns the number of [`MoleculeVariant.Protein`](@ref MoleculeVariant) molecules in the given system.
+
+# Supported keyword arguments
+See [`molecules`](@ref)
 """
-@inline function nproteins(sys::System = default_system())
-    length(proteins(sys))
+@inline function nproteins(sys::System = default_system(); kwargs...)
+    nmolecules(sys; variant = MoleculeVariant.Protein, kwargs...)
 end
