@@ -22,6 +22,8 @@ export
     nucleotide_by_idx,
     nucleotides,
     parent_fragment,
+    parent_nucleotide,
+    parent_residue,
     residue_by_idx,
     residues
 
@@ -299,6 +301,17 @@ See [`fragments`](@ref)
     nfragments(sys; variant = FragmentVariant.Nucleotide, kwargs...)
 end
 
+"""
+    parent_nucleotide(::Atom)
+
+Returns the `Fragment{T}` containing the given atom. Returns `nothing` if no such fragment exists or
+if the fragment is not a [`FragmentVariant.Nucleotide`](@ref FragmentVariant).
+"""
+@inline function parent_nucleotide(atom::Atom)
+    frag = parent_fragment(atom)
+    isnothing(frag) || !isnucleotide(frag) ? nothing : frag
+end
+
 #=
     Variant: Residue
 =#
@@ -367,6 +380,17 @@ See [`fragments`](@ref)
 """
 @inline function nresidues(sys::System = default_system(); kwargs...)
     nfragments(sys; variant = FragmentVariant.Residue, kwargs...)
+end
+
+"""
+    parent_residue(::Atom)
+
+Returns the `Fragment{T}` containing the given atom. Returns `nothing` if no such fragment exists or
+if the fragment is not a [`FragmentVariant.Residue`](@ref FragmentVariant).
+"""
+@inline function parent_residue(atom::Atom)
+    frag = parent_fragment(atom)
+    isnothing(frag) || !isresidue(frag) ? nothing : frag
 end
 
 # TODO adapt to variants
