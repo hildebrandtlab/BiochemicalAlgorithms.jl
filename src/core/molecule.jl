@@ -8,6 +8,7 @@ export
     nmolecules,
     nproteins,
     parent_molecule,
+    parent_protein,
     protein_by_idx,
     proteins
 
@@ -249,4 +250,17 @@ See [`molecules`](@ref)
 """
 @inline function nproteins(sys::System = default_system(); kwargs...)
     nmolecules(sys; variant = MoleculeVariant.Protein, kwargs...)
+end
+
+"""
+    parent_protein(::Atom)
+    parent_protein(::Chain)
+    parent_protein(::Fragment)
+
+Returns the `Molecule{T}` containing the given object. Returns `nothing` if no such molecule exists or
+if the molecule is not a [`MoleculeVariant.Protein`](@ref MoleculeVariant).
+"""
+@inline function parent_protein(ac)
+    mol = parent_molecule(ac)
+    isnothing(mol) || !isprotein(mol) ? nothing : mol
 end

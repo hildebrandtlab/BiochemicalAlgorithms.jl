@@ -75,6 +75,7 @@ Base.push!(::System{T}, ::Molecule{T}) where T
 Protein
 isprotein
 nproteins
+parent_protein
 protein_by_idx
 proteins
 ```
@@ -110,6 +111,7 @@ isnucleotide
 nnucleotides
 nucleotide_by_idx
 nucleotides
+parent_nucleotide
 ```
 
 ### Residues (fragment variant)
@@ -117,6 +119,7 @@ nucleotides
 Residue
 isresidue
 nresidues
+parent_residue
 residue_by_idx
 residues
 ```
