@@ -429,7 +429,9 @@ end
         =#
         @test length(prot._row) == 2
 
-        # getpropertymv
+        # getproperty
+        @test prot.idx isa Int
+        @test prot.name isa String
         @test prot.name == ""
 
         @test prot.properties isa Properties
@@ -446,7 +448,7 @@ end
         @test prot2.properties == Properties(:a => 1)
         @test prot2.flags == Flags([:A, :B])
         @test prot2.variant === MoleculeVariant.Protein
-        mv
+
         # setproperty!
         prot.name = "something else"
         @test prot.name == "something else"
