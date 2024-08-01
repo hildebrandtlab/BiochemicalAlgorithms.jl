@@ -276,29 +276,33 @@ end
 end
 
 """
-    nucleotides(sys::System{T} = default_system())
+    nucleotides(::Chain)
+    nucleotides(::Molecule)
+    nucleotides(::System = default_system())
 
 Returns a `FragmentTable{T}` containing all [`FragmentVariant.Nucleotide`](@ref FragmentVariant)
-fragments of the given system.
+fragments of the given atom container.
 
 # Supported keyword arguments
 See [`fragments`](@ref)
 """
-@inline function nucleotides(sys::System = default_system(); kwargs...)
-    fragments(sys; variant = FragmentVariant.Nucleotide, kwargs...)
+@inline function nucleotides(ac::Union{Chain, Molecule, System} = default_system(); kwargs...)
+    fragments(ac; variant = FragmentVariant.Nucleotide, kwargs...)
 end
 
 """
-    nnucleotides(sys::System = default_system())
+    nnucleotides(::Chain)
+    nnucleotides(::Molecule)
+    nnucleotides(::System = default_system())
 
 Returns the number of [`FragmentVariant.Nucleotide`](@ref FragmentVariant) fragments in the given
-system.
+atom container.
 
 # Supported keyword arguments
 See [`fragments`](@ref)
 """
-@inline function nnucleotides(sys::System = default_system(); kwargs...)
-    nfragments(sys; variant = FragmentVariant.Nucleotide, kwargs...)
+@inline function nnucleotides(ac::Union{Chain, Molecule, System} = default_system(); kwargs...)
+    nfragments(ac; variant = FragmentVariant.Nucleotide, kwargs...)
 end
 
 """
@@ -357,28 +361,32 @@ end
 end
 
 """
-    residues(sys::System{T} = default_system())
+    residues(::Chain)
+    residues(::Molecule)
+    residues(::System = default_system())
 
 Returns a `FragmentTable{T}` containing all [`FragmentVariant.Residue`](@ref FragmentVariant)
-fragments of the given system.
+fragments of the given atom container.
 
 # Supported keyword arguments
 See [`fragments`](@ref)
 """
-@inline function residues(sys::System = default_system(); kwargs...)
+@inline function residues(sys::Union{Chain, Molecule, System} = default_system(); kwargs...)
     fragments(sys; variant = FragmentVariant.Residue, kwargs...)
 end
 
 """
-    nresidues(sys::System = default_system())
+    nresidues(::Chain)
+    nresidues(::Molecule)
+    nresidues(::System = default_system())
 
 Returns the number of [`FragmentVariant.Residue`](@ref FragmentVariant) fragments in the given
-system.
+atom container.
 
 # Supported keyword arguments
 See [`fragments`](@ref)
 """
-@inline function nresidues(sys::System = default_system(); kwargs...)
+@inline function nresidues(sys::Union{Chain, Molecule, System} = default_system(); kwargs...)
     nfragments(sys; variant = FragmentVariant.Residue, kwargs...)
 end
 
