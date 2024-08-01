@@ -13,6 +13,8 @@
     @test nmolecules(sys) == 1
     @test nchains(sys) == 1
     @test nfragments(sys) == 58
+    @test nnucleotides(sys) == 0
+    @test nresidues(sys) == 58
 
     sys = load_pdb(ball_data_path("../test/data/5PTI.pdb"))
     @test sys.name == "5PTI.pdb"
@@ -21,6 +23,8 @@
     @test nmolecules(sys) == 1
     @test nchains(sys) == 1
     @test nfragments(sys) == 123
+    @test nnucleotides(sys) == 0
+    @test nresidues(sys) == 58
 
     sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
     orig = read(ball_data_path("../test/data/2ptc.pdb"), PDBFormat)
@@ -31,6 +35,9 @@
     @test nmolecules(sys) == 1
     @test nchains(sys) == countchains(orig)
     @test nfragments(sys) == countresidues(orig)
+    @test nfragments.(chains(sys)) == [346, 93]
+    @test nnucleotides.(chains(sys)) == [0, 0]
+    @test nresidues.(chains(sys)) == [223, 58]
     for chain in chains(sys)
         orig_chain = get(orig_model.chains, chain.name, nothing)
         @test !isnothing(orig_chain)

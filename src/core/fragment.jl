@@ -401,6 +401,12 @@ if the fragment is not a [`FragmentVariant.Residue`](@ref FragmentVariant).
     isnothing(frag) || !isresidue(frag) ? nothing : frag
 end
 
+function _fragment_variant(name::String)
+    is_amino_acid(name) && return FragmentVariant.Residue
+    is_nucleotide(name) && return FragmentVariant.Nucleotide
+    FragmentVariant.None
+end
+
 # TODO adapt to variants
 @inline function is_amino_acid(frag::Fragment)
     is_amino_acid(frag.name)
