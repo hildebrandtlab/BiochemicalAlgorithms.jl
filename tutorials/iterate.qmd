@@ -116,3 +116,23 @@ for bond in bonds(sys)
     # do something with this bond
 end
 ```
+
+
+# How can I iterate over all fragments/residues/nucleotides of a system?
+Chains usually contain fragments, e. g., residues or nucleotides and can either be queried collectively...
+```{julia}
+sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
+
+nfragments(sys)
+```
+
+...or by a given type:
+```{julia}
+println("Number of residues: ", nresidues(sys))
+println("Number of nucleotides: ", nnucleotides(sys))
+```
+
+Just like in the examples above, the functions can also be used with other atom containers:
+```{julia}
+nresidues.(chains(sys))
+```
