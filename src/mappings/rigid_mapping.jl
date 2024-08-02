@@ -34,48 +34,32 @@ abstract type RMSDMinimizerCoutsias <: AbstractRMSDMinimizer end
 """
     $(TYPEDEF)
 
-Mutable representation of a rigid transform.
-
-# Fields
- - `rotation::RotMatrix3`
- - `translation::Vector3`
+Rigid transformation represented by a single rotation and translation.
 
 # Constructors
 ```julia
-RigidTransform{T}(r::RotMatrix3{T}, t::Vector3{T}) where {T<:Real}
+RigidTransform(r::RotMatrix3{T}, t::Vector3{T})
+RigidTransform(r::Matrix3{T}, t::Vector3{T})
 ```
-Creates a new `RigidTransform{T}` with the given parameters.
-
-```julia
-RigidTransform{T}(r::Matrix3{T}, t::Vector3{T}) where {T<:Real} 
-```
-Creates a new `RigidTransform{T}` and converts the given `Matrix3{T}` to a `RotMatrix3` object.
+Creates a new `RigidTransform{T}` from the given rotation `r` and translation `t`.
 
 !!! note
     From the documentation of Rotations.jl:
     > The given `Matrix3{T}` should have the property `I =RR^T`, but this isn't enforced by the constructor.
-
-```julia
-RigidTransform(r::Matrix3, t::Vector3) = RigidTransform{Float32}(r, t)
-```
-Creates a new `RigidTransform{Float32}` with the given parameters.
 """
 struct RigidTransform{T<:Real}
     rotation::RotMatrix3{T}
     translation::Vector3{T}
 
-    function RigidTransform{T}(r::RotMatrix3{T}, t::Vector3{T}) where {T<:Real}
-        new(r, t)
+    @inline function RigidTransform(r::RotMatrix3{T}, t::Vector3{T}) where T
+        new{T}(r, t)
     end
-    function RigidTransform{T}(r::Matrix3{T}, t::Vector3{T}) where {T<:Real}
-        new(RotMatrix3(r), t)
+
+    @inline function RigidTransform(r::Matrix3{T}, t::Vector3{T}) where T
+        new{T}(RotMatrix3(r), t)
     end
 
 end
-
-RigidTransform(r::Matrix3, t::Vector3) = RigidTransform{Float32}(r, t)
-
-### Functions
 
 """
     $(TYPEDSIGNATURES)
@@ -144,7 +128,7 @@ function compute_rmsd_minimizer(f::AbstractAtomBijection{T}, mini::Type{<: Abstr
 
     rot_matrix = _compute_rotation(R, mini)
 
-    RigidTransform{T}(rot_matrix, mean_B - mean_A)
+    RigidTransform(rot_matrix, mean_B - mean_A)
     
 end
 
