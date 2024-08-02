@@ -102,7 +102,8 @@ end
 Computes the root mean square deviation ([RMSD](https://en.wikipedia.org/wiki/Root-mean-square_deviation_of_atomic_positions)) of the given `AbstractAtomBijection`.
 """
 function compute_rmsd(f::AbstractAtomBijection{T}) where {T<:Real}
-    r_BA = f.atoms_A.r .- f.atoms_B.r
+    atoms_A, atoms_B = atoms(f)
+    r_BA = atoms_A.r .- atoms_B.r
     sqrt(mean(map(r -> transpose(r) * r, r_BA)))
 end
 
@@ -132,10 +133,11 @@ Coutsias et al. represents rotation matrices as quaternions (use of Package Quat
     In order to map the two atom sets with the resulting `RigidTransform` the system to be mapped hast to be transferred to the origin first (before the `RigidTransform` is applied).
 """
 function compute_rmsd_minimizer(f::AbstractAtomBijection{T}, mini::Type{<: AbstractRMSDMinimizer}=RMSDMinimizerCoutsias) where {T<:Real}
-    mean_A = mean(f.atoms_A.r)
-    mean_B = mean(f.atoms_B.r)
+    atoms_A, atoms_B = atoms(f)
+    mean_A = mean(atoms_A.r)
+    mean_B = mean(atoms_B.r)
 
-    R = mapreduce(t -> t[1] * transpose(t[2]), +, zip(f.atoms_B.r .- Ref(mean_B), f.atoms_A.r .- Ref(mean_A)))
+    R = mapreduce(t -> t[1] * transpose(t[2]), +, zip(atoms_B.r .- Ref(mean_B), atoms_A.r .- Ref(mean_A)))
 
     rot_matrix = _compute_rotation(R, mini)
 
