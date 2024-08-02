@@ -1,7 +1,9 @@
-
-using BioSymbols
-
-export AminoAcid, name, three_letter_code, one_letter_code, is_amino_acid
+export
+    AminoAcid,
+    is_amino_acid,
+    name,
+    one_letter_code,
+    three_letter_code
 
 const AminoAcid = BioSymbols.AminoAcid
 

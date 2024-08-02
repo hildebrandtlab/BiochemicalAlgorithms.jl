@@ -1,18 +1,18 @@
 module BiochemicalAlgorithms
 
 using AutoHashEquals
+using BioSymbols
 using CellListMap
 using DataFrames
 using DataStructures
 using DocStringExtensions
+using EnumX
 using Graphs, GraphDataFrameBridge
 using LinearAlgebra: Hermitian, eigen
 using Rotations: RotMatrix3
 using Statistics: mean
 using Unitful, UnitfulAtomic
 using Quaternions: quat
-
-
 
 import MolecularGraph
 import PrettyTables
