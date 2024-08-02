@@ -18,52 +18,47 @@ function atoms(ab::AbstractAtomBijection)
     error("atoms() not implemented for atom bijection type $(typeof(ab))")
 end
 
-Mutable representation of a bijection of atoms based on the order of atoms in the individual atom containers.
+"""
+    TrivialAtomBijection{T} <: AbstractAtomBijection{T}
 
-# Public fields
-- `atoms_A::AtomTable{T}`
-- `atoms_B::AtomTable{T}`
+Bijection of atoms based on their order in the associated atom containers.
 
 # Constructors
 ```julia
-TrivialAtomBijection{T}(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T}) where T
+TrivialAtomBijection(A::AtomTable{T}, B::AtomTable{T})
 ```
-Creates a new `TrivialAtomBijection{T}` with the atoms of the individual atom containers. 
+Creates a new `TrivialAtomBijection{T}` from the given tables. Atom order is determined by
+row number.
 
 ```julia
-TrivialAtomBijection{T}(atoms_A, B::AbstractAtomContainer{T}) where T
+TrivialAtomBijection(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T})
 ```
-Creates a new `TrivialAtomBijection{T}`based on the unique set of atom numbers of `atoms_A`.
+Creates a new `TrivialAtomBijection{T}` with the atoms of the individual atom containers.
+
+```julia
+TrivialAtomBijection(A::AtomTable{T}, B::AbstractAtomContainer{T})
+```
+Creates a new `TrivialAtomBijection{T}` by filtering `B` for atom numbers contained in `A`.
+Atom order after filtering must be the same as in `A`.
 """
 struct TrivialAtomBijection{T} <: AbstractAtomBijection{T}
     atoms_A::AtomTable{T}
     atoms_B::AtomTable{T}
  
-    function TrivialAtomBijection{T}(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T}) where T
-        new(atoms(A), atoms(B))
+    @inline function TrivialAtomBijection(A::AtomTable{T}, B::AtomTable{T}) where T
+        new{T}(A, B)
     end
 
-    function TrivialAtomBijection{T}(atoms_A, B::AbstractAtomContainer{T}) where T
-        atoms_B = atoms(B)
-        anum = Set(atoms_A.number)
-        new(atoms_A, filter(atom -> atom.number in anum, atoms_B))
+    @inline function TrivialAtomBijection(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T}) where T
+        new{T}(atoms(A), atoms(B))
+    end
+
+    @inline function TrivialAtomBijection(A::AtomTable{T}, B::AbstractAtomContainer{T}) where T
+        anum = Set(A.number)
+        new{T}(A, filter(atom -> atom.number in anum, atoms(B)))
     end
 end
 
 @inline function atoms(ab::TrivialAtomBijection)
     (ab.atoms_A, ab.atoms_B)
 end
-
-"""
-    TrivialAtomBijection(A::AbstractAtomContainer, B::AbstractAtomContainer)
-
-Creates a new `TrivialAtomBijection{Float32}` as a default.
-"""
-TrivialAtomBijection(A::AbstractAtomContainer, B::AbstractAtomContainer) = TrivialAtomBijection{Float32}(A, B)
-
-"""
-    TrivialAtomBijection(A::AbstractAtomContainer, B::AbstractAtomContainer)
-
-Creates a new `TrivialAtomBijection{Float32}` based on the unique set of atom numbers of `atoms_A`.
-"""
-TrivialAtomBijection(atoms_A, B::AbstractAtomContainer) = TrivialAtomBijection{Float32}(atoms_A, B)

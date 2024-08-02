@@ -11,6 +11,7 @@ Pages = ["mappings.md"]
 ```@docs
 AbstractAtomBijection
 TrivialAtomBijection
+atoms(::AbstractAtomBijection)
 ```
 
 ## Rigid Mapping
