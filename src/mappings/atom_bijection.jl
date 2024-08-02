@@ -5,12 +5,18 @@ export
 """
     $(TYPEDEF)
 
-Abstract base type for AtomBijections.
+Abstract base type for atom bijections.
 """
 abstract type AbstractAtomBijection{T} end
 
 """
-    TrivialAtomBijection{T} <: AbstractAtomBijection{T}
+    $(TYPEDSIGNATURES)
+
+Returns the tuple of atom tables represented by this bijection.
+"""
+function atoms(ab::AbstractAtomBijection)
+    error("atoms() not implemented for atom bijection type $(typeof(ab))")
+end
 
 Mutable representation of a bijection of atoms based on the order of atoms in the individual atom containers.
 
@@ -42,6 +48,10 @@ struct TrivialAtomBijection{T} <: AbstractAtomBijection{T}
         anum = Set(atoms_A.number)
         new(atoms_A, filter(atom -> atom.number in anum, atoms_B))
     end
+end
+
+@inline function atoms(ab::TrivialAtomBijection)
+    (ab.atoms_A, ab.atoms_B)
 end
 
 """
