@@ -1,14 +1,14 @@
-export 
+export
     AbstractRMSDMinimizer,
+    RMSDMinimizerCoutsias,
     RMSDMinimizerKabsch,
-    RMSDMinimizerCoutsias, 
-    RigidTransform, 
-    rigid_transform!, 
-    compute_rmsd_minimizer, 
-    compute_rmsd, 
-    translate!, 
+    RigidTransform,
+    compute_rmsd,
+    compute_rmsd_minimizer,
     map_rigid!,
-    match_points
+    match_points,
+    rigid_transform!,
+    translate!
 
 """
     $(TYPEDEF)

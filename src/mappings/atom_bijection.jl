@@ -1,4 +1,7 @@
-export AbstractAtomBijection, TrivialAtomBijection
+export
+    AbstractAtomBijection,
+    TrivialAtomBijection
+
 """
     $(TYPEDEF)
 
