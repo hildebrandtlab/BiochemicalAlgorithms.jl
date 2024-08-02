@@ -13,21 +13,24 @@ export
 """
     $(TYPEDEF)
 
-Abstract base type for rmsd minimizer.
+Abstract base type for RMSD minimizers.
 """
 abstract type AbstractRMSDMinimizer end
+
 """
     $(TYPEDEF)
 
-Abstract base type for minimizer as described by [Kabsch](https://doi.org/10.1107/S0567739476001873).
+Abstract base type for RMSD minimizers based on <https://doi.org/10.1107/S0567739476001873>.
 """
-abstract type RMSDMinimizerKabsch   <: AbstractRMSDMinimizer end
+abstract type RMSDMinimizerKabsch <: AbstractRMSDMinimizer end
+
 """
     $(TYPEDEF)
 
-Abstract base type for minimizer as described by [Coutsias et al.](https://doi.org/10.1002/jcc.20110), which is used as default.
+Abstract base type for RMSD minimizers based on <https://doi.org/10.1002/jcc.20110>.
 """
 abstract type RMSDMinimizerCoutsias <: AbstractRMSDMinimizer end
+
 """
     $(TYPEDEF)
 
