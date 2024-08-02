@@ -113,7 +113,7 @@ end
     end
 
     # compute transformation 
-    ab = TrivialAtomBijection{Float32}(sys2, sys)
+    ab = TrivialAtomBijection(sys2, sys)
     
     rt0 = compute_rmsd_minimizer(ab)
     rt1 = compute_rmsd_minimizer(ab, RMSDMinimizerCoutsias)
