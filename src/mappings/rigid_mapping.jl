@@ -62,25 +62,36 @@ struct RigidTransform{T<:Real}
 end
 
 """
-    $(TYPEDSIGNATURES)
+    translate!(::AtomTable{T}, t::Vector3{T})
+    translate!(::AbstractAtomContainer{T}, t::Vector3{T})
 
-Moves the atoms of the atom container to new positions by adding the values given by the vector `t` the current positions.
+Translates all atoms of the given container according to the given translation vector `t`.
 """
-function translate!(m::AbstractAtomContainer{T}, t::Vector3{T}) where {T<:Real}
-    atoms(m).r .+= Ref(t)
-    m
+@inline function translate!(at::AtomTable{T}, t::Vector3{T}) where T
+    at.r .+= Ref(t)
+    at
+end
+
+@inline function translate!(ac::AbstractAtomContainer{T}, t::Vector3{T}) where T
+    translate!(atoms(ac), t)
+    ac
 end
 
 """
-    $(TYPEDSIGNATURES)
+    rigid_transform!(at::AtomTable{T}, transform::RigidTransform{T})
+    rigid_transform!(ac::AbstractAtomContainer, transform::RigidTransform)
 
-Performs a rigid transformation on the atom positions of `m`. 
-First, atoms are rotated by the rotation matrix of the RigidTransform `r` followed by translation.
+Applies the rotation and the translation represented by `transform` (in this order) to all
+atoms of the given container.
 """
-function rigid_transform!(m::AbstractAtomContainer{T}, transform::RigidTransform{T}) where {T<:Real}
-    r = atoms(m).r
-    r .= Ref(transform.rotation) .* r .+ Ref(transform.translation)
-    m
+@inline function rigid_transform!(at::AtomTable{T}, transform::RigidTransform{T}) where T
+    at.r .= Ref(transform.rotation) .* at.r .+ Ref(transform.translation)
+    at
+end
+
+@inline function rigid_transform!(ac::AbstractAtomContainer, transform::RigidTransform)
+    rigid_transform!(atoms(ac), transform)
+    ac
 end
 
 """
