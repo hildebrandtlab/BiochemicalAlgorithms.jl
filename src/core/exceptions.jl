@@ -1,3 +1,4 @@
-export TooManyErrors
+export
+    TooManyErrors
 
 struct TooManyErrors <: Exception end

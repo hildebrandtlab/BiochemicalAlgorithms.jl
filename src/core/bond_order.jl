@@ -1,6 +1,6 @@
-using EnumX
-
-export BondOrder, BondOrderType
+export
+    BondOrder,
+    BondOrderType
 
 @enumx BondOrder begin
     Single = 1
