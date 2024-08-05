@@ -115,48 +115,55 @@ end
 end
 
 """
-    $(TYPEDSIGNATURES)
+    compute_rmsd_minimizer(f::AbstractAtomBijection)
+    compute_rmsd_minimizer(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T})
+    compute_rmsd_miminizer(A::AtomTable{T}, B::AtomTable{T})
 
-Computes the transformation required to map two atom sets given as the atom bijection.
+Computes the RMSD-minimizing rigid transformation for the given atom bijection, assuming that both
+structures are centered at the origin. Defaults to [`TrivialAtomBijection`](@ref) if arguments are
+atom containers or tables.
 
-Returns a `RigidTransformation` object. The translation is given by the difference of the means of the atom sets.
-The corresponding rotation matrix can be computed by the approach of [Coutsias et al.](https://doi.org/10.1002/jcc.20110) (default) or [Kabsch](https://doi.org/10.1107/S0567739476001873),
-implemented by `RMSDMinimizerCoutsias` and `RMSDMinimizerKabsch`, respectively.  Both implementation rely on solving an eigen value problem.
-Coutsias et al. represents rotation matrices as quaternions (use of Package Quaternions.jl).
-
-!!! note
-    In order to map the two atom sets with the resulting `RigidTransform` the system to be mapped hast to be transferred to the origin first (before the `RigidTransform` is applied).
+# Supported keyword arguments
+ - `minimizer::Type{<: AbstractRMSDMinimizer} = RMSDMinimizerCoutsias`
+   Method used for computing the optimal rotation matrix. See [`RMSDMinimizerCoutsias`](@ref)
+   and [`RMSDMinimizerKabsch`](@ref).
 """
-function compute_rmsd_minimizer(f::AbstractAtomBijection{T}, mini::Type{<: AbstractRMSDMinimizer}=RMSDMinimizerCoutsias) where {T<:Real}
-    atoms_A, atoms_B = atoms(f)
-    mean_A = mean(atoms_A.r)
-    mean_B = mean(atoms_B.r)
+function compute_rmsd_minimizer(
+    A::AtomTable{T},
+    B::AtomTable{T};
+    minimizer::Type{<:AbstractRMSDMinimizer} = RMSDMinimizerCoutsias
+) where T
+    mean_A = mean(A.r)
+    mean_B = mean(B.r)
 
-    R = mapreduce(t -> t[1] * transpose(t[2]), +, zip(atoms_B.r .- Ref(mean_B), atoms_A.r .- Ref(mean_A)))
+    R = mapreduce(t -> t[1] * transpose(t[2]), +, zip(B.r .- Ref(mean_B), A.r .- Ref(mean_A)))
 
-    rot_matrix = _compute_rotation(R, mini)
+    RigidTransform(_compute_rotation(R, minimizer), mean_B .- mean_A)
+end
 
-    RigidTransform(rot_matrix, mean_B - mean_A)
-    
+@inline function compute_rmsd_minimizer(f::AbstractAtomBijection; kwargs...)
+    compute_rmsd_minimizer(atoms(f)...; kwargs...)
+end
+
+@inline function compute_rmsd_minimizer(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T}; kwargs...) where T
+    compute_rmsd_minimizer(TrivialAtomBijection(A, B); kwargs...)
 end
 
 """
     $(TYPEDSIGNATURES)
 
-Computes the rotation matrix by solving the eigen value problem given as the correlation matrix `C`.
+Computes the rotation matrix by solving the eigenvalue problem given as the correlation matrix `C`.
 Uses all resulting eigenvalues and eigenvectors.
 Warns if the correlation matrix is not positive definit (contains negative eigenvalues or eigenvalues equal to 0)
-and uses the alternative approch `RMSDMinimizerCoutsias` instead.
+and uses the alternative approch [`RMSDMinimizerCoutsias`](@ref) instead.
 Returns a `RotMatrix3`.
 """
 function _compute_rotation(R::Matrix3{T}, ::Type{RMSDMinimizerKabsch}) where {T<:Real}
-   
     C = Hermitian(transpose(R) * R)
     μ, a = eigen(C)
 
-    # check eigen values for 
     if minimum(μ) <= 0
-        @warn("Correlation matrix not positive definit. Rotation Matrix will be computed by Coutsias.")
+        @warn("Correlation matrix is not positive definit! Computing rotation through `RMSDMinimizerCoutsias` instead!")
         return _compute_rotation(R, RMSDMinimizerCoutsias)
     end
 
@@ -166,8 +173,8 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Computes the rotation matrix by solving the eigen value problem given as the residual matrix `F`.
-Uses only the largest of the resulting eigenvalues to generate the Quaternion describing the 
+Computes the rotation matrix by solving the eigenvalue problem given as the residual matrix `F`.
+Uses only the largest of the resulting eigenvalues to generate the quaternion describing the
 optimal rotation that maps the atoms onto each other.
 Returns a `RotMatrix3`.
 """
@@ -195,13 +202,9 @@ function _compute_rotation(R::Matrix3{T}, ::Type{RMSDMinimizerCoutsias}) where {
     F[4,4] = -R[1,1] - R[2,2] + R[3,3]
 
     μ, a = eigen(F)
+    i = argmax(μ)
 
-    q_max, i = findmax(μ)
-
-    q_r = QuatRotation(quat(a[1,i], a[2,i], a[3,i], a[4,i]))
-
-    RotMatrix3{T}(q_r)
-
+    RotMatrix3{T}(QuatRotation(quat(a[1,i], a[2,i], a[3,i], a[4,i])))
 end
 
 """

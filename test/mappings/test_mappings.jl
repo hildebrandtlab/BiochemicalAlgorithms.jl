@@ -116,8 +116,8 @@ end
     ab = TrivialAtomBijection(sys2, sys)
     
     rt0 = compute_rmsd_minimizer(ab)
-    rt1 = compute_rmsd_minimizer(ab, RMSDMinimizerCoutsias)
-    rt2 = compute_rmsd_minimizer(ab, RMSDMinimizerKabsch) # calls internally Coutsias
+    rt1 = compute_rmsd_minimizer(ab; minimizer = RMSDMinimizerCoutsias)
+    rt2 = compute_rmsd_minimizer(ab; minimizer = RMSDMinimizerKabsch) # calls internally Coutsias
 
     @test isapprox(rt1.translation, Vector3{Float32}(-1.0, -1.0, -2.0))
     @test isapprox(rt2.translation, Vector3{Float32}(-1.0, -1.0, -2.0))
