@@ -18,7 +18,6 @@ sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 Write the same system back into a new PDB file:
 
 ``` julia
-# 
 write_pdb("Ala_out.pdb", sys)
 ```
 
