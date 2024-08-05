@@ -135,7 +135,7 @@ function compute_rmsd_minimizer(
     mean_A = mean(A.r)
     mean_B = mean(B.r)
 
-    R = mapreduce(t -> t[1] * transpose(t[2]), +, zip(B.r .- Ref(mean_B), A.r .- Ref(mean_A)))
+    R = mapreduce(t -> t[1] * transpose(t[2]), +, zip(A.r .- Ref(mean_A), B.r .- Ref(mean_B)))
 
     RigidTransform(_compute_rotation(R, minimizer), mean_B .- mean_A)
 end
