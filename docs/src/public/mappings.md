@@ -7,14 +7,14 @@ CurrentModule = BiochemicalAlgorithms
 Pages = ["mappings.md"]
 ```
 
-## Atom bijection
+## Atom bijections
 ```@docs
 AbstractAtomBijection
 TrivialAtomBijection
 atoms(::AbstractAtomBijection)
 ```
 
-## Rigid Mapping
+## Rigid mapping
 ```@docs
 AbstractRMSDMinimizer
 RMSDMinimizerCoutsias
@@ -23,7 +23,6 @@ RigidTransform
 compute_rmsd
 compute_rmsd_minimizer
 map_rigid!
-match_points
 rigid_transform!
 translate!
 ```

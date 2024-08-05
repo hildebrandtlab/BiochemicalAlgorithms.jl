@@ -9,4 +9,5 @@ Pages = ["mappings.md"]
 
 ```@docs
 _compute_rotation
+match_points
 ```
