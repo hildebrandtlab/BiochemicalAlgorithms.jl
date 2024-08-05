@@ -1,4 +1,4 @@
-@testitem "Atom_Bijection:" begin
+@testitem "TrivialAtomBijection" begin
     mol = load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json"))
     mol2 = deepcopy(mol) 
 
@@ -7,7 +7,7 @@
     @test size(ab.atoms_A) == size(ab.atoms_B)
 end
 
-@testitem "Rigid_Mapping: RigidTransform" begin
+@testitem "RigidTransform" begin
     using Rotations: RotMatrix3
     
     v = Vector3{Float32}(1, 1, 1)
@@ -21,7 +21,7 @@ end
     @test r.translation isa Vector3{Float32}
 end
 
-@testitem "Rigid_Mapping: Function translate" begin
+@testitem "translate!" begin
     s = load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json"))
     s2 = deepcopy(s)
     v = Vector3{Float32}(1.0,1.0,1.0)
@@ -34,7 +34,7 @@ end
     end 
 end
 
-@testitem "Rigid_Mapping: Function rigid_transform" begin
+@testitem "rigid_transform!" begin
     sys = System{Float32}()
     for i in 1:3
         atom = Atom(sys, 1, Elements.H; r = Vector3{Float32}(i*1.0, i*2.0, 0.0))
@@ -68,7 +68,7 @@ end
     @test isapprox(atoms(sys3).r[3], Vector3{Float32}(4., 1., -5.), atol=1e-8)
 end
 
-@testitem "Rigid_Mapping: Function compute_rmsd" begin
+@testitem "compute_rmsd" begin
     sys = load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json"))
     sys2 = deepcopy(sys)
     sys3 = deepcopy(sys) 
@@ -91,7 +91,7 @@ end
     @test_throws DimensionMismatch compute_rmsd(sys,sys3)
 end
 
-@testitem "Rigid_Mapping: Function compute_rmsd_minimizer" begin
+@testitem "compute_rmsd_minimizer" begin
     r_A = [[0., 0., 0.], [0., 1., 0.], [3., 1., 0.]]
     sys = System{Float32}()
 
@@ -152,10 +152,9 @@ end
     @test isapprox(atoms(sys2).r[1], Vector3{Float32}(1., 1., 1.), atol=1e-7)
     @test isapprox(atoms(sys2).r[2], Vector3{Float32}(1., 1., 0.), atol=1e-8)
     @test isapprox(atoms(sys2).r[3], Vector3{Float32}(4., 1., 0.), atol=1e-8)
-
 end
 
-@testitem "Rigid_Mapping: Function map_rigid!" begin
+@testitem "map_rigid!" begin
 
     r_A = [[0., 2., 0.], [0., 2., 1.], [3., 2., 1.]]
 
@@ -207,5 +206,4 @@ end
 
     #after mapping
     @test isapprox(compute_rmsd(sys4,sys3), 9.472233f-8)
-
 end
