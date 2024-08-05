@@ -155,13 +155,12 @@ end
 end
 
 @testitem "map_rigid!" begin
-
     r_A = [[0., 2., 0.], [0., 2., 1.], [3., 2., 1.]]
 
     sys = System{Float32}()
     # add atoms
     for i in 1:3
-        atom = Atom(sys, 1, Elements.H, r = Vector3{Float32}(r_A[i]))
+        Atom(sys, 1, Elements.H, r = Vector3{Float32}(r_A[i]))
         @test natoms(sys) == i
     end
 
@@ -177,33 +176,28 @@ end
     @test isapprox(atoms(sys2).r[2], Vector3{Float32}(1., 2., -1.), atol=1e-8)
     @test isapprox(atoms(sys2).r[3], Vector3{Float32}(4., 2., -1.), atol=1e-8)
     #rmsd before mapping
-    @test isapprox(compute_rmsd(sys2,sys),2.081666f0)
+    @test isapprox(compute_rmsd(sys2,sys), 2.081666f0)
 
     map_rigid!(sys2,sys)
     #after mapping
-    @test isapprox(compute_rmsd(sys2,sys),0.942809f0)
+    @test compute_rmsd(sys2,sys) < 1e-6
 
-    @test isapprox(atoms(sys2).r[1], Vector3{Float32}(0., 2., 1.3333333), atol=1e-7)
-    @test isapprox(atoms(sys2).r[2], Vector3{Float32}(0., 2., 0.3333333), atol=1e-8)
-    @test isapprox(atoms(sys2).r[3], Vector3{Float32}(3., 2., 0.3333333), atol=1e-8)
-
-    # test mapping only for heavy atoms
-
+    # test mappings pubchem structure
     sys3 = load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json"))
 
     # create a translated and rotated version
     sys4 = deepcopy(sys3)
     v = Vector3{Float32}(2, 1, 1)
-    m = Matrix3{Float32}(1, 0, 0, 0, 1, 0, 0, 0, 1)
+    m = Matrix3{Float32}(1, 0, 0, 0, 0, -1, 0, 1, 0)
     r = RigidTransform(m,v)
 
+    # all atoms
     rigid_transform!(sys4, r)
+    map_rigid!(sys4, sys3; heavy_atoms_only=false)
+    @test compute_rmsd(sys4,sys3) <= 1e-6
 
-    #rmsd before mapping
-    @test isapprox(compute_rmsd(sys4,sys3), 2.4494898f0)
- 
+    # heavy atoms only
+    rigid_transform!(sys4, r)
     map_rigid!(sys4, sys3; heavy_atoms_only=true)
-
-    #after mapping
-    @test isapprox(compute_rmsd(sys4,sys3), 9.472233f-8)
+    @test compute_rmsd(sys4,sys3) <= 1e-6
 end
