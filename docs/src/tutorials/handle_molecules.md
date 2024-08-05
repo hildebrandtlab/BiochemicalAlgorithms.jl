@@ -149,7 +149,7 @@ all_chains = chains(sys)
 |   1 | 2   | E    |
 |   2 | 349 | I    |
 
-ChainTable{Float32} with 2 rows:
+BiochemicalAlgorithms.ChainTable{Float32} with 2 rows:
 
 This snippet will create separate PDB files for the two chains of the system:
 
@@ -181,4 +181,4 @@ println("RMSD after mapping:\t", compute_rmsd(mol2, mol))
 ```
 
     RMSD before mapping:    3.0
-    RMSD after mapping: 1.8518733e-5
+    RMSD after mapping: 3.881571e-6
