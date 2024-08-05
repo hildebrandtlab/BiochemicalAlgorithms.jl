@@ -95,26 +95,23 @@ end
 end
 
 """
-    $(TYPEDSIGNATURES)
+    compute_rmsd(f::AbstractAtomBijection)
+    compute_rmsd(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T})
+    compute_rmsd(A::AtomTable{T}, B::AtomTable{T})
 
-Computes the root mean square deviation ([RMSD](https://en.wikipedia.org/wiki/Root-mean-square_deviation_of_atomic_positions)) of the given `AbstractAtomBijection`.
+Computes the [root mean square deviation (RMSD)](https://en.wikipedia.org/wiki/Root-mean-square_deviation_of_atomic_positions)
+of the given atom bijection. Defaults to [`TrivialAtomBijection`](@ref) if arguments are atom containers or tables.
 """
-function compute_rmsd(f::AbstractAtomBijection{T}) where {T<:Real}
-    atoms_A, atoms_B = atoms(f)
-    r_BA = atoms_A.r .- atoms_B.r
-    sqrt(mean(map(r -> transpose(r) * r, r_BA)))
+@inline function compute_rmsd(A::AtomTable{T}, B::AtomTable{T}) where T
+    sqrt(mean(map(r -> transpose(r) * r, A.r .- B.r)))
 end
 
-"""
-    $(TYPEDSIGNATURES)
+@inline function compute_rmsd(f::AbstractAtomBijection)
+    compute_rmsd(atoms(f)...)
+end
 
-Computes the root mean square deviation ([RMSD](https://en.wikipedia.org/wiki/Root-mean-square_deviation_of_atomic_positions)) based on two sets of atoms.
-
-!!! note
-    AtomContainers must have the same number of atoms.
-"""
-function compute_rmsd(A::AbstractAtomContainer, B::AbstractAtomContainer)
-    sqrt(mean(squared_norm.(atoms(A).r .- atoms(B).r)))
+@inline function compute_rmsd(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T}) where T
+    compute_rmsd(TrivialAtomBijection(A, B))
 end
 
 """
