@@ -86,6 +86,8 @@ include("preprocessing/build_bonds.jl")
 include("preprocessing/add_hydrogens.jl")
 include("preprocessing/reconstruct_fragments.jl")
 
+include("deprecation.jl")
+
 using .PubChem
 
 export load_pubchem_json, ball_data_path
