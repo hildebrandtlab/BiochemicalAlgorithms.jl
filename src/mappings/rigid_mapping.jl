@@ -207,24 +207,48 @@ function _compute_rotation(R::Matrix3{T}, ::Type{RMSDMinimizerCoutsias}) where {
 end
 
 """
-    $(TYPEDSIGNATURES)
+    map_rigid!(f::AbstractAtomBijection)
+    map_rigid!(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T})
+    map_rigid!(A::AtomTable{T}, B::AtomTable{T})
 
-Maps `AbstractAtomContainer` `A` onto `AbstractAtomContainer` `B`
-by first moving `A` to the origin and then computing the `RigidTransform` by using `RMSDMinimizerCoutsias`.
-Returns the mapped `AbstractAtomContainer` `A`.
+Computes and applies the RMSD-minimizing rigid transformation for the given atom bijection. Defaults
+to [`TrivialAtomBijection`](@ref) if arguments are atom containers or tables. Only the first structure
+(`A`) is modified, i.e. mapped onto the second one (`B`).
+
+# Supported keyword arguments
+ - `heavy_atoms_only::Bool = false`
+   If `true`, hydrogen atoms are ignored during the computation of the optimal transformation. Otherwise,
+   all atoms are used.
+ - `minimizer::Type{<: AbstractRMSDMinimizer} = RMSDMinimizerCoutsias`
+   See [`compute_rmsd_minimizer`](@ref)
 """
-function map_rigid!(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T}; heavy_atoms_only::Bool = false) where {T<:Real}
-    # first map proteins onto the origin
-    atoms(A).r .= atoms(A).r .- Ref(mean(atoms(A).r))
-    atoms_A = atoms(A)
-    if heavy_atoms_only
-        atoms_A = filter(atom -> atom.element != Elements.H, atoms_A)
-    end
+function map_rigid!(
+    A::AtomTable{T},
+    B::AtomTable{T};
+    heavy_atoms_only::Bool = false,
+    minimizer::Type{<: AbstractRMSDMinimizer} = RMSDMinimizerCoutsias
+) where T
+    refA = heavy_atoms_only ? filter(atom -> atom.element != Elements.H, A) : A
+    refB = heavy_atoms_only ? filter(atom -> atom.element != Elements.H, B) : B
 
-    rt = compute_rmsd_minimizer(TrivialAtomBijection(atoms_A, B))
+    rt = compute_rmsd_minimizer(refA, refB; minimizer = minimizer)
 
+    # apply rigid transform to first argument
+    centroid = mean(refA.r)
+    translate!(A, -centroid)
     rigid_transform!(A, rt)
+    translate!(A, centroid)
 
+    A
+end
+
+@inline function map_rigid!(f::AbstractAtomBijection; kwargs...)
+    map_rigid!(atoms(f)...; kwargs...)
+    f
+end
+
+@inline function map_rigid!(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T}; kwargs...) where T
+    map_rigid!(TrivialAtomBijection(A, B); kwargs...)
     A
 end
 
