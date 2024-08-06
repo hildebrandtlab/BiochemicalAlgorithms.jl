@@ -280,7 +280,7 @@ end
     energy
 end
 
-function compute_energy(tc::TorsionComponent{T})::T where {T<:Real}
+function compute_energy!(tc::TorsionComponent{T})::T where {T<:Real}
     # iterate over all proper torsions in the system
     proper_torsion_energy   = mapreduce(compute_energy, +, tc.proper_torsions; init=zero(T))
     improper_torsion_energy = mapreduce(compute_energy, +, tc.improper_torsions; init=zero(T))
@@ -293,7 +293,7 @@ function compute_energy(tc::TorsionComponent{T})::T where {T<:Real}
     total_energy
 end
 
-function compute_forces(ct::CosineTorsion{T}) where {T<:Real}
+function compute_forces!(ct::CosineTorsion{T}) where {T<:Real}
     a21 = ct.a1r .- ct.a2r
     a23 = ct.a3r .- ct.a2r
     a34 = ct.a4r .- ct.a3r
@@ -341,9 +341,9 @@ function compute_forces(ct::CosineTorsion{T}) where {T<:Real}
     end
 end
 
-function compute_forces(tc::TorsionComponent{T}) where {T<:Real}
-    map(compute_forces, tc.proper_torsions)
-    map(compute_forces, tc.improper_torsions)
+function compute_forces!(tc::TorsionComponent{T}) where {T<:Real}
+    map(compute_forces!, tc.proper_torsions)
+    map(compute_forces!, tc.improper_torsions)
 
     nothing
 end

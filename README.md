@@ -38,7 +38,7 @@ println("Number of bonds: ", nbonds(sys))
 
 # Create Amber force field and compute the energy of the system
 amber = AmberFF(sys)
-compute_energy(amber)
+compute_energy!(amber)
 println(amber.energy)
 ```
 

@@ -25,7 +25,7 @@ amber_suite["Creation"] = @benchmarkable AmberFF(p) (setup=(p=prepare_mol("Amber
 
 p = prepare_mol("AmberFF_bench.pdb")
 
-amber_suite["setup"]   = @benchmarkable  setup!(a_ff) (setup=(a_ff = AmberFF($p)))
+amber_suite["setup"]   = @benchmarkable setup!(a_ff) (setup=(a_ff = AmberFF($p)))
 
 a_ff = AmberFF(p)
 setup!(a_ff)
@@ -34,5 +34,5 @@ amber_suite["update!"] = @benchmarkable update!($a_ff)
 
 update!(a_ff)
 
-amber_suite["compute_energy"] = @benchmarkable compute_energy($a_ff)
-amber_suite["compute_forces"] = @benchmarkable compute_forces($a_ff)
+amber_suite["compute_energy!"] = @benchmarkable compute_energy!($a_ff)
+amber_suite["compute_forces!"] = @benchmarkable compute_forces!($a_ff)

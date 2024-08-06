@@ -6,7 +6,8 @@ export
     setup!,
     update!,
     compute_energy,
-    compute_forces,
+    compute_energy!,
+    compute_forces!,
     count_warnings,
     print_warnings
 
@@ -178,8 +179,8 @@ Update the internal data structures of the force field when the system changes
     map(update!, ff.components)
 end
 
-function compute_energy(ff::ForceField{T}; verbose=false)::T where {T<:Real}
-    total_energy = mapreduce(compute_energy, +, ff.components; init=zero(T))
+function compute_energy!(ff::ForceField{T}; verbose=false)::T where {T<:Real}
+    total_energy = mapreduce(compute_energy!, +, ff.components; init=zero(T))
 
     for c in ff.components
         for (name, value) in c.energy
@@ -204,11 +205,11 @@ function compute_energy(ff::ForceField{T}; verbose=false)::T where {T<:Real}
     total_energy
 end
 
-function compute_forces(ff::ForceField{T}) where {T<:Real}
+function compute_forces!(ff::ForceField{T}) where {T<:Real}
     # first, zero out the current forces
     atoms(ff.system).F .= Ref(zero(Vector3{T}))
     
-    map(compute_forces, ff.components)
+    map(compute_forces!, ff.components)
 
     nothing
 end
