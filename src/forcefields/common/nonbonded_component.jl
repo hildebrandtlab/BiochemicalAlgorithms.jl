@@ -491,7 +491,7 @@ end
     energy * esi.scaling_factor * switching_function(esi.switching_function, esi.distance^2) * T(ES_Prefactor)
 end
 
-function compute_energy(nbc::NonBondedComponent{T})::T where {T<:Real}
+function compute_energy!(nbc::NonBondedComponent{T})::T where {T<:Real}
     # iterate over all interactions in the system
     vdw_energy   = mapreduce(compute_energy, +, nbc.lj_interactions;            init=zero(T))
     hbond_energy = mapreduce(compute_energy, +, nbc.hydrogen_bonds;             init=zero(T))
@@ -504,7 +504,7 @@ function compute_energy(nbc::NonBondedComponent{T})::T where {T<:Real}
     vdw_energy + hbond_energy + es_energy
 end
 
-function compute_forces(lji::LennardJonesInteraction{T, 12, 6}) where {T<:Real}
+function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where {T<:Real}
     direction = lji.a1r .- lji.a2r
 
     sq_distance = squared_norm(direction)
@@ -540,7 +540,7 @@ function compute_forces(lji::LennardJonesInteraction{T, 12, 6}) where {T<:Real}
     end
 end
 
-function compute_forces(hb::LennardJonesInteraction{T, 12, 10}) where {T<:Real}
+function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where {T<:Real}
     direction = hb.a1r .- hb.a2r
 
     sq_distance = squared_norm(direction)
@@ -580,7 +580,7 @@ function compute_forces(hb::LennardJonesInteraction{T, 12, 10}) where {T<:Real}
     end
 end
 
-function compute_forces(esi::ElectrostaticInteraction{T}) where {T<:Real}
+function compute_forces!(esi::ElectrostaticInteraction{T}) where {T<:Real}
     direction = esi.a1r .- esi.a2r
 
     sq_distance = squared_norm(direction)
@@ -635,7 +635,7 @@ function compute_forces(esi::ElectrostaticInteraction{T}) where {T<:Real}
     end
 end
 
-function compute_forces(nbc::NonBondedComponent{T}) where {T<:Real}
+function compute_forces!(nbc::NonBondedComponent{T}) where {T<:Real}
     constrained_ids = getproperty.(getindex.(Ref(atoms(nbc.ff.system)), nbc.ff.constrained_atoms), :idx)
 
     filter_pairs = (
@@ -644,9 +644,9 @@ function compute_forces(nbc::NonBondedComponent{T}) where {T<:Real}
             : s -> filter(p -> (p.a1.idx ∉ constrained_ids) || (p.a2.idx ∉ constrained_ids), s)
     )
 
-    map(compute_forces, filter_pairs(nbc.lj_interactions))
-    map(compute_forces, filter_pairs(nbc.hydrogen_bonds))
-    map(compute_forces, filter_pairs(nbc.electrostatic_interactions))
+    map(compute_forces!, filter_pairs(nbc.lj_interactions))
+    map(compute_forces!, filter_pairs(nbc.hydrogen_bonds))
+    map(compute_forces!, filter_pairs(nbc.electrostatic_interactions))
 
     nothing
 end

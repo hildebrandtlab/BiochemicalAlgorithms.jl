@@ -8,7 +8,7 @@
 
     a_ff = AmberFF(p)
 
-    @test compute_energy(a_ff) ≈ 1425.5979f0
+    @test compute_energy!(a_ff) ≈ 1425.5979f0
     
     @test a_ff.energy["Bond Stretches"]   ≈ 1.3630637f0
     @test a_ff.energy["Angle Bends"]      ≈ 5.40766573f0
