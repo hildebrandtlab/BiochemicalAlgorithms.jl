@@ -33,31 +33,42 @@ abstract type RMSDMinimizerCoutsias <: AbstractRMSDMinimizer end
 """
     $(TYPEDEF)
 
-Rigid transformation represented by a single rotation and translation.
+Rigid transformation represented by a single rotation (around a specific center of
+rotation) and translation.
 
 # Constructors
 ```julia
-RigidTransform(r::RotMatrix3{T}, t::Vector3{T})
-RigidTransform(r::Matrix3{T}, t::Vector3{T})
+RigidTransform(r::RotMatrix3{T}, t::Vector3{T}, center::Vector3{T} = zeros(Vector3{T}))
+RigidTransform(r::Matrix3{T}, t::Vector3{T}, center::Vector3{T} = zeros(Vector3{T}))
 ```
-Creates a new `RigidTransform{T}` from the given rotation `r` and translation `t`.
+Creates a new `RigidTransform{T}` from the given rotation `r`, `center` of rotation, and
+translation `t`.
 
 !!! note
     From the documentation of Rotations.jl:
-    > The given `Matrix3{T}` should have the property `I =RR^T`, but this isn't enforced by the constructor.
+    > The given `Matrix3{T}` should have the property `I =RR^T`, but this isn't enforced
+    > by the constructor.
 """
 struct RigidTransform{T<:Real}
     rotation::RotMatrix3{T}
     translation::Vector3{T}
+    center::Vector3{T}
 
-    @inline function RigidTransform(r::RotMatrix3{T}, t::Vector3{T}) where T
-        new{T}(r, t)
+    @inline function RigidTransform(
+        r::RotMatrix3{T},
+        t::Vector3{T},
+        center::Vector3{T} = zeros(Vector3{T})
+    ) where T
+        new{T}(r, t, center)
     end
 
-    @inline function RigidTransform(r::Matrix3{T}, t::Vector3{T}) where T
-        new{T}(RotMatrix3(r), t)
+    @inline function RigidTransform(
+        r::Matrix3{T},
+        t::Vector3{T},
+        center::Vector3{T} = zeros(Vector3{T})
+    ) where T
+        new{T}(RotMatrix3(r), t, center)
     end
-
 end
 
 """
@@ -84,7 +95,8 @@ Applies the rotation and the translation represented by `transform` (in this ord
 atoms of the given container.
 """
 @inline function rigid_transform!(at::AtomTable{T}, transform::RigidTransform{T}) where T
-    at.r .= Ref(transform.rotation) .* at.r .+ Ref(transform.translation)
+    translate!(at, -transform.center)
+    at.r .= Ref(transform.rotation) .* at.r .+ Ref(transform.translation) .+ Ref(transform.center)
     at
 end
 
@@ -118,9 +130,8 @@ end
     compute_rmsd_minimizer(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T})
     compute_rmsd_miminizer(A::AtomTable{T}, B::AtomTable{T})
 
-Computes the RMSD-minimizing rigid transformation for the given atom bijection, assuming that both
-structures are centered at the origin. Defaults to [`TrivialAtomBijection`](@ref) if arguments are
-atom containers or tables.
+Computes the RMSD-minimizing rigid transformation for the given atom bijection. Defaults
+to [`TrivialAtomBijection`](@ref) if arguments are atom containers or tables.
 
 # Supported keyword arguments
  - `minimizer::Type{<: AbstractRMSDMinimizer} = RMSDMinimizerCoutsias`
@@ -137,7 +148,7 @@ function compute_rmsd_minimizer(
 
     R = mapreduce(t -> t[1] * transpose(t[2]), +, zip(A.r .- Ref(mean_A), B.r .- Ref(mean_B)))
 
-    RigidTransform(_compute_rotation(R, minimizer), mean_B .- mean_A)
+    RigidTransform(_compute_rotation(R, minimizer), mean_B .- mean_A, mean_A)
 end
 
 @inline function compute_rmsd_minimizer(f::AbstractAtomBijection; kwargs...)
@@ -232,13 +243,7 @@ function map_rigid!(
     refB = heavy_atoms_only ? filter(atom -> atom.element != Elements.H, B) : B
 
     rt = compute_rmsd_minimizer(refA, refB; minimizer = minimizer)
-
-    # apply rigid transform to first argument
-    centroid = mean(refA.r)
-    translate!(A, -centroid)
     rigid_transform!(A, rt)
-    translate!(A, centroid)
-
     rt
 end
 

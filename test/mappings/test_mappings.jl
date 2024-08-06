@@ -16,11 +16,19 @@ end
     for T in [Float32, Float64]
         v = Vector3{T}(1, 1, 1)
         m = Matrix3{T}(1, 2, 3, 4, 5, 6, 7, 8, 9)
-        r = RigidTransform(m,v)
+        r = RigidTransform(m, v)
 
         @test r isa RigidTransform{T}
         @test r.rotation == m
         @test r.translation == v
+        @test r.center == zeros(Vector3{T})
+
+        center = Vector3{T}(1, 2, 3)
+        r = RigidTransform(m, v, center)
+        @test r isa RigidTransform{T}
+        @test r.rotation == m
+        @test r.translation == v
+        @test r.center == center
     end
 end
 
@@ -49,14 +57,14 @@ end
         for i in 1:3
             Atom(sys, 1, Elements.H; r = Vector3{T}(1i, 2i, 0))
         end
-        sys2 = deepcopy(sys) 
+        sys2 = deepcopy(sys)
 
         # performs counter clockwise rotation by 90 degree with translation by v=(0, 0, 0)
         v = Vector3{T}(0, 0, 0)
         m = Matrix3{T}(1, 0, 0, 0, 0, -1, 0, 1, 0)
-        r = RigidTransform(m,v)
+        r = RigidTransform(m, v)
 
-        rigid_transform!(sys2, r)
+        @test rigid_transform!(sys2, r) === sys2
         @test isapprox(atoms(sys2).r[1], Vector3{T}(1, 0, -2))
         @test isapprox(atoms(sys2).r[2], Vector3{T}(2, 0, -4))
         @test isapprox(atoms(sys2).r[3], Vector3{T}(3, 0, -6))
@@ -73,10 +81,38 @@ end
         @test isapprox(atoms(sys3).r[3], Vector3{T}(4, 1, -5))
 
         at = atoms(deepcopy(sys))
-        rigid_transform!(at, r)
+        @test rigid_transform!(at, r) === at
         @test isapprox(at.r[1], Vector3{T}(2, 1, -1))
         @test isapprox(at.r[2], Vector3{T}(3, 1, -3))
         @test isapprox(at.r[3], Vector3{T}(4, 1, -5))
+
+        # center of rotation != origin
+        sys = System{T}()
+        Atom(sys, 1, Elements.H; r = Vector3{T}(0, 0, 0))
+        Atom(sys, 2, Elements.H; r = Vector3{T}(2, 0, 0))
+        Atom(sys, 3, Elements.H; r = Vector3{T}(2, 2, 2))
+        Atom(sys, 4, Elements.H; r = Vector3{T}(0, 2, 2))
+
+        R = Matrix3{T}(0, 1, 0, -1, 0, 0, 0, 0, 1)
+        t = Vector3{T}(0, 0, 0)
+        center = Vector3{T}(1, 1, 1)
+        rt = RigidTransform(R, t, center)
+
+        @test rigid_transform!(sys, rt) === sys
+        @test atoms(sys).r[1] ≈ Vector3{T}(2, 0, 0)
+        @test atoms(sys).r[2] ≈ Vector3{T}(2, 2, 0)
+        @test atoms(sys).r[3] ≈ Vector3{T}(0, 2, 2)
+        @test atoms(sys).r[4] ≈ Vector3{T}(0, 0, 2)
+
+        R = Matrix3{T}(-1, 0, 0, 0, 1, 0, 0, 0, -1)
+        t = Vector3{T}(-1, -1, -1)
+        rt = RigidTransform(R, t, center)
+
+        @test rigid_transform!(sys, rt) === sys
+        @test atoms(sys).r[1] ≈ Vector3{T}(0, 0, 2) .+ t
+        @test atoms(sys).r[2] ≈ Vector3{T}(0, 2, 2) .+ t
+        @test atoms(sys).r[3] ≈ Vector3{T}(2, 2, 0) .+ t
+        @test atoms(sys).r[4] ≈ Vector3{T}(2, 0, 0) .+ t
     end
 end
 
@@ -106,7 +142,6 @@ end
 
     for T in [Float32, Float64]
         r_A = [[0., 0., 0.], [0., 1., 0.], [3., 1., 0.]]
-        r_A .-= Ref(mean(r_A)) # center at origin
         sys = System{T}()
 
         # add atoms
@@ -154,14 +189,16 @@ end
         @test isapprox(rt1.rotation, transpose(m))
         @test isapprox(rt2.rotation, transpose(m))
 
-        @test abs(norm(rt0.translation)) < 1e-10
-        @test abs(norm(rt1.translation)) < 1e-10
-        @test abs(norm(rt2.translation)) < 1e-10
+        t = mean(atoms(sys2).r) .- mean(atoms(sys).r)
+        @test isapprox(rt0.translation, -t)
+        @test isapprox(rt1.translation, -t)
+        @test isapprox(rt2.translation, -t)
 
         #third: consider rotation and translation
         v = Vector3{T}(1, 1, 1)
         m = Matrix3{T}(1, 0, 0, 0, 0, -1, 0, 1, 0)
-        r = RigidTransform(m, v)
+        center = mean(atoms(sys).r)
+        r = RigidTransform(m, v, center)
 
         sys2 = deepcopy(sys)
         rigid_transform!(sys2, r)
