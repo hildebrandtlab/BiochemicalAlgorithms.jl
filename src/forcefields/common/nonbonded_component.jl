@@ -1,5 +1,7 @@
-export LennardJonesInteraction, ElectrostaticInteraction, NonBondedComponent
-
+export
+    ElectrostaticInteraction,
+    LennardJonesInteraction,
+    NonBondedComponent
 
 # e_scaling_factor contains the unit conversions und the constants
 # appearing in Coulomb's law:
@@ -26,13 +28,13 @@ const ES_Prefactor_force = ustrip(Constants.e₀^2 / (4.0 * π * Constants.ε₀
     function CubicSwitchingFunction{T}(cutoff::T, cuton::T) where {T<:Real}
         sq_cutoff = cutoff^2
         sq_cuton  = cuton^2
-    
+
         inverse_distance_off_on_3 = (sq_cutoff - sq_cuton)^3
-    
+
         if (inverse_distance_off_on_3 <= T(0.0))
             @warn "NonBondedComponent(): cuton value should be smaller than cutoff -- " *
                     "switching function disabled."
-    
+
             inverse_distance_off_on_3 = T(0.0)
         else
             inverse_distance_off_on_3 = T(1.0) / inverse_distance_off_on_3
@@ -198,7 +200,7 @@ function _setup_vdw!(nbc::NonBondedComponent{T}) where {T<:Real}
     lj_minimal_df.epsilon *= ϵ_factor
 
     lj_combinations = crossjoin(lj_minimal_df, lj_minimal_df; makeunique=true)
-    rename!(lj_combinations, 
+    rename!(lj_combinations,
         [:R => :R_i, :epsilon => :epsilon_i, :I_1 => :J, :R_1 => :R_j, :epsilon_1 => :epsilon_j])
 
     # convert the data from RE - format to A/B - format
@@ -220,7 +222,7 @@ function _setup_vdw!(nbc::NonBondedComponent{T}) where {T<:Real}
 
     lj_combinations.A_ij = ϵ .* r_6.^2
     lj_combinations.B_ij = T(2.0) * ϵ .* r_6
-    
+
     lj_combinations_cache = Dict{@NamedTuple{I::String, J::String}, @NamedTuple{A_ij::T, B_ij::T}}(
         (I=r.I, J=r.J) => (A_ij=r.A_ij, B_ij=r.B_ij)
         for r in eachrow(lj_combinations)
@@ -231,7 +233,7 @@ function _setup_vdw!(nbc::NonBondedComponent{T}) where {T<:Real}
 
     # build the switching function as a closure
     vdw_switching_function = CubicSwitchingFunction{T}(vdw_cutoff, vdw_cuton)
-  
+
     scaling_vdw_1_4::T = nbc.ff.options[:scaling_vdw_1_4]
     if (scaling_vdw_1_4 == T(0.0))
         @warn "NonBondedComponent(): illegal - 1-4 vdW scaling factor: must be non-zero!"
@@ -268,7 +270,7 @@ function _setup_hydrogenbonds!(nbc::NonBondedComponent{T}) where {T<:Real}
     hydrogen_bonds_df.B .*= T(hbond_B_factor)
 
     hydrogen_bond_combinations_cache = Dict{@NamedTuple{I::String, J::String}, @NamedTuple{A::T, B::T}}(
-        (I=r.I, J=r.J,) => (A=r.A, B=r.B) 
+        (I=r.I, J=r.J,) => (A=r.A, B=r.B)
             for r in eachrow(hydrogen_bonds_df)
     )
 
@@ -278,10 +280,10 @@ end
 
 function _setup_electrostatic_interactions!(nbc::NonBondedComponent{T}) where {T<:Real}
     es_cutoff::T = nbc.ff.options[:electrostatic_cutoff]
-    es_cuton::T  = nbc.ff.options[:electrostatic_cuton]  
+    es_cuton::T  = nbc.ff.options[:electrostatic_cuton]
 
     es_switching_function  = CubicSwitchingFunction{T}(es_cutoff, es_cuton)
-   
+
     scaling_es_1_4::T = nbc.ff.options[:scaling_electrostatic_1_4]
     if (scaling_es_1_4 == T(0.0))
         @warn "NonBondedComponent(): illegal - 1-4 electrostatic scaling factor: must be non-zero!"
@@ -307,7 +309,7 @@ function setup!(nbc::NonBondedComponent{T}) where {T<:Real}
 
     # do we need to construct a periodic box?
     periodic_box::Vector{T} = [
-        nbc.ff.options[:periodic_box_width]::T, 
+        nbc.ff.options[:periodic_box_width]::T,
         nbc.ff.options[:periodic_box_height]::T,
         nbc.ff.options[:periodic_box_depth]::T
     ]
@@ -321,9 +323,9 @@ function setup!(nbc::NonBondedComponent{T}) where {T<:Real}
         a => b for i in eachindex(nh_0) for a in nh_0[i] for b in nh[i]
     )
 
-    compute_neighborhood(level) = 
+    compute_neighborhood(level) =
         map(v->Set(map(v->mg.vprops[v][:name], neighborhood(mg, v, level))), vertices(mg))
-    
+
     nh_1 = compute_neighborhood(1)
     nh_2 = compute_neighborhood(2)
     nh_3 = compute_neighborhood(3)
@@ -413,7 +415,7 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
         end
 
         # first, figure out if the atoms are part of a torsion
-        if !vicinal_pair              
+        if !vicinal_pair
             # no. now, figure out if these atoms are part of a hydrogen bond
 
             # parameters for hydrogen bonds are used, if they exist
@@ -500,7 +502,7 @@ function compute_energy!(nbc::NonBondedComponent{T})::T where {T<:Real}
     nbc.energy["Van der Waals"]  = vdw_energy
     nbc.energy["Hydrogen Bonds"] = hbond_energy
     nbc.energy["Electrostatic"]  = es_energy
-    
+
     vdw_energy + hbond_energy + es_energy
 end
 
@@ -527,10 +529,10 @@ function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where {T<:Real}
             # a product of functions)
             energy = -T(force_prefactor) * lji.scaling_factor *
                 inv_distance_6 * (inv_distance_6 * lji.A - lji.B)
-  
+
             factor += switch_derivative * energy
         end
-    
+
         force = factor * direction
 
         #@info "vdW $(get_full_name(lji.a1))<->$(get_full_name(lji.a2)) $(force)"
@@ -549,10 +551,10 @@ function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where {T<:Real}
         inv_distance_2 =  T(1.0) / sq_distance
         inv_distance_10 = sq_distance^-5
         inv_distance_12 = sq_distance^-6
-      
+
         factor = T(force_prefactor) * inv_distance_2
-        
-        factor *= inv_distance_12 * (12 * hb.A * inv_distance_2 - 10 * hb.B); 
+
+        factor *= inv_distance_12 * (12 * hb.A * inv_distance_2 - 10 * hb.B);
 
         # do we have to use the switching function (cuton <= distance <= cutoff)?
         if (sq_distance > hb.switching_function.sq_cuton)
@@ -566,10 +568,10 @@ function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where {T<:Real}
             # a product of functions)
             energy = -T(force_prefactor) * hb.scaling_factor *
                 inv_distance_10 * (hb.A * inv_distance_2 - hb.B)
-  
+
             factor += switch_derivative * energy
         end
-    
+
         force = factor * direction
 
         @info "HB $(get_full_name(hb.a1))<->$(get_full_name(hb.a2)) $(force)"
@@ -588,15 +590,15 @@ function compute_forces!(esi::ElectrostaticInteraction{T}) where {T<:Real}
     if (sq_distance > zero(T) && sq_distance <= esi.switching_function.sq_cutoff)
         inv_distance_2 = T(1.0) / sq_distance
         inv_distance = sqrt(inv_distance_2)
-      
+
         factor = esi.q1q2 * inv_distance_2 * esi.scaling_factor * ES_Prefactor_force
 
-        # distinguish between constant and distance dependent dielectric 
+        # distinguish between constant and distance dependent dielectric
         if esi.distance_dependent_dielectric
             # distance dependent dielectric:  epsilon = 4 * r_ij
             # 4 reduces to 2 (due to derivation of the energy)
             factor *= 0.5 * inv_distance_2
-        else 
+        else
             # distance independent dielectric constant
             factor *= sqrt(inv_distance_2)
         end
@@ -617,19 +619,19 @@ function compute_forces!(esi::ElectrostaticInteraction{T}) where {T<:Real}
             # calculate the force, but the derivative of the energy above.
 
             # calculate the electrostatic energy
-            dist_depend_factor = ((esi.distance_dependent_dielectric) 
+            dist_depend_factor = ((esi.distance_dependent_dielectric)
                 ? T(0.25) * inv_distance : one(T))
-            
+
             energy = -T(ES_Prefactor_force) * esi.scaling_factor * dist_depend_factor *
                 inv_distance * esi.q1q2
 
             factor += switch_derivative * energy
         end
-    
+
         force = factor * direction
 
         # @info "ES force $(get_full_name(esi.a1))<->$(get_full_name(esi.a2)) $(force)"
-        
+
         esi.a1.F += force
         esi.a2.F -= force
     end
@@ -639,8 +641,8 @@ function compute_forces!(nbc::NonBondedComponent{T}) where {T<:Real}
     constrained_ids = getproperty.(getindex.(Ref(atoms(nbc.ff.system)), nbc.ff.constrained_atoms), :idx)
 
     filter_pairs = (
-        isempty(constrained_ids) 
-            ? identity 
+        isempty(constrained_ids)
+            ? identity
             : s -> filter(p -> (p.a1.idx ∉ constrained_ids) || (p.a2.idx ∉ constrained_ids), s)
     )
 

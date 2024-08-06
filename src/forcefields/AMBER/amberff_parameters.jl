@@ -1,4 +1,5 @@
-export AmberFFParameters
+export
+    AmberFFParameters
 
 @auto_hash_equals struct AmberFFParameters <: AbstractForceFieldParameters
     filename::String
@@ -10,4 +11,3 @@ export AmberFFParameters
         new(filename, parameters_ini.sections)
     end
 end
-
