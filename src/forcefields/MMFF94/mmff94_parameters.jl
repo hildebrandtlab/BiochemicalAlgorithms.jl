@@ -1,6 +1,5 @@
-using AutoHashEquals
-using CSV
-export MMFF94Parameters
+export
+    MMFF94Parameters
 
 @auto_hash_equals struct MMFF94Parameters{T<:Real} <: AbstractForceFieldParameters
     sections::OrderedDict{String, BALLIniFileSection}
@@ -13,7 +12,7 @@ export MMFF94Parameters
         ini_file = read_ball_ini_file(path, T)
 
         sections = ini_file.sections
-        
+
         # see http://www.ccl.net/cca/data/MMFF94/
         radii = T.([
              0.33, 0.0,
@@ -28,7 +27,7 @@ export MMFF94Parameters
              0.00, 0.00, 0.00, 1.53, 1.48,
              1.46, 1.40, 1.41, 1.35, 1.33, 0.0
         ])
-        
+
         electronegativities = T.([
              2.20, 0.0,
              0.97, 1.47, 2.01, 2.5, 3.07, 3.5, 4.10, 0.0,
@@ -51,6 +50,6 @@ function MMFF94Parameters(path::String = ball_data_path("forcefields/MMFF94/mmff
     MMFF94Parameters{Float32}(path)
 end
 
-Base.show(io::IO, mmff_param::MMFF94Parameters{T}) where {T<:Real} = 
-    print(io, 
+Base.show(io::IO, mmff_param::MMFF94Parameters{T}) where {T<:Real} =
+    print(io,
         "MMFF94 parameters with $(length(mmff_param.sections)) sections.")

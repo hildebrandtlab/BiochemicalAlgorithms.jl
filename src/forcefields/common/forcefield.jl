@@ -1,4 +1,4 @@
-export 
+export
     ForceField,
     AbstractForceFieldComponent,
     init_atom_types,
@@ -15,7 +15,7 @@ const force_prefactor = ustrip(u"kJ/mol/angstrom"/Constants.N_A |> u"N")
 
 abstract type AbstractForceFieldComponent{T<:Real} end
 
-@auto_hash_equals struct ForceField{T<:Real} 
+@auto_hash_equals struct ForceField{T<:Real}
     name::String
     system::AbstractAtomContainer{T}
     parameters::AbstractForceFieldParameters
@@ -46,8 +46,8 @@ function init_atom_types(params::AbstractForceFieldParameters, T=Float32)
 end
 
 function _try_assign!(
-        templates::Dict{String, AtomTypeTemplate{T}}, 
-        name::String, 
+        templates::Dict{String, AtomTypeTemplate{T}},
+        name::String,
         atom::Atom{T};
         assign_typenames::Bool,
         overwrite_typenames::Bool,
@@ -63,7 +63,7 @@ function _try_assign!(
         if assign_charges && (overwrite_charges || atom.charge == zero(T))
             atom.charge = qbs.charge
         end
-        
+
         return true
     else
         return false
@@ -87,8 +87,8 @@ function assign_typenames_and_charges!(ff::ForceField{T}) where {T<:Real}
 
     for atom in atoms(ff.system)
         if !_try_assign!(
-                ff.atom_type_templates, 
-                get_full_name(atom), 
+                ff.atom_type_templates,
+                get_full_name(atom),
                 atom;
                 assign_typenames=assign_typenames,
                 overwrite_typenames=overwrite_typenames,
@@ -98,9 +98,9 @@ function assign_typenames_and_charges!(ff::ForceField{T}) where {T<:Real}
 
             # we don't have a type for the full type name; let's try without
             # variant extension
-            name = 
+            name =
             if !_try_assign!(
-                    ff.atom_type_templates, 
+                    ff.atom_type_templates,
                     get_full_name(atom, FullNameType.NO_VARIANT_EXTENSIONS),
                     atom;
                     assign_typenames=assign_typenames,
@@ -111,8 +111,8 @@ function assign_typenames_and_charges!(ff::ForceField{T}) where {T<:Real}
                 # ok, one more try... let's try with a wildcard for the residue name
                 name = "*:" * atom.name
                 if !_try_assign!(
-                        ff.atom_type_templates, 
-                        "*:" * atom.name, 
+                        ff.atom_type_templates,
+                        "*:" * atom.name,
                         atom;
                         assign_typenames=assign_typenames,
                         overwrite_typenames=overwrite_typenames,
@@ -154,7 +154,7 @@ function setup!(ff::ForceField{T}) where {T<:Real}
             if warning_counts[i] > 0
                 warning_string *= Printf.format(
                     Printf.Format("%-$(max_length)s: %d warnings\n"),
-                        c.name, 
+                        c.name,
                         warning_counts[i]
                 )
             end
@@ -193,7 +193,7 @@ function compute_energy!(ff::ForceField{T}; verbose=false)::T where {T<:Real}
 
         max_length = maximum([length(k) for (k, _) in ff.energy])
         f_string = Printf.Format("%-$(max_length)s: %.9g kJ/mol")
-        
+
         for (name, value) in ff.energy
             @info Printf.format(f_string, name, value)
         end
@@ -208,7 +208,7 @@ end
 function compute_forces!(ff::ForceField{T}) where {T<:Real}
     # first, zero out the current forces
     atoms(ff.system).F .= Ref(zero(Vector3{T}))
-    
+
     map(compute_forces!, ff.components)
 
     nothing
@@ -220,7 +220,7 @@ function print_warnings(ff::ForceField{T}) where {T<:Real}
     end
 end
 
-@inline Base.show(io::IO, ::MIME"text/plain", ff::ForceField) = println(io, 
+@inline Base.show(io::IO, ::MIME"text/plain", ff::ForceField) = println(io,
     "$(ff.name) for $(natoms(ff.system)) atoms with $(nbonds(ff.system)) bonds.")
-@inline Base.show(io::IO, ff::ForceField) = println(io, 
+@inline Base.show(io::IO, ff::ForceField) = println(io,
     "$(ff.name) for $(natoms(ff.system)) atoms with $(nbonds(ff.system)) bonds.")

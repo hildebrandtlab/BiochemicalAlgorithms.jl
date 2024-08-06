@@ -1,4 +1,6 @@
-export AbstractForceFieldParameters, extract_section
+export
+    AbstractForceFieldParameters,
+    extract_section
 
 abstract type AbstractForceFieldParameters end
 
