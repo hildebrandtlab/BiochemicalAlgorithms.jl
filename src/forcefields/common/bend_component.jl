@@ -136,7 +136,7 @@ end
     qab.k * (θ - qab.θ₀)^2
 end
 
-function compute_energy(qbc::QuadraticBendComponent{T})::T where {T<:Real}
+function compute_energy!(qbc::QuadraticBendComponent{T})::T where {T<:Real}
     # iterate over all bends in the system
     total_energy = mapreduce(compute_energy, +, qbc.bends; init=zero(T))
 
@@ -145,7 +145,7 @@ function compute_energy(qbc::QuadraticBendComponent{T})::T where {T<:Real}
     total_energy
 end
 
-function compute_forces(qab::QuadraticAngleBend{T}) where {T<:Real}
+function compute_forces!(qab::QuadraticAngleBend{T}) where {T<:Real}
     # calculate the vectors between the atoms and normalize if possible
     v1 = qab.a1r .- qab.a2r
     v2 = qab.a3r .- qab.a2r
@@ -190,9 +190,9 @@ function compute_forces(qab::QuadraticAngleBend{T}) where {T<:Real}
     qab.a3.F += n2
 end
 
-function compute_forces(qbc::QuadraticBendComponent{T}) where {T<:Real}
+function compute_forces!(qbc::QuadraticBendComponent{T}) where {T<:Real}
     # iterate over all bends in the system
-    map(compute_forces, qbc.bends)
+    map(compute_forces!, qbc.bends)
 
     nothing
 end

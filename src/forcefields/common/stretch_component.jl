@@ -104,7 +104,7 @@ end
     qbs.k * (d - qbs.r0)^2
 end
 
-function compute_energy(qsc::QuadraticStretchComponent{T})::T where {T<:Real}
+function compute_energy!(qsc::QuadraticStretchComponent{T})::T where {T<:Real}
     # iterate over all bonds in the system
 
     total_energy = mapreduce(compute_energy, +, qsc.stretches; init=zero(T))
@@ -114,7 +114,7 @@ function compute_energy(qsc::QuadraticStretchComponent{T})::T where {T<:Real}
     total_energy
 end
 
-function compute_forces(qbs::QuadraticBondStretch{T}) where {T<:Real}
+function compute_forces!(qbs::QuadraticBondStretch{T}) where {T<:Real}
     direction = qbs.a1r .- qbs.a2r
     distance = norm(direction)
 
@@ -130,8 +130,8 @@ function compute_forces(qbs::QuadraticBondStretch{T}) where {T<:Real}
     qbs.a2.F += direction
 end
 
-function compute_forces(qsc::QuadraticStretchComponent{T}) where {T<:Real}
-    map(compute_forces, qsc.stretches)
+function compute_forces!(qsc::QuadraticStretchComponent{T}) where {T<:Real}
+    map(compute_forces!, qsc.stretches)
 
     nothing
 end
