@@ -211,9 +211,9 @@ end
     map_rigid!(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T})
     map_rigid!(A::AtomTable{T}, B::AtomTable{T})
 
-Computes and applies the RMSD-minimizing rigid transformation for the given atom bijection. Defaults
-to [`TrivialAtomBijection`](@ref) if arguments are atom containers or tables. Only the first structure
-(`A`) is modified, i.e. mapped onto the second one (`B`).
+Computes, applies, and returns the RMSD-minimizing rigid transformation for the given atom bijection.
+Defaults to [`TrivialAtomBijection`](@ref) if arguments are atom containers or tables. Only the first
+structure (`A`) is modified, i.e. mapped onto the second one (`B`).
 
 # Supported keyword arguments
  - `heavy_atoms_only::Bool = false`
@@ -239,17 +239,15 @@ function map_rigid!(
     rigid_transform!(A, rt)
     translate!(A, centroid)
 
-    A
+    rt
 end
 
 @inline function map_rigid!(f::AbstractAtomBijection; kwargs...)
     map_rigid!(atoms(f)...; kwargs...)
-    f
 end
 
 @inline function map_rigid!(A::AbstractAtomContainer{T}, B::AbstractAtomContainer{T}; kwargs...) where T
     map_rigid!(TrivialAtomBijection(A, B); kwargs...)
-    A
 end
 
 """

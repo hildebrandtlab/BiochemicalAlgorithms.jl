@@ -195,7 +195,7 @@ end
         r = RigidTransform(m,v)
 
         rigid_transform!(sys2, r)
-        @test map_rigid!(sys2, sys) === sys2
+        @test map_rigid!(sys2, sys) isa RigidTransform{T}
         @test compute_rmsd(sys2,sys) < 1e-6
 
         # test mappings pubchem structure
@@ -209,13 +209,13 @@ end
 
         # all atoms
         rigid_transform!(sys4, r)
-        @test map_rigid!(sys4, sys3; heavy_atoms_only=false) === sys4
+        @test map_rigid!(sys4, sys3; heavy_atoms_only=false) isa RigidTransform{T}
         @test compute_rmsd(sys4,sys3) <= 1e-6
 
         # heavy atoms only
         at3, at4 = atoms(sys3), atoms(sys4)
         rigid_transform!(at4, r)
-        @test map_rigid!(at4, at3; heavy_atoms_only=true) === at4
+        @test map_rigid!(at4, at3; heavy_atoms_only=true) isa RigidTransform{T}
         @test compute_rmsd(at4, at3) <= 1e-6
     end
 end
