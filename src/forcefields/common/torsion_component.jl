@@ -1,4 +1,6 @@
-export CosineTorsion, TorsionComponent
+export
+    CosineTorsion,
+    TorsionComponent
 
 @auto_hash_equals struct CosineTorsion{T<:Real}
     V::Vector{T}
@@ -53,19 +55,19 @@ function _get_torsion_data(ff::ForceField{T}, section::String)::Tuple{T, T, Grou
 end
 
 function _try_assign_torsion!(
-        tc::TorsionComponent{T}, 
+        tc::TorsionComponent{T},
         torsions::Vector{CosineTorsion{T}},
         torsion_combinations::Dict{K, V},
-        a1::Atom{T}, 
-        a2::Atom{T}, 
-        a3::Atom{T}, 
+        a1::Atom{T},
+        a2::Atom{T},
+        a3::Atom{T},
         a4::Atom{T},
         V_factor::T,
         ϕ₀_factor::T,
         is_proper::Bool) where {T<:Real, K, V}
 
     ff = tc.ff
-    
+
     type_a1::String = a1.atom_type
     type_a2::String = a2.atom_type
     type_a3::String = a3.atom_type
@@ -105,7 +107,7 @@ function _try_assign_torsion!(
         if n != nrow(pts)
             @warn "Invalid torsion configuration for atom types $(type_a1)-$(type_a2)-$(type_a3)-$(type_a4)!"
         else
-            push!(torsions, 
+            push!(torsions,
                 CosineTorsion(
                     V_factor  .* getproperty.(pts, :V),
                     ϕ₀_factor .* getproperty.(pts, :phi0),
@@ -165,11 +167,11 @@ function _setup_improper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
                             a1 = get_partner(bond_3, atom)
 
                             _try_assign_torsion!(
-                                tc, 
-                                improper_torsions, 
-                                torsion_dict, 
-                                a1, a2, a3, a4, 
-                                V_factor, 
+                                tc,
+                                improper_torsions,
+                                torsion_dict,
+                                a1, a2, a3, a4,
+                                V_factor,
                                 ϕ₀_factor,
                                 false
                             )
@@ -230,17 +232,17 @@ function _setup_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
                         if bond_3.a1 == a2.idx
                             continue
                         end
-                    
+
                         # determine the fourth atom a4
                         a4::Atom{T} = ((bond_3.a1 == a3.idx) ? atom_by_idx(parent_system(atom), bond_3.a2)
                                                              : atom_by_idx(parent_system(atom), bond_3.a1))
 
                         _try_assign_torsion!(
-                            tc, 
-                            proper_torsions, 
-                            torsion_dict, 
-                            a1, a2, a3, a4, 
-                            V_factor, 
+                            tc,
+                            proper_torsions,
+                            torsion_dict,
+                            a1, a2, a3, a4,
+                            V_factor,
                             ϕ₀_factor,
                             true
                         )

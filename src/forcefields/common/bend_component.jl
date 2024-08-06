@@ -1,4 +1,6 @@
-export QuadraticAngleBend, QuadraticBendComponent
+export
+    QuadraticAngleBend,
+    QuadraticBendComponent
 
 @auto_hash_equals struct QuadraticAngleBend{T<:Real}
     θ₀::T
@@ -26,7 +28,7 @@ end
 
 function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
     ff = qbc.ff
-    
+
     # extract the parameter section for quadratic angle bends
     bend_section = extract_section(qbc.ff.parameters, "QuadraticAngleBend")
     bend_df = bend_section.data
@@ -46,7 +48,7 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
     bend_combinations = groupby(bend_df, ["I", "J", "K"])
 
     bends_dict = Dict(
-        Tuple(k) => bend_combinations[k] 
+        Tuple(k) => bend_combinations[k]
         for k in keys(bend_combinations)
     )
 
@@ -64,7 +66,7 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
 
             for j in i+1:length(bs)
                 bond_2 = bs[j]
-            
+
                 if has_flag(bond_2, :TYPE__HYDROGEN)
                     continue
                 end
@@ -85,7 +87,7 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
 
                 if ismissing(qab)
                     push!(qbc.unassigned_bends, (a1, a2, a3))
-                          
+
                     push!(ff.unassigned_atoms, a1)
                     push!(ff.unassigned_atoms, a2)
                     push!(ff.unassigned_atoms, a3)
@@ -94,7 +96,7 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
                         throw(TooManyErrors())
                     end
                 else
-                    push!(bends, 
+                    push!(bends,
                         QuadraticAngleBend(
                             T(θ₀_factor*only(qab.theta0)),
                             T(k_factor*only(qab.k)),

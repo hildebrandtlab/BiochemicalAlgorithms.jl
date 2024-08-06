@@ -1,4 +1,5 @@
-export AmberFF
+export
+    AmberFF
 
 get_amber_default_options(T=Float32) = Dict{Symbol, Any}(
     :nonbonded_cutoff               => T(20.0),
@@ -22,15 +23,15 @@ get_amber_default_options(T=Float32) = Dict{Symbol, Any}(
 )
 
 function AmberFF(
-        ac::AbstractAtomContainer{T}, 
+        ac::AbstractAtomContainer{T},
         filename=ball_data_path("forcefields/AMBER/amber96.ini");
         constrained_atoms=Vector{Int}()) where {T<:Real}
 
     amber_params = AmberFFParameters(filename)
     amber_ff = ForceField{T}(
         "AmberFF",
-        ac, 
-        amber_params, 
+        ac,
+        amber_params,
         get_amber_default_options(T),
         init_atom_types(amber_params, T),
         Vector{AbstractForceFieldComponent{T}}(),

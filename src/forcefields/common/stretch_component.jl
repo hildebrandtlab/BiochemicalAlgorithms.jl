@@ -1,4 +1,6 @@
-export QuadraticBondStretch, QuadraticStretchComponent
+export
+    QuadraticBondStretch,
+    QuadraticStretchComponent
 
 @auto_hash_equals struct QuadraticBondStretch{T<:Real}
     r0::T
@@ -23,7 +25,7 @@ end
 
 function setup!(qsc::QuadraticStretchComponent{T}) where {T}
     ff = qsc.ff
-    
+
     # extract the parameter section for quadratic bond stretches
     stretch_section = extract_section(qsc.ff.parameters, "QuadraticBondStretch")
     stretch_df = stretch_section.data
@@ -41,9 +43,9 @@ function setup!(qsc::QuadraticStretchComponent{T}) where {T}
 
     # group the stretch parameters by type_i, type_j combinations
     stretch_combinations = groupby(stretch_df, ["I", "J"])
-    
+
     stretch_dict = Dict(
-        Tuple(k) => stretch_combinations[k] 
+        Tuple(k) => stretch_combinations[k]
         for k in keys(stretch_combinations)
     )
     stretches = Vector{QuadraticBondStretch{T}}(undef, nbonds(ff.system))
@@ -83,7 +85,7 @@ function setup!(qsc::QuadraticStretchComponent{T}) where {T}
             QuadraticBondStretch(one(T), zero(T), a1, a1.r, a2, a2.r)
         else
             QuadraticBondStretch(
-                T(r0_factor*only(qbs.r0)), 
+                T(r0_factor*only(qbs.r0)),
                 T(k_factor*only(qbs.k)),
                 a1, a1.r,
                 a2, a2.r
@@ -94,7 +96,7 @@ function setup!(qsc::QuadraticStretchComponent{T}) where {T}
     qsc.stretches = stretches
 end
 
-function update!(qsc::QuadraticStretchComponent{T}) where {T<:Real}  
+function update!(qsc::QuadraticStretchComponent{T}) where {T<:Real}
     nothing
 end
 
@@ -125,7 +127,7 @@ function compute_forces!(qbs::QuadraticBondStretch{T}) where {T<:Real}
     direction *= force_prefactor * 2 * qbs.k * (distance - qbs.r0) / distance
 
     #@info "$(get_full_name(qbs.a1))<->$(get_full_name(qbs.a2)) $(direction)"
-    
+
     qbs.a1.F -= direction
     qbs.a2.F += direction
 end
