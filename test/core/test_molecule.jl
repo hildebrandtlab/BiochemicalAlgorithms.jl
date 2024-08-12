@@ -325,7 +325,7 @@ end
         @test mol.variant == MoleculeVariant.None
 
         @test mol._sys isa System{T}
-        @test mol._row isa BiochemicalAlgorithms._MoleculeTableRow
+        @test mol._row isa ColumnTableRow{BiochemicalAlgorithms._MoleculeTable}
 
         @test mol2.name == "something"
         @test mol2.properties == Properties(:a => 1)
@@ -442,7 +442,7 @@ end
         @test prot.variant === MoleculeVariant.Protein
 
         @test prot._sys isa System{T}
-        @test prot._row isa BiochemicalAlgorithms._MoleculeTableRow
+        @test prot._row isa ColumnTableRow{BiochemicalAlgorithms._MoleculeTable}
 
         @test prot2.name == "something"
         @test prot2.properties == Properties(:a => 1)

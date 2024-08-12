@@ -71,24 +71,4 @@ function _chain_table(itr)
 end
 @inline Tables.materializer(::Type{_ChainTable}) = itr -> _chain_table(itr)
 
-@auto_hash_equals struct _ChainTableRow <: _AbstractColumnTableRow
-    _row::Int
-    _tab::_ChainTable
-end
-
-@inline Tables.getcolumn(ctr::_ChainTableRow, nm::Symbol) = Tables.getcolumn(getfield(ctr, :_tab), nm)[getfield(ctr, :_row)]
-@inline Tables.getcolumn(ctr::_ChainTableRow, i::Int) = getfield(ctr, Tables.columnnames(ctr)[i])
-@inline Tables.columnnames(::_ChainTableRow) = _chain_table_cols
-
-@inline _row_by_idx(ct::_ChainTable, idx::Int) = _ChainTableRow(getfield(ct, :_idx_map)[idx], ct)
-
-@inline function Base.getproperty(ctr::_ChainTableRow, nm::Symbol)
-    getindex(getfield(getfield(ctr, :_tab), nm), getfield(ctr, :_row))
-end
-
-@inline function Base.setproperty!(ctr::_ChainTableRow, nm::Symbol, val)
-    setindex!(getproperty(getfield(ctr, :_tab), nm), val, getfield(ctr, :_row))
-end
-
-@inline Base.eltype(::_ChainTable) = _ChainTableRow
-@inline Base.iterate(ct::_ChainTable, st=1) = st > length(ct) ? nothing : (_ChainTableRow(st, ct), st + 1)
+@inline _row_by_idx(ct::_ChainTable, idx::Int) = ColumnTableRow(getfield(ct, :_idx_map)[idx], ct)

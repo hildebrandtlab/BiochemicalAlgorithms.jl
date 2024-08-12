@@ -58,7 +58,7 @@ Fragment(
 ```
 Creates a new `Fragment{T}` in the given chain.
 """
-const Fragment{T} = AtomContainer{T, _FragmentTableRow}
+const Fragment{T} = AtomContainer{T, _FragmentTable}
 
 @inline function Fragment(
     chain::Chain{T},

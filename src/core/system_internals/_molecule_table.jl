@@ -72,24 +72,4 @@ function _molecule_table(itr)
 end
 Tables.materializer(::Type{_MoleculeTable}) = _molecule_table
 
-@auto_hash_equals struct _MoleculeTableRow <: _AbstractColumnTableRow
-    _row::Int
-    _tab::_MoleculeTable
-end
-
-@inline Tables.getcolumn(mtr::_MoleculeTableRow, nm::Symbol) = Tables.getcolumn(getfield(mtr, :_tab), nm)[getfield(mtr, :_row)]
-@inline Tables.getcolumn(mtr::_MoleculeTableRow, i::Int) = getfield(mtr, Tables.columnnames(mtr)[i])
-@inline Tables.columnnames(::_MoleculeTableRow) = _molecule_table_cols
-
-@inline _row_by_idx(mt::_MoleculeTable, idx::Int) = _MoleculeTableRow(getfield(mt, :_idx_map)[idx], mt)
-
-@inline function Base.getproperty(mtr::_MoleculeTableRow, nm::Symbol)
-    getindex(getfield(getfield(mtr, :_tab), nm), getfield(mtr, :_row))
-end
-
-@inline function Base.setproperty!(mtr::_MoleculeTableRow, nm::Symbol, val) 
-    setindex!(getproperty(getfield(mtr, :_tab), nm), val, getfield(mtr, :_row))
-end
-
-@inline Base.eltype(::_MoleculeTable) = _MoleculeTableRow
-@inline Base.iterate(mt::_MoleculeTable, st=1) = st > length(mt) ? nothing : (_MoleculeTableRow(st, mt), st + 1)
+@inline _row_by_idx(mt::_MoleculeTable, idx::Int) = ColumnTableRow(getfield(mt, :_idx_map)[idx], mt)

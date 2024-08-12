@@ -1,5 +1,6 @@
 export
-    AbstractColumnTable
+    AbstractColumnTable,
+    ColumnTableRow
 
 """
     $(TYPEDEF)
@@ -51,4 +52,23 @@ end
     (getproperty(a, col) for a in TableOperations.filter(f, at))
 end
 
-abstract type _AbstractColumnTableRow <: Tables.AbstractRow end
+struct ColumnTableRow{CT <: AbstractColumnTable} <: Tables.AbstractRow
+    _row::Int
+    _tab::CT
+end
+
+@inline Tables.getcolumn(ctr::ColumnTableRow, nm::Symbol) = Tables.getcolumn(getfield(ctr, :_tab), nm)[getfield(ctr, :_row)]
+@inline Tables.getcolumn(ctr::ColumnTableRow, i::Int) = getfield(ctr, Tables.columnnames(ctr)[i])
+
+@inline Tables.columnnames(ctr::ColumnTableRow) = Tables.columnnames(getfield(ctr, :_tab))
+
+@inline function Base.getproperty(atr::ColumnTableRow, nm::Symbol)
+    getindex(getfield(getfield(atr, :_tab), nm), getfield(atr, :_row))
+end
+
+@inline function Base.setproperty!(atr::ColumnTableRow, nm::Symbol, val)
+    setindex!(getproperty(getfield(atr, :_tab), nm), val, getfield(atr, :_row))
+end
+
+@inline Base.eltype(::CT) where {CT <: AbstractColumnTable} = ColumnTableRow{CT}
+@inline Base.iterate(at::AbstractColumnTable, st=1) = st > length(at) ? nothing : (ColumnTableRow(st, at), st + 1)

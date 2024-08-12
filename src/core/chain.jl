@@ -32,7 +32,7 @@ Chain(
 ```
 Creates a new `Chain{T}` in the given molecule.
 """
-const Chain{T} = AtomContainer{T, _ChainTableRow}
+const Chain{T} = AtomContainer{T, _ChainTable}
 
 @inline function Chain(
     mol::Molecule;

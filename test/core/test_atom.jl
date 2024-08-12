@@ -253,7 +253,7 @@ end
         @test isnothing(atom.fragment_idx)
 
         @test atom._sys isa System{T}
-        @test atom._row isa BiochemicalAlgorithms._AtomTableRow{T}
+        @test atom._row isa ColumnTableRow{BiochemicalAlgorithms._AtomTable{T}}
 
         @test atom2.frame_id isa Int
         @test atom2.frame_id == 10

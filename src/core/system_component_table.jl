@@ -64,3 +64,5 @@ end
 @inline function Base.getindex(ct::SystemComponentTable{T, C}, I::AbstractArray) where {T, C}
     SystemComponentTable{T, C}(ct._sys, collect(Int, map(i -> ct._idx[i], I)))
 end
+
+@inline _row_by_idx(ct::SystemComponentTable, idx::Int) = _row_by_idx(_table(ct), idx)

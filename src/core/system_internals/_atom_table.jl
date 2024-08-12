@@ -132,24 +132,4 @@ function _atom_table(::Type{T}, itr) where T
 end
 @inline Tables.materializer(::Type{_AtomTable{T}}) where T = itr -> _atom_table(T, itr)
 
-@auto_hash_equals struct _AtomTableRow{T} <: _AbstractColumnTableRow
-    _row::Int
-    _tab::_AtomTable{T}
-end
-
-@inline Tables.getcolumn(atr::_AtomTableRow, nm::Symbol) = Tables.getcolumn(getfield(atr, :_tab), nm)[getfield(atr, :_row)]
-@inline Tables.getcolumn(atr::_AtomTableRow, i::Int) = getfield(atr, Tables.columnnames(atr)[i])
-@inline Tables.columnnames(::_AtomTableRow) = _atom_table_cols
-
-@inline _row_by_idx(at::_AtomTable{T}, idx::Int) where T = _AtomTableRow{T}(getfield(at, :_idx_map)[idx], at)
-
-@inline function Base.getproperty(atr::_AtomTableRow, nm::Symbol)
-    getindex(getfield(getfield(atr, :_tab), nm), getfield(atr, :_row))
-end
-
-@inline function Base.setproperty!(atr::_AtomTableRow, nm::Symbol, val)
-    setindex!(getproperty(getfield(atr, :_tab), nm), val, getfield(atr, :_row))
-end
-
-@inline Base.eltype(::_AtomTable{T}) where T = _AtomTableRow{T}
-@inline Base.iterate(at::_AtomTable, st=1) = st > length(at) ? nothing : (_AtomTableRow(st, at), st + 1)
+@inline _row_by_idx(at::_AtomTable, idx::Int) = ColumnTableRow(getfield(at, :_idx_map)[idx], at)
