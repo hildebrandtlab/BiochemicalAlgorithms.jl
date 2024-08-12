@@ -70,7 +70,7 @@ Atom(
 ```
 Creates a new `Atom{Float32}` in the default system. Supports the same keyword arguments as above.
 """
-const Atom{T} = SystemComponent{T, _AtomTableRow{T}}
+const Atom{T} = SystemComponent{T, _AtomTable{T}}
 
 @inline function Atom(
     sys::System{T},

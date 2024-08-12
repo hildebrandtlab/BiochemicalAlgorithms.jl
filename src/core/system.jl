@@ -191,9 +191,9 @@ Returns the `System{T}` containing the given object. Alias for
 """ parent_system
 parent_system(s::System) = s
 
-@auto_hash_equals struct SystemComponent{T, R <: _AbstractColumnTableRow} <: AbstractSystemComponent{T}
+@auto_hash_equals struct SystemComponent{T, C <: AbstractColumnTable} <: AbstractSystemComponent{T}
     _sys::System{T}
-    _row::R
+    _row::ColumnTableRow{C}
 end
 
 @inline function Base.getproperty(sc::SystemComponent, name::Symbol)
@@ -215,13 +215,13 @@ end
 @inline Base.parent(sc::SystemComponent) = sc._sys
 @inline parent_system(sc::SystemComponent) = parent(sc)
 
-@auto_hash_equals struct AtomContainer{T, R <: _AbstractColumnTableRow} <: AbstractAtomContainer{T}
-    _comp::SystemComponent{T, R}
+@auto_hash_equals struct AtomContainer{T, C <: AbstractColumnTable} <: AbstractAtomContainer{T}
+    _comp::SystemComponent{T, C}
 
-    function AtomContainer{T, R}(
+    function AtomContainer{T, C}(
         sys::System{T},
-        row::R
-    ) where {T, R <: _AbstractColumnTableRow}
+        row::ColumnTableRow{C}
+    ) where {T, C <: AbstractColumnTable}
         new(SystemComponent(sys, row))
     end
 end

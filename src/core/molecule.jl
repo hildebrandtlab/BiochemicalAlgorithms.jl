@@ -50,7 +50,7 @@ Molecule(;
 ```
 Creates a new `Molecule{Float32}` in the default system.
 """
-const Molecule{T} = AtomContainer{T, _MoleculeTableRow}
+const Molecule{T} = AtomContainer{T, _MoleculeTable}
 
 @inline function Molecule(
     sys::System{T};

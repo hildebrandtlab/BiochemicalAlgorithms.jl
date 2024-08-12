@@ -84,24 +84,4 @@ function _fragment_table(itr)
 end
 @inline Tables.materializer(::Type{_FragmentTable}) = itr -> _fragment_table(itr)
 
-@auto_hash_equals struct _FragmentTableRow <: _AbstractColumnTableRow
-    _row::Int
-    _tab::_FragmentTable
-end
-
-@inline Tables.getcolumn(ftr::_FragmentTableRow, nm::Symbol) = Tables.getcolumn(getfield(ftr, :_tab), nm)[getfield(ftr, :_row)]
-@inline Tables.getcolumn(ftr::_FragmentTableRow, i::Int) = getfield(ftr, Tables.columnnames(ftr)[i])
-@inline Tables.columnnames(::_FragmentTableRow) = _fragment_table_cols
-
-@inline _row_by_idx(ft::_FragmentTable, idx::Int) = _FragmentTableRow(getfield(ft, :_idx_map)[idx], ft)
-
-@inline function Base.getproperty(ftr::_FragmentTableRow, nm::Symbol)
-    getindex(getfield(getfield(ftr, :_tab), nm), getfield(ftr, :_row))
-end
-
-@inline function Base.setproperty!(ftr::_FragmentTableRow, nm::Symbol, val)
-    setindex!(getproperty(getfield(ftr, :_tab), nm), val, getfield(ftr, :_row))
-end
-
-@inline Base.eltype(::_FragmentTable) = _FragmentTableRow
-@inline Base.iterate(ft::_FragmentTable, st=1) = st > length(ft) ? nothing : (_FragmentTableRow(st, ft), st + 1)
+@inline _row_by_idx(ft::_FragmentTable, idx::Int) = ColumnTableRow(getfield(ft, :_idx_map)[idx], ft)

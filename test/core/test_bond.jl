@@ -148,7 +148,7 @@ end
         @test bond.flags == Flags()
 
         @test bond._sys isa System{T}
-        @test bond._row isa BiochemicalAlgorithms._BondTableRow
+        @test bond._row isa ColumnTableRow{BiochemicalAlgorithms._BondTable}
 
         @test bond2.idx isa Int
         @test bond2.a1 isa Int
