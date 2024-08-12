@@ -73,24 +73,4 @@ function _bond_table(itr)
 end
 Tables.materializer(::Type{_BondTable}) = _bond_table
 
-@auto_hash_equals struct _BondTableRow <: _AbstractColumnTableRow
-    _row::Int
-    _tab::_BondTable
-end
-
-@inline Tables.getcolumn(btr::_BondTableRow, nm::Symbol) = Tables.getcolumn(getfield(btr, :_tab), nm)[getfield(btr, :_row)]
-@inline Tables.getcolumn(btr::_BondTableRow, i::Int) = getfield(btr, Tables.columnnames(btr)[i])
-@inline Tables.columnnames(::_BondTableRow) = _bond_table_cols
-
-@inline _row_by_idx(bt::_BondTable, idx::Int) = _BondTableRow(getfield(bt, :_idx_map)[idx], bt)
-
-@inline function Base.getproperty(btr::_BondTableRow, nm::Symbol)
-    getindex(getfield(getfield(btr, :_tab), nm), getfield(btr, :_row))
-end
-
-@inline function Base.setproperty!(btr::_BondTableRow, nm::Symbol, val)
-    setindex!(getproperty(getfield(btr, :_tab), nm), val, getfield(btr, :_row))
-end
-
-@inline Base.eltype(::_BondTable) = _BondTableRow
-@inline Base.iterate(bt::_BondTable, st=1) = st > length(bt) ? nothing : (_BondTableRow(st, bt), st + 1)
+@inline _row_by_idx(bt::_BondTable, idx::Int) = ColumnTableRow(getfield(bt, :_idx_map)[idx], bt)

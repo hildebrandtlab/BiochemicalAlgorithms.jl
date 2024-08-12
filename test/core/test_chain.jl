@@ -126,7 +126,7 @@ end
         @test chain.molecule_idx == mol.idx
 
         @test chain._sys isa System{T}
-        @test chain._row isa BiochemicalAlgorithms._ChainTableRow
+        @test chain._row isa ColumnTableRow{BiochemicalAlgorithms._ChainTable}
 
         @test chain2.name == "something"
         @test chain2.properties == Properties(:a => 1)
