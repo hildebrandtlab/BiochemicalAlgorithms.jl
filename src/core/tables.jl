@@ -20,7 +20,7 @@ abstract type AbstractColumnTable <: Tables.AbstractColumns end
 @inline Base.length(at::AbstractColumnTable) = size(at, 1)
 @inline Base.keys(at::AbstractColumnTable) = LinearIndices((length(at),))
 
-@inline function Base.show(io::IO, at::AbstractColumnTable) 
+@inline function Base.show(io::IO, at::AbstractColumnTable)
     print(io, "$(typeof(at)) with $(length(at)) rows")
 end
 
@@ -58,7 +58,7 @@ struct ColumnTableRow{CT <: AbstractColumnTable} <: Tables.AbstractRow
 end
 
 @inline Tables.getcolumn(ctr::ColumnTableRow, nm::Symbol) = Tables.getcolumn(getfield(ctr, :_tab), nm)[getfield(ctr, :_row)]
-@inline Tables.getcolumn(ctr::ColumnTableRow, i::Int) = getfield(ctr, Tables.columnnames(ctr)[i])
+@inline Tables.getcolumn(ctr::ColumnTableRow, i::Int) = getproperty(ctr, Tables.columnnames(ctr)[i])
 
 @inline Tables.columnnames(ctr::ColumnTableRow) = Tables.columnnames(getfield(ctr, :_tab))
 
