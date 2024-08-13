@@ -70,7 +70,7 @@ function _try_assign_torsion!(
     type_a4::String = a4.atom_type
 
     # now, search torsion parameters for (a1, a2, a3, a4)
-    pt = coalesce(
+    pt = @coalesce(
         get(torsion_combinations, (type_a1, type_a2, type_a3, type_a4,), missing),
         get(torsion_combinations, (type_a4, type_a3, type_a2, type_a1,), missing),
         get(torsion_combinations, ("*",     type_a2, type_a3, type_a4,), missing),

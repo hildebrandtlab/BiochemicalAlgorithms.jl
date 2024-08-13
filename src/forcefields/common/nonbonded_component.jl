@@ -426,7 +426,7 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
             # parameters for hydrogen bonds are used, if they exist
             # and the two atoms are not vicinal (1-4).
 
-            h_params = coalesce(
+            h_params = @coalesce(
                 get(hydrogen_bond_combinations, (I=atom_1_type, J=atom_2_type,), missing),
                 get(hydrogen_bond_combinations, (I=atom_2_type, J=atom_1_type,), missing)
             )

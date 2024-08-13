@@ -61,7 +61,7 @@ function setup!(qsc::QuadraticStretchComponent{T}) where {T}
             stretches[i] = QuadraticBondStretch(one(T), zero(T), a1, a2)
         end
 
-        qbs = coalesce(
+        qbs = @coalesce(
             get(stretch_dict, (type_a1, type_a2,), missing),
             get(stretch_dict, (type_a2, type_a1,), missing),
             get(stretch_dict, (type_a1, "*",    ), missing),
