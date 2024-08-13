@@ -70,7 +70,7 @@ Atom(
 ```
 Creates a new `Atom{Float32}` in the default system. Supports the same keyword arguments as above.
 """
-const Atom{T} = SystemComponent{T, _AtomTable{T}}
+const Atom{T} = SystemComponent{T, :Atom}
 
 @inline function Atom(
     sys::System{T},
@@ -140,7 +140,7 @@ end
     nm in _atom_table_cols_set || nm in _atom_table_cols_priv
 end
 
-@inline function parent_molecule(atom::Atom) 
+@inline function parent_molecule(atom::Atom)
     isnothing(atom.molecule_idx) ?
         nothing :
         molecule_by_idx(parent(atom), atom.molecule_idx)
@@ -168,7 +168,8 @@ Returns the `Atom{T}` associated with the given `idx` in `sys`. Throws a `KeyErr
 atom exists.
 """
 @inline function atom_by_idx(sys::System{T}, idx::Int) where T
-    Atom{T}(sys, _row_by_idx(sys._atoms, idx))
+    _rowno_by_idx(_table(sys, Atom{T}), idx) # check idx
+    Atom{T}(sys, idx)
 end
 
 @inline function atom_by_idx(idx::Int)
@@ -363,9 +364,9 @@ function is_bound_to(a1::Atom, a2::Atom)
 
     return !isnothing(
         findfirst(
-            b::Bond -> 
+            b::Bond ->
                 ((b.a1 == a1.idx) && (b.a2 == a2.idx)) ||
-                ((b.a1 == a2.idx) && (b.a2 == a1.idx)), 
+                ((b.a1 == a2.idx) && (b.a2 == a1.idx)),
             non_hydrogen_bonds(s)
         )
     )
@@ -375,9 +376,9 @@ end
     $(TYPEDSIGNATURES)
 
 Decides if two atoms are geminal.
-    
+
 Two atoms are geminal if they do not share a common bond but both have a
-bond to a third atom. For example the two hydrogen atoms in water are geminal. 
+bond to a third atom. For example the two hydrogen atoms in water are geminal.
 Hydrogen bonds (`has_flag(bond, :TYPE__HYDROGEN)`) are ignored.
 """
 function is_geminal(a1::Atom, a2::Atom)

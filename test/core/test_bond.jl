@@ -123,15 +123,9 @@ end
         Bond(
             sys,
             Atom(sys, 1, Elements.H; frame_id = 2).idx,
-            Atom(sys, 2, Elements.C; frame_id = 2).idx, 
+            Atom(sys, 2, Elements.C; frame_id = 2).idx,
             BondOrder.Single
         )
-
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(bond._row) == 4
 
         # getproperty
         @test bond.idx isa Int
@@ -148,7 +142,7 @@ end
         @test bond.flags == Flags()
 
         @test bond._sys isa System{T}
-        @test bond._row isa ColumnTableRow{BiochemicalAlgorithms._BondTable}
+        @test bond._idx isa Int
 
         @test bond2.idx isa Int
         @test bond2.a1 isa Int

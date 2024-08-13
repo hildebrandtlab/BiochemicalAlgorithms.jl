@@ -72,4 +72,5 @@ function _molecule_table(itr)
 end
 Tables.materializer(::Type{_MoleculeTable}) = _molecule_table
 
-@inline _row_by_idx(mt::_MoleculeTable, idx::Int) = ColumnTableRow(getfield(mt, :_idx_map)[idx], mt)
+@inline _rowno_by_idx(mt::_MoleculeTable, idx::Int) = getindex(getfield(mt, :_idx_map), idx)
+@inline _row_by_idx(mt::_MoleculeTable, idx::Int) = ColumnTableRow(_rowno_by_idx(mt, idx), mt)

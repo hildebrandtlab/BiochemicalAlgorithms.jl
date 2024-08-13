@@ -132,4 +132,5 @@ function _atom_table(::Type{T}, itr) where T
 end
 @inline Tables.materializer(::Type{_AtomTable{T}}) where T = itr -> _atom_table(T, itr)
 
-@inline _row_by_idx(at::_AtomTable, idx::Int) = ColumnTableRow(getfield(at, :_idx_map)[idx], at)
+@inline _rowno_by_idx(at::_AtomTable, idx::Int) = getindex(getfield(at, :_idx_map), idx)
+@inline _row_by_idx(at::_AtomTable, idx::Int) = ColumnTableRow(_rowno_by_idx(at, idx), at)

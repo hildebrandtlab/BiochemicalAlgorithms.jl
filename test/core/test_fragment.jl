@@ -494,12 +494,6 @@ end
             flags = Flags([:A, :B])
         )
 
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(frag._row) == 3
-
         # getproperty
         @test frag.idx isa Int
         @test frag.number isa Int
@@ -519,8 +513,8 @@ end
         @test frag.chain_idx == chain.idx
 
         @test frag._sys isa System{T}
-        @test frag._row isa ColumnTableRow{BiochemicalAlgorithms._FragmentTable}
-        
+        @test frag._idx isa Int
+
         @test frag2.number == 1
         @test frag2.name == "something"
         @test frag2.properties == Properties(:a => 1)
@@ -714,12 +708,6 @@ end
             flags = Flags([:A, :B])
         )
 
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(nuc._row) == 3
-
         # getproperty
         @test nuc.idx isa Int
         @test nuc.number isa Int
@@ -739,8 +727,8 @@ end
         @test nuc.chain_idx == chain.idx
 
         @test nuc._sys isa System{T}
-        @test nuc._row isa ColumnTableRow{BiochemicalAlgorithms._FragmentTable}
-        
+        @test nuc._idx isa Int
+
         @test nuc2.number == 1
         @test nuc2.name == "something"
         @test nuc2.properties == Properties(:a => 1)
@@ -934,12 +922,6 @@ end
             flags = Flags([:A, :B])
         )
 
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(res._row) == 3
-
         # getproperty
         @test res.idx isa Int
         @test res.number isa Int
@@ -959,8 +941,8 @@ end
         @test res.chain_idx == chain.idx
 
         @test res._sys isa System{T}
-        @test res._row isa ColumnTableRow{BiochemicalAlgorithms._FragmentTable}
-        
+        @test res._idx isa Int
+
         @test res2.number == 1
         @test res2.name == "something"
         @test res2.properties == Properties(:a => 1)

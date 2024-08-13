@@ -107,12 +107,6 @@ end
 
         chain2 = Chain(mol2; name = "something", properties = Properties(:a => 1), flags = Flags([:A, :B]))
 
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(chain._row) == 2
-
         # getproperty
         @test chain.idx isa Int
         @test chain.name isa String
@@ -126,7 +120,7 @@ end
         @test chain.molecule_idx == mol.idx
 
         @test chain._sys isa System{T}
-        @test chain._row isa ColumnTableRow{BiochemicalAlgorithms._ChainTable}
+        @test chain._idx isa Int
 
         @test chain2.name == "something"
         @test chain2.properties == Properties(:a => 1)
@@ -153,7 +147,7 @@ end
         @test_throws KeyError chain_by_idx(sys, -1)
         @test chain_by_idx(sys, chain.idx) isa Chain{T}
         @test chain_by_idx(sys, chain.idx) == chain
-        
+
         # chains
         cv = chains(sys)
         @test cv isa ChainTable{T}

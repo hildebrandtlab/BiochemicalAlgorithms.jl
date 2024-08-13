@@ -32,7 +32,7 @@ end
 @inline _hascolumn(::SystemComponentTable{T, C}, nm::Symbol) where {T, C} = _hascolumn(C, nm)
 
 @inline function _element_by_idx(ct::SystemComponentTable{T, C}, idx::Int) where {T, C}
-    C(ct._sys, _row_by_idx(_table(ct), idx))
+    C(ct._sys, idx)
 end
 
 @inline function Tables.getcolumn(ct::SystemComponentTable, nm::Symbol)
