@@ -76,7 +76,7 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
                 type_a2 = a2.atom_type
                 type_a3 = a3.atom_type
 
-                qab = coalesce(
+                qab = @coalesce(
                     get(bends_dict, (type_a1, type_a2, type_a3,), missing),
                     get(bends_dict, (type_a3, type_a2, type_a1,), missing),
                     get(bends_dict, ("*",     type_a2, "*"    ,), missing)
