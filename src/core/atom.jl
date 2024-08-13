@@ -253,8 +253,9 @@ end
 Returns a `BondTable{T}` containing all bonds of the given atom.
 """
 @inline function bonds(atom::Atom)
+    aidx = atom.idx
     _filter_bonds(
-        bond -> bond.a1 == atom.idx || bond.a2 == atom.idx,
+        bond -> bond.a1 == aidx || bond.a2 == aidx,
         parent(atom)
     )
 end
