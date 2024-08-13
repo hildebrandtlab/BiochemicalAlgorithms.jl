@@ -169,7 +169,7 @@ end
         push!(ff.unassigned_atoms, atom_1)
         push!(ff.unassigned_atoms, atom_2)
 
-        if length(ff.unassigned_atoms) > ff.options[:max_number_of_unassigned_atoms]
+        if length(ff.unassigned_atoms) > ff.options[:max_number_of_unassigned_atoms]::Int32
             throw(TooManyErrors())
         end
     end
