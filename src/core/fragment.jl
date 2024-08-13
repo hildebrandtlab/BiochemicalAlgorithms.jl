@@ -58,7 +58,7 @@ Fragment(
 ```
 Creates a new `Fragment{T}` in the given chain.
 """
-const Fragment{T} = AtomContainer{T, _FragmentTable}
+const Fragment{T} = AtomContainer{T, :Fragment}
 
 @inline function Fragment(
     chain::Chain{T},
@@ -120,7 +120,8 @@ Returns the `Fragment{T}` associated with the given `idx` in `sys`. Throws a `Ke
 fragment exists.
 """
 @inline function fragment_by_idx(sys::System{T}, idx::Int) where T
-    Fragment{T}(sys, _row_by_idx(sys._fragments, idx))
+    _rowno_by_idx(_table(sys, Fragment{T}), idx) # check idx
+    Fragment{T}(sys, idx)
 end
 
 @inline function fragment_by_idx(idx::Int)
@@ -541,7 +542,7 @@ function get_full_name(
     full_name = strip(f.name)
 
     # if the variant extension should be added, do so
-    if (   type == FullNameType.ADD_VARIANT_EXTENSIONS 
+    if (   type == FullNameType.ADD_VARIANT_EXTENSIONS
         || type == FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID)
         suffix = "-"
 
@@ -553,7 +554,7 @@ function get_full_name(
             suffix = "-C"
         end
 
-        if (is_c_terminal(f) && is_n_terminal(f)) 
+        if (is_c_terminal(f) && is_n_terminal(f))
             suffix = "-M"
         end
 
@@ -566,9 +567,9 @@ function get_full_name(
         end
     end
 
-    if (   type == FullNameType.ADD_RESIDUE_ID 
+    if (   type == FullNameType.ADD_RESIDUE_ID
         || type == FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID)
-  
+
         full_name *= string(f.number);
     end
 

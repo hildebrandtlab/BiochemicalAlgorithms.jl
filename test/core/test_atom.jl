@@ -19,7 +19,7 @@
         a2 = Atom(sys, 2, Elements.C)
 
         at = atoms(sys)
-        
+
         # Tables.jl interface
         @test Tables.istable(typeof(at))
         @test Tables.columnaccess(typeof(at))
@@ -213,12 +213,6 @@ end
             fragment_idx = 13
         )
 
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(atom._row) == 11
-
         # getproperty
         @test atom.idx isa Int
         @test atom.number isa Int
@@ -253,7 +247,7 @@ end
         @test isnothing(atom.fragment_idx)
 
         @test atom._sys isa System{T}
-        @test atom._row isa ColumnTableRow{BiochemicalAlgorithms._AtomTable{T}}
+        @test atom._idx isa Int
 
         @test atom2.frame_id isa Int
         @test atom2.frame_id == 10
@@ -376,7 +370,7 @@ end
 
         Bond(sys, a.idx, b.idx, BondOrder.Single)
         Bond(sys, b.idx, c.idx, BondOrder.Single)
-        
+
         @test !is_geminal(a, b)
         @test is_geminal(a, c)
         @test is_geminal(c, a)

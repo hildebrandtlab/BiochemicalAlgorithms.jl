@@ -32,7 +32,7 @@ Chain(
 ```
 Creates a new `Chain{T}` in the given molecule.
 """
-const Chain{T} = AtomContainer{T, _ChainTable}
+const Chain{T} = AtomContainer{T, :Chain}
 
 @inline function Chain(
     mol::Molecule;
@@ -90,7 +90,8 @@ Returns the `Chain{T}` associated with the given `idx` in `sys`. Throws a `KeyEr
 chain exists.
 """
 @inline function chain_by_idx(sys::System{T}, idx::Int) where T
-    Chain{T}(sys, _row_by_idx(sys._chains, idx))
+    _rowno_by_idx(_table(sys, Chain{T}), idx) # check idx
+    Chain{T}(sys, idx)
 end
 
 @inline function chain_by_idx(idx::Int)

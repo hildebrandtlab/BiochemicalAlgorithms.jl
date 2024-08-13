@@ -306,12 +306,6 @@ end
 
         mol2 = Molecule(sys; name = "something", properties = Properties(:a => 1), flags = Flags([:A, :B]))
 
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(mol._row) == 2
-
         # getproperty
         @test mol.idx isa Int
         @test mol.name isa String
@@ -325,7 +319,7 @@ end
         @test mol.variant == MoleculeVariant.None
 
         @test mol._sys isa System{T}
-        @test mol._row isa ColumnTableRow{BiochemicalAlgorithms._MoleculeTable}
+        @test mol._idx isa Int
 
         @test mol2.name == "something"
         @test mol2.properties == Properties(:a => 1)
@@ -423,12 +417,6 @@ end
 
         prot2 = Protein(sys; name = "something", properties = Properties(:a => 1), flags = Flags([:A, :B]))
 
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(prot._row) == 2
-
         # getproperty
         @test prot.idx isa Int
         @test prot.name isa String
@@ -442,7 +430,7 @@ end
         @test prot.variant === MoleculeVariant.Protein
 
         @test prot._sys isa System{T}
-        @test prot._row isa ColumnTableRow{BiochemicalAlgorithms._MoleculeTable}
+        @test prot._idx isa Int
 
         @test prot2.name == "something"
         @test prot2.properties == Properties(:a => 1)

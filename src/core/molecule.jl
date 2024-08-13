@@ -50,7 +50,7 @@ Molecule(;
 ```
 Creates a new `Molecule{Float32}` in the default system.
 """
-const Molecule{T} = AtomContainer{T, _MoleculeTable}
+const Molecule{T} = AtomContainer{T, :Molecule}
 
 @inline function Molecule(
     sys::System{T};
@@ -126,7 +126,8 @@ Returns the `Molecule{T}` associated with the given `idx` in `sys`. Throws a `Ke
 molecule exists.
 """
 @inline function molecule_by_idx(sys::System{T}, idx::Int) where T
-    Molecule{T}(sys, _row_by_idx(sys._molecules, idx))
+    _rowno_by_idx(_table(sys, Molecule{T}), idx) # check idx
+    Molecule{T}(sys, idx)
 end
 
 @inline function molecule_by_idx(idx::Int)
