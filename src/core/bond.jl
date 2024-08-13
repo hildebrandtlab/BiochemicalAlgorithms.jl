@@ -28,9 +28,9 @@ Mutable representation of an individual bond in a system.
 # Constructors
 ```julia
 Bond(
-    sys::System{T}, 
-    a1::Int, 
-    a2::Int, 
+    sys::System{T},
+    a1::Int,
+    a2::Int,
     order::BondOrderType;
     # keyword arguments
     properties::Properties = Properties(),
@@ -51,12 +51,12 @@ Bond(
 ```
 Creates a new `Bond{Float32}` in the default system.
 """
-const Bond{T} = AtomContainer{T, _BondTable}
+const Bond{T} = AtomContainer{T, :Bond}
 
 @inline function Bond(
-    sys::System{T}, 
-    a1::Int, 
-    a2::Int, 
+    sys::System{T},
+    a1::Int,
+    a2::Int,
     order::BondOrderType;
     kwargs...
 ) where T
@@ -122,7 +122,8 @@ Returns the `Bond{T}` associated with the given `idx` in `sys`. Throws a `KeyErr
 bond exists.
 """
 @inline function bond_by_idx(sys::System{T}, idx::Int) where T
-    Bond{T}(sys, _row_by_idx(sys._bonds, idx))
+    _rowno_by_idx(_table(sys, Bond{T}), idx) # check idx
+    Bond{T}(sys, idx)
 end
 
 @inline function bond_by_idx(idx::Int)

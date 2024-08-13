@@ -73,4 +73,5 @@ function _bond_table(itr)
 end
 Tables.materializer(::Type{_BondTable}) = _bond_table
 
-@inline _row_by_idx(bt::_BondTable, idx::Int) = ColumnTableRow(getfield(bt, :_idx_map)[idx], bt)
+@inline _rowno_by_idx(bt::_BondTable, idx::Int) = getindex(getfield(bt, :_idx_map), idx)
+@inline _row_by_idx(bt::_BondTable, idx::Int) = ColumnTableRow(_rowno_by_idx(bt, idx), bt)

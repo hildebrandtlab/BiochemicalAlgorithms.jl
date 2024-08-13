@@ -84,4 +84,5 @@ function _fragment_table(itr)
 end
 @inline Tables.materializer(::Type{_FragmentTable}) = itr -> _fragment_table(itr)
 
-@inline _row_by_idx(ft::_FragmentTable, idx::Int) = ColumnTableRow(getfield(ft, :_idx_map)[idx], ft)
+@inline _rowno_by_idx(ft::_FragmentTable, idx::Int) = getindex(getfield(ft, :_idx_map), idx)
+@inline _row_by_idx(ft::_FragmentTable, idx::Int) = ColumnTableRow(_rowno_by_idx(ft, idx), ft)

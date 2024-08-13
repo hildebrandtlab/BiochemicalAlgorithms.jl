@@ -71,4 +71,5 @@ function _chain_table(itr)
 end
 @inline Tables.materializer(::Type{_ChainTable}) = itr -> _chain_table(itr)
 
-@inline _row_by_idx(ct::_ChainTable, idx::Int) = ColumnTableRow(getfield(ct, :_idx_map)[idx], ct)
+@inline _rowno_by_idx(ct::_ChainTable, idx::Int) = getindex(getfield(ct, :_idx_map), idx)
+@inline _row_by_idx(ct::_ChainTable, idx::Int) = ColumnTableRow(_rowno_by_idx(ct, idx), ct)

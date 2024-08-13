@@ -163,7 +163,7 @@ Returns the next available `idx` for the given system.
 end
 
 Base.show(io::IO, ::MIME"text/plain", sys::System) = show(io, sys)
-Base.show(io::IO, sys::System) = print(io, 
+Base.show(io::IO, sys::System) = print(io,
     "System with ", natoms(sys), " atoms", isempty(sys.name) ? "" : " ($(sys.name))")
 
 @doc raw"""
@@ -186,43 +186,50 @@ Base.parent(s::System) = s
     parent_system(::Molecule)
     parent_system(::System)
 
-Returns the `System{T}` containing the given object. Alias for 
+Returns the `System{T}` containing the given object. Alias for
 [`Base.parent`](@ref Base.parent(::System)).
 """ parent_system
 parent_system(s::System) = s
 
-@auto_hash_equals struct SystemComponent{T, C <: AbstractColumnTable} <: AbstractSystemComponent{T}
+@auto_hash_equals struct SystemComponent{T, C} <: AbstractSystemComponent{T}
     _sys::System{T}
-    _row::ColumnTableRow{C}
+    _idx::Int
 end
 
+@inline _table(sc::SystemComponent{T, :Atom}) where T = getfield(getfield(sc, :_sys), :_atoms)
+@inline _table(sc::SystemComponent{T, :Bond}) where T = getfield(getfield(sc, :_sys), :_bonds)
+@inline _table(sc::SystemComponent{T, :Chain}) where T = getfield(getfield(sc, :_sys), :_chains)
+@inline _table(sc::SystemComponent{T, :Fragment}) where T = getfield(getfield(sc, :_sys), :_fragments)
+@inline _table(sc::SystemComponent{T, :Molecule}) where T = getfield(getfield(sc, :_sys), :_molecules)
+
 @inline function Base.getproperty(sc::SystemComponent, name::Symbol)
-    (name === :_sys || name === :_row) && return getfield(sc, name)
-    getproperty(getfield(sc, :_row), name)
+    (name === :_sys || name === :_idx) && return getfield(sc, name)
+    tab = _table(sc)
+    getindex(getfield(tab, name), _rowno_by_idx(tab, getfield(sc, :_idx)))
 end
 
 @inline function Base.setproperty!(sc::SystemComponent, name::Symbol, val)
-    (name === :_sys || name === :_row) && return setfield!(sc, name, val)
-    setproperty!(getfield(sc, :_row), name, val)
+    (name === :_sys || name === :_idx) && return setfield!(sc, name, val)
+    setindex!(getfield(_table(sc), name), val, _rowno_by_idx(_table(sc), getfield(sc, :_idx)))
 end
 
 @inline Base.show(io::IO, ::MIME"text/plain", sc::SystemComponent) = show(io, sc)
 @inline function Base.show(io::IO, sc::SystemComponent; display_name::String=repr(typeof(sc)))
     print(io, "$display_name: ")
-    show(io, NamedTuple(sc._row))
+    show(io, NamedTuple(_row_by_idx(_table(sc), sc._idx)))
 end
 
 @inline Base.parent(sc::SystemComponent) = sc._sys
 @inline parent_system(sc::SystemComponent) = parent(sc)
 
-@auto_hash_equals struct AtomContainer{T, C <: AbstractColumnTable} <: AbstractAtomContainer{T}
+@auto_hash_equals struct AtomContainer{T, C} <: AbstractAtomContainer{T}
     _comp::SystemComponent{T, C}
 
     function AtomContainer{T, C}(
         sys::System{T},
-        row::ColumnTableRow{C}
-    ) where {T, C <: AbstractColumnTable}
-        new(SystemComponent(sys, row))
+        idx::Int
+    ) where {T, C}
+        new(SystemComponent{T, C}(sys, idx))
     end
 end
 
