@@ -94,7 +94,7 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
                     end
                 else
                     push!(bends,
-                        QuadraticAngleBend(
+                        QuadraticAngleBend{T}(
                             T(θ₀_factor*only(qab.theta0)),
                             T(k_factor*only(qab.k)),
                             a1,
