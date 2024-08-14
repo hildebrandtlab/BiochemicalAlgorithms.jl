@@ -70,6 +70,16 @@ function Base.delete!(mt::_MoleculeTable, idx::Int)
     mt
 end
 
+function Base.empty!(mt::_MoleculeTable)
+    empty!(mt.idx)
+    empty!(mt.name)
+    empty!(mt.variant)
+    empty!(mt.properties)
+    empty!(mt.flags)
+    empty!(mt._idx_map)
+    mt
+end
+
 function _molecule_table(itr)
     mt = _MoleculeTable()
     for m in itr

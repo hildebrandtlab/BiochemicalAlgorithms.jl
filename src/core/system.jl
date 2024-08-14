@@ -166,6 +166,22 @@ Base.show(io::IO, ::MIME"text/plain", sys::System) = show(io, sys)
 Base.show(io::IO, sys::System) = print(io,
     "System with ", natoms(sys), " atoms", isempty(sys.name) ? "" : " ($(sys.name))")
 
+"""
+    empty!(::System)
+
+Removes all components from the system.
+"""
+function Base.empty!(sys::System)
+    empty!(sys.properties)
+    empty!(sys.flags)
+    empty!(sys._atoms)
+    empty!(sys._bonds)
+    empty!(sys._molecules)
+    empty!(sys._chains)
+    empty!(sys._fragments)
+    sys
+end
+
 @doc raw"""
     parent(::Atom)
     parent(::Bond)

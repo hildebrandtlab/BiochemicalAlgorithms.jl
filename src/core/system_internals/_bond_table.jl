@@ -74,6 +74,17 @@ function Base.delete!(bt::_BondTable, idx::Int)
     bt
 end
 
+function Base.empty!(bt::_BondTable)
+    empty!(bt.idx)
+    empty!(bt.a1)
+    empty!(bt.a2)
+    empty!(bt.order)
+    empty!(bt.properties)
+    empty!(bt.flags)
+    empty!(bt._idx_map)
+    bt
+end
+
 function _bond_table(itr)
     bt = _BondTable()
     for b in itr
