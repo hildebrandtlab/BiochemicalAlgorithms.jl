@@ -180,6 +180,22 @@ See [`molecules`](@ref)
         length(filter(mol -> mol.variant == something(variant), mt))
 end
 
+"""
+    delete!(::Molecule)
+
+Removes the given molecule and all of its associated chains and fragments from their system.
+
+# Supported keyword arguments
+ - `keep_atoms::Bool = false`
+   Determines whether associated atoms (and their bonds) are removed as well
+"""
+function Base.delete!(mol::Molecule; keep_atoms::Bool = false)
+    keep_atoms ? atoms(mol).molecule_idx .= Ref(nothing) : delete!.(atoms(mol))
+    delete!.(chains(mol); keep_atoms = keep_atoms)
+    delete!(parent(mol)._molecules, mol.idx)
+    nothing
+end
+
 #=
     Molecule atoms
 =#

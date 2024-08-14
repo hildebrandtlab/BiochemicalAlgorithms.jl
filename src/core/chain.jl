@@ -160,6 +160,22 @@ end
 end
 
 """
+    delete!(::Chain)
+
+Removes the given chain and all of its associated fragments from their system.
+
+# Supported keyword arguments
+ - `keep_atoms::Bool = false`
+   Determines whether associated atoms (and their bonds) are removed as well
+"""
+function Base.delete!(chain::Chain; keep_atoms::Bool = false)
+    keep_atoms ? atoms(chain).chain_idx .= Ref(nothing) : delete!.(atoms(chain))
+    delete!.(fragments(chain); keep_atoms = keep_atoms)
+    delete!(parent(chain)._chains, chain.idx)
+    nothing
+end
+
+"""
     push!(::Molecule{T}, ::Chain{T})
 
 Creates a copy of the given chain in the given molecule. The new chain is automatically assigned a

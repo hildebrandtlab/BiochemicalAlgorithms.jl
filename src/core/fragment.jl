@@ -239,6 +239,21 @@ end
 @inline nfragments(ct::ChainTable; kwargs...) = length(fragments(ct; kwargs...))
 
 """
+    delete!(::Fragment)
+
+Removes the given fragment from its system.
+
+# Supported keyword arguments
+ - `keep_atoms::Bool = false`
+   Determines whether associated atoms (and their bonds) are removed as well
+"""
+function Base.delete!(frag::Fragment; keep_atoms::Bool = false)
+    keep_atoms ? atoms(frag).fragment_idx .= Ref(nothing) : delete!.(atoms(frag))
+    delete!(parent(frag)._fragments, frag.idx)
+    nothing
+end
+
+"""
     push!(::Chain{T}, ::Fragment{T})
 
 Creates a copy of the given fragment in the given chain. The new fragment is automatically assigned a
