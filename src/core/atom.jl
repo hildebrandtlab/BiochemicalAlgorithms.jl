@@ -305,6 +305,17 @@ end
 end
 
 """
+    delete!(::Atom)
+
+Removes the given atom and all of its associated bonds from their system.
+"""
+@inline function Base.delete!(atom::Atom)
+    delete!.(bonds(atom))
+    delete!(parent(atom)._atoms, atom.idx)
+    nothing
+end
+
+"""
     push!(::Fragment{T},   ::Atom{T})
     push!(::Molecule{T},   ::Atom{T})
     push!(::System{T},     ::Atom{T})
