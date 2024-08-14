@@ -29,8 +29,9 @@ unset_flag!
 ```@docs
 System
 default_system
-Base.parent(::System)
 parent_system
+Base.parent(::System)
+Base.empty!(::System)
 ```
 
 ## Atoms

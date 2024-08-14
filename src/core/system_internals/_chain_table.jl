@@ -70,6 +70,16 @@ function Base.delete!(ct::_ChainTable, idx::Int)
     ct
 end
 
+function Base.empty!(ct::_ChainTable)
+    empty!(ct.idx)
+    empty!(ct.name)
+    empty!(ct.properties)
+    empty!(ct.flags)
+    empty!(ct.molecule_idx)
+    empty!(ct._idx_map)
+    ct
+end
+
 function _chain_table(itr)
     ct = _ChainTable()
     for c in itr

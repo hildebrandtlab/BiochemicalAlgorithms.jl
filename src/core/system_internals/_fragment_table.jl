@@ -85,6 +85,19 @@ function Base.delete!(ft::_FragmentTable, idx::Int)
     ft
 end
 
+function Base.empty!(ft::_FragmentTable)
+    empty!(ft.idx)
+    empty!(ft.number)
+    empty!(ft.name)
+    empty!(ft.variant)
+    empty!(ft.properties)
+    empty!(ft.flags)
+    empty!(ft.molecule_idx)
+    empty!(ft.chain_idx)
+    empty!(ft._idx_map)
+    ft
+end
+
 function _fragment_table(itr)
     ft = _FragmentTable()
     for f in itr
