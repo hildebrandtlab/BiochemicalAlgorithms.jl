@@ -108,6 +108,30 @@ function Base.push!(
     at
 end
 
+function Base.delete!(at::_AtomTable, idx::Int)
+    rowno = at._idx_map[idx]
+    deleteat!(at.idx, rowno)
+    deleteat!(at.number, rowno)
+    deleteat!(at.element, rowno)
+    deleteat!(at.name, rowno)
+    deleteat!(at.atom_type, rowno)
+    deleteat!(at.r, rowno)
+    deleteat!(at.v, rowno)
+    deleteat!(at.F, rowno)
+    deleteat!(at.formal_charge, rowno)
+    deleteat!(at.charge, rowno)
+    deleteat!(at.radius, rowno)
+    deleteat!(at.properties, rowno)
+    deleteat!(at.flags, rowno)
+    deleteat!(at.frame_id, rowno)
+    deleteat!(at.molecule_idx, rowno)
+    deleteat!(at.chain_idx, rowno)
+    deleteat!(at.fragment_idx, rowno)
+    empty!(at._idx_map)
+    merge!(at._idx_map, Dict(v => k for (k, v) in enumerate(at.idx)))
+    at
+end
+
 function _atom_table(::Type{T}, itr) where T
     at = _AtomTable{T}()
     for a in itr
