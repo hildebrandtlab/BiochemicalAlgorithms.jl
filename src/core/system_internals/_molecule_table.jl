@@ -58,6 +58,18 @@ function Base.push!(
     mt
 end
 
+function Base.delete!(mt::_MoleculeTable, idx::Int)
+    rowno = mt._idx_map[idx]
+    deleteat!(mt.idx, rowno)
+    deleteat!(mt.name, rowno)
+    deleteat!(mt.variant, rowno)
+    deleteat!(mt.properties, rowno)
+    deleteat!(mt.flags, rowno)
+    empty!(mt._idx_map)
+    merge!(mt._idx_map, Dict(v => k for (k, v) in enumerate(mt.idx)))
+    mt
+end
+
 function _molecule_table(itr)
     mt = _MoleculeTable()
     for m in itr

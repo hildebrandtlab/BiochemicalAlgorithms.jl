@@ -70,6 +70,21 @@ function Base.push!(
     ft
 end
 
+function Base.delete!(ft::_FragmentTable, idx::Int)
+    rowno = ft._idx_map[idx]
+    deleteat!(ft.idx, rowno)
+    deleteat!(ft.number, rowno)
+    deleteat!(ft.name, rowno)
+    deleteat!(ft.variant, rowno)
+    deleteat!(ft.properties, rowno)
+    deleteat!(ft.flags, rowno)
+    deleteat!(ft.molecule_idx, rowno)
+    deleteat!(ft.chain_idx, rowno)
+    empty!(ft._idx_map)
+    merge!(ft._idx_map, Dict(v => k for (k, v) in enumerate(ft.idx)))
+    ft
+end
+
 function _fragment_table(itr)
     ft = _FragmentTable()
     for f in itr

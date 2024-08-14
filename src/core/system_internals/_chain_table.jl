@@ -58,6 +58,18 @@ function Base.push!(
     ct
 end
 
+function Base.delete!(ct::_ChainTable, idx::Int)
+    rowno = ct._idx_map[idx]
+    deleteat!(ct.idx, rowno)
+    deleteat!(ct.name, rowno)
+    deleteat!(ct.properties, rowno)
+    deleteat!(ct.flags, rowno)
+    deleteat!(ct.molecule_idx, rowno)
+    empty!(ct._idx_map)
+    merge!(ct._idx_map, Dict(v => k for (k, v) in enumerate(ct.idx)))
+    ct
+end
+
 function _chain_table(itr)
     ct = _ChainTable()
     for c in itr

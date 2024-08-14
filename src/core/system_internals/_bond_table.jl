@@ -61,6 +61,19 @@ function Base.push!(
     bt
 end
 
+function Base.delete!(bt::_BondTable, idx::Int)
+    rowno = bt._idx_map[idx]
+    deleteat!(bt.idx, rowno)
+    deleteat!(bt.a1, rowno)
+    deleteat!(bt.a2, rowno)
+    deleteat!(bt.order, rowno)
+    deleteat!(bt.properties, rowno)
+    deleteat!(bt.flags, rowno)
+    empty!(bt._idx_map)
+    merge!(bt._idx_map, Dict(v => k for (k, v) in enumerate(bt.idx)))
+    bt
+end
+
 function _bond_table(itr)
     bt = _BondTable()
     for b in itr
