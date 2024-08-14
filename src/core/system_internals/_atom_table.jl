@@ -132,6 +132,28 @@ function Base.delete!(at::_AtomTable, idx::Int)
     at
 end
 
+function Base.empty!(at::_AtomTable)
+    empty!(at.idx)
+    empty!(at.number)
+    empty!(at.element)
+    empty!(at.name)
+    empty!(at.atom_type)
+    empty!(at.r)
+    empty!(at.v)
+    empty!(at.F)
+    empty!(at.formal_charge)
+    empty!(at.charge)
+    empty!(at.radius)
+    empty!(at.properties)
+    empty!(at.flags)
+    empty!(at.frame_id)
+    empty!(at.molecule_idx)
+    empty!(at.chain_idx)
+    empty!(at.fragment_idx)
+    empty!(at._idx_map)
+    at
+end
+
 function _atom_table(::Type{T}, itr) where T
     at = _AtomTable{T}()
     for a in itr
