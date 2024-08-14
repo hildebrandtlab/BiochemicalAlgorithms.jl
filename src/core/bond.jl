@@ -199,6 +199,16 @@ Returns the number of bonds where at least one associated atom belongs to the gi
 end
 
 """
+    delete!(::Bond)
+
+Removes the given bond from its system.
+"""
+@inline function Base.delete!(bond::Bond)
+    delete!(parent(bond)._bonds, bond.idx)
+    nothing
+end
+
+"""
     push!(::AbstractAtomContainer, ::Bond{T})
 
 Creates a copy of the given bond in the system associated with the given atom container.
