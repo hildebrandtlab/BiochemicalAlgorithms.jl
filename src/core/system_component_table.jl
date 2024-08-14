@@ -39,7 +39,8 @@ end
     col = Tables.getcolumn(_table(ct), nm)
     _RowProjectionVector{eltype(col)}(
         col,
-        map(idx -> _table(ct)._idx_map[idx], ct._idx)
+        ct._idx,
+        _table(ct)._idx_map
     )
 end
 
