@@ -81,6 +81,54 @@
         mv = collect(mt)
         @test mv isa Vector{Molecule{T}}
         @test length(mv) == 2
+
+        # atoms
+        @test length(atoms(mt)) == 0
+        @test natoms(mt) == 0
+
+        a1 = Atom(m1, 1, Elements.C)
+        a2 = Atom(p1, 1, Elements.O)
+        @test length(atoms(mt)) == 2
+        @test natoms(mt) == 2
+
+        # bonds
+        @test length(bonds(mt)) == 0
+        @test nbonds(mt) == 0
+
+        Bond(sys, a1.idx, a2.idx, BondOrder.Single)
+        @test length(bonds(mt)) == 1
+        @test nbonds(mt) == 1
+
+        # chains
+        @test length(chains(mt)) == 0
+        @test nchains(mt) == 0
+
+        c1 = Chain(m1)
+        c2 = Chain(p1)
+        @test length(chains(mt)) == 2
+        @test nchains(mt) == 2
+
+        # fragments
+        @test length(fragments(mt)) == 0
+        @test nfragments(mt) == 0
+        @test length(fragments(mt; variant = FragmentVariant.None)) == 0
+        @test nfragments(mt; variant = FragmentVariant.None) == 0
+        @test length(nucleotides(mt)) == 0
+        @test nnucleotides(mt) == 0
+        @test length(residues(mt)) == 0
+        @test nresidues(mt) == 0
+
+        Fragment(c1, 1)
+        Nucleotide(c1, 1)
+        Residue(c2, 1)
+        @test length(fragments(mt)) == 3
+        @test nfragments(mt) == 3
+        @test length(fragments(mt; variant = FragmentVariant.None)) == 1
+        @test nfragments(mt; variant = FragmentVariant.None) == 1
+        @test length(nucleotides(mt)) == 1
+        @test nnucleotides(mt) == 1
+        @test length(residues(mt)) == 1
+        @test nresidues(mt) == 1
     end
 end
 

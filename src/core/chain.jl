@@ -136,6 +136,25 @@ end
 @inline nchains(mol::Molecule) = nchains(parent(mol), molecule_idx = mol.idx)
 
 """
+    chains(::MoleculeTable)
+
+Returns a `ChainTable{T}` containing all chains of the given molecule table.
+"""
+@inline function chains(mt::MoleculeTable)
+    idx = Set(mt.idx)
+    _filter_chains(chain -> chain.molecule_idx in idx, mt._sys)
+end
+
+"""
+    nchains(::MolculeTable)
+
+Returns the number of chains belonging to the given molecule table.
+"""
+@inline function nchains(mt::MoleculeTable)
+    length(chains(mt))
+end
+
+"""
     push!(::Molecule{T}, ::Chain{T})
 
 Creates a copy of the given chain in the given molecule. The new chain is automatically assigned a
@@ -173,8 +192,18 @@ end
     chain
 end
 
+@inline function atoms(ct::ChainTable)
+    idx = Set(ct._idx)
+    _filter_atoms(atom -> atom.chain_idx in idx, ct._sys)
+end
+
+@inline natoms(ct::ChainTable) = length(atoms(ct))
+
 #=
     Chain bonds
 =#
 @inline bonds(chain::Chain; kwargs...) = bonds(parent(chain); chain_idx = chain.idx, kwargs...)
 @inline nbonds(chain::Chain; kwargs...) = nbonds(parent(chain); chain_idx = chain.idx, kwargs...)
+
+@inline bonds(ct::ChainTable) = bonds(atoms(ct))
+@inline nbonds(ct::ChainTable) = nbonds(atoms(ct))

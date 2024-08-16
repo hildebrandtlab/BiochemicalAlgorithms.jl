@@ -179,11 +179,54 @@ end
 @inline fragments(mol::Molecule; kwargs...) = fragments(parent(mol); molecule_idx = mol.idx, kwargs...)
 @inline nfragments(mol::Molecule; kwargs...) = nfragments(parent(mol); molecule_idx = mol.idx, kwargs...)
 
+"""
+    fragments(::ChainTable)
+    fragments(::MoleculeTable)
+
+Returns a `FragmentTable{T}` containing all fragments of the given table.
+
+# Supported keyword arguments
+ - `variant::Union{Nothing, FragmentVariantType} = nothing`
+   Any value other than `nothing` limits the results to the matching variant type.
+"""
+@inline function fragments(mt::MoleculeTable;
+    variant::Union{Nothing, FragmentVariantType} = nothing
+)
+    idx = Set(mt.idx)
+    isnothing(variant) ?
+        _filter_fragments(frag -> frag.molecule_idx in idx, mt._sys) :
+        _filter_fragments(frag -> frag.molecule_idx in idx && frag.variant == something(variant), mt._sys)
+end
+
+"""
+    nfragments(::ChainTable)
+    nfragments(::MoleculeTable)
+
+Returns the number of fragments belonging to the given table.
+
+# Supported keyword arguments
+See [`fragments`](@ref fragments)
+"""
+@inline function nfragments(mt::MoleculeTable; kwargs...)
+    length(fragments(mt; kwargs...))
+end
+
 #=
     Chain fragments
 =#
 @inline fragments(chain::Chain; kwargs...) = fragments(parent(chain); chain_idx = chain.idx, kwargs...)
 @inline nfragments(chain::Chain; kwargs...) = nfragments(parent(chain); chain_idx = chain.idx, kwargs...)
+
+@inline function fragments(ct::ChainTable;
+    variant::Union{Nothing, FragmentVariantType} = nothing
+)
+    idx = Set(ct.idx)
+    isnothing(variant) ?
+        _filter_fragments(frag -> frag.chain_idx in idx, ct._sys) :
+        _filter_fragments(frag -> frag.chain_idx in idx && frag.variant == something(variant), ct._sys)
+end
+
+@inline nfragments(ct::ChainTable; kwargs...) = length(fragments(ct; kwargs...))
 
 """
     push!(::Chain{T}, ::Fragment{T})
@@ -226,11 +269,21 @@ end
     frag
 end
 
+@inline function atoms(ft::FragmentTable)
+    idx = Set(ft._idx)
+    _filter_atoms(atom -> atom.fragment_idx in idx, ft._sys)
+end
+
+@inline natoms(ft::FragmentTable) = length(atoms(ft))
+
 #=
     Fragment bonds
 =#
 @inline bonds(frag::Fragment; kwargs...) = bonds(parent(frag); fragment_idx = frag.idx, kwargs...)
 @inline nbonds(frag::Fragment; kwargs...) = nbonds(parent(frag); fragment_idx = frag.idx, kwargs...)
+
+@inline bonds(ft::FragmentTable) = bonds(atoms(ft))
+@inline nbonds(ft::FragmentTable) = nbonds(atoms(ft))
 
 #=
     Variant: Nucleotide
@@ -278,31 +331,41 @@ end
 
 """
     nucleotides(::Chain)
+    nucleotides(::ChainTable)
     nucleotides(::Molecule)
+    nucleotides(::MoleculeTable)
     nucleotides(::System = default_system())
 
 Returns a `FragmentTable{T}` containing all [`FragmentVariant.Nucleotide`](@ref FragmentVariant)
-fragments of the given atom container.
+fragments of the given atom container or table.
 
 # Supported keyword arguments
 See [`fragments`](@ref)
 """
-@inline function nucleotides(ac::Union{Chain, Molecule, System} = default_system(); kwargs...)
+@inline function nucleotides(
+    ac::Union{Chain, ChainTable, Molecule, MoleculeTable, System} = default_system();
+    kwargs...
+)
     fragments(ac; variant = FragmentVariant.Nucleotide, kwargs...)
 end
 
 """
     nnucleotides(::Chain)
+    nnucleotides(::ChainTable)
     nnucleotides(::Molecule)
+    nnucleotides(::MoleculeTable)
     nnucleotides(::System = default_system())
 
 Returns the number of [`FragmentVariant.Nucleotide`](@ref FragmentVariant) fragments in the given
-atom container.
+atom container or table.
 
 # Supported keyword arguments
 See [`fragments`](@ref)
 """
-@inline function nnucleotides(ac::Union{Chain, Molecule, System} = default_system(); kwargs...)
+@inline function nnucleotides(
+    ac::Union{Chain, ChainTable, Molecule, MoleculeTable, System} = default_system();
+    kwargs...
+)
     nfragments(ac; variant = FragmentVariant.Nucleotide, kwargs...)
 end
 
@@ -363,32 +426,42 @@ end
 
 """
     residues(::Chain)
+    residues(::ChainTable)
     residues(::Molecule)
+    residues(::MoleculeTable)
     residues(::System = default_system())
 
 Returns a `FragmentTable{T}` containing all [`FragmentVariant.Residue`](@ref FragmentVariant)
-fragments of the given atom container.
+fragments of the given atom container or table.
 
 # Supported keyword arguments
 See [`fragments`](@ref)
 """
-@inline function residues(sys::Union{Chain, Molecule, System} = default_system(); kwargs...)
-    fragments(sys; variant = FragmentVariant.Residue, kwargs...)
+@inline function residues(
+    ac::Union{Chain, ChainTable, Molecule, MoleculeTable, System} = default_system();
+    kwargs...
+)
+    fragments(ac; variant = FragmentVariant.Residue, kwargs...)
 end
 
 """
     nresidues(::Chain)
+    nresidues(::ChainTable)
     nresidues(::Molecule)
+    nresidues(::MoleculeTable)
     nresidues(::System = default_system())
 
 Returns the number of [`FragmentVariant.Residue`](@ref FragmentVariant) fragments in the given
-atom container.
+atom container or table.
 
 # Supported keyword arguments
 See [`fragments`](@ref)
 """
-@inline function nresidues(sys::Union{Chain, Molecule, System} = default_system(); kwargs...)
-    nfragments(sys; variant = FragmentVariant.Residue, kwargs...)
+@inline function nresidues(
+    ac::Union{Chain, ChainTable, Molecule, MoleculeTable, System} = default_system();
+    kwargs...
+)
+    nfragments(ac; variant = FragmentVariant.Residue, kwargs...)
 end
 
 """
