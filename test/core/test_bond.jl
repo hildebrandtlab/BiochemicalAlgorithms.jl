@@ -89,6 +89,9 @@
         bv = collect(bt)
         @test bv isa Vector{Bond{T}}
         @test length(bv) == 2
+
+        # bonds
+        @test length(bt) == 2
     end
 end
 

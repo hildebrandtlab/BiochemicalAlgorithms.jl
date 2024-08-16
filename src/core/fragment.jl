@@ -200,6 +200,7 @@ end
 
 """
     nfragments(::ChainTable)
+    nfragments(::FragmentTable)
     nfragments(::MoleculeTable)
 
 Returns the number of fragments belonging to the given table.
@@ -207,6 +208,15 @@ Returns the number of fragments belonging to the given table.
 # Supported keyword arguments
 See [`fragments`](@ref fragments)
 """
+@inline function nfragments(
+    ft::FragmentTable;
+    variant::Union{Nothing, FragmentVariantType} = nothing
+)
+    isnothing(variant) ?
+        length(ft) :
+        length(filter(frag -> frag.variant == something(variant), ft))
+end
+
 @inline function nfragments(mt::MoleculeTable; kwargs...)
     length(fragments(mt; kwargs...))
 end
@@ -351,13 +361,11 @@ end
 
 """
     nnucleotides(::Chain)
-    nnucleotides(::ChainTable)
     nnucleotides(::Molecule)
-    nnucleotides(::MoleculeTable)
     nnucleotides(::System = default_system())
 
 Returns the number of [`FragmentVariant.Nucleotide`](@ref FragmentVariant) fragments in the given
-atom container or table.
+atom container.
 
 # Supported keyword arguments
 See [`fragments`](@ref)
@@ -367,6 +375,22 @@ See [`fragments`](@ref)
     kwargs...
 )
     nfragments(ac; variant = FragmentVariant.Nucleotide, kwargs...)
+end
+
+"""
+    nnucleotides(::ChainTable)
+    nnucleotides(::FragmentTable)
+    nnucleotides(::MoleculeTable)
+
+Returns the number of [`FragmentVariant.Nucleotide`](@ref FragmentVariant) fragments in the given
+table.
+"""
+@inline function nnucleotides(ft::FragmentTable)
+    length(filter(isnucleotide, ft))
+end
+
+@inline function nnucleotides(ct::Union{ChainTable, MoleculeTable})
+    nfragments(ct; variant = FragmentVariant.Nucleotide)
 end
 
 """
@@ -446,13 +470,11 @@ end
 
 """
     nresidues(::Chain)
-    nresidues(::ChainTable)
     nresidues(::Molecule)
-    nresidues(::MoleculeTable)
     nresidues(::System = default_system())
 
 Returns the number of [`FragmentVariant.Residue`](@ref FragmentVariant) fragments in the given
-atom container or table.
+atom container.
 
 # Supported keyword arguments
 See [`fragments`](@ref)
@@ -462,6 +484,22 @@ See [`fragments`](@ref)
     kwargs...
 )
     nfragments(ac; variant = FragmentVariant.Residue, kwargs...)
+end
+
+"""
+    nresidues(::ChainTable)
+    nresidues(::FragmentTable)
+    nresidues(::MoleculeTable)
+
+Returns the number of [`FragmentVariant.Residue`](@ref FragmentVariant) fragments in the given
+table.
+"""
+@inline function nresidues(ft::FragmentTable)
+    length(filter(isresidue, ft))
+end
+
+@inline function nresidues(ct::Union{ChainTable, MoleculeTable})
+    nfragments(ct; variant = FragmentVariant.Residue)
 end
 
 """

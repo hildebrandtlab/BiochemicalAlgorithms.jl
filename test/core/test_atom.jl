@@ -156,6 +156,9 @@
         @test av isa Vector{Atom{T}}
         @test length(av) == 2
 
+        # atoms
+        @test natoms(at) == 2
+
         # bonds
         @test length(bonds(at)) == 0
         @test nbonds(at) == 0

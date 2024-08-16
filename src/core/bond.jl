@@ -172,17 +172,21 @@ is contained in the same container.
 # Supported keyword arguments
 See [`atoms`](@ref)
 """
-function nbonds(sys::System = default_system(); kwargs...)
+@inline function nbonds(sys::System = default_system(); kwargs...)
     length(bonds(sys; kwargs...))
 end
 
-@doc raw"""
+"""
+    nbonds(::BondTable)
     nbonds(::ChainTable)
     nbonds(::FragmentTable)
     nbonds(::MoleculeTable)
 
 Returns the number of bonds where at least one associated atom belongs to the given table.
-""" nbonds(::SystemComponentTable)
+"""
+@inline function nbonds(bt::BondTable)
+    length(bt)
+end
 
 """
     push!(::AbstractAtomContainer, ::Bond{T})

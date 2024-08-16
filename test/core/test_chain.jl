@@ -98,6 +98,9 @@
         @test length(bonds(ct)) == 1
         @test nbonds(ct) == 1
 
+        # chains
+        @test nchains(ct) == 2
+
         # fragments
         @test length(fragments(ct)) == 0
         @test nfragments(ct) == 0
