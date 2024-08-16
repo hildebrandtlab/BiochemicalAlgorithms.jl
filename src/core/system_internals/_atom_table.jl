@@ -108,8 +108,13 @@ function Base.push!(
     at
 end
 
-function Base.delete!(at::_AtomTable, idx::Int)
-    rowno = at._idx_map[idx]
+@inline function _rebuild_idx_map!(at::_AtomTable)
+    empty!(at._idx_map)
+    merge!(at._idx_map, Dict(v => k for (k, v) in enumerate(at.idx)))
+    at
+end
+
+function _delete!(at::_AtomTable, rowno::Int)
     deleteat!(at.idx, rowno)
     deleteat!(at.number, rowno)
     deleteat!(at.element, rowno)
@@ -127,9 +132,22 @@ function Base.delete!(at::_AtomTable, idx::Int)
     deleteat!(at.molecule_idx, rowno)
     deleteat!(at.chain_idx, rowno)
     deleteat!(at.fragment_idx, rowno)
-    empty!(at._idx_map)
-    merge!(at._idx_map, Dict(v => k for (k, v) in enumerate(at.idx)))
-    at
+    nothing
+end
+
+function Base.delete!(at::_AtomTable, idx::Int)
+    _delete!(at, at._idx_map[idx])
+    _rebuild_idx_map!(at)
+end
+
+function Base.delete!(at::_AtomTable, idx::Vector{Int})
+    rownos = getindex.(Ref(at._idx_map), idx)
+    unique!(rownos)
+    sort!(rownos; rev = true)
+    for rowno in rownos
+        _delete!(at, rowno)
+    end
+    _rebuild_idx_map!(at)
 end
 
 function Base.empty!(at::_AtomTable)
