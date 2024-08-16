@@ -240,17 +240,25 @@ end
 
 """
     delete!(::Fragment)
+    delete!(::FragmentTable)
 
-Removes the given fragment from its system.
+Removes the given fragment(s) from the associated system.
 
 # Supported keyword arguments
  - `keep_atoms::Bool = false`
    Determines whether associated atoms (and their bonds) are removed as well
 """
 function Base.delete!(frag::Fragment; keep_atoms::Bool = false)
-    keep_atoms ? atoms(frag).fragment_idx .= Ref(nothing) : delete!.(atoms(frag))
+    keep_atoms ? atoms(frag).fragment_idx .= Ref(nothing) : delete!(atoms(frag))
     delete!(parent(frag)._fragments, frag.idx)
     nothing
+end
+
+function Base.delete!(ft::FragmentTable; keep_atoms::Bool = false)
+    keep_atoms ? atoms(ft).fragment_idx .= Ref(nothing) : delete!(atoms(ft))
+    delete!(_table(ft), ft._idx)
+    empty!(ft._idx)
+    ft
 end
 
 """
