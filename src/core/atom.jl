@@ -233,6 +233,14 @@ All keyword arguments limit the results to atoms matching the given IDs. Keyword
     )
 end
 
+@doc raw"""
+    atoms(::ChainTable)
+    atoms(::FragmentTable)
+    atoms(::MoleculeTable)
+
+Returns an `AtomTable{T}` containing all atoms of the given table.
+""" atoms(::SystemComponentTable)
+
 """
     natoms(::Chain)
     natoms(::Fragment)
@@ -248,10 +256,19 @@ See [`atoms`](@ref)
     length(atoms(sys; kwargs...))
 end
 
+@doc raw"""
+    natoms(::ChainTable)
+    natoms(::FragmentTable)
+    natoms(::MoleculeTable)
+
+Returns the number of atoms in the given table.
+""" natoms(::SystemComponentTable)
+
 """
     bonds(::Atom)
+    bonds(::AtomTable)
 
-Returns a `BondTable{T}` containing all bonds of the given atom.
+Returns a `BondTable{T}` containing all bonds of the given atom(s).
 """
 @inline function bonds(atom::Atom)
     aidx = atom.idx
@@ -261,13 +278,26 @@ Returns a `BondTable{T}` containing all bonds of the given atom.
     )
 end
 
+@inline function bonds(at::AtomTable)
+    aidx = Set(at.idx)
+    _filter_bonds(
+        bond -> bond.a1 in aidx || bond.a2 in aidx,
+        at._sys
+    )
+end
+
 """
     nbonds(::Atom)
+    nbonds(::AtomTable)
 
-Returns the number of bonds of the given atom.
+Returns the number of bonds of the given atom(s).
 """
 @inline function nbonds(atom::Atom)
     length(bonds(atom))
+end
+
+@inline function nbonds(at::AtomTable)
+    length(bonds(at))
 end
 
 """

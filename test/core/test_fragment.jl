@@ -103,6 +103,25 @@
         fv = collect(ft)
         @test fv isa Vector{Fragment{T}}
         @test length(fv) == 3
+
+        # atoms
+        @test length(atoms(ft)) == 0
+        @test natoms(ft) == 0
+
+        a1 = Atom(f1, 1, Elements.H)
+        a2 = Atom(n1, 1, Elements.C)
+        a3 = Atom(r1, 1, Elements.O)
+        @test length(atoms(ft)) == 3
+        @test natoms(ft) == 3
+
+        # bonds
+        @test length(bonds(ft)) == 0
+        @test nbonds(ft) == 0
+
+        Bond(sys, a1.idx, a2.idx, BondOrder.Single)
+        Bond(sys, a2.idx, a3.idx, BondOrder.Double)
+        @test length(bonds(ft)) == 2
+        @test nbonds(ft) == 2
     end
 end
 

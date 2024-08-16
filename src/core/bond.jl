@@ -151,6 +151,15 @@ function bonds(sys::System = default_system(); kwargs...)
     )
 end
 
+@doc raw"""
+    bonds(::ChainTable)
+    bonds(::FragmentTable)
+    bonds(::MoleculeTable)
+
+Returns a `BondTable{T}` containing all bonds where at least one associated atom belongs to
+the given table.
+""" bonds(::SystemComponentTable)
+
 """
     nbonds(::Chain)
     nbonds(::Fragment)
@@ -166,6 +175,14 @@ See [`atoms`](@ref)
 function nbonds(sys::System = default_system(); kwargs...)
     length(bonds(sys; kwargs...))
 end
+
+@doc raw"""
+    nbonds(::ChainTable)
+    nbonds(::FragmentTable)
+    nbonds(::MoleculeTable)
+
+Returns the number of bonds where at least one associated atom belongs to the given table.
+""" nbonds(::SystemComponentTable)
 
 """
     push!(::AbstractAtomContainer, ::Bond{T})

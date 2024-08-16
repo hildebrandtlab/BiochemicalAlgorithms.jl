@@ -178,11 +178,21 @@ end
     mol
 end
 
+@inline function atoms(mt::MoleculeTable)
+    idx = Set(mt._idx)
+    _filter_atoms(atom -> atom.molecule_idx in idx, mt._sys)
+end
+
+@inline natoms(mt::MoleculeTable) = length(atoms(mt))
+
 #=
     Molecule bonds
 =#
 @inline bonds(mol::Molecule; kwargs...) = bonds(parent(mol); molecule_idx = mol.idx, kwargs...)
 @inline nbonds(mol::Molecule; kwargs...) = nbonds(parent(mol); molecule_idx = mol.idx, kwargs...)
+
+@inline bonds(mt::MoleculeTable) = bonds(atoms(mt))
+@inline nbonds(mt::MoleculeTable) = nbonds(atoms(mt))
 
 #=
     Variant: Protein
