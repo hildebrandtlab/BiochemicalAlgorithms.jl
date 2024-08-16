@@ -58,16 +58,34 @@ function Base.push!(
     mt
 end
 
-function Base.delete!(mt::_MoleculeTable, idx::Int)
-    rowno = mt._idx_map[idx]
+@inline function _rebuild_idx_map!(mt::_MoleculeTable)
+    empty!(mt._idx_map)
+    merge!(mt._idx_map, Dict(v => k for (k, v) in enumerate(mt.idx)))
+    mt
+end
+
+function _delete!(mt::_MoleculeTable, rowno::Int)
     deleteat!(mt.idx, rowno)
     deleteat!(mt.name, rowno)
     deleteat!(mt.variant, rowno)
     deleteat!(mt.properties, rowno)
     deleteat!(mt.flags, rowno)
-    empty!(mt._idx_map)
-    merge!(mt._idx_map, Dict(v => k for (k, v) in enumerate(mt.idx)))
-    mt
+    nothing
+end
+
+function Base.delete!(mt::_MoleculeTable, idx::Int)
+    _delete!(mt, mt._idx_map[idx])
+    _rebuild_idx_map!(mt)
+end
+
+function Base.delete!(mt::_MoleculeTable, idx::Vector{Int})
+    rownos = getindex.(Ref(mt._idx_map), idx)
+    unique!(rownos)
+    sort!(rownos; rev = true)
+    for rowno in rownos
+        _delete!(mt, rowno)
+    end
+    _rebuild_idx_map!(mt)
 end
 
 function Base.empty!(mt::_MoleculeTable)

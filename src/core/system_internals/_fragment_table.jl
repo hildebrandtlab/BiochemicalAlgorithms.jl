@@ -70,8 +70,13 @@ function Base.push!(
     ft
 end
 
-function Base.delete!(ft::_FragmentTable, idx::Int)
-    rowno = ft._idx_map[idx]
+@inline function _rebuild_idx_map!(ft::_FragmentTable)
+    empty!(ft._idx_map)
+    merge!(ft._idx_map, Dict(v => k for (k, v) in enumerate(ft.idx)))
+    ft
+end
+
+function _delete!(ft::_FragmentTable, rowno::Int)
     deleteat!(ft.idx, rowno)
     deleteat!(ft.number, rowno)
     deleteat!(ft.name, rowno)
@@ -80,9 +85,22 @@ function Base.delete!(ft::_FragmentTable, idx::Int)
     deleteat!(ft.flags, rowno)
     deleteat!(ft.molecule_idx, rowno)
     deleteat!(ft.chain_idx, rowno)
-    empty!(ft._idx_map)
-    merge!(ft._idx_map, Dict(v => k for (k, v) in enumerate(ft.idx)))
-    ft
+    nothing
+end
+
+function Base.delete!(ft::_FragmentTable, idx::Int)
+    _delete!(ft, ft._idx_map[idx])
+    _rebuild_idx_map!(ft)
+end
+
+function Base.delete!(ft::_FragmentTable, idx::Vector{Int})
+    rownos = getindex.(Ref(ft._idx_map), idx)
+    unique!(rownos)
+    sort!(rownos; rev = true)
+    for rowno in rownos
+        _delete!(ft, rowno)
+    end
+    _rebuild_idx_map!(ft)
 end
 
 function Base.empty!(ft::_FragmentTable)
