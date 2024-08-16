@@ -122,6 +122,12 @@
         Bond(sys, a2.idx, a3.idx, BondOrder.Double)
         @test length(bonds(ft)) == 2
         @test nbonds(ft) == 2
+
+        # fragments
+        @test nfragments(ft) == 3
+        @test nfragments(ft; variant = FragmentVariant.None) == 1
+        @test nnucleotides(ft) == 1
+        @test nresidues(ft) == 1
     end
 end
 

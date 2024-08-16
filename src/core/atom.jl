@@ -256,13 +256,17 @@ See [`atoms`](@ref)
     length(atoms(sys; kwargs...))
 end
 
-@doc raw"""
+"""
+    natoms(::AtomTable)
     natoms(::ChainTable)
     natoms(::FragmentTable)
     natoms(::MoleculeTable)
 
 Returns the number of atoms in the given table.
-""" natoms(::SystemComponentTable)
+"""
+@inline function natoms(at::AtomTable)
+    length(at)
+end
 
 """
     bonds(::Atom)
