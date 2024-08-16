@@ -200,12 +200,19 @@ end
 
 """
     delete!(::Bond)
+    delete!(::BondTable)
 
-Removes the given bond from its system.
+Removes the given bond(s) from the associated system.
 """
 @inline function Base.delete!(bond::Bond)
     delete!(parent(bond)._bonds, bond.idx)
     nothing
+end
+
+function Base.delete!(bt::BondTable)
+    delete!(_table(bt), bt._idx)
+    empty!(bt._idx)
+    bt
 end
 
 """

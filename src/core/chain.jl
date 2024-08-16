@@ -161,18 +161,27 @@ end
 
 """
     delete!(::Chain)
+    delete!(::ChainTable)
 
-Removes the given chain and all of its associated fragments from their system.
+Removes the given chain(s) and all associated fragments from the associated system.
 
 # Supported keyword arguments
  - `keep_atoms::Bool = false`
    Determines whether associated atoms (and their bonds) are removed as well
 """
 function Base.delete!(chain::Chain; keep_atoms::Bool = false)
-    keep_atoms ? atoms(chain).chain_idx .= Ref(nothing) : delete!.(atoms(chain))
-    delete!.(fragments(chain); keep_atoms = keep_atoms)
+    keep_atoms ? atoms(chain).chain_idx .= Ref(nothing) : delete!(atoms(chain))
+    delete!(fragments(chain); keep_atoms = keep_atoms)
     delete!(parent(chain)._chains, chain.idx)
     nothing
+end
+
+function Base.delete!(ct::ChainTable; keep_atoms::Bool = false)
+    keep_atoms ? atoms(ct).chain_idx .= Ref(nothing) : delete!(atoms(ct))
+    delete!(fragments(ct); keep_atoms = keep_atoms)
+    delete!(_table(ct), ct._idx)
+    empty!(ct._idx)
+    ct
 end
 
 """
