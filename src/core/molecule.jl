@@ -159,8 +159,25 @@ Returns the number of molecules in the given system.
 # Supported keyword arguments
 See [`molecules`](@ref)
 """
-function nmolecules(sys::System = default_system(); kwargs...)
+@inline function nmolecules(sys::System = default_system(); kwargs...)
     length(molecules(sys; kwargs...))
+end
+
+"""
+    nmolecules(::MoleculeTable)
+
+Returns the number of molecules in the given table.
+
+# Supported keyword arguments
+See [`molecules`](@ref)
+"""
+@inline function nmolecules(
+    mt::MoleculeTable;
+    variant::Union{Nothing, MoleculeVariantType} = nothing
+)
+    isnothing(variant) ?
+        length(mt) :
+        length(filter(mol -> mol.variant == something(variant), mt))
 end
 
 #=
@@ -261,6 +278,15 @@ See [`molecules`](@ref)
 """
 @inline function nproteins(sys::System = default_system(); kwargs...)
     nmolecules(sys; variant = MoleculeVariant.Protein, kwargs...)
+end
+
+"""
+    nproteins(::MoleculeTable)
+
+Returns the number of [`MoleculeVariant.Protein`](@ref MoleculeVariant) molecules in the given table.
+"""
+@inline function nproteins(mt::MoleculeTable)
+    length(filter(isprotein, mt))
 end
 
 """

@@ -146,10 +146,15 @@ Returns a `ChainTable{T}` containing all chains of the given molecule table.
 end
 
 """
+    nchains(::ChainTable)
     nchains(::MolculeTable)
 
 Returns the number of chains belonging to the given molecule table.
 """
+@inline function nchains(ct::ChainTable)
+    length(ct)
+end
+
 @inline function nchains(mt::MoleculeTable)
     length(chains(mt))
 end

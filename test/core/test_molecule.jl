@@ -99,6 +99,11 @@
         @test length(bonds(mt)) == 1
         @test nbonds(mt) == 1
 
+        # molecules
+        @test nmolecules(mt) == 2
+        @test nmolecules(mt; variant = MoleculeVariant.None) == 1
+        @test nproteins(mt) == 1
+
         # chains
         @test length(chains(mt)) == 0
         @test nchains(mt) == 0
