@@ -306,13 +306,21 @@ end
 
 """
     delete!(::Atom)
+    delete!(::AtomTable)
 
-Removes the given atom and all of its associated bonds from their system.
+Removes the given atom(s) and all associated bonds from the associated system.
 """
 @inline function Base.delete!(atom::Atom)
-    delete!.(bonds(atom))
+    delete!(bonds(atom))
     delete!(parent(atom)._atoms, atom.idx)
     nothing
+end
+
+function Base.delete!(at::AtomTable)
+    delete!(bonds(at))
+    delete!(_table(at), at._idx)
+    empty!(at._idx)
+    at
 end
 
 """

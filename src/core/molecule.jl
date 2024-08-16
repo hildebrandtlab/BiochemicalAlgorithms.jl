@@ -182,18 +182,28 @@ end
 
 """
     delete!(::Molecule)
+    delete!(::MoleculeTable)
 
-Removes the given molecule and all of its associated chains and fragments from their system.
+Removes the given molecule(s) and all associated chains and fragments from the
+associated system.
 
 # Supported keyword arguments
  - `keep_atoms::Bool = false`
    Determines whether associated atoms (and their bonds) are removed as well
 """
 function Base.delete!(mol::Molecule; keep_atoms::Bool = false)
-    keep_atoms ? atoms(mol).molecule_idx .= Ref(nothing) : delete!.(atoms(mol))
-    delete!.(chains(mol); keep_atoms = keep_atoms)
+    keep_atoms ? atoms(mol).molecule_idx .= Ref(nothing) : delete!(atoms(mol))
+    delete!(chains(mol); keep_atoms = keep_atoms)
     delete!(parent(mol)._molecules, mol.idx)
     nothing
+end
+
+function Base.delete!(mt::MoleculeTable; keep_atoms::Bool = false)
+    keep_atoms ? atoms(mt).molecule_idx .= Ref(nothing) : delete!(atoms(mt))
+    delete!(chains(mt); keep_atoms = keep_atoms)
+    delete!(_table(mt), mt._idx)
+    empty!(mt._idx)
+    mt
 end
 
 #=
