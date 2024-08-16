@@ -61,17 +61,35 @@ function Base.push!(
     bt
 end
 
-function Base.delete!(bt::_BondTable, idx::Int)
-    rowno = bt._idx_map[idx]
+@inline function _rebuild_idx_map!(bt::_BondTable)
+    empty!(bt._idx_map)
+    merge!(bt._idx_map, Dict(v => k for (k, v) in enumerate(bt.idx)))
+    bt
+end
+
+function _delete!(bt::_BondTable, rowno::Int)
     deleteat!(bt.idx, rowno)
     deleteat!(bt.a1, rowno)
     deleteat!(bt.a2, rowno)
     deleteat!(bt.order, rowno)
     deleteat!(bt.properties, rowno)
     deleteat!(bt.flags, rowno)
-    empty!(bt._idx_map)
-    merge!(bt._idx_map, Dict(v => k for (k, v) in enumerate(bt.idx)))
-    bt
+    nothing
+end
+
+function Base.delete!(bt::_BondTable, idx::Int)
+    _delete!(bt, bt._idx_map[idx])
+    _rebuild_idx_map!(bt)
+end
+
+function Base.delete!(bt::_BondTable, idx::Vector{Int})
+    rownos = getindex.(Ref(bt._idx_map), idx)
+    unique!(rownos)
+    sort!(rownos; rev = true)
+    for rowno in rownos
+        _delete!(bt, rowno)
+    end
+    _rebuild_idx_map!(bt)
 end
 
 function Base.empty!(bt::_BondTable)

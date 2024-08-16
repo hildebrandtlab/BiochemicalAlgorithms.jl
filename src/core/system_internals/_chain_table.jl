@@ -58,16 +58,34 @@ function Base.push!(
     ct
 end
 
-function Base.delete!(ct::_ChainTable, idx::Int)
-    rowno = ct._idx_map[idx]
+@inline function _rebuild_idx_map!(ct::_ChainTable)
+    empty!(ct._idx_map)
+    merge!(ct._idx_map, Dict(v => k for (k, v) in enumerate(ct.idx)))
+    ct
+end
+
+function _delete!(ct::_ChainTable, rowno::Int)
     deleteat!(ct.idx, rowno)
     deleteat!(ct.name, rowno)
     deleteat!(ct.properties, rowno)
     deleteat!(ct.flags, rowno)
     deleteat!(ct.molecule_idx, rowno)
-    empty!(ct._idx_map)
-    merge!(ct._idx_map, Dict(v => k for (k, v) in enumerate(ct.idx)))
-    ct
+    nothing
+end
+
+function Base.delete!(ct::_ChainTable, idx::Int)
+    _delete!(ct, ct._idx_map[idx])
+    _rebuild_idx_map!(ct)
+end
+
+function Base.delete!(ct::_ChainTable, idx::Vector{Int})
+    rownos = getindex.(Ref(ct._idx_map), idx)
+    unique!(rownos)
+    sort!(rownos; rev = true)
+    for rowno in rownos
+        _delete!(ct, rowno)
+    end
+    _rebuild_idx_map!(ct)
 end
 
 function Base.empty!(ct::_ChainTable)
