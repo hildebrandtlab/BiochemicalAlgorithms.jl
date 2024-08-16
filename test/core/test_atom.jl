@@ -155,6 +155,14 @@
         av = collect(at)
         @test av isa Vector{Atom{T}}
         @test length(av) == 2
+
+        # bonds
+        @test length(bonds(at)) == 0
+        @test nbonds(at) == 0
+
+        Bond(sys, a1.idx, a2.idx, BondOrder.Single)
+        @test length(bonds(at)) == 1
+        @test nbonds(at) == 1
     end
 end
 

@@ -80,6 +80,45 @@
         cv = collect(ct)
         @test cv isa Vector{Chain{T}}
         @test length(cv) == 2
+
+        # atoms
+        @test length(atoms(ct)) == 0
+        @test natoms(ct) == 0
+
+        a1 = Atom(c1, 1, Elements.H)
+        a2 = Atom(c2, 1, Elements.C)
+        @test length(atoms(ct)) == 2
+        @test natoms(ct) == 2
+
+        # bonds
+        @test length(bonds(ct)) == 0
+        @test nbonds(ct) == 0
+
+        Bond(sys, a1.idx, a2.idx, BondOrder.Single)
+        @test length(bonds(ct)) == 1
+        @test nbonds(ct) == 1
+
+        # fragments
+        @test length(fragments(ct)) == 0
+        @test nfragments(ct) == 0
+        @test length(fragments(ct; variant = FragmentVariant.None)) == 0
+        @test nfragments(ct; variant = FragmentVariant.None) == 0
+        @test length(nucleotides(ct)) == 0
+        @test nnucleotides(ct) == 0
+        @test length(residues(ct)) == 0
+        @test nresidues(ct) == 0
+
+        Fragment(c1, 1)
+        Nucleotide(c1, 1)
+        Residue(c2, 1)
+        @test length(fragments(ct)) == 3
+        @test nfragments(ct) == 3
+        @test length(fragments(ct; variant = FragmentVariant.None)) == 1
+        @test nfragments(ct; variant = FragmentVariant.None) == 1
+        @test length(nucleotides(ct)) == 1
+        @test nnucleotides(ct) == 1
+        @test length(residues(ct)) == 1
+        @test nresidues(ct) == 1
     end
 end
 
