@@ -211,5 +211,14 @@ end
         @test lbond.order == bond.order
         @test lbond.properties == bond.properties
         @test lbond.flags == bond.flags
+
+        # delete!
+        @test nbonds(sys) == 3
+
+        bidx = bond.idx
+        @test delete!(bond) === nothing
+        @test nbonds(sys) == 2
+        @test bidx ∉ bonds(sys).idx
+        @test_throws KeyError bond.idx
     end
 end
