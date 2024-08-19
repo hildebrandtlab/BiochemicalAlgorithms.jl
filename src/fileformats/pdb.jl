@@ -135,7 +135,7 @@ function Base.convert(::Type{System{T}}, orig_pdb::MolecularStructure) where {T<
                     :is_hetero_fragment => orig_frag.het_res,
                     :insertion_code => orig_frag.ins_code
                 ]),
-                variant = _fragment_variant(orig_frag.name)
+                variant = _fragment_variant(strip(orig_frag.name))
             )
         end
     end

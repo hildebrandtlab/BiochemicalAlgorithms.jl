@@ -513,7 +513,7 @@ if the fragment is not a [`FragmentVariant.Residue`](@ref FragmentVariant).
     isnothing(frag) || !isresidue(frag) ? nothing : frag
 end
 
-function _fragment_variant(name::String)
+function _fragment_variant(name::AbstractString)
     is_amino_acid(name) && return FragmentVariant.Residue
     is_nucleotide(name) && return FragmentVariant.Nucleotide
     FragmentVariant.None
@@ -540,7 +540,7 @@ end
 end
 
 # TODO: we should come up with a better test than just checking the name
-is_nucleotide(name::String) = name ∈ ["A", "C", "G", "T", "U", "I", "DA", "DC", "DG", "DT", "DU", "DI"]
+is_nucleotide(name::AbstractString) = name ∈ ["A", "C", "G", "T", "U", "I", "DA", "DC", "DG", "DT", "DU", "DI"]
 
 # TODO: these should really be defined in Residue, not Fragment
 @inline function is_n_terminal(frag::Fragment; precomputed=true)
