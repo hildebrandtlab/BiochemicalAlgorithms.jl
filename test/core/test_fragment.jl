@@ -480,6 +480,50 @@ end
         # nfragments
         @test nfragments(sys) isa Int
         @test nfragments(sys) == 3
+
+        # delete!
+        Bond(Atom(frag, 1, Elements.H), Atom(frag, 2, Elements.C), BondOrder.Single)
+        @test natoms(sys) == 2
+        @test nbonds(sys) == 1
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 1
+        @test nfragments(sys) == 3
+        @test nfragments(sys; variant = FragmentVariant.None) == 1
+        @test nnucleotides(sys) == 1
+        @test nresidues(sys) == 1
+
+        @test delete!(frag; keep_atoms = true) === nothing
+        @test natoms(sys) == 2
+        @test nbonds(sys) == 1
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 1
+        @test nfragments(sys) == 2
+        @test nfragments(sys; variant = FragmentVariant.None) == 0
+        @test nnucleotides(sys) == 1
+        @test nresidues(sys) == 1
+        @test_throws KeyError frag.idx
+        @test all(isnothing, atoms(sys).fragment_idx)
+
+        Bond(Atom(nuc, 1, Elements.H), Atom(res, 2, Elements.C), BondOrder.Single)
+        @test natoms(sys) == 4
+        @test nbonds(sys) == 2
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 1
+        @test nfragments(sys) == 2
+        @test nfragments(sys; variant = FragmentVariant.None) == 0
+        @test nnucleotides(sys) == 1
+        @test nresidues(sys) == 1
+
+        @test delete!(nuc; keep_atoms = false) === nothing
+        @test natoms(sys) == 3
+        @test nbonds(sys) == 1
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 1
+        @test nfragments(sys) == 1
+        @test nfragments(sys; variant = FragmentVariant.None) == 0
+        @test nnucleotides(sys) == 0
+        @test nresidues(sys) == 1
+        @test_throws KeyError nuc.idx
     end
 end
 

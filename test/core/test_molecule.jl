@@ -336,6 +336,40 @@ end
         # nmolecules
         @test nmolecules(sys) isa Int
         @test nmolecules(sys) == 2
+
+        # delete!
+        frag = Fragment(Chain(mol), 1)
+        Bond(Atom(frag, 1, Elements.H), Atom(frag, 2, Elements.C), BondOrder.Single)
+        @test natoms(sys) == 2
+        @test nbonds(sys) == 1
+        @test nmolecules(sys) == 2
+        @test nchains(sys) == 1
+        @test nfragments(sys) == 1
+
+        @test delete!(mol; keep_atoms = true) === nothing
+        @test natoms(sys) == 2
+        @test nbonds(sys) == 1
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 0
+        @test nfragments(sys) == 0
+        @test_throws KeyError mol.idx
+        @test all(isnothing, atoms(sys).molecule_idx)
+
+        frag = Fragment(Chain(prot), 1)
+        Bond(Atom(frag, 1, Elements.H), Atom(frag, 2, Elements.C), BondOrder.Single)
+        @test natoms(sys) == 4
+        @test nbonds(sys) == 2
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 1
+        @test nfragments(sys) == 1
+
+        @test delete!(prot; keep_atoms = false) === nothing
+        @test natoms(sys) == 2
+        @test nbonds(sys) == 1
+        @test nmolecules(sys) == 0
+        @test nchains(sys) == 0
+        @test nfragments(sys) == 0
+        @test_throws KeyError prot.idx
     end
 end
 

@@ -433,5 +433,18 @@ end
         )) === sys
         @test length(bonds(atom)) == 2
         @test nbonds(atom) == 2
+
+        # delete!
+        @test natoms(sys) == 13
+        @test nbonds(sys) == 8
+
+        aidx = atom.idx
+        bidx = Set(bonds(atom).idx)
+        @test delete!(atom) === nothing
+        @test natoms(sys) == 12
+        @test nbonds(sys) == 6
+        @test aidx ∉ atoms(sys).idx
+        @test length(bidx ∩ Set(bonds(sys).idx)) == 0
+        @test_throws KeyError atom.idx
     end
 end

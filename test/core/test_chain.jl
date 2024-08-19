@@ -295,5 +295,38 @@ end
         @test bonds(chain) == bonds(sys, chain_idx = chain.idx)
         @test nbonds(chain) == 3
         @test nbonds(chain) == nbonds(sys, chain_idx = chain.idx)
+
+        # delete!
+        @test natoms(sys) == 12
+        @test nbonds(sys) == 3
+        @test nmolecules(sys) == 3
+        @test nchains(sys) == 4
+        @test nfragments(sys) == 3
+
+        aidx = Set(atoms(chain).idx)
+        @test delete!(chain; keep_atoms = true) === nothing
+        @test natoms(sys) == 12
+        @test nbonds(sys) == 3
+        @test nmolecules(sys) == 3
+        @test nchains(sys) == 3
+        @test nfragments(sys) == 0
+        @test_throws KeyError chain.idx
+        @test all(isnothing, filter(a -> a.idx in aidx, atoms(sys)).chain_idx)
+
+        frag = Fragment(chain2, 1)
+        Bond(Atom(frag, 1, Elements.H), Atom(frag, 2, Elements.C), BondOrder.Single)
+        @test natoms(sys) == 14
+        @test nbonds(sys) == 4
+        @test nmolecules(sys) == 3
+        @test nchains(sys) == 3
+        @test nfragments(sys) == 1
+
+        @test delete!(chain2; keep_atoms = false) === nothing
+        @test natoms(sys) == 12
+        @test nbonds(sys) == 3
+        @test nmolecules(sys) == 3
+        @test nchains(sys) == 2
+        @test nfragments(sys) == 0
+        @test_throws KeyError chain2.idx
     end
 end
