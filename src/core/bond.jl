@@ -28,7 +28,7 @@ Mutable representation of an individual bond in a system.
 # Constructors
 ```julia
 Bond(
-    sys::System{T},
+    ac::AbstractAtomContainer{T} = default_system(),
     a1::Int,
     a2::Int,
     order::BondOrderType;
@@ -37,19 +37,19 @@ Bond(
     flags::Flags = Flags()
 )
 ```
-Creates a new `Bond{T}` in the given system.
+Creates a new `Bond{T}` in the given (atom container's) system.
 
 ```julia
 Bond(
-    a1::Int,
-    a2::Int,
+    a1::Atom{T},
+    a2::Atom{T},
     order::BondOrderType;
     # keyword arguments
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )
 ```
-Creates a new `Bond{Float32}` in the default system.
+Creates a new `Bond{T}` for the given atoms. Both atoms must belong to the same system.
 """
 const Bond{T} = AtomContainer{T, :Bond}
 
@@ -82,6 +82,16 @@ end
     kwargs...
 )
     Bond(parent(ac), a1, a2, order; kwargs...)
+end
+
+@inline function Bond(
+    a1::Atom{T},
+    a2::Atom{T},
+    order::BondOrderType;
+    kwargs...
+) where T
+    @assert parent(a1) === parent(a2) "given atoms must belong to the same system to form a bond"
+    Bond(parent(a1), a1.idx, a2.idx, order; kwargs...)
 end
 
 """

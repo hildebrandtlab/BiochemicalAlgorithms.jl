@@ -39,8 +39,8 @@ include("core/system.jl")
 
 # system components
 include("core/system_component_table.jl")
-include("core/bond.jl")
 include("core/atom.jl")
+include("core/bond.jl")
 include("core/molecule.jl")
 include("core/chain.jl")
 include("core/fragment.jl")
