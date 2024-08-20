@@ -183,6 +183,7 @@ end
 """
     delete!(::Molecule)
     delete!(::MoleculeTable)
+    delete!(::MoleculeTable, idx::Int)
 
 Removes the given molecule(s) and all associated chains and fragments from the
 associated system.
@@ -203,6 +204,13 @@ function Base.delete!(mt::MoleculeTable; keep_atoms::Bool = false)
     delete!(chains(mt); keep_atoms = keep_atoms)
     delete!(_table(mt), mt._idx)
     empty!(mt._idx)
+    mt
+end
+
+function Base.delete!(mt::MoleculeTable, idx::Int; kwargs...)
+    idx in mt._idx || throw(KeyError(idx))
+    delete!(molecule_by_idx(mt._sys, idx); kwargs...)
+    deleteat!(mt._idx, findall(i -> i == idx, mt._idx))
     mt
 end
 
