@@ -307,6 +307,7 @@ end
 """
     delete!(::Atom)
     delete!(::AtomTable)
+    delete!(::AtomTable, idx::Int)
 
 Removes the given atom(s) and all associated bonds from the associated system.
 """
@@ -320,6 +321,13 @@ function Base.delete!(at::AtomTable)
     delete!(bonds(at))
     delete!(_table(at), at._idx)
     empty!(at._idx)
+    at
+end
+
+function Base.delete!(at::AtomTable, idx::Int)
+    idx in at._idx || throw(KeyError(idx))
+    delete!(atom_by_idx(at._sys, idx))
+    deleteat!(at._idx, findall(i -> i == idx, at._idx))
     at
 end
 

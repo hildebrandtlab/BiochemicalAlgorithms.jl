@@ -241,6 +241,7 @@ end
 """
     delete!(::Fragment)
     delete!(::FragmentTable)
+    delete!(::FragmentTable, idx::Int)
 
 Removes the given fragment(s) from the associated system.
 
@@ -258,6 +259,13 @@ function Base.delete!(ft::FragmentTable; keep_atoms::Bool = false)
     keep_atoms ? atoms(ft).fragment_idx .= Ref(nothing) : delete!(atoms(ft))
     delete!(_table(ft), ft._idx)
     empty!(ft._idx)
+    ft
+end
+
+function Base.delete!(ft::FragmentTable, idx::Int; kwargs...)
+    idx in ft._idx || throw(KeyError(idx))
+    delete!(fragment_by_idx(ft._sys, idx); kwargs...)
+    deleteat!(ft._idx, findall(i -> i == idx, ft._idx))
     ft
 end
 

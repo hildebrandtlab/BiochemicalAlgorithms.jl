@@ -162,6 +162,7 @@ end
 """
     delete!(::Chain)
     delete!(::ChainTable)
+    delete!(::ChainTable, idx::Int)
 
 Removes the given chain(s) and all associated fragments from the associated system.
 
@@ -181,6 +182,13 @@ function Base.delete!(ct::ChainTable; keep_atoms::Bool = false)
     delete!(fragments(ct); keep_atoms = keep_atoms)
     delete!(_table(ct), ct._idx)
     empty!(ct._idx)
+    ct
+end
+
+function Base.delete!(ct::ChainTable, idx::Int; kwargs...)
+    idx in ct._idx || throw(KeyError(idx))
+    delete!(chain_by_idx(ct._sys, idx); kwargs...)
+    deleteat!(ct._idx, findall(i -> i == idx, ct._idx))
     ct
 end
 
