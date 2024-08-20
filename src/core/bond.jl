@@ -201,6 +201,7 @@ end
 """
     delete!(::Bond)
     delete!(::BondTable)
+    delete!(::BondTable, idx::Int)
 
 Removes the given bond(s) from the associated system.
 """
@@ -212,6 +213,13 @@ end
 function Base.delete!(bt::BondTable)
     delete!(_table(bt), bt._idx)
     empty!(bt._idx)
+    bt
+end
+
+function Base.delete!(bt::BondTable, idx::Int)
+    idx in bt._idx || throw(KeyError(idx))
+    delete!(bond_by_idx(bt._sys, idx))
+    deleteat!(bt._idx, findall(i -> i == idx, bt._idx))
     bt
 end
 
