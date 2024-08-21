@@ -1,7 +1,7 @@
 # All on Handling molecules
 
 
-# How can I create a simple molecule?
+## How can I create a simple molecule?
 
 ``` julia
 # create a system first
@@ -31,7 +31,7 @@ println("Number of bonds: ", nbonds(h2o))
     Number of atoms: 3
     Number of bonds: 2
 
-# How can I determine the element of an atom (C, N, …)?
+## How can I determine the element of an atom (C, N, …)?
 
 ``` julia
 sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
@@ -80,7 +80,7 @@ end
     Atom no.: 15, element: C
     Atom no.: 20, element: C
 
-# How can I identify backbone atoms?
+## How can I identify backbone atoms?
 
 ``` julia
 sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
@@ -117,7 +117,7 @@ end
     O <-- This is a backbone atom!
     O
 
-# How can I get the one-letter code out of a pdb file?
+## How can I get the one-letter code out of a pdb file?
 
 ``` julia
 sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
@@ -134,7 +134,7 @@ end
     > Chain I
     RPDFCLEPPYTGPCKARIIRYFYNAKAGLCQTFVYGGCRAKRNNFKSAEDCMRTCGGA
 
-# How can I pick one single chain out of a system containing several chains?
+## How can I pick one single chain out of a system containing several chains?
 
 This is often needed when a receptor and a ligand are co-complexed and you want to treat them separately.
 
@@ -158,7 +158,7 @@ write_pdb("2ptc_chainE.pdb", all_chains[1])
 write_pdb("2ptc_chainI.pdb", all_chains[2])
 ```
 
-# How can I map two configurations of the same protein onto each other?
+## How can I map two configurations of the same protein onto each other?
 
 ``` julia
 # read in the first protein
