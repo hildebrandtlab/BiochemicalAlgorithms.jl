@@ -3,7 +3,7 @@
 
 When working with molecular entities, we want to run over all atoms of a system, over all chains, etc. In this tutorial we will learn how this can be done.
 
-# Molecular systems
+## Molecular systems
 
 In `BiochemicalAlgorithms.jl` atoms and bonds are existing inside a `System`. Typically, molecular data is stored in molecular data formats such as PDB. The latter can be directly read into a system.
 
@@ -85,7 +85,7 @@ natoms(sys)
 
 Similar functions exist for other system components, including bonds, molecules, chains, and fragments.
 
-# How can I iterate over all atoms of a system?
+## How can I iterate over all atoms of a system?
 
 We can just as easily iterate over all atoms:
 
@@ -103,7 +103,7 @@ for atom_name in atoms(sys).name
 end
 ```
 
-# How can I iterate over specific atoms?
+## How can I iterate over specific atoms?
 
 In many scenarios, we only want to iterate over a subset of atoms fulfilling a specific criteria. For example, here we only want to get the positions of the $C_\alpha$ atoms:
 
@@ -171,7 +171,7 @@ for atom in filter(atom -> atom.name == "CA", atoms(chainE))
 end
 ```
 
-# How can I iterate over all bonds of a system?
+## How can I iterate over all bonds of a system?
 
 Bonds are not explicitely stored in the PDB format but are rather inferred after reading the data into a system using the fragment database `FragmentDB`:
 
@@ -208,7 +208,7 @@ for bond in bonds(sys)
 end
 ```
 
-# How can I iterate over all fragments/residues/nucleotides of a system?
+## How can I iterate over all fragments/residues/nucleotides of a system?
 
 Chains usually contain fragments, e. g., residues or nucleotides and can either be queried collectively…
 
