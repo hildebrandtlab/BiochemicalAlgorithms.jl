@@ -1,4 +1,4 @@
-# Model
+# Biomolecular systems
 ```@meta
 CurrentModule = BiochemicalAlgorithms
 ```

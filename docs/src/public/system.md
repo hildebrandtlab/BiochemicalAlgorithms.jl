@@ -1,28 +1,10 @@
-# System representation
+# Biomolecular systems
 ```@meta
 CurrentModule = BiochemicalAlgorithms
 ```
 
 ```@index
 Pages = ["system.md"]
-```
-
-## Abstract types
-```@docs
-AbstractColumnTable
-AbstractSystemComponentTable
-AbstractSystemComponent
-AbstractAtomContainer
-```
-
-## Common functions
-```@docs
-has_property
-get_property
-set_property!
-has_flag
-set_flag!
-unset_flag!
 ```
 
 ## Systems
@@ -32,6 +14,21 @@ default_system
 parent_system
 Base.parent(::System)
 Base.empty!(::System)
+```
+
+## System components
+```@docs
+AbstractAtomContainer
+AbstractColumnTable
+AbstractSystemComponent
+AbstractSystemComponentTable
+SystemComponentTable
+get_property
+has_flag
+has_property
+set_flag!
+set_property!
+unset_flag!
 ```
 
 ## Atoms
@@ -62,10 +59,14 @@ Base.push!(::System{T}, ::Bond{T}) where T
 
 ## Molecules
 ```@docs
-Molecule
-MoleculeTable
 MoleculeVariant
 MoleculeVariantType
+```
+
+### Molecules (all variants)
+```@docs
+Molecule
+MoleculeTable
 molecule_by_idx
 molecules
 nmolecules
@@ -74,7 +75,7 @@ Base.delete!(::Molecule)
 Base.push!(::System{T}, ::Molecule{T}) where T
 ```
 
-### Proteins (molecule variant)
+### Proteins (`MoleculeVariant.Protein`)
 ```@docs
 Protein
 isprotein
@@ -98,10 +99,14 @@ Base.push!(::Molecule{T}, ::Chain{T}) where T
 
 ## Fragments
 ```@docs
-Fragment
-FragmentTable
 FragmentVariant
 FragmentVariantType
+```
+
+### Fragments (all variants)
+```@docs
+Fragment
+FragmentTable
 fragment_by_idx
 fragments
 nfragments
@@ -110,7 +115,7 @@ Base.delete!(::Fragment)
 Base.push!(::Chain{T}, ::Fragment{T}) where T
 ```
 
-### Nucleotides (fragment variant)
+### Nucleotides (`FragmentVariant.Nucleotide`)
 ```@docs
 Nucleotide
 isnucleotide
@@ -120,7 +125,7 @@ nucleotides
 parent_nucleotide
 ```
 
-### Residues (fragment variant)
+### Nucleotides (`FragmentVariant.Residue`)
 ```@docs
 Residue
 isresidue

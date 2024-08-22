@@ -23,6 +23,12 @@ end
 @inline _table(at::AbstractSystemComponentTable) = at
 @inline _hascolumn(::AbstractSystemComponentTable, ::Symbol) = false
 
+"""
+    struct SystemComponentTable{T, C <: AbstractSystemComponent{T}} <: AbstractSystemComponentTable{T}
+
+Tables.jl-compatible system component table for a specific `System{T}` and system component `C` (e.g.,
+`Atom{T}`, `Bond{T}`, etc.).
+"""
 @auto_hash_equals struct SystemComponentTable{T, C <: AbstractSystemComponent{T}} <: AbstractSystemComponentTable{T}
     _sys::System{T}
     _idx::Vector{Int}
