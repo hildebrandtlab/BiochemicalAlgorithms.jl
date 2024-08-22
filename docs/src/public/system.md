@@ -27,6 +27,7 @@ SystemComponentTableCol
 get_property
 has_flag
 has_property
+revalidate_indices!
 set_flag!
 set_property!
 unset_flag!

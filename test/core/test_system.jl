@@ -28,7 +28,7 @@
         @test nnucleotides(sys) == 0
         @test nresidues(sys) == 0
 
-        # delete! atoms
+        # delete! atoms + revalidate_indices!
         sys = deepcopy(testsys)
         at  = atoms(sys)[100:2:200]
         aidx = Set(at.idx)
@@ -39,6 +39,9 @@
         @test nbonds(sys) == 3712
         @test length(aidx ∩ Set(atoms(sys).idx)) == 0
         @test length(bidx ∩ Set(bonds(sys).idx)) == 0
+
+        stale_table = atoms(sys)
+        stale_col   = stale_table.idx
 
         at = atoms(sys)
         atom = first(at)
@@ -52,12 +55,19 @@
         @test aidx ∉ atoms(sys).idx
         @test length(bidx ∩ Set(bonds(sys).idx)) == 0
 
+        @test_throws KeyError first(stale_table.idx)
+        @test_throws KeyError first(stale_col)
+        @test revalidate_indices!(stale_table) === stale_table
+        @test revalidate_indices!(stale_col) === stale_col
+        @test length(stale_table) == 3738
+        @test length(stale_col) == 3738
+
         @test delete!(at) === at
         @test natoms(sys) == 0
         @test length(at) == 0
         @test nbonds(sys) == 0
 
-        # delete! bonds
+        # delete! bonds + revalidate_indices!
         sys = deepcopy(testsys)
         bt  = bonds(sys)[100:2:200]
         bidx = Set(bt.idx)
@@ -65,6 +75,9 @@
         @test length(bt) == 0
         @test nbonds(sys) == 3788
         @test length(bidx ∩ Set(bonds(sys).idx)) == 0
+
+        stale_table = bonds(sys)
+        stale_col   = stale_table.idx
 
         bt = bonds(sys)
         bidx = first(bt.idx)
@@ -74,11 +87,18 @@
         @test nbonds(sys) == 3787
         @test bidx ∉ bonds(sys).idx
 
+        @test_throws KeyError first(stale_table.idx)
+        @test_throws KeyError first(stale_col)
+        @test revalidate_indices!(stale_table) === stale_table
+        @test revalidate_indices!(stale_col) === stale_col
+        @test length(stale_table) == 3787
+        @test length(stale_col) == 3787
+
         @test delete!(bt) === bt
         @test length(bt) == 0
         @test nbonds(sys) == 0
 
-        # delete! molecules
+        # delete! molecules + revalidate_indices!
         sys = deepcopy(testsys)
         mt = molecules(sys)
         @test_throws KeyError delete!(mt, -1)
@@ -104,6 +124,9 @@
 
         sys = deepcopy(testsys)
         mt = molecules(sys)
+        stale_table = molecules(sys)
+        stale_col   = stale_table.idx
+
         @test_throws KeyError delete!(mt, -1)
         @test delete!(mt, first(mt.idx); keep_atoms = false) === mt
         @test length(mt) == 0
@@ -112,6 +135,13 @@
         @test nmolecules(sys) == 0
         @test nchains(sys) == 0
         @test nfragments(sys) == 0
+
+        @test_throws KeyError first(stale_table.idx)
+        @test_throws KeyError first(stale_col)
+        @test revalidate_indices!(stale_table) === stale_table
+        @test revalidate_indices!(stale_col) === stale_col
+        @test length(stale_table) == 0
+        @test length(stale_col) == 0
 
         sys = deepcopy(testsys)
         mt = molecules(sys)
@@ -123,7 +153,7 @@
         @test nchains(sys) == 0
         @test nfragments(sys) == 0
 
-        # delete! chains
+        # delete! chains + revalidate_indices!
         sys = deepcopy(testsys)
         ct = chains(sys)[1:2]
         @test delete!(ct; keep_atoms = true) === ct
@@ -145,6 +175,9 @@
         @test nfragments(sys) == 0
 
         sys = deepcopy(testsys)
+        stale_table = chains(sys)
+        stale_col   = stale_table.idx
+
         ct = chains(sys)
         @test_throws KeyError delete!(ct, -1)
         @test delete!(ct, first(ct.idx); keep_atoms = true) === ct
@@ -156,6 +189,13 @@
         @test nchains(sys) == 2
         @test nfragments(sys) == 30
 
+        @test_throws KeyError first(stale_table.idx)
+        @test_throws KeyError first(stale_col)
+        @test revalidate_indices!(stale_table) === stale_table
+        @test revalidate_indices!(stale_col) === stale_col
+        @test length(stale_table) == 2
+        @test length(stale_col) == 2
+
         @test delete!(ct, first(ct.idx); keep_atoms = false) === ct
         @test length(ct) == 1
         @test natoms(sys) == 3381
@@ -164,7 +204,7 @@
         @test nchains(sys) == 1
         @test nfragments(sys) == 13
 
-        # delete! fragments
+        # delete! fragments + revalidate_indices!
         sys = deepcopy(testsys)
         ft = fragments(sys)[1:2:end]
         @test delete!(ft; keep_atoms = true) === ft
@@ -186,6 +226,9 @@
         @test nfragments(sys) == 0
 
         sys = deepcopy(testsys)
+        stale_table = fragments(sys)
+        stale_col   = stale_table.idx
+
         ft = fragments(sys)
         @test_throws KeyError delete!(ft, -1)
         @test delete!(ft, first(ft.idx); keep_atoms = true) === ft
@@ -196,6 +239,13 @@
         @test nmolecules(sys) == 1
         @test nchains(sys) == 3
         @test nfragments(sys) == 221
+
+        @test_throws KeyError first(stale_table.idx)
+        @test_throws KeyError first(stale_col)
+        @test revalidate_indices!(stale_table) === stale_table
+        @test revalidate_indices!(stale_col) === stale_col
+        @test length(stale_table) == 221
+        @test length(stale_col) == 221
 
         @test delete!(ft, first(ft.idx); keep_atoms = false) === ft
         @test length(ft) == 220
