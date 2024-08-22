@@ -53,7 +53,7 @@ Single columns can be directly accessed by their name:
 atoms(sys).name
 ```
 
-    23-element BiochemicalAlgorithms._RowProjectionVector{String}:
+    23-element SystemComponentTableCol{String}:
      "N"
      "CA"
      "C"
