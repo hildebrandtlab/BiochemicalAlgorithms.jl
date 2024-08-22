@@ -1,6 +1,7 @@
 export
     AbstractSystemComponentTable,
-    SystemComponentTable
+    SystemComponentTable,
+    SystemComponentTableCol
 
 """
     $(TYPEDEF)
@@ -41,15 +42,6 @@ end
     C(ct._sys, idx)
 end
 
-@inline function Tables.getcolumn(ct::SystemComponentTable, nm::Symbol)
-    col = Tables.getcolumn(_table(ct), nm)
-    _RowProjectionVector{eltype(col)}(
-        col,
-        ct._idx,
-        _table(ct)._idx_map
-    )
-end
-
 @inline Tables.columnnames(ct::SystemComponentTable) = Tables.columnnames(_table(ct))
 @inline Tables.schema(ct::SystemComponentTable) = Tables.schema(_table(ct))
 
@@ -73,3 +65,39 @@ end
 end
 
 @inline _row_by_idx(ct::SystemComponentTable, idx::Int) = _row_by_idx(_table(ct), idx)
+
+"""
+    struct SystemComponentTableCol{T} <: AbstractArray{T, 1}
+
+`Vector`-like representation of a single `SystemComponentTable` column.
+"""
+struct SystemComponentTableCol{T} <: AbstractArray{T, 1}
+    _base::Vector{T}
+    _idx::Vector{Int}
+    _idx_map::Dict{Int, Int}
+end
+
+@inline function Base.eltype(M::SystemComponentTableCol)
+    eltype(M._base)
+end
+
+@inline function Base.size(M::SystemComponentTableCol)
+    (length(M._idx),)
+end
+
+@inline function Base.getindex(M::SystemComponentTableCol, i::Int)
+    getindex(M._base, getindex(M._idx_map, getindex(M._idx, i)))
+end
+
+@inline function Base.setindex!(M::SystemComponentTableCol{T}, v::T, i::Int) where T
+    setindex!(M._base, v, getindex(M._idx_map, getindex(M._idx, i)))
+end
+
+@inline function Tables.getcolumn(ct::SystemComponentTable, nm::Symbol)
+    col = Tables.getcolumn(_table(ct), nm)
+    SystemComponentTableCol{eltype(col)}(
+        col,
+        ct._idx,
+        _table(ct)._idx_map
+    )
+end

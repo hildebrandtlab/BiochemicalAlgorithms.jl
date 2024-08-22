@@ -23,6 +23,7 @@ AbstractColumnTable
 AbstractSystemComponent
 AbstractSystemComponentTable
 SystemComponentTable
+SystemComponentTableCol
 get_property
 has_flag
 has_property
