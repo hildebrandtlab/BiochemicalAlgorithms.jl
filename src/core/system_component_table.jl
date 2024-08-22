@@ -1,7 +1,8 @@
 export
     AbstractSystemComponentTable,
     SystemComponentTable,
-    SystemComponentTableCol
+    SystemComponentTableCol,
+    revalidate_indices!
 
 """
     $(TYPEDEF)
@@ -100,4 +101,24 @@ end
         ct._idx,
         _table(ct)._idx_map
     )
+end
+
+"""
+    revalidate_indices!(::SystemComponentTable)
+    revalidate_indices!(::SystemComponentTableCol)
+
+Removes remnants of previously removed system components from the given table or table column.
+"""
+function revalidate_indices!(ct::SystemComponentTable)
+    common_idx = ct._idx ∩ keys(_table(ct)._idx_map)
+    empty!(ct._idx)
+    append!(ct._idx, common_idx)
+    ct
+end
+
+function revalidate_indices!(rv::SystemComponentTableCol)
+    common_idx = rv._idx ∩ keys(rv._idx_map)
+    empty!(rv._idx)
+    append!(rv._idx, common_idx)
+    rv
 end
