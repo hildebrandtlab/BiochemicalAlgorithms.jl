@@ -12,11 +12,11 @@ const pages = Any[
         "handle molecules" =>"tutorials/handle_molecules.md"
     ],
     "Library" => Any[
-        "System representation" => "public/system.md",
+        "Biomolecular systems" => "public/system.md",
         "Force fields" => "public/forcefields.md",
         "Mappings" => "public/mappings.md",
         "Internals" => Any[
-            "System representation" => "private/system.md"
+            "Biomolecular systems" => "private/system.md"
             "Mappings" => "private/mappings.md"
         ]
     ]
