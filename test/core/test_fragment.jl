@@ -5,6 +5,7 @@
         sys = System{T}()
         mol = Molecule(sys)
         chain = Chain(mol)
+        ss = SecondaryStructure(chain, 1, SecondaryStructureElement.Helix; name="H1")
 
         f1 = Fragment(chain, 1;
             name = "my fragment",
@@ -15,6 +16,18 @@
             name = "my nucleotide"
         )
         r1 = Residue(chain, 3;
+            name = "my residue"
+        )
+
+        f2 = Fragment(ss, 4;
+        name = "my fragment",
+        properties = Properties(:first => 'a', :second => "b"),
+            flags = Flags([:third])
+        )
+        n2 = Nucleotide(ss, 5;
+            name = "my nucleotide"
+        )
+        r2 = Residue(ss, 6;
             name = "my residue"
         )
 
@@ -49,55 +62,81 @@
         @test !isnothing(Tables.rows(ft))
 
         # AbstractArray interface
-        @test size(ft) == (3, 3)
-        @test length(ft) == 3
+        @test size(ft) == (6, 3)
+        @test length(ft) == 6
         @test eltype(ft) == Fragment{T}
-        @test keys(ft) == [1, 2, 3]
+        @test keys(ft) == [1, 2, 3, 4, 5, 6]
 
         # getproperty
         @test ft._sys === sys
-        @test ft._idx == [f1.idx, n1.idx, r1.idx]
+        @test ft._idx == [f1.idx, n1.idx, r1.idx,
+                          f2.idx, n2.idx, r2.idx]
 
         @test ft.idx isa AbstractVector{Int}
-        @test ft.idx == [f1.idx, n1.idx, r1.idx]
+        @test ft.idx == [f1.idx, n1.idx, r1.idx,
+                         f2.idx, n2.idx, r2.idx]
         @test ft.number isa AbstractVector{Int}
-        @test ft.number == [f1.number, n1.number, r1.number]
+        @test ft.number == [f1.number, n1.number, r1.number,
+                            f2.number, n2.number, r2.number]
         @test ft.name isa AbstractVector{String}
-        @test ft.name == [f1.name, n1.name, r1.name]
+        @test ft.name == [f1.name, n1.name, r1.name,
+                          f2.name, n2.name, r2.name]
 
         @test ft.properties isa AbstractVector{Properties}
-        @test ft.properties == [f1.properties, n1.properties, r1.properties]
+        @test ft.properties == [f1.properties, n1.properties, r1.properties,
+                                f2.properties, n2.properties, r2.properties]
         @test ft.flags isa AbstractVector{Flags}
-        @test ft.flags == [f1.flags, n1.flags, r1.flags]
+        @test ft.flags == [f1.flags, n1.flags, r1.flags,
+                           f2.flags, n2.flags, r2.flags]
         @test ft.variant isa AbstractVector{FragmentVariantType}
-        @test ft.variant == [f1.variant, n1.variant, r1.variant]
+        @test ft.variant == [f1.variant, n1.variant, r1.variant,
+                             f2.variant, n2.variant, r2.variant]
         @test ft.molecule_idx isa AbstractVector{Int}
-        @test ft.molecule_idx == [f1.molecule_idx, n1.molecule_idx, r1.molecule_idx]
+        @test ft.molecule_idx == [f1.molecule_idx, n1.molecule_idx, r1.molecule_idx,
+                                  f2.molecule_idx, n2.molecule_idx, r2.molecule_idx]
         @test ft.chain_idx isa AbstractVector{Int}
-        @test ft.chain_idx == [f1.chain_idx, n1.chain_idx, r1.chain_idx]
+        @test ft.chain_idx == [f1.chain_idx, n1.chain_idx, r1.chain_idx,
+                               f2.chain_idx, n2.chain_idx, r2.chain_idx]
+        @test ft.secondary_structure_idx isa AbstractVector{MaybeInt}
+        @test ft.secondary_structure_idx == 
+            [f1.secondary_structure_idx, n1.secondary_structure_idx, r1.secondary_structure_idx,
+             f2.secondary_structure_idx, n2.secondary_structure_idx, r2.secondary_structure_idx]
+                        
 
         # Tables.getcolumn
         @test Tables.getcolumn(ft, :idx) isa AbstractVector{Int}
         @test Tables.getcolumn(ft, 1) isa AbstractVector{Int}
-        @test Tables.getcolumn(ft, :idx) == Tables.getcolumn(ft, 1) == [f1.idx, n1.idx, r1.idx]
+        @test Tables.getcolumn(ft, :idx) == Tables.getcolumn(ft, 1) == [f1.idx, n1.idx, r1.idx,
+                                                                        f2.idx, n2.idx, r2.idx]
         @test Tables.getcolumn(ft, :number) isa AbstractVector{Int}
         @test Tables.getcolumn(ft, 2) isa AbstractVector{Int}
-        @test Tables.getcolumn(ft, :number) == Tables.getcolumn(ft, 2) == [f1.number, n1.number, r1.number]
+        @test Tables.getcolumn(ft, :number) == Tables.getcolumn(ft, 2) == [f1.number, n1.number, r1.number,
+                                                                           f2.number, n2.number, r2.number]
         @test Tables.getcolumn(ft, :name) isa AbstractVector{String}
         @test Tables.getcolumn(ft, 3) isa AbstractVector{String}
-        @test Tables.getcolumn(ft, :name) == Tables.getcolumn(ft, 3) == [f1.name, n1.name, r1.name]
+        @test Tables.getcolumn(ft, :name) == Tables.getcolumn(ft, 3) == [f1.name, n1.name, r1.name,
+                                                                         f2.name, n2.name, r2.name]
 
         @test Tables.getcolumn(ft, :properties) isa AbstractVector{Properties}
-        @test Tables.getcolumn(ft, :properties) == [f1.properties, n1.properties, r1.properties]
+        @test Tables.getcolumn(ft, :properties) == [f1.properties, n1.properties, r1.properties,
+                                                    f2.properties, n2.properties, r2.properties]
         @test Tables.getcolumn(ft, :flags) isa AbstractVector{Flags}
-        @test Tables.getcolumn(ft, :flags) == [f1.flags, n1.flags, r1.flags]
+        @test Tables.getcolumn(ft, :flags) == [f1.flags, n1.flags, r1.flags,
+                                               f2.flags, n2.flags, r2.flags]
         @test Tables.getcolumn(ft, :variant) isa AbstractVector{FragmentVariantType}
-        @test Tables.getcolumn(ft, :variant) == [f1.variant, n1.variant, r1.variant]
+        @test Tables.getcolumn(ft, :variant) == [f1.variant, n1.variant, r1.variant,
+                                                 f2.variant, n2.variant, r2.variant]
         @test Tables.getcolumn(ft, :molecule_idx) isa AbstractVector{Int}
-        @test Tables.getcolumn(ft, :molecule_idx) == [f1.molecule_idx, n1.molecule_idx, r1.molecule_idx]
+        @test Tables.getcolumn(ft, :molecule_idx) == [f1.molecule_idx, n1.molecule_idx, r1.molecule_idx,
+                                                      f2.molecule_idx, n2.molecule_idx, r2.molecule_idx]
         @test Tables.getcolumn(ft, :chain_idx) isa AbstractVector{Int}
-        @test Tables.getcolumn(ft, :chain_idx) == [f1.chain_idx, n1.chain_idx, r1.chain_idx]
-
+        @test Tables.getcolumn(ft, :chain_idx) == [f1.chain_idx, n1.chain_idx, r1.chain_idx,
+                                                   f2.chain_idx, n2.chain_idx, r2.chain_idx]
+        @test Tables.getcolumn(ft, :secondary_structure_idx) isa AbstractVector{MaybeInt}
+        @test Tables.getcolumn(ft, :secondary_structure_idx) == 
+            [f1.secondary_structure_idx, n1.secondary_structure_idx, r1.secondary_structure_idx,
+             f2.secondary_structure_idx, n2.secondary_structure_idx, r2.secondary_structure_idx]
+        
         # setproperty!
         @test_throws ErrorException ft.idx = [999, 998, 997]
         @test_throws ErrorException ft.number = [996, 995, 994]
@@ -108,13 +147,17 @@
         @test_throws ErrorException ft.variant = [FragmentVariant.Residue, FragmentVariant.Residue, FragmentVariant.Residue]
         @test_throws ErrorException ft.molecule_idx = [993, 992, 991]
         @test_throws ErrorException ft.chain_idx = [990, 989, 988]
+        @test_throws ErrorException ft.secondary_structure_idx = [987, 986, 985]
 
         # getindex
         @test ft[1] === f1
         @test ft[2] === n1
         @test ft[3] === r1
+        @test ft[4] === f2
+        @test ft[5] === n2
+        @test ft[6] === r2
         @test_throws BoundsError ft[0]
-        @test_throws BoundsError ft[4]
+        @test_throws BoundsError ft[7]
 
         # filter
         @test filter(_ -> true, ft) == ft
@@ -123,7 +166,7 @@
         # collect
         fv = collect(ft)
         @test fv isa Vector{Fragment{T}}
-        @test length(fv) == 3
+        @test length(fv) == 6
 
         # atoms
         @test length(atoms(ft)) == 0
@@ -145,10 +188,10 @@
         @test nbonds(ft) == 2
 
         # fragments
-        @test nfragments(ft) == 3
-        @test nfragments(ft; variant = FragmentVariant.None) == 1
-        @test nnucleotides(ft) == 1
-        @test nresidues(ft) == 1
+        @test nfragments(ft) == 6
+        @test nfragments(ft; variant = FragmentVariant.None) == 2
+        @test nnucleotides(ft) == 2
+        @test nresidues(ft) == 2
     end
 end
 
@@ -477,11 +520,16 @@ end
     for T in [Float32, Float64]
         sys = System{T}()
         chain = Chain(Molecule(sys))
+        ss = SecondaryStructure(chain, 1, SecondaryStructureElement.Helix; name="H1")
 
         # constructors + parent
         frag = Fragment(chain, 1)
         nuc = Nucleotide(chain, 2)
         res = Residue(chain, 3)
+
+        frag2 = Fragment(ss, 4)
+        nuc2 = Nucleotide(ss, 5)
+        res2 = Residue(ss, 6)
 
         # fragment_by_idx
         @test_throws KeyError fragment_by_idx(sys, -1)
@@ -491,16 +539,22 @@ end
         @test fragment_by_idx(sys, nuc.idx) == nuc
         @test fragment_by_idx(sys, res.idx) isa Fragment{T}
         @test fragment_by_idx(sys, res.idx) == res
+        @test fragment_by_idx(sys, frag2.idx) isa Fragment{T}
+        @test fragment_by_idx(sys, frag2.idx) == frag2
+        @test fragment_by_idx(sys, nuc2.idx) isa Fragment{T}
+        @test fragment_by_idx(sys, nuc2.idx) == nuc2
+        @test fragment_by_idx(sys, res2.idx) isa Fragment{T}
+        @test fragment_by_idx(sys, res2.idx) == res2
 
         # fragments
         ft = fragments(sys)
         @test ft isa FragmentTable{T}
-        @test length(ft) == 3
-        @test length(fragments(sys)) == 3
+        @test length(ft) == 6
+        @test length(fragments(sys)) == 6
 
         # nfragments
         @test nfragments(sys) isa Int
-        @test nfragments(sys) == 3
+        @test nfragments(sys) == 6
 
         # delete!
         Bond(Atom(frag, 1, Elements.H), Atom(frag, 2, Elements.C), BondOrder.Single)
@@ -508,20 +562,22 @@ end
         @test nbonds(sys) == 1
         @test nmolecules(sys) == 1
         @test nchains(sys) == 1
-        @test nfragments(sys) == 3
-        @test nfragments(sys; variant = FragmentVariant.None) == 1
-        @test nnucleotides(sys) == 1
-        @test nresidues(sys) == 1
+        @test nsecondary_structures(sys) == 1
+        @test nfragments(sys) == 6
+        @test nfragments(sys; variant = FragmentVariant.None) == 2
+        @test nnucleotides(sys) == 2
+        @test nresidues(sys) == 2
 
         @test delete!(frag; keep_atoms = true) === nothing
         @test natoms(sys) == 2
         @test nbonds(sys) == 1
         @test nmolecules(sys) == 1
         @test nchains(sys) == 1
-        @test nfragments(sys) == 2
-        @test nfragments(sys; variant = FragmentVariant.None) == 0
-        @test nnucleotides(sys) == 1
-        @test nresidues(sys) == 1
+        @test nsecondary_structures(sys) == 1
+        @test nfragments(sys) == 5
+        @test nfragments(sys; variant = FragmentVariant.None) == 1
+        @test nnucleotides(sys) == 2
+        @test nresidues(sys) == 2
         @test_throws KeyError frag.idx
         @test all(isnothing, atoms(sys).fragment_idx)
 
@@ -530,20 +586,22 @@ end
         @test nbonds(sys) == 2
         @test nmolecules(sys) == 1
         @test nchains(sys) == 1
-        @test nfragments(sys) == 2
-        @test nfragments(sys; variant = FragmentVariant.None) == 0
-        @test nnucleotides(sys) == 1
-        @test nresidues(sys) == 1
+        @test nsecondary_structures(sys) == 1
+        @test nfragments(sys) == 5
+        @test nfragments(sys; variant = FragmentVariant.None) == 1
+        @test nnucleotides(sys) == 2
+        @test nresidues(sys) == 2
 
         @test delete!(nuc; keep_atoms = false) === nothing
         @test natoms(sys) == 3
         @test nbonds(sys) == 1
         @test nmolecules(sys) == 1
         @test nchains(sys) == 1
-        @test nfragments(sys) == 1
-        @test nfragments(sys; variant = FragmentVariant.None) == 0
-        @test nnucleotides(sys) == 0
-        @test nresidues(sys) == 1
+        @test nsecondary_structures(sys) == 1
+        @test nfragments(sys) == 4
+        @test nfragments(sys; variant = FragmentVariant.None) == 1
+        @test nnucleotides(sys) == 1
+        @test nresidues(sys) == 2
         @test_throws KeyError nuc.idx
     end
 end
