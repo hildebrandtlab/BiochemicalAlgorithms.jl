@@ -14,6 +14,7 @@ using Statistics: mean
 using Unitful, UnitfulAtomic
 using Quaternions: quat
 
+import JSON3
 import MolecularGraph
 import PrettyTables
 import StaticArrays
@@ -58,10 +59,8 @@ include("substructures/sssr.jl")
 
 # file formats
 include("fileformats/ball_ini_file.jl")
-module PubChem
-include("fileformats/pubchem_json.jl")
-end
 include("fileformats/pdb.jl")
+include("fileformats/pubchem_json.jl")
 include("fileformats/sdfile.jl")
 
 # mappings
@@ -91,9 +90,8 @@ include("preprocessing/reconstruct_fragments.jl")
 
 include("deprecation.jl")
 
-using .PubChem
-
-export load_pubchem_json, ball_data_path
+export
+    ball_data_path
 
 ball_data_path(parts...) = normpath(joinpath(@__DIR__, "..", "data", parts...))
 
