@@ -16,8 +16,14 @@
 
         bt = bonds(sys)
 
-        # AutoHashEquals and identity
+        # AutoHashEquals, copy, and identity
         bt2 = bonds(sys)
+        @test bt == bt2
+        @test isequal(bt, bt2)
+        @test hash(bt) == hash(bt2)
+        @test bt !== bt2
+
+        bt2 = copy(bt)
         @test bt == bt2
         @test isequal(bt, bt2)
         @test hash(bt) == hash(bt2)

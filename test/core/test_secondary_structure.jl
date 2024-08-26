@@ -8,19 +8,25 @@
         c = Chain(mol)
 
         ss1 = SecondaryStructure(
-            c, 
-            1, 
-            SecondaryStructureElement.Helix; 
+            c,
+            1,
+            SecondaryStructureElement.Helix;
             name = "H1",
             properties = Properties(:first => 'a', :second => "b"),
             flags = Flags([:third])
         )
-        ss2 = SecondaryStructure(c, 2, SecondaryStructureElement.Coil; name="C1") 
+        ss2 = SecondaryStructure(c, 2, SecondaryStructureElement.Coil; name="C1")
 
         st = secondary_structures(sys)
 
-        # AutoHashEquals and identity
+        # AutoHashEquals, copy, and identity
         st2 = secondary_structures(sys)
+        @test st == st2
+        @test isequal(st, st2)
+        @test hash(st) == hash(st2)
+        @test st !== st2
+
+        st2 = copy(st)
         @test st == st2
         @test isequal(st, st2)
         @test hash(st) == hash(st2)
@@ -247,7 +253,7 @@ end
         @test length(secondary_structures(sys, chain_idx = chain.idx)) == 1
         @test length(secondary_structures(sys, chain_idx = chain2.idx)) == 1
         @test length(secondary_structures(sys, chain_idx = nothing)) == 2
-        
+
 
         # nsecondary_structures + push!
         @test nsecondary_structures(sys) isa Int
@@ -256,14 +262,14 @@ end
         @test nsecondary_structures(sys, molecule_idx = mol.idx) == 1
         @test nsecondary_structures(sys, molecule_idx = mol2.idx) == 1
         @test nsecondary_structures(sys, molecule_idx = nothing) == 2
-        
+
         @test nsecondary_structures(sys, chain_idx = -1) == 0
         @test nsecondary_structures(sys, chain_idx = chain.idx) == 1
         @test nsecondary_structures(sys, chain_idx = chain2.idx) == 1
         @test nsecondary_structures(sys, chain_idx = nothing) == 2
 
         @test push!(chain, ss) === chain
-        @test nsecondary_structures(sys) == 3        
+        @test nsecondary_structures(sys) == 3
         @test nsecondary_structures(sys, chain_idx = -1) == 0
         @test nsecondary_structures(sys, chain_idx = chain.idx) == 2
         @test nsecondary_structures(sys, chain_idx = chain2.idx) == 1

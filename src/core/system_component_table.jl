@@ -56,6 +56,10 @@ end
         (_element_by_idx(ct, ct._idx[st]), st + 1)
 end
 
+@inline function Base.copy(ct::SystemComponentTable{T, C}) where {T, C}
+    SystemComponentTable{T, C}(ct._sys, copy(ct._idx))
+end
+
 @inline Base.eltype(::SystemComponentTable{T, C}) where {T, C} = C
 @inline Base.size(ct::SystemComponentTable) = (length(ct._idx), length(Tables.columnnames(ct)))
 @inline Base.getindex(ct::SystemComponentTable, i::Int) = _element_by_idx(ct, ct._idx[i])
