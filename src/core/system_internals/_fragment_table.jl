@@ -4,7 +4,7 @@ const _fragment_table_schema = Tables.Schema(
 )
 const _fragment_table_cols = _fragment_table_schema.names
 const _fragment_table_cols_set = Set(_fragment_table_cols)
-const _fragment_table_cols_priv = Set([:variant, :properties, :flags, :molecule_idx, :chain_idx])
+const _fragment_table_cols_priv = Set([:variant, :properties, :flags, :molecule_idx, :chain_idx, :secondary_structure_idx])
 
 @auto_hash_equals struct _FragmentTable <: AbstractColumnTable
     # public columns
@@ -18,6 +18,7 @@ const _fragment_table_cols_priv = Set([:variant, :properties, :flags, :molecule_
     flags::Vector{Flags}
     molecule_idx::Vector{Int}
     chain_idx::Vector{Int}
+    secondary_structure_idx::Vector{MaybeInt}
 
     # internals
     _idx_map::Dict{Int,Int}
@@ -32,6 +33,7 @@ const _fragment_table_cols_priv = Set([:variant, :properties, :flags, :molecule_
             Flags[],
             Int[],
             Int[],
+            MaybeInt[],
             Dict{Int,Int}()
         )
     end
@@ -53,6 +55,7 @@ function Base.push!(
     number::Int,
     molecule_idx::Int,
     chain_idx::Int;
+    secondary_structure_idx::MaybeInt = nothing,
     name::String = "",
     variant::FragmentVariantType = FragmentVariant.None,
     properties::Properties = Properties(),
@@ -67,6 +70,7 @@ function Base.push!(
     push!(ft.flags, flags)
     push!(ft.molecule_idx, molecule_idx)
     push!(ft.chain_idx, chain_idx)
+    push!(ft.secondary_structure_idx, secondary_structure_idx)
     ft
 end
 
@@ -85,6 +89,7 @@ function _delete!(ft::_FragmentTable, rowno::Int)
     deleteat!(ft.flags, rowno)
     deleteat!(ft.molecule_idx, rowno)
     deleteat!(ft.chain_idx, rowno)
+    deleteat!(ft.secondary_structure_idx, rowno)
     nothing
 end
 
@@ -112,6 +117,7 @@ function Base.empty!(ft::_FragmentTable)
     empty!(ft.flags)
     empty!(ft.molecule_idx)
     empty!(ft.chain_idx)
+    empty!(ft.secondary_structure_idx)
     empty!(ft._idx_map)
     ft
 end
@@ -120,6 +126,7 @@ function _fragment_table(itr)
     ft = _FragmentTable()
     for f in itr
         push!(ft, f.idx, f.number, f.molecule_idx, f.chain_idx;
+            secondary_structure_idx = f.secondary_structure_idx,
             name = f.name,
             variant = f.variant,
             properties = f.properties,

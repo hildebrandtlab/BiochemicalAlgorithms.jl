@@ -99,6 +99,18 @@ Base.delete!(::Chain)
 Base.push!(::Molecule{T}, ::Chain{T}) where T
 ```
 
+## SecondaryStructures
+```@docs
+SecondaryStructure
+SecondaryStructureTable
+secondary_structure_by_idx
+secondary_structures
+nsecondary_structures
+parent_secondary_structure
+Base.delete!(::SecondaryStructure)
+Base.push!(::Chain{T}, ::SecondaryStructure{T}) where T
+```
+
 ## Fragments
 ```@docs
 FragmentVariant
@@ -114,6 +126,7 @@ fragments
 nfragments
 parent_fragment
 Base.delete!(::Fragment)
+Base.push!(::SecondaryStructure{T}, ::Fragment{T}) where T
 Base.push!(::Chain{T}, ::Fragment{T}) where T
 ```
 

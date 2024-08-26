@@ -43,6 +43,7 @@ Mutable representation of an individual fragment in a system.
  - `flags::Flags`
  - `molecule_idx::Int`
  - `chain_idx::Int`
+ - `secondary_structure_idx::Int`
 
 # Constructors
 ```julia
@@ -57,6 +58,20 @@ Fragment(
 )
 ```
 Creates a new `Fragment{T}` in the given chain.
+
+```julia
+Fragment(
+    secondary_structure::SecondaryStructure{T},
+    number::Int;
+    # keyword arguments
+    name::String = "",
+    variant::FragmentVariantType = FragmentVariant.None,
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+)
+```
+Creates a new `Fragment{T}` in the given secondary structure.
+
 """
 const Fragment{T} = AtomContainer{T, :Fragment}
 
@@ -68,6 +83,18 @@ const Fragment{T} = AtomContainer{T, :Fragment}
     sys = parent(chain)
     idx = _next_idx(sys)
     push!(sys._fragments, idx, number, chain.molecule_idx, chain.idx; kwargs...)
+    fragment_by_idx(sys, idx)
+end
+
+@inline function Fragment(
+    ss::SecondaryStructure{T},
+    number::Int;
+    kwargs...
+) where T
+    sys = parent(ss)
+    chain = parent_chain(ss)
+    idx = _next_idx(sys)
+    push!(sys._fragments, idx, number, chain.molecule_idx, chain.idx; secondary_structure_idx = ss.idx, kwargs...)
     fragment_by_idx(sys, idx)
 end
 
@@ -103,6 +130,7 @@ end
 
 @inline parent_molecule(frag::Fragment) = molecule_by_idx(parent(frag), frag.molecule_idx)
 @inline parent_chain(frag::Fragment) = chain_by_idx(parent(frag), frag.chain_idx)
+@inline parent_secondary_structure(frag::Fragment) = secondary_structure_by_idx(parent(frag), frag.secondary_structure_idx)
 
 @doc raw"""
     parent_fragment(::Atom)
@@ -130,6 +158,7 @@ end
 
 """
     fragments(::Chain)
+    fragments(::SecondaryStructure)
     fragments(::Molecule)
     fragments(::System = default_system())
 
@@ -139,28 +168,33 @@ Returns a `FragmentTable{T}` containing all fragments of the given atom containe
  - `variant::Union{Nothing, FragmentVariantType} = nothing`
  - `molecule_idx::MaybeInt = nothing`
  - `chain_idx::MaybeInt = nothing`
+ - `secondary_structure_idx::MaybeInt = nothing`
 All keyword arguments limit the results to fragments matching the given IDs or variant type.
 Keyword arguments set to `nothing` are ignored.
 """
 function fragments(sys::System{T} = default_system();
     variant::Union{Nothing, FragmentVariantType} = nothing,
     molecule_idx::MaybeInt = nothing,
-    chain_idx::MaybeInt = nothing
+    chain_idx::MaybeInt = nothing,
+    secondary_structure_idx::MaybeInt = nothing
 ) where T
     isnothing(variant) &&
         isnothing(molecule_idx) &&
         isnothing(chain_idx) &&
+        isnothing(secondary_structure_idx) &&
         return FragmentTable{T}(sys, copy(sys._fragments.idx))
     _filter_fragments(frag ->
-        (isnothing(variant)      || frag.variant      == something(variant)) &&
-        (isnothing(molecule_idx) || frag.molecule_idx == something(molecule_idx)) &&
-        (isnothing(chain_idx)    || frag.chain_idx    == something(chain_idx)),
+        (isnothing(variant)                 || frag.variant      == something(variant)) &&
+        (isnothing(molecule_idx)            || frag.molecule_idx == something(molecule_idx)) &&
+        (isnothing(chain_idx)               || frag.chain_idx    == something(chain_idx)) &&
+        (isnothing(secondary_structure_idx) || frag.secondary_structure_idx == something(secondary_structure_idx)),
         sys
     )
 end
 
 """
     nfragments(::Chain)
+    nfragments(::SecondaryStructure)
     nfragments(::Molecule)
     nfragments(::System = default_system())
 
@@ -180,6 +214,7 @@ end
 @inline nfragments(mol::Molecule; kwargs...) = nfragments(parent(mol); molecule_idx = mol.idx, kwargs...)
 
 """
+    fragments(::SecondaryStructureTable)
     fragments(::ChainTable)
     fragments(::MoleculeTable)
 
@@ -238,6 +273,23 @@ end
 
 @inline nfragments(ct::ChainTable; kwargs...) = length(fragments(ct; kwargs...))
 
+#=
+    SecondaryStructure fragments
+=#
+@inline fragments(ss::SecondaryStructure; kwargs...) = fragments(parent(ss); secondary_structure_idx = ss.idx, kwargs...)
+@inline nfragments(ss::SecondaryStructure; kwargs...) = nfragments(parent(ss); secondary_structure_idx = ss.idx, kwargs...)
+
+@inline function fragments(st::SecondaryStructureTable;
+        variant::Union{Nothing, FragmentVariantType} = nothing
+)
+    idx = Set(st.idx)
+    isnothing(variant) ?
+        _filter_fragments(frag -> frag.secondary_structure_idx in idx, st._sys) :
+        _filter_fragments(frag -> frag.secondary_structure_idx in idx && frag.variant == something(variant), st._sys)
+end
+
+@inline nfragments(st::SecondaryStructureTable; kwargs...) = length(fragments(st; kwargs...))
+
 """
     delete!(::Fragment)
     delete!(::FragmentTable)
@@ -284,6 +336,23 @@ new `idx`.
     )
     chain
 end
+
+"""
+    push!(::SecondaryStructure{T}, ::Fragment{T})
+
+Creates a copy of the given fragment in the given SecondaryStructure. The new fragment is automatically assigned a
+new `idx`.
+"""
+@inline function Base.push!(ss::SecondaryStructure{T}, frag::Fragment{T}) where T
+    Fragment(ss, frag.number;
+        name = frag.name,
+        variant = frag.variant,
+        properties = frag.properties,
+        flags = frag.flags
+    )
+    ss
+end
+
 
 #=
     Fragment atoms
@@ -341,6 +410,19 @@ See [`Fragment`](@ref)
     Fragment(chain, number; variant = FragmentVariant.Nucleotide, kwargs...)
 end
 
+
+"""
+    Nucleotide(ss::SecondaryStructure, number::Int)
+
+`Fragment` constructor defaulting to the [`FragmentVariant.Nucleotide`](@ref FragmentVariant) variant.
+
+# Supported keyword arguments
+See [`Fragment`](@ref)
+"""
+@inline function Nucleotide(ss::SecondaryStructure, number::Int; kwargs...)
+    Fragment(ss, number; variant = FragmentVariant.Nucleotide, kwargs...)
+end
+
 """
     $(TYPEDSIGNATURES)
 
@@ -373,6 +455,8 @@ end
 """
     nucleotides(::Chain)
     nucleotides(::ChainTable)
+    nucleotides(::SecondaryStructure)
+    nucleotides(::SecondaryStructureTable)
     nucleotides(::Molecule)
     nucleotides(::MoleculeTable)
     nucleotides(::System = default_system())
@@ -384,7 +468,7 @@ fragments of the given atom container or table.
 See [`fragments`](@ref)
 """
 @inline function nucleotides(
-    ac::Union{Chain, ChainTable, Molecule, MoleculeTable, System} = default_system();
+    ac::Union{Chain, ChainTable, SecondaryStructure, SecondaryStructureTable, Molecule, MoleculeTable, System} = default_system();
     kwargs...
 )
     fragments(ac; variant = FragmentVariant.Nucleotide, kwargs...)
@@ -392,6 +476,7 @@ end
 
 """
     nnucleotides(::Chain)
+    nnucleotides(::SecondaryStructure)
     nnucleotides(::Molecule)
     nnucleotides(::System = default_system())
 
@@ -402,7 +487,7 @@ atom container.
 See [`fragments`](@ref)
 """
 @inline function nnucleotides(
-    ac::Union{Chain, ChainTable, Molecule, MoleculeTable, System} = default_system();
+    ac::Union{Chain, ChainTable, SecondaryStructure, SecondaryStructureTable, Molecule, MoleculeTable, System} = default_system();
     kwargs...
 )
     nfragments(ac; variant = FragmentVariant.Nucleotide, kwargs...)
@@ -410,6 +495,7 @@ end
 
 """
     nnucleotides(::ChainTable)
+    nnucleotides(::SecondaryStructureTable)
     nnucleotides(::FragmentTable)
     nnucleotides(::MoleculeTable)
 
@@ -420,7 +506,7 @@ table.
     length(filter(isnucleotide, ft))
 end
 
-@inline function nnucleotides(ct::Union{ChainTable, MoleculeTable})
+@inline function nnucleotides(ct::Union{ChainTable, SecondaryStructureTable, MoleculeTable})
     nfragments(ct; variant = FragmentVariant.Nucleotide)
 end
 
@@ -448,6 +534,18 @@ See [`Fragment`](@ref)
 """
 @inline function Residue(chain::Chain, number::Int; kwargs...)
     Fragment(chain, number; variant = FragmentVariant.Residue, kwargs...)
+end
+
+"""
+    Residue(ss::SecondaryStructure, number::Int)
+
+`Fragment` constructor defaulting to the [`FragmentVariant.Residue`](@ref FragmentVariant) variant.
+
+# Supported keyword arguments
+See [`Fragment`](@ref)
+"""
+@inline function Residue(ss::SecondaryStructure, number::Int; kwargs...)
+    Fragment(ss, number; variant = FragmentVariant.Residue, kwargs...)
 end
 
 """
@@ -482,6 +580,8 @@ end
 """
     residues(::Chain)
     residues(::ChainTable)
+    residues(::SecondaryStructure)
+    residues(::SecondaryStructureTable)
     residues(::Molecule)
     residues(::MoleculeTable)
     residues(::System = default_system())
@@ -493,7 +593,7 @@ fragments of the given atom container or table.
 See [`fragments`](@ref)
 """
 @inline function residues(
-    ac::Union{Chain, ChainTable, Molecule, MoleculeTable, System} = default_system();
+    ac::Union{Chain, ChainTable, SecondaryStructure, SecondaryStructureTable, Molecule, MoleculeTable, System} = default_system();
     kwargs...
 )
     fragments(ac; variant = FragmentVariant.Residue, kwargs...)
@@ -501,6 +601,7 @@ end
 
 """
     nresidues(::Chain)
+    nresidues(::SecondaryStructure)
     nresidues(::Molecule)
     nresidues(::System = default_system())
 
@@ -511,7 +612,7 @@ atom container.
 See [`fragments`](@ref)
 """
 @inline function nresidues(
-    ac::Union{Chain, ChainTable, Molecule, MoleculeTable, System} = default_system();
+    ac::Union{Chain, ChainTable, SecondaryStructure, SecondaryStructureTable, Molecule, MoleculeTable, System} = default_system();
     kwargs...
 )
     nfragments(ac; variant = FragmentVariant.Residue, kwargs...)
@@ -519,6 +620,7 @@ end
 
 """
     nresidues(::ChainTable)
+    nresidues(::SecondaryStructureTable)
     nresidues(::FragmentTable)
     nresidues(::MoleculeTable)
 
@@ -529,7 +631,7 @@ table.
     length(filter(isresidue, ft))
 end
 
-@inline function nresidues(ct::Union{ChainTable, MoleculeTable})
+@inline function nresidues(ct::Union{ChainTable, SecondaryStructureTable, MoleculeTable})
     nfragments(ct; variant = FragmentVariant.Residue)
 end
 

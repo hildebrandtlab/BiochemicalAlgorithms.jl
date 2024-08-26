@@ -109,6 +109,7 @@ Creates a new and empty `System{T}`.
     _bonds::_BondTable
     _molecules::_MoleculeTable
     _chains::_ChainTable
+    _secondary_structures::_SecondaryStructureTable
     _fragments::_FragmentTable
     _curr_idx::Int
 
@@ -125,6 +126,7 @@ Creates a new and empty `System{T}`.
             _BondTable(),
             _MoleculeTable(),
             _ChainTable(),
+            _SecondaryStructureTable(),
             _FragmentTable(),
             0
         )
@@ -178,6 +180,7 @@ function Base.empty!(sys::System)
     empty!(sys._bonds)
     empty!(sys._molecules)
     empty!(sys._chains)
+    empty!(sys._secondary_structures)
     empty!(sys._fragments)
     sys
 end
@@ -186,6 +189,7 @@ end
     parent(::Atom)
     parent(::Bond)
     parent(::Chain)
+    parent(::SecondaryStructure)
     parent(::Fragment)
     parent(::Molecule)
     parent(::System)
@@ -198,6 +202,7 @@ Base.parent(s::System) = s
     parent_system(::Atom)
     parent_system(::Bond)
     parent_system(::Chain)
+    parent_system(::SecondaryStructure)
     parent_system(::Fragment)
     parent_system(::Molecule)
     parent_system(::System)
@@ -215,6 +220,7 @@ end
 @inline _table(sc::SystemComponent{T, :Atom}) where T = getfield(getfield(sc, :_sys), :_atoms)
 @inline _table(sc::SystemComponent{T, :Bond}) where T = getfield(getfield(sc, :_sys), :_bonds)
 @inline _table(sc::SystemComponent{T, :Chain}) where T = getfield(getfield(sc, :_sys), :_chains)
+@inline _table(sc::SystemComponent{T, :SecondaryStructure}) where T = getfield(getfield(sc, :_sys), :_secondary_structures)
 @inline _table(sc::SystemComponent{T, :Fragment}) where T = getfield(getfield(sc, :_sys), :_fragments)
 @inline _table(sc::SystemComponent{T, :Molecule}) where T = getfield(getfield(sc, :_sys), :_molecules)
 

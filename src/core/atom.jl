@@ -152,6 +152,14 @@ end
         chain_by_idx(atom._sys, atom.chain_idx)
 end
 
+@inline function parent_secondary_structure(atom::Atom)
+    pf = parent_fragment(atom)
+
+    isnothing(pf) || isnothing(pf.secondary_structure_idx) ?
+        nothing :
+        secondary_structure_by_idx(parent(atom), pf.secondary_structure_idx)
+end
+
 @inline function parent_fragment(atom::Atom)
     isnothing(atom.fragment_idx) ?
         nothing :
