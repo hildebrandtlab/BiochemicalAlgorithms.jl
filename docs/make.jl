@@ -5,11 +5,11 @@ DocMeta.setdocmeta!(BiochemicalAlgorithms, :DocTestSetup, :(using BiochemicalAlg
 
 const pages = Any[
     "Home" => "index.md",
-    "How to..." => [
-        "get started" => "tutorials/getting_started.md",
-        "iterate" => "tutorials/iterate.md",
-        "read and write" => "tutorials/read_and_write.md",
-        "handle molecules" =>"tutorials/handle_molecules.md"
+    "Tutorials" => [
+        "How to get started" => "tutorials/getting_started.md",
+        "How to iterate" => "tutorials/iterate.md",
+        "How to read and write" => "tutorials/read_and_write.md",
+        "How to handle molecules" =>"tutorials/handle_molecules.md"
     ],
     "Library" => Any[
         "System representation" => "public/system.md",
