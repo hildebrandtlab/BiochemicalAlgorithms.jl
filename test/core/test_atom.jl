@@ -20,8 +20,14 @@
 
         at = atoms(sys)
 
-        # AutoHashEquals and identity
+        # AutoHashEquals, copy, and identity
         at2 = atoms(sys)
+        @test at == at2
+        @test isequal(at, at2)
+        @test hash(at) == hash(at2)
+        @test at !== at2
+
+        at2 = copy(at)
         @test at == at2
         @test isequal(at, at2)
         @test hash(at) == hash(at2)

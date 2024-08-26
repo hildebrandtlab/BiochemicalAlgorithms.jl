@@ -14,8 +14,14 @@
 
         ct = chains(sys)
 
-        # AutoHashEquals and identity
+        # AutoHashEquals, copy, and identity
         ct2 = chains(sys)
+        @test ct == ct2
+        @test isequal(ct, ct2)
+        @test hash(ct) == hash(ct2)
+        @test ct !== ct2
+
+        ct2 = copy(ct)
         @test ct == ct2
         @test isequal(ct, ct2)
         @test hash(ct) == hash(ct2)
