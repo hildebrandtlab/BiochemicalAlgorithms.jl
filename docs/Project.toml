@@ -1,6 +1,5 @@
 [deps]
 BiochemicalAlgorithms = "9d651bdf-8945-47d1-9188-34e269d8f7b5"
-CondaPkg = "992eb4ea-22a4-4c89-a5bb-47a3300528ab"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 
 [compat]
