@@ -20,6 +20,13 @@
 
         at = atoms(sys)
 
+        # AutoHashEquals and identity
+        at2 = atoms(sys)
+        @test at == at2
+        @test isequal(at, at2)
+        @test hash(at) == hash(at2)
+        @test at !== at2
+
         # Tables.jl interface
         @test Tables.istable(typeof(at))
         @test Tables.columnaccess(typeof(at))
