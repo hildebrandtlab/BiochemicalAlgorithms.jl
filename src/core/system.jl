@@ -160,7 +160,7 @@ end
 
 Returns the next available `idx` for the given system.
 """
-@inline function _next_idx(sys::System{T}) where T
+@inline function _next_idx!(sys::System{T}) where T
     sys._curr_idx += 1
 end
 

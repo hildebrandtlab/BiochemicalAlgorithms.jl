@@ -60,7 +60,7 @@ const Bond{T} = AtomContainer{T, :Bond}
     order::BondOrderType;
     kwargs...
 ) where T
-    idx = _next_idx(sys)
+    idx = _next_idx!(sys)
     push!(sys._bonds, idx, a1, a2, order; kwargs...)
     bond_by_idx(sys, idx)
 end
