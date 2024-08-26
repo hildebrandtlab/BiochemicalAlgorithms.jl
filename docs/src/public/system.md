@@ -99,7 +99,7 @@ Base.delete!(::Chain)
 Base.push!(::Molecule{T}, ::Chain{T}) where T
 ```
 
-## SecondaryStructures
+## Secondary structures
 ```@docs
 SecondaryStructure
 SecondaryStructureTable

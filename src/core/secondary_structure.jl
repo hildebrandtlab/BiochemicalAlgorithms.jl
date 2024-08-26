@@ -55,8 +55,8 @@ end
 """
     SecondaryStructureTable{T} <: AbstractSystemComponentTable{T}
 
-Tables.jl-compatible representation of system secondary structures (or a subset thereof). SecondaryStructure tables can be
-generated using [`secondary_structures`](@ref) or filtered from other SecondaryStructure tables (via `Base.filter`).
+Tables.jl-compatible representation of system secondary structures (or a subset thereof). Secondary structure tables can be
+generated using [`secondary_structures`](@ref) or filtered from other secondary structure tables (via `Base.filter`).
 
 # Public columns
  - `idx::AbstractVector{Int}`
@@ -91,14 +91,14 @@ end
     parent_secondary_structure(::Nucleotide)
     parent_secondary_structure(::Residue)
 
-Returns the `SecondaryStructure{T}` containing the given object. Returns `nothing` if no such SecondaryStructure exists.
+Returns the `SecondaryStructure{T}` containing the given object. Returns `nothing` if no such secondary structure exists.
 """ parent_secondary_structure
 
 """
     $(TYPEDSIGNATURES)
 
 Returns the `SecondaryStructure{T}` associated with the given `idx` in `sys`. Throws a `KeyError` if no such
-SecondaryStructure exists.
+secondary structure exists.
 """
 @inline function secondary_structure_by_idx(sys::System{T}, idx::Int) where T
     _rowno_by_idx(_table(sys, SecondaryStructure{T}), idx) # check idx
@@ -115,17 +115,17 @@ end
     secondary_structures(::Chain)
     secondary_structures(::System; kwargs...)
 
-Returns a `SecondaryStructureTable{T}` containing all SecondaryStructures of the given atom container.
+Returns a `SecondaryStructureTable{T}` containing all secondary structures of the given atom container.
 
 # Supported keyword arguments
  - `molecule_idx::MaybeInt = nothing`
  - `chain_idx::MaybeInt = nothing`
-All keyword arguments limit the results to SecondaryStructures matching the given IDs. Keyword arguments set to
+All keyword arguments limit the results to secondary structures matching the given IDs. Keyword arguments set to
 `nothing` are ignored.
 """
 @inline function secondary_structures(sys::System{T}; molecule_idx::MaybeInt = nothing, chain_idx::MaybeInt = nothing) where T
-    isnothing(molecule_idx) && 
-        isnothing(chain_idx) && 
+    isnothing(molecule_idx) &&
+        isnothing(chain_idx) &&
         return SecondaryStructureTable{T}(sys, copy(sys._secondary_structures.idx))
     _filter_secondary_structures(ss ->
         (isnothing(molecule_idx) || ss.molecule_idx == something(molecule_idx)) &&
@@ -139,7 +139,7 @@ end
     nsecondary_structures(::Molecule)
     nsecondary_structures(::System; kwargs...)
 
-Returns the number of SecondaryStructures in the given atom container.
+Returns the number of secondary structures in the given atom container.
 
 # Supported keyword arguments
 See [`secondary_structures`](@ref)
@@ -158,7 +158,7 @@ end
     secondary_structures(::ChainTable)
     secondary_structures(::MoleculeTable)
 
-Returns a `SecondaryStructureTable{T}` containing all SecondaryStructures of the given table.
+Returns a `SecondaryStructureTable{T}` containing all secondary structures of the given table.
 
 # Supported keyword arguments
 See [`secondary_structures`](@ref secondary_structures)
@@ -209,7 +209,7 @@ Removes the given secondary_structure(s) from the associated system.
 
 # Supported keyword arguments
 - `keep_fragments::Bool = false`
-   Determines whether the fragments contained in this SecondaryStructure are removed as well. All atoms contained in those
+   Determines whether the fragments contained in this secondary structure are removed as well. All atoms contained in those
    fragments are deleted as well.
 """
 function Base.delete!(ss::SecondaryStructure; keep_fragments::Bool = false)
@@ -229,7 +229,7 @@ function Base.delete!(st::SecondaryStructureTable; keep_fragments::Bool = false)
     else
         delete!(fragments(st); keep_atoms = false)
     end
-    
+
     delete!(_table(st), st._idx)
     empty!(st._idx)
     st
