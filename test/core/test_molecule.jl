@@ -15,8 +15,14 @@
 
         mt = molecules(sys)
 
-        # AutoHashEquals and identity
+        # AutoHashEquals, copy, and identity
         mt2 = molecules(sys)
+        @test mt == mt2
+        @test isequal(mt, mt2)
+        @test hash(mt) == hash(mt2)
+        @test mt !== mt2
+
+        mt2 = copy(mt)
         @test mt == mt2
         @test isequal(mt, mt2)
         @test hash(mt) == hash(mt2)
@@ -24,6 +30,12 @@
 
         pt = proteins(sys)
         pt2 = proteins(sys)
+        @test pt == pt2
+        @test isequal(pt, pt2)
+        @test hash(pt) == hash(pt2)
+        @test pt !== pt2
+
+        pt2 = copy(pt)
         @test pt == pt2
         @test isequal(pt, pt2)
         @test hash(pt) == hash(pt2)
