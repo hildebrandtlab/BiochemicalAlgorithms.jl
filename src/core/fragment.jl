@@ -150,7 +150,7 @@ function fragments(sys::System{T} = default_system();
     isnothing(variant) &&
         isnothing(molecule_idx) &&
         isnothing(chain_idx) &&
-        return FragmentTable{T}(sys, sys._fragments.idx)
+        return FragmentTable{T}(sys, copy(sys._fragments.idx))
     _filter_fragments(frag ->
         (isnothing(variant)      || frag.variant      == something(variant)) &&
         (isnothing(molecule_idx) || frag.molecule_idx == something(molecule_idx)) &&
