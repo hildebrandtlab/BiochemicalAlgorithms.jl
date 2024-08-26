@@ -52,6 +52,7 @@ function Base.copy(substruct::Substructure{T}) where T
 
     sys._molecules   = _molecule_table(deepcopy(molecules(substruct)))
     sys._chains      = _chain_table(deepcopy(chains(substruct)))
+    sys._secondary_structures = _secondary_structure_table(deepcopy(secondary_structures(substruct)))
     sys._fragments   = _fragment_table(deepcopy(fragments(substruct)))
 
     sys
@@ -68,13 +69,15 @@ private atom fields.
     frame_id::MaybeInt = 1,
     molecule_idx::Union{MaybeInt, Some{Nothing}} = nothing,
     chain_idx::Union{MaybeInt, Some{Nothing}} = nothing,
+    secondary_structure_idx::Union{MaybeInt, Some{Nothing}} = nothing,
     fragment_idx::Union{MaybeInt, Some{Nothing}} = nothing
 ) where T
     filter(row ->
-        (isnothing(frame_id)       || row.frame_id == frame_id) &&
-        (isnothing(molecule_idx)   || row.molecule_idx == something(molecule_idx)) &&
-        (isnothing(chain_idx)      || row.chain_idx == something(chain_idx)) &&
-        (isnothing(fragment_idx)   || row.fragment_idx == something(fragment_idx)),
+        (isnothing(frame_id)                || row.frame_id == frame_id) &&
+        (isnothing(molecule_idx)            || row.molecule_idx == something(molecule_idx)) &&
+        (isnothing(secondary_structure_idx) || row.secondary_structure_idx == something(secondary_structure_idx)) &&
+        (isnothing(chain_idx)               || row.chain_idx == something(chain_idx)) &&
+        (isnothing(fragment_idx)            || row.fragment_idx == something(fragment_idx)),
         substruct._atoms
     )
 end
@@ -92,6 +95,11 @@ end
 @inline function chains(substruct::Substructure; kwargs...)
     cidx = Set(atoms(substruct; kwargs...).chain_idx)
     filter(row -> row.idx in cidx, chains(substruct.parent))
+end
+
+@inline function secondary_structures(substruct::Substructure; kwargs...)
+    cidx = Set(atoms(substruct; kwargs...).chain_idx)
+    filter(row -> row.idx in cidx, secondary_structures(substruct.parent))
 end
 
 @inline function fragments(substruct::Substructure; kwargs...)

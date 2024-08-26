@@ -6,10 +6,18 @@
         reconstruct_fragments!(testsys, fdb)
         build_bonds!(testsys, fdb)
 
+        # TODO: currently, the PDB parser does not yet create SecondaryStructures
+        #       for testing purposes, we just add one to each chain and add all fragments of the chain into it
+        for c in chains(testsys)
+            ss = SecondaryStructure(c, 1, SecondaryStructureElement.Coil)
+            fragments(c).secondary_structure_idx .= Ref(ss.idx)
+        end
+
         @test natoms(testsys) == 3790
         @test nbonds(testsys) == 3839
         @test nmolecules(testsys) == 1
         @test nchains(testsys) == 3
+        @test nsecondary_structures(testsys) == 3
         ct = chains(testsys)
         @test nfragments.(ct) == [192, 17, 13]
         @test nfragments.(ct; variant = FragmentVariant.None) == [12, 5, 1]
@@ -23,6 +31,7 @@
         @test nbonds(sys) == 0
         @test nmolecules(sys) == 0
         @test nchains(sys) == 0
+        @test nsecondary_structures(sys) == 0
         @test nfragments(sys) == 0
         @test nfragments(sys; variant = FragmentVariant.None) == 0
         @test nnucleotides(sys) == 0
@@ -109,6 +118,7 @@
         @test nbonds(sys) == 3839
         @test nmolecules(sys) == 0
         @test nchains(sys) == 0
+        @test nsecondary_structures(sys) == 0
         @test nfragments(sys) == 0
 
         sys = deepcopy(testsys)
@@ -120,6 +130,7 @@
         @test nbonds(sys) == 3839
         @test nmolecules(sys) == 0
         @test nchains(sys) == 0
+        @test nsecondary_structures(sys) == 0
         @test nfragments(sys) == 0
 
         sys = deepcopy(testsys)
@@ -134,6 +145,7 @@
         @test nbonds(sys) == 0
         @test nmolecules(sys) == 0
         @test nchains(sys) == 0
+        @test nsecondary_structures(sys) == 0
         @test nfragments(sys) == 0
 
         @test_throws KeyError first(stale_table.idx)
@@ -151,6 +163,7 @@
         @test nbonds(sys) == 0
         @test nmolecules(sys) == 0
         @test nchains(sys) == 0
+        @test nsecondary_structures(sys) == 0
         @test nfragments(sys) == 0
 
         # delete! chains + revalidate_indices!
@@ -163,6 +176,7 @@
         @test nbonds(sys) == 3839
         @test nmolecules(sys) == 1
         @test nchains(sys) == 1
+        @test nsecondary_structures(sys) == 1
         @test nfragments(sys) == 13
 
         ct = chains(sys)
@@ -172,6 +186,7 @@
         @test nbonds(sys) == 3426
         @test nmolecules(sys) == 1
         @test nchains(sys) == 0
+        @test nsecondary_structures(sys) == 0
         @test nfragments(sys) == 0
 
         sys = deepcopy(testsys)
@@ -187,6 +202,7 @@
         @test nbonds(sys) == 3839
         @test nmolecules(sys) == 1
         @test nchains(sys) == 2
+        @test nsecondary_structures(sys) == 2
         @test nfragments(sys) == 30
 
         @test_throws KeyError first(stale_table.idx)
@@ -202,7 +218,63 @@
         @test nbonds(sys) == 3418
         @test nmolecules(sys) == 1
         @test nchains(sys) == 1
+        @test nsecondary_structures(sys) == 1
         @test nfragments(sys) == 13
+
+        # delete! secondary structures + revalidate_indices!
+        sys = deepcopy(testsys)
+        st = secondary_structures(sys)[1:2]
+        @test delete!(st; keep_fragments = true) === st
+        @test length(st) == 0
+        @test natoms(sys) == 3790
+        @test natoms(sys) - natoms(secondary_structures(sys)) == 3401
+        @test nbonds(sys) == 3839
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 3
+        @test nsecondary_structures(sys) == 1
+        @test nfragments(sys) == 222
+
+        st = secondary_structures(sys)
+        @test delete!(st; keep_fragments = false) === st
+        @test length(st) == 0
+        @test natoms(sys) == 3401
+        @test nbonds(sys) == 3426
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 3
+        @test nsecondary_structures(sys) == 0
+        @test nfragments(sys) == 209
+
+        sys = deepcopy(testsys)
+        stale_table = secondary_structures(sys)
+        stale_col   = stale_table.idx
+
+        st = secondary_structures(sys)
+        @test_throws KeyError delete!(st, -1)
+        @test delete!(st, first(st.idx); keep_fragments = true) === st
+        @test length(st) == 2
+        @test natoms(sys) == 3790
+        @test natoms(sys) - natoms(secondary_structures(sys)) == 2992
+        @test nbonds(sys) == 3839
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 3
+        @test nsecondary_structures(sys) == 2
+        @test nfragments(sys) == 222
+
+        @test_throws KeyError first(stale_table.idx)
+        @test_throws KeyError first(stale_col)
+        @test revalidate_indices!(stale_table) === stale_table
+        @test revalidate_indices!(stale_col) === stale_col
+        @test length(stale_table) == 2
+        @test length(stale_col) == 2
+
+        @test delete!(st, first(st.idx); keep_fragments = false) === st
+        @test length(st) == 1
+        @test natoms(sys) == 3381
+        @test nbonds(sys) == 3418
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 3
+        @test nsecondary_structures(sys) == 1
+        @test nfragments(sys) == 205
 
         # delete! fragments + revalidate_indices!
         sys = deepcopy(testsys)
@@ -214,6 +286,7 @@
         @test nbonds(sys) == 3839
         @test nmolecules(sys) == 1
         @test nchains(sys) == 3
+        @test nsecondary_structures(sys) == 3
         @test nfragments(sys) == 111
 
         ft = fragments(sys)
@@ -223,6 +296,7 @@
         @test nbonds(sys) == 3839 - 1984
         @test nmolecules(sys) == 1
         @test nchains(sys) == 3
+        @test nsecondary_structures(sys) == 3
         @test nfragments(sys) == 0
 
         sys = deepcopy(testsys)
@@ -238,6 +312,7 @@
         @test nbonds(sys) == 3839
         @test nmolecules(sys) == 1
         @test nchains(sys) == 3
+        @test nsecondary_structures(sys) == 3
         @test nfragments(sys) == 221
 
         @test_throws KeyError first(stale_table.idx)
@@ -253,6 +328,7 @@
         @test nbonds(sys) == 3831
         @test nmolecules(sys) == 1
         @test nchains(sys) == 3
+        @test nsecondary_structures(sys) == 3
         @test nfragments(sys) == 220
     end
 end

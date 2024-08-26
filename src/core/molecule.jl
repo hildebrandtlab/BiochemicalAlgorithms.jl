@@ -185,7 +185,7 @@ end
     delete!(::MoleculeTable)
     delete!(::MoleculeTable, idx::Int)
 
-Removes the given molecule(s) and all associated chains and fragments from the
+Removes the given molecule(s) and all associated chains, secondary_structures and fragments from the
 associated system.
 
 # Supported keyword arguments
@@ -194,6 +194,7 @@ associated system.
 """
 function Base.delete!(mol::Molecule; keep_atoms::Bool = false)
     keep_atoms ? atoms(mol).molecule_idx .= Ref(nothing) : delete!(atoms(mol))
+    delete!(secondary_structures(mol); keep_fragments = true)
     delete!(chains(mol); keep_atoms = keep_atoms)
     delete!(parent(mol)._molecules, mol.idx)
     nothing
@@ -201,6 +202,7 @@ end
 
 function Base.delete!(mt::MoleculeTable; keep_atoms::Bool = false)
     keep_atoms ? atoms(mt).molecule_idx .= Ref(nothing) : delete!(atoms(mt))
+    delete!(secondary_structures(mt); keep_fragments = true)
     delete!(chains(mt); keep_atoms = keep_atoms)
     delete!(_table(mt), mt._idx)
     empty!(mt._idx)
