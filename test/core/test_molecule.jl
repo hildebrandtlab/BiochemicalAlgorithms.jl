@@ -15,6 +15,20 @@
 
         mt = molecules(sys)
 
+        # AutoHashEquals and identity
+        mt2 = molecules(sys)
+        @test mt == mt2
+        @test isequal(mt, mt2)
+        @test hash(mt) == hash(mt2)
+        @test mt !== mt2
+
+        pt = proteins(sys)
+        pt2 = proteins(sys)
+        @test pt == pt2
+        @test isequal(pt, pt2)
+        @test hash(pt) == hash(pt2)
+        @test pt !== pt2
+
         # Tables.jl interface
         @test Tables.istable(typeof(mt))
         @test Tables.columnaccess(typeof(mt))

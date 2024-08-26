@@ -146,7 +146,7 @@ Keyword arguments set to `nothing` are ignored.
 @inline function molecules(sys::System{T} = default_system();
     variant::Union{Nothing, MoleculeVariantType} = nothing
 ) where T
-    isnothing(variant) && return MoleculeTable{T}(sys, sys._molecules.idx)
+    isnothing(variant) && return MoleculeTable{T}(sys, copy(sys._molecules.idx))
     _filter_molecules(mol -> mol.variant == something(variant), sys)
 end
 

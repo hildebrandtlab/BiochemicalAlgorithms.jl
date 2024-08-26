@@ -111,7 +111,7 @@ Any value other than `nothing` limits the result to chains belonging to the mole
     sys::System{T} = default_system();
     molecule_idx::MaybeInt = nothing
 ) where T
-    isnothing(molecule_idx) && return ChainTable{T}(sys, sys._chains.idx)
+    isnothing(molecule_idx) && return ChainTable{T}(sys, copy(sys._chains.idx))
     _filter_chains(chain -> chain.molecule_idx == molecule_idx, sys)
 end
 

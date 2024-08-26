@@ -16,6 +16,13 @@
 
         bt = bonds(sys)
 
+        # AutoHashEquals and identity
+        bt2 = bonds(sys)
+        @test bt == bt2
+        @test isequal(bt, bt2)
+        @test hash(bt) == hash(bt2)
+        @test bt !== bt2
+
         # Tables.jl interface
         @test Tables.istable(typeof(bt))
         @test Tables.columnaccess(typeof(bt))
