@@ -130,7 +130,7 @@ function load_pubchem_json(fname::String, ::Type{T} = Float32) where {T <: Real}
     sys = System{T}()
     for compound in pb.PC_Compounds
         # for now, use the file name as the name for the molecule
-        mol = Molecule(sys; name = fname * "_" * string(compound.id.id.cid))
+        mol = Molecule(sys; name = basename(fname) * "_" * string(compound.id.id.cid))
         _parse_atoms!(mol, compound, T)
         _parse_bonds!(mol, compound, T)
         _parse_props!(mol, compound)
