@@ -47,7 +47,7 @@ const SecondaryStructure{T} = AtomContainer{T, :SecondaryStructure}
     kwargs...
 )
     sys = parent(chain)
-    idx = _next_idx(sys)
+    idx = _next_idx!(sys)
     push!(sys._secondary_structures, idx, number, type, chain.molecule_idx, chain.idx; name=name, kwargs...)
     secondary_structure_by_idx(sys, idx)
 end
