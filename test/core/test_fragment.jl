@@ -20,6 +20,27 @@
 
         ft = fragments(sys)
 
+        # AutoHashEquals and identity
+        ft2 = fragments(sys)
+        @test ft == ft2
+        @test isequal(ft, ft2)
+        @test hash(ft) == hash(ft2)
+        @test ft !== ft2
+
+        nt = nucleotides(sys)
+        nt2 = nucleotides(sys)
+        @test nt == nt2
+        @test isequal(nt, nt2)
+        @test hash(nt) == hash(nt2)
+        @test nt !== nt2
+
+        rt = residues(sys)
+        rt2 = residues(sys)
+        @test rt == rt2
+        @test isequal(rt, rt2)
+        @test hash(rt) == hash(rt2)
+        @test rt !== rt2
+
         # Tables.jl interface
         @test Tables.istable(typeof(ft))
         @test Tables.columnaccess(typeof(ft))
