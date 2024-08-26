@@ -164,7 +164,7 @@ end
     delete!(::ChainTable)
     delete!(::ChainTable, idx::Int)
 
-Removes the given chain(s) and all associated fragments from the associated system.
+Removes the given chain(s) and all associated secondary structures and fragments from the associated system.
 
 # Supported keyword arguments
  - `keep_atoms::Bool = false`
@@ -172,6 +172,7 @@ Removes the given chain(s) and all associated fragments from the associated syst
 """
 function Base.delete!(chain::Chain; keep_atoms::Bool = false)
     keep_atoms ? atoms(chain).chain_idx .= Ref(nothing) : delete!(atoms(chain))
+    delete!(secondary_structures(chain); keep_fragments = true)
     delete!(fragments(chain); keep_atoms = keep_atoms)
     delete!(parent(chain)._chains, chain.idx)
     nothing
@@ -179,6 +180,7 @@ end
 
 function Base.delete!(ct::ChainTable; keep_atoms::Bool = false)
     keep_atoms ? atoms(ct).chain_idx .= Ref(nothing) : delete!(atoms(ct))
+    delete!(secondary_structures(ct); keep_fragments = true)
     delete!(fragments(ct); keep_atoms = keep_atoms)
     delete!(_table(ct), ct._idx)
     empty!(ct._idx)
