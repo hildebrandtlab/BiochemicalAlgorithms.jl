@@ -82,7 +82,7 @@ const Atom{T} = SystemComponent{T, :Atom}
     fragment_idx::MaybeInt = nothing,
     kwargs...
 ) where T
-    idx = _next_idx(sys)
+    idx = _next_idx!(sys)
     push!(sys._atoms, idx, number, element;
         frame_id = frame_id,
         molecule_idx = molecule_idx,

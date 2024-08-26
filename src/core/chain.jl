@@ -39,7 +39,7 @@ const Chain{T} = AtomContainer{T, :Chain}
     kwargs...
 )
     sys = parent(mol)
-    idx = _next_idx(sys)
+    idx = _next_idx!(sys)
     push!(sys._chains, idx, mol.idx; kwargs...)
     chain_by_idx(sys, idx)
 end

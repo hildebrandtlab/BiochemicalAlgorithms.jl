@@ -56,7 +56,7 @@ const Molecule{T} = AtomContainer{T, :Molecule}
     sys::System{T};
     kwargs...
 ) where T
-    idx = _next_idx(sys)
+    idx = _next_idx!(sys)
     push!(sys._molecules, idx; kwargs...)
     molecule_by_idx(sys, idx)
 end

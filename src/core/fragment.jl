@@ -81,7 +81,7 @@ const Fragment{T} = AtomContainer{T, :Fragment}
     kwargs...
 ) where T
     sys = parent(chain)
-    idx = _next_idx(sys)
+    idx = _next_idx!(sys)
     push!(sys._fragments, idx, number, chain.molecule_idx, chain.idx; kwargs...)
     fragment_by_idx(sys, idx)
 end
@@ -93,7 +93,7 @@ end
 ) where T
     sys = parent(ss)
     chain = parent_chain(ss)
-    idx = _next_idx(sys)
+    idx = _next_idx!(sys)
     push!(sys._fragments, idx, number, chain.molecule_idx, chain.idx; secondary_structure_idx = ss.idx, kwargs...)
     fragment_by_idx(sys, idx)
 end
