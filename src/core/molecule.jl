@@ -89,7 +89,7 @@ end
 @inline _table(sys::System{T}, ::Type{Molecule{T}}) where T = sys._molecules
 
 @inline function _hascolumn(::Type{<: Molecule}, nm::Symbol)
-    nm in _molecule_table_cols_set || nm in _molecule_table_cols_priv
+    _hascolumn(_MoleculeTable, nm)
 end
 
 @doc raw"""

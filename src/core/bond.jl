@@ -119,7 +119,7 @@ end
 @inline _table(sys::System{T}, ::Type{Bond{T}}) where T = sys._bonds
 
 @inline function _hascolumn(::Type{<: Bond}, nm::Symbol)
-    nm in _bond_table_cols_set || nm in _bond_table_cols_priv
+    _hascolumn(_BondTable, nm)
 end
 
 """

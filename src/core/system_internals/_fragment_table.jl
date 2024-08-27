@@ -1,12 +1,13 @@
+const _fragment_table_cols_main = (:idx, :number, :name)
+const _fragment_table_cols_extra = (:variant, :properties, :flags, :molecule_idx, :chain_idx, :secondary_structure_idx)
+const _fragment_table_cols = (_fragment_table_cols_main..., _fragment_table_cols_extra...)
+const _fragment_table_cols_set = Set(_fragment_table_cols)
 const _fragment_table_schema = Tables.Schema(
-    (:idx, :number, :name),
+    _fragment_table_cols_main,
     (Int, Int, String)
 )
-const _fragment_table_cols = _fragment_table_schema.names
-const _fragment_table_cols_set = Set(_fragment_table_cols)
-const _fragment_table_cols_priv = Set([:variant, :properties, :flags, :molecule_idx, :chain_idx, :secondary_structure_idx])
 
-@auto_hash_equals struct _FragmentTable <: AbstractColumnTable
+@auto_hash_equals struct _FragmentTable <: _AbstractSystemComponentTable
     # public columns
     idx::Vector{Int}
     number::Vector{Int}
@@ -21,7 +22,7 @@ const _fragment_table_cols_priv = Set([:variant, :properties, :flags, :molecule_
     secondary_structure_idx::Vector{MaybeInt}
 
     # internals
-    _idx_map::Dict{Int,Int}
+    _idx_map::_IdxMap
 
     function _FragmentTable()
         new(
@@ -34,20 +35,22 @@ const _fragment_table_cols_priv = Set([:variant, :properties, :flags, :molecule_
             Int[],
             Int[],
             MaybeInt[],
-            Dict{Int,Int}()
+            _IdxMap()
         )
     end
 end
 
-@inline Tables.columnnames(::_FragmentTable) = _fragment_table_cols
-@inline Tables.schema(::_FragmentTable) = _fragment_table_schema
-
-@inline function Tables.getcolumn(ft::_FragmentTable, nm::Symbol)
-    @assert nm in _fragment_table_cols_priv || nm in _fragment_table_cols_set "type _FragmentTable has no column $nm"
-    getfield(ft, nm)
+@inline function _hascolumn(::Union{_FragmentTable, Type{_FragmentTable}}, nm::Symbol)
+    nm in _fragment_table_cols_set
 end
 
-@inline Base.size(ft::_FragmentTable) = (length(ft.idx), length(_fragment_table_cols))
+@inline function Tables.columnnames(::_FragmentTable)
+    _fragment_table_cols_main
+end
+
+@inline function Tables.schema(::_FragmentTable)
+    _fragment_table_schema
+end
 
 function Base.push!(
     ft::_FragmentTable,
@@ -74,12 +77,6 @@ function Base.push!(
     ft
 end
 
-@inline function _rebuild_idx_map!(ft::_FragmentTable)
-    empty!(ft._idx_map)
-    merge!(ft._idx_map, Dict(v => k for (k, v) in enumerate(ft.idx)))
-    ft
-end
-
 function _delete!(ft::_FragmentTable, rowno::Int)
     deleteat!(ft.idx, rowno)
     deleteat!(ft.number, rowno)
@@ -91,21 +88,6 @@ function _delete!(ft::_FragmentTable, rowno::Int)
     deleteat!(ft.chain_idx, rowno)
     deleteat!(ft.secondary_structure_idx, rowno)
     nothing
-end
-
-function Base.delete!(ft::_FragmentTable, idx::Int)
-    _delete!(ft, ft._idx_map[idx])
-    _rebuild_idx_map!(ft)
-end
-
-function Base.delete!(ft::_FragmentTable, idx::Vector{Int})
-    rownos = getindex.(Ref(ft._idx_map), idx)
-    unique!(rownos)
-    sort!(rownos; rev = true)
-    for rowno in rownos
-        _delete!(ft, rowno)
-    end
-    _rebuild_idx_map!(ft)
 end
 
 function Base.empty!(ft::_FragmentTable)
@@ -136,6 +118,3 @@ function _fragment_table(itr)
     ft
 end
 @inline Tables.materializer(::Type{_FragmentTable}) = itr -> _fragment_table(itr)
-
-@inline _rowno_by_idx(ft::_FragmentTable, idx::Int) = getindex(getfield(ft, :_idx_map), idx)
-@inline _row_by_idx(ft::_FragmentTable, idx::Int) = ColumnTableRow(_rowno_by_idx(ft, idx), ft)

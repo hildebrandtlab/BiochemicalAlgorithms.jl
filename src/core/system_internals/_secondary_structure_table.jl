@@ -1,12 +1,13 @@
+const _secondary_structure_table_cols_main = (:idx, :number, :type, :name)
+const _secondary_structure_table_cols_extra = (:properties, :flags, :molecule_idx, :chain_idx)
+const _secondary_structure_table_cols = (_secondary_structure_table_cols_main..., _secondary_structure_table_cols_extra...)
+const _secondary_structure_table_cols_set = Set(_secondary_structure_table_cols)
 const _secondary_structure_table_schema = Tables.Schema(
-    (:idx, :number, :type, :name),
+    _secondary_structure_table_cols_main,
     (Int, Int, SecondaryStructureType, String)
 )
-const _secondary_structure_table_cols = _secondary_structure_table_schema.names
-const _secondary_structure_table_cols_set = Set(_secondary_structure_table_cols)
-const _secondary_structure_table_cols_priv = Set([:properties, :flags, :molecule_idx, :chain_idx])
 
-@auto_hash_equals struct _SecondaryStructureTable <: AbstractColumnTable
+@auto_hash_equals struct _SecondaryStructureTable <: _AbstractSystemComponentTable
     # public columns
     idx::Vector{Int}
     number::Vector{Int}
@@ -20,7 +21,7 @@ const _secondary_structure_table_cols_priv = Set([:properties, :flags, :molecule
     chain_idx::Vector{Int}
 
     # internals
-    _idx_map::Dict{Int,Int}
+    _idx_map::_IdxMap
 
     function _SecondaryStructureTable()
         new(
@@ -32,20 +33,22 @@ const _secondary_structure_table_cols_priv = Set([:properties, :flags, :molecule
             Flags[],
             Int[],
             Int[],
-            Dict{Int,Int}()
+            _IdxMap()
         )
     end
 end
 
-@inline Tables.columnnames(::_SecondaryStructureTable) = _secondary_structure_table_cols
-@inline Tables.schema(::_SecondaryStructureTable) = _secondary_structure_table_schema
-
-@inline function Tables.getcolumn(st::_SecondaryStructureTable, nm::Symbol)
-    @assert nm in _secondary_structure_table_cols_priv || nm in _secondary_structure_table_cols_set "type _SecondaryStructureTable has no column $nm"
-    getfield(st, nm)
+@inline function _hascolumn(::Union{_SecondaryStructureTable, Type{_SecondaryStructureTable}}, nm::Symbol)
+    nm in _secondary_structure_table_cols_set
 end
 
-@inline Base.size(st::_SecondaryStructureTable) = (length(st.idx), length(_secondary_structure_table_cols))
+@inline function Tables.columnnames(::_SecondaryStructureTable)
+    _secondary_structure_table_cols_main
+end
+
+@inline function Tables.schema(::_SecondaryStructureTable)
+    _secondary_structure_table_schema
+end
 
 function Base.push!(
     st::_SecondaryStructureTable,
@@ -70,12 +73,6 @@ function Base.push!(
     st
 end
 
-@inline function _rebuild_idx_map!(st::_SecondaryStructureTable)
-    empty!(st._idx_map)
-    merge!(st._idx_map, Dict(v => k for (k, v) in enumerate(st.idx)))
-    st
-end
-
 function _delete!(st::_SecondaryStructureTable, rowno::Int)
     deleteat!(st.idx, rowno)
     deleteat!(st.number, rowno)
@@ -86,21 +83,6 @@ function _delete!(st::_SecondaryStructureTable, rowno::Int)
     deleteat!(st.molecule_idx, rowno)
     deleteat!(st.chain_idx, rowno)
     nothing
-end
-
-function Base.delete!(st::_SecondaryStructureTable, idx::Int)
-    _delete!(st, st._idx_map[idx])
-    _rebuild_idx_map!(st)
-end
-
-function Base.delete!(st::_SecondaryStructureTable, idx::Vector{Int})
-    rownos = getindex.(Ref(st._idx_map), idx)
-    unique!(rownos)
-    sort!(rownos; rev = true)
-    for rowno in rownos
-        _delete!(st, rowno)
-    end
-    _rebuild_idx_map!(st)
 end
 
 function Base.empty!(st::_SecondaryStructureTable)
@@ -128,6 +110,3 @@ function _secondary_structure_table(itr)
     st
 end
 @inline Tables.materializer(::Type{_SecondaryStructureTable}) = itr -> _secondary_structure_table(itr)
-
-@inline _rowno_by_idx(st::_SecondaryStructureTable, idx::Int) = getindex(getfield(st, :_idx_map), idx)
-@inline _row_by_idx(st::_SecondaryStructureTable, idx::Int) = ColumnTableRow(_rowno_by_idx(st, idx), st)
