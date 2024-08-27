@@ -79,7 +79,7 @@ end
 @inline _table(sys::System{T}, ::Type{SecondaryStructure{T}}) where T = sys._secondary_structures
 
 @inline function _hascolumn(::Type{<: SecondaryStructure}, nm::Symbol)
-    nm in _secondary_structure_table_cols_set || nm in _secondary_structure_table_cols_priv
+    _hascolumn(_SecondaryStructureTable, nm)
 end
 
 @inline parent_molecule(secondary_structure::SecondaryStructure) = molecule_by_idx(parent(secondary_structure), secondary_structure.molecule_idx)

@@ -1,12 +1,13 @@
+const _bond_table_cols_main = (:idx, :a1, :a2, :order)
+const _bond_table_cols_extra = (:properties, :flags)
+const _bond_table_cols = (_bond_table_cols_main..., _bond_table_cols_extra...)
+const _bond_table_cols_set = Set(_bond_table_cols)
 const _bond_table_schema = Tables.Schema(
-    (:idx, :a1, :a2, :order),
+    _bond_table_cols_main,
     (Int, Int, Int, BondOrderType)
 )
-const _bond_table_cols = _bond_table_schema.names
-const _bond_table_cols_set = Set(_bond_table_cols)
-const _bond_table_cols_priv = Set([:properties, :flags])
 
-@auto_hash_equals struct _BondTable <: AbstractColumnTable
+@auto_hash_equals struct _BondTable <: _AbstractSystemComponentTable
     idx::Vector{Int}
     a1::Vector{Int}
     a2::Vector{Int}
@@ -17,7 +18,7 @@ const _bond_table_cols_priv = Set([:properties, :flags])
     flags::Vector{Flags}
 
     # internals
-    _idx_map::Dict{Int,Int}
+    _idx_map::_IdxMap
 
     function _BondTable()
         new(
@@ -27,20 +28,22 @@ const _bond_table_cols_priv = Set([:properties, :flags])
             BondOrderType[],
             Properties[],
             Flags[],
-            Dict{Int,Int}()
+            _IdxMap()
         )
     end
 end
 
-@inline Tables.columnnames(::_BondTable) = _bond_table_cols
-@inline Tables.schema(::_BondTable) = _bond_table_schema
-
-@inline function Tables.getcolumn(bt::_BondTable, nm::Symbol)
-    @assert nm in _bond_table_cols_priv || nm in _bond_table_cols "type _BondTable has no column $nm"
-    getfield(bt, nm)
+@inline function _hascolumn(::Union{_BondTable, Type{_BondTable}}, nm::Symbol)
+    nm in _bond_table_cols_set
 end
 
-@inline Base.size(bt::_BondTable) = (length(bt.idx), length(_bond_table_cols))
+@inline function Tables.columnnames(::_BondTable)
+    _bond_table_cols_main
+end
+
+@inline function Tables.schema(::_BondTable)
+    _bond_table_schema
+end
 
 function Base.push!(
     bt::_BondTable,
@@ -61,12 +64,6 @@ function Base.push!(
     bt
 end
 
-@inline function _rebuild_idx_map!(bt::_BondTable)
-    empty!(bt._idx_map)
-    merge!(bt._idx_map, Dict(v => k for (k, v) in enumerate(bt.idx)))
-    bt
-end
-
 function _delete!(bt::_BondTable, rowno::Int)
     deleteat!(bt.idx, rowno)
     deleteat!(bt.a1, rowno)
@@ -75,21 +72,6 @@ function _delete!(bt::_BondTable, rowno::Int)
     deleteat!(bt.properties, rowno)
     deleteat!(bt.flags, rowno)
     nothing
-end
-
-function Base.delete!(bt::_BondTable, idx::Int)
-    _delete!(bt, bt._idx_map[idx])
-    _rebuild_idx_map!(bt)
-end
-
-function Base.delete!(bt::_BondTable, idx::Vector{Int})
-    rownos = getindex.(Ref(bt._idx_map), idx)
-    unique!(rownos)
-    sort!(rownos; rev = true)
-    for rowno in rownos
-        _delete!(bt, rowno)
-    end
-    _rebuild_idx_map!(bt)
 end
 
 function Base.empty!(bt::_BondTable)
@@ -114,6 +96,3 @@ function _bond_table(itr)
     bt
 end
 Tables.materializer(::Type{_BondTable}) = _bond_table
-
-@inline _rowno_by_idx(bt::_BondTable, idx::Int) = getindex(getfield(bt, :_idx_map), idx)
-@inline _row_by_idx(bt::_BondTable, idx::Int) = ColumnTableRow(_rowno_by_idx(bt, idx), bt)

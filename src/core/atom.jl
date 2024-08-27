@@ -137,7 +137,7 @@ end
 @inline _table(sys::System{T}, ::Type{Atom{T}}) where T = sys._atoms
 
 @inline function _hascolumn(::Type{<: Atom}, nm::Symbol)
-    nm in _atom_table_cols_set || nm in _atom_table_cols_priv
+    _hascolumn(_AtomTable, nm)
 end
 
 @inline function parent_molecule(atom::Atom)
