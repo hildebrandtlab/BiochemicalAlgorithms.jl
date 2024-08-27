@@ -68,7 +68,7 @@ end
 @inline _table(sys::System{T}, ::Type{Chain{T}}) where T = sys._chains
 
 @inline function _hascolumn(::Type{<: Chain}, nm::Symbol)
-    nm in _chain_table_cols_set || nm in _chain_table_cols_priv
+    _hascolumn(_ChainTable, nm)
 end
 
 @inline parent_molecule(chain::Chain) = molecule_by_idx(parent(chain), chain.molecule_idx)

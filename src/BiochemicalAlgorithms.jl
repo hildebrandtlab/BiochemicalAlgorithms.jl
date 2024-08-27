@@ -32,6 +32,7 @@ include("core/variants.jl")
 include("core/secondary_structure_type.jl")
 
 # system
+include("core/system_internals/_system_component_table.jl")
 include("core/system_internals/_atom_table.jl")
 include("core/system_internals/_bond_table.jl")
 include("core/system_internals/_molecule_table.jl")

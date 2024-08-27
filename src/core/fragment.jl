@@ -121,7 +121,7 @@ end
 @inline _table(sys::System{T}, ::Type{Fragment{T}}) where T = sys._fragments
 
 @inline function _hascolumn(::Type{<: Fragment}, nm::Symbol)
-    nm in _fragment_table_cols_set || nm in _fragment_table_cols_priv
+    _hascolumn(_FragmentTable, nm)
 end
 
 @inline parent_molecule(frag::Fragment) = molecule_by_idx(parent(frag), frag.molecule_idx)
