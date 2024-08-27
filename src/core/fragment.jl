@@ -91,11 +91,7 @@ end
     number::Int;
     kwargs...
 ) where T
-    sys = parent(ss)
-    chain = parent_chain(ss)
-    idx = _next_idx!(sys)
-    push!(sys._fragments, idx, number, chain.molecule_idx, chain.idx; secondary_structure_idx = ss.idx, kwargs...)
-    fragment_by_idx(sys, idx)
+    Fragment(parent_chain(ss), number; secondary_structure_idx = ss.idx, kwargs...)
 end
 
 """
