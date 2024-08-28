@@ -63,7 +63,7 @@ end
 @inline Base.eltype(::SystemComponentTable{T, C}) where {T, C} = C
 @inline Base.size(ct::SystemComponentTable) = (length(ct._idx), length(Tables.columnnames(ct)))
 @inline Base.getindex(ct::SystemComponentTable, i::Int) = _element_by_idx(ct, ct._idx[i])
-@inline Base.getindex(ct::SystemComponentTable, ::Colon) = ct
+@inline Base.getindex(ct::SystemComponentTable, ::Colon) = copy(ct)
 
 @inline function Base.getindex(ct::SystemComponentTable{T, C}, I::AbstractArray) where {T, C}
     SystemComponentTable{T, C}(ct._sys, collect(Int, map(i -> ct._idx[i], I)))
