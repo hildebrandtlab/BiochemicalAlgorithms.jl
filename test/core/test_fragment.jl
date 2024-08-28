@@ -116,10 +116,10 @@
         @test ft.chain_idx == [f1.chain_idx, n1.chain_idx, r1.chain_idx,
                                f2.chain_idx, n2.chain_idx, r2.chain_idx]
         @test ft.secondary_structure_idx isa AbstractVector{MaybeInt}
-        @test ft.secondary_structure_idx == 
+        @test ft.secondary_structure_idx ==
             [f1.secondary_structure_idx, n1.secondary_structure_idx, r1.secondary_structure_idx,
              f2.secondary_structure_idx, n2.secondary_structure_idx, r2.secondary_structure_idx]
-                        
+
 
         # Tables.getcolumn
         @test Tables.getcolumn(ft, :idx) isa AbstractVector{Int}
@@ -151,10 +151,10 @@
         @test Tables.getcolumn(ft, :chain_idx) == [f1.chain_idx, n1.chain_idx, r1.chain_idx,
                                                    f2.chain_idx, n2.chain_idx, r2.chain_idx]
         @test Tables.getcolumn(ft, :secondary_structure_idx) isa AbstractVector{MaybeInt}
-        @test Tables.getcolumn(ft, :secondary_structure_idx) == 
+        @test Tables.getcolumn(ft, :secondary_structure_idx) ==
             [f1.secondary_structure_idx, n1.secondary_structure_idx, r1.secondary_structure_idx,
              f2.secondary_structure_idx, n2.secondary_structure_idx, r2.secondary_structure_idx]
-        
+
         # setproperty!
         @test_throws ErrorException ft.idx = [999, 998, 997]
         @test_throws ErrorException ft.number = [996, 995, 994]
@@ -176,6 +176,12 @@
         @test ft[6] === r2
         @test_throws BoundsError ft[0]
         @test_throws BoundsError ft[7]
+
+        ft2 = ft[:]
+        @test ft2 isa FragmentTable{T}
+        @test isequal(ft2, ft)
+        @test ft2 == ft
+        @test ft2 !== ft
 
         # filter
         @test filter(_ -> true, ft) == ft
@@ -309,6 +315,12 @@ end
         @test_throws BoundsError ft[0]
         @test_throws BoundsError ft[3]
 
+        ft2 = ft[:]
+        @test ft2 isa FragmentTable{T}
+        @test isequal(ft2, ft)
+        @test ft2 == ft
+        @test ft2 !== ft
+
         # filter
         @test filter(_ -> true, ft) == ft
         @test only(filter(f -> f.idx == f1.idx, ft)) === f1
@@ -416,6 +428,12 @@ end
         @test_throws BoundsError nt[0]
         @test_throws BoundsError nt[3]
 
+        nt2 = nt[:]
+        @test nt2 isa FragmentTable{T}
+        @test isequal(nt2, nt)
+        @test nt2 == nt
+        @test nt2 !== nt
+
         # filter
         @test filter(_ -> true, nt) == nt
         @test only(filter(f -> f.idx == n1.idx, nt)) === n1
@@ -522,6 +540,12 @@ end
         @test rt[2] === r2
         @test_throws BoundsError rt[0]
         @test_throws BoundsError rt[3]
+
+        rt2 = rt[:]
+        @test rt2 isa FragmentTable{T}
+        @test isequal(rt2, rt)
+        @test rt2 == rt
+        @test rt2 !== rt
 
         # filter
         @test filter(_ -> true, rt) == rt

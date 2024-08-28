@@ -85,6 +85,12 @@
         @test_throws BoundsError ct[0]
         @test_throws BoundsError ct[3]
 
+        ct2 = ct[:]
+        @test ct2 isa ChainTable{T}
+        @test isequal(ct2, ct)
+        @test ct2 == ct
+        @test ct2 !== ct
+
         # filter
         @test filter(_ -> true, ct) == ct
         @test only(filter(c -> c.idx == c1.idx, ct)) === c1

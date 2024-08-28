@@ -99,6 +99,12 @@
         @test_throws BoundsError mt[0]
         @test_throws BoundsError mt[3]
 
+        mt2 = mt[:]
+        @test mt2 isa MoleculeTable{T}
+        @test isequal(mt2, mt)
+        @test mt2 == mt
+        @test mt2 !== mt
+
         # filter
         @test filter(_ -> true, mt) == mt
         @test only(filter(m -> m.idx == m1.idx, mt)) === m1
@@ -240,6 +246,12 @@ end
         @test_throws BoundsError mt[0]
         @test_throws BoundsError mt[3]
 
+        mt2 = mt[:]
+        @test mt2 isa MoleculeTable{T}
+        @test isequal(mt2, mt)
+        @test mt2 == mt
+        @test mt2 !== mt
+
         # filter
         @test filter(_ -> true, mt) == mt
         @test only(filter(m -> m.idx == m1.idx, mt)) === m1
@@ -327,6 +339,12 @@ end
         @test pt[2] === p2
         @test_throws BoundsError pt[0]
         @test_throws BoundsError pt[3]
+
+        pt2 = pt[:]
+        @test pt2 isa MoleculeTable{T}
+        @test isequal(pt2, pt)
+        @test pt2 == pt
+        @test pt2 !== pt
 
         # filter
         @test filter(_ -> true, pt) == pt
