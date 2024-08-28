@@ -113,6 +113,12 @@
         @test st2 == st
         @test st2 !== st
 
+        st2 = st[2:-1:1]
+        @test st2 isa SecondaryStructureTable{T}
+        @test length(st2) == 2
+        @test st2[1] === st[2]
+        @test st2[2] === st[1]
+
         # filter
         @test filter(_ -> true, st) == st
         @test only(filter(ss -> ss.idx == ss1.idx, st)) === ss1
