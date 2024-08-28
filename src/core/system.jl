@@ -224,6 +224,10 @@ end
 @inline _table(sc::SystemComponent{T, :Fragment}) where T = getfield(getfield(sc, :_sys), :_fragments)
 @inline _table(sc::SystemComponent{T, :Molecule}) where T = getfield(getfield(sc, :_sys), :_molecules)
 
+@inline function Base.propertynames(sc::SystemComponent)
+    propertynames(_table(sc))
+end
+
 @inline function Base.getproperty(sc::SystemComponent, name::Symbol)
     (name === :_sys || name === :_idx) && return getfield(sc, name)
     tab = _table(sc)
@@ -253,6 +257,10 @@ end
     ) where {T, C}
         new(SystemComponent{T, C}(sys, idx))
     end
+end
+
+@inline function Base.propertynames(ac::AtomContainer)
+    propertynames(ac._comp)
 end
 
 @inline function Base.getproperty(ac::AtomContainer, name::Symbol)

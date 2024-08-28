@@ -44,6 +44,10 @@ end
     _chain_table_schema
 end
 
+@inline function Base.propertynames(::_ChainTable)
+    _chain_table_cols
+end
+
 function Base.push!(
     ct::_ChainTable,
     idx::Int,

@@ -52,6 +52,10 @@ end
     _fragment_table_schema
 end
 
+@inline function Base.propertynames(::_FragmentTable)
+    _fragment_table_cols
+end
+
 function Base.push!(
     ft::_FragmentTable,
     idx::Int,

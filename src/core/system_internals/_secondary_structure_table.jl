@@ -50,6 +50,10 @@ end
     _secondary_structure_table_schema
 end
 
+@inline function Base.propertynames(::_SecondaryStructureTable)
+    _secondary_structure_table_cols
+end
+
 function Base.push!(
     st::_SecondaryStructureTable,
     idx::Int,

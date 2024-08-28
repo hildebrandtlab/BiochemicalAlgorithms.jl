@@ -67,6 +67,10 @@ end
     )
 end
 
+@inline function Base.propertynames(::_AtomTable)
+    _atom_table_cols
+end
+
 function Base.push!(
     at::_AtomTable{T},
     idx::Int,
