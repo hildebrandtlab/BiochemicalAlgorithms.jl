@@ -94,6 +94,12 @@
         @test_throws BoundsError bt[0]
         @test_throws BoundsError bt[3]
 
+        bt2 = bt[:]
+        @test bt2 isa BondTable{T}
+        @test isequal(bt2, bt)
+        @test bt2 == bt
+        @test bt2 !== bt
+
         # filter
         @test filter(_ -> true, bt) == bt
         @test only(filter(b -> b.idx == b1.idx, bt)) === b1

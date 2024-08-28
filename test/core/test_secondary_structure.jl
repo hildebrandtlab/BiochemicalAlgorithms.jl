@@ -107,6 +107,12 @@
         @test_throws BoundsError st[0]
         @test_throws BoundsError st[3]
 
+        st2 = st[:]
+        @test st2 isa SecondaryStructureTable{T}
+        @test isequal(st2, st)
+        @test st2 == st
+        @test st2 !== st
+
         # filter
         @test filter(_ -> true, st) == st
         @test only(filter(ss -> ss.idx == ss1.idx, st)) === ss1

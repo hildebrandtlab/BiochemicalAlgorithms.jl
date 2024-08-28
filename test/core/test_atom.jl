@@ -160,6 +160,12 @@
         @test_throws BoundsError at[0]
         @test_throws BoundsError at[3]
 
+        at2 = at[:]
+        @test at2 isa AtomTable{T}
+        @test isequal(at2, at)
+        @test at2 == at
+        @test at2 !== at
+
         # filter
         @test filter(_ -> true, at) == at
         @test only(filter(a -> a.idx == a1.idx, at)) === a1
