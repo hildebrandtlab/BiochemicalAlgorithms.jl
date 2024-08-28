@@ -45,6 +45,10 @@ end
     _bond_table_schema
 end
 
+@inline function Base.propertynames(::_BondTable)
+    _bond_table_cols
+end
+
 function Base.push!(
     bt::_BondTable,
     idx::Int,
