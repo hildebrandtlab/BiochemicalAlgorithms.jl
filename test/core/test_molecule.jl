@@ -105,6 +105,12 @@
         @test mt2 == mt
         @test mt2 !== mt
 
+        mt2 = mt[2:-1:1]
+        @test mt2 isa MoleculeTable{T}
+        @test length(mt2) == 2
+        @test mt2[1] === mt[2]
+        @test mt2[2] === mt[1]
+
         # filter
         @test filter(_ -> true, mt) == mt
         @test only(filter(m -> m.idx == m1.idx, mt)) === m1
@@ -252,6 +258,12 @@ end
         @test mt2 == mt
         @test mt2 !== mt
 
+        mt2 = mt[2:-1:1]
+        @test mt2 isa MoleculeTable{T}
+        @test length(mt2) == 2
+        @test mt2[1] === mt[2]
+        @test mt2[2] === mt[1]
+
         # filter
         @test filter(_ -> true, mt) == mt
         @test only(filter(m -> m.idx == m1.idx, mt)) === m1
@@ -345,6 +357,12 @@ end
         @test isequal(pt2, pt)
         @test pt2 == pt
         @test pt2 !== pt
+
+        pt2 = pt[2:-1:1]
+        @test pt2 isa MoleculeTable{T}
+        @test length(pt2) == 2
+        @test pt2[1] === pt[2]
+        @test pt2[2] === pt[1]
 
         # filter
         @test filter(_ -> true, pt) == pt

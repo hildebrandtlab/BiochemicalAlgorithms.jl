@@ -166,6 +166,12 @@
         @test at2 == at
         @test at2 !== at
 
+        at2 = at[2:-1:1]
+        @test at2 isa AtomTable{T}
+        @test length(at2) == 2
+        @test at2[1] === at[2]
+        @test at2[2] === at[1]
+
         # filter
         @test filter(_ -> true, at) == at
         @test only(filter(a -> a.idx == a1.idx, at)) === a1

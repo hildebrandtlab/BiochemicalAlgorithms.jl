@@ -100,6 +100,12 @@
         @test bt2 == bt
         @test bt2 !== bt
 
+        bt2 = bt[2:-1:1]
+        @test bt2 isa BondTable{T}
+        @test length(bt2) == 2
+        @test bt2[1] === bt[2]
+        @test bt2[2] === bt[1]
+
         # filter
         @test filter(_ -> true, bt) == bt
         @test only(filter(b -> b.idx == b1.idx, bt)) === b1
