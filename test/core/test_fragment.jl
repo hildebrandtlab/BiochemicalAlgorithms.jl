@@ -189,6 +189,15 @@
         @test ft2[1] === ft[2]
         @test ft2[2] === ft[1]
 
+        ft2 = ft[ft.idx .== -1]
+        @test ft2 isa FragmentTable{T}
+        @test length(ft2) == 0
+
+        ft2 = ft[ft.idx .== f2.idx]
+        @test ft2 isa FragmentTable{T}
+        @test length(ft2) == 1
+        @test only(ft2) === f2
+
         # filter
         @test filter(_ -> true, ft) == ft
         @test only(filter(f -> f.idx == f1.idx, ft)) === f1
@@ -333,6 +342,15 @@ end
         @test ft2[1] === ft[2]
         @test ft2[2] === ft[1]
 
+        ft2 = ft[ft.idx .== -1]
+        @test ft2 isa FragmentTable{T}
+        @test length(ft2) == 0
+
+        ft2 = ft[ft.idx .== f2.idx]
+        @test ft2 isa FragmentTable{T}
+        @test length(ft2) == 1
+        @test only(ft2) === f2
+
         # filter
         @test filter(_ -> true, ft) == ft
         @test only(filter(f -> f.idx == f1.idx, ft)) === f1
@@ -452,6 +470,15 @@ end
         @test nt2[1] === nt[2]
         @test nt2[2] === nt[1]
 
+        nt2 = nt[nt.idx .== -1]
+        @test nt2 isa FragmentTable{T}
+        @test length(nt2) == 0
+
+        nt2 = nt[nt.idx .== n2.idx]
+        @test nt2 isa FragmentTable{T}
+        @test length(nt2) == 1
+        @test only(nt2) === n2
+
         # filter
         @test filter(_ -> true, nt) == nt
         @test only(filter(f -> f.idx == n1.idx, nt)) === n1
@@ -570,6 +597,15 @@ end
         @test length(rt2) == 2
         @test rt2[1] === rt[2]
         @test rt2[2] === rt[1]
+
+        rt2 = rt[rt.idx .== -1]
+        @test rt2 isa FragmentTable{T}
+        @test length(rt2) == 0
+
+        rt2 = rt[rt.idx .== r2.idx]
+        @test rt2 isa FragmentTable{T}
+        @test length(rt2) == 1
+        @test only(rt2) === r2
 
         # filter
         @test filter(_ -> true, rt) == rt

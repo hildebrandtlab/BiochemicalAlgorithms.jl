@@ -172,6 +172,15 @@
         @test at2[1] === at[2]
         @test at2[2] === at[1]
 
+        at2 = at[at.idx .== -1]
+        @test at2 isa AtomTable{T}
+        @test length(at2) == 0
+
+        at2 = at[at.idx .== a2.idx]
+        @test at2 isa AtomTable{T}
+        @test length(at2) == 1
+        @test only(at2) === a2
+
         # filter
         @test filter(_ -> true, at) == at
         @test only(filter(a -> a.idx == a1.idx, at)) === a1
