@@ -44,6 +44,10 @@ end
     _molecule_table_schema
 end
 
+@inline function Base.propertynames(::_MoleculeTable)
+    _molecule_table_cols
+end
+
 function Base.push!(
     mt::_MoleculeTable,
     idx::Int = 0;
