@@ -69,6 +69,10 @@ end
     SystemComponentTable{T, C}(ct._sys, collect(Int, map(i -> ct._idx[i], I)))
 end
 
+@inline function Base.getindex(ct::SystemComponentTable, I::BitVector)
+    getindex(ct, getindex(eachindex(ct), I))
+end
+
 @inline _row_by_idx(ct::SystemComponentTable, idx::Int) = _row_by_idx(_table(ct), idx)
 
 """
