@@ -97,6 +97,15 @@
         @test ct2[1] === ct[2]
         @test ct2[2] === ct[1]
 
+        ct2 = ct[ct.idx .== -1]
+        @test ct2 isa ChainTable{T}
+        @test length(ct2) == 0
+
+        ct2 = ct[ct.idx .== c2.idx]
+        @test ct2 isa ChainTable{T}
+        @test length(ct2) == 1
+        @test only(ct2) === c2
+
         # filter
         @test filter(_ -> true, ct) == ct
         @test only(filter(c -> c.idx == c1.idx, ct)) === c1
