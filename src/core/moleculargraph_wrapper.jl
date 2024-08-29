@@ -31,9 +31,13 @@ function Base.convert(
 
     # create an intermediate dictionary to map from our data structures
     # to those of MolecularGraph
+
+    # NOTE: the number-field of the atoms is not guaranteed to be unique, so we re-number them in order
     at = atoms(mol)
-    molgraph_atoms = sort!(OrderedDict(a.number => _atom_to_molgraph(a) for a in at))
-    idx_to_molgraph_atom = Dict(a.idx => a.number for a in at)
+    at_numbers = collect(range(1, length(at)))
+
+    molgraph_atoms = sort!(OrderedDict(ai => _atom_to_molgraph(a) for (ai, a) in enumerate(at)))
+    idx_to_molgraph_atom = Dict(a.idx => ai for (ai, a) in enumerate(at))
     molgraph_atom_to_idx = Dict(v => k for (k,v) in idx_to_molgraph_atom)
 
     edges  = collect(Edge{Int}, map(b -> _bond_to_molgraph_edge(b, idx_to_molgraph_atom), bonds(mol)))
