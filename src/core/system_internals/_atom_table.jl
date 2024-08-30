@@ -112,49 +112,6 @@ function Base.push!(
     at
 end
 
-function _delete!(at::_AtomTable, rowno::Int)
-    deleteat!(at.idx, rowno)
-    deleteat!(at.number, rowno)
-    deleteat!(at.element, rowno)
-    deleteat!(at.name, rowno)
-    deleteat!(at.atom_type, rowno)
-    deleteat!(at.r, rowno)
-    deleteat!(at.v, rowno)
-    deleteat!(at.F, rowno)
-    deleteat!(at.formal_charge, rowno)
-    deleteat!(at.charge, rowno)
-    deleteat!(at.radius, rowno)
-    deleteat!(at.properties, rowno)
-    deleteat!(at.flags, rowno)
-    deleteat!(at.frame_id, rowno)
-    deleteat!(at.molecule_idx, rowno)
-    deleteat!(at.chain_idx, rowno)
-    deleteat!(at.fragment_idx, rowno)
-    nothing
-end
-
-function Base.empty!(at::_AtomTable)
-    empty!(at.idx)
-    empty!(at.number)
-    empty!(at.element)
-    empty!(at.name)
-    empty!(at.atom_type)
-    empty!(at.r)
-    empty!(at.v)
-    empty!(at.F)
-    empty!(at.formal_charge)
-    empty!(at.charge)
-    empty!(at.radius)
-    empty!(at.properties)
-    empty!(at.flags)
-    empty!(at.frame_id)
-    empty!(at.molecule_idx)
-    empty!(at.chain_idx)
-    empty!(at.fragment_idx)
-    empty!(at._idx_map)
-    at
-end
-
 function _atom_table(::Type{T}, itr) where T
     at = _AtomTable{T}()
     for a in itr

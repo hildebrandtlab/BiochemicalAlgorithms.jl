@@ -77,31 +77,6 @@ function Base.push!(
     st
 end
 
-function _delete!(st::_SecondaryStructureTable, rowno::Int)
-    deleteat!(st.idx, rowno)
-    deleteat!(st.number, rowno)
-    deleteat!(st.type, rowno)
-    deleteat!(st.name, rowno)
-    deleteat!(st.properties, rowno)
-    deleteat!(st.flags, rowno)
-    deleteat!(st.molecule_idx, rowno)
-    deleteat!(st.chain_idx, rowno)
-    nothing
-end
-
-function Base.empty!(st::_SecondaryStructureTable)
-    empty!(st.idx)
-    empty!(st.number)
-    empty!(st.type)
-    empty!(st.name)
-    empty!(st.properties)
-    empty!(st.flags)
-    empty!(st.molecule_idx)
-    empty!(st.chain_idx)
-    empty!(st._idx_map)
-    st
-end
-
 function _secondary_structure_table(itr)
     st = _SecondaryStructureTable()
     for c in itr
