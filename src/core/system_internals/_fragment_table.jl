@@ -81,33 +81,6 @@ function Base.push!(
     ft
 end
 
-function _delete!(ft::_FragmentTable, rowno::Int)
-    deleteat!(ft.idx, rowno)
-    deleteat!(ft.number, rowno)
-    deleteat!(ft.name, rowno)
-    deleteat!(ft.variant, rowno)
-    deleteat!(ft.properties, rowno)
-    deleteat!(ft.flags, rowno)
-    deleteat!(ft.molecule_idx, rowno)
-    deleteat!(ft.chain_idx, rowno)
-    deleteat!(ft.secondary_structure_idx, rowno)
-    nothing
-end
-
-function Base.empty!(ft::_FragmentTable)
-    empty!(ft.idx)
-    empty!(ft.number)
-    empty!(ft.name)
-    empty!(ft.variant)
-    empty!(ft.properties)
-    empty!(ft.flags)
-    empty!(ft.molecule_idx)
-    empty!(ft.chain_idx)
-    empty!(ft.secondary_structure_idx)
-    empty!(ft._idx_map)
-    ft
-end
-
 function _fragment_table(itr)
     ft = _FragmentTable()
     for f in itr

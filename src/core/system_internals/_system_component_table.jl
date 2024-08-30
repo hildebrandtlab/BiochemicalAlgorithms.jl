@@ -16,6 +16,15 @@ end
     at
 end
 
+@generated function _delete!(at::_AbstractSystemComponentTable, rowno::Int)
+    args = [
+        :(deleteat!(getfield(at, $(QuoteNode(nm))), rowno))
+        for nm in fieldnames(at)
+        if nm !== :_idx_map
+    ]
+    Expr(:block, args..., :(nothing))
+end
+
 function Base.delete!(at::_AbstractSystemComponentTable, idx::Int)
     _delete!(at, _rowno_by_idx(at, idx))
     _rebuild_idx_map!(at)
@@ -29,6 +38,14 @@ function Base.delete!(at::_AbstractSystemComponentTable, idx::Vector{Int})
         _delete!(at, rowno)
     end
     _rebuild_idx_map!(at)
+end
+
+@generated function Base.empty!(at::_AbstractSystemComponentTable)
+    args = [
+        :(empty!(getfield(at, $(QuoteNode(nm)))))
+        for nm in fieldnames(at)
+    ]
+    Expr(:block, args..., :(at))
 end
 
 @inline Base.size(at::_AbstractSystemComponentTable) = (length(at.idx), length(Tables.columnnames(at)))

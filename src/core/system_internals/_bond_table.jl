@@ -68,27 +68,6 @@ function Base.push!(
     bt
 end
 
-function _delete!(bt::_BondTable, rowno::Int)
-    deleteat!(bt.idx, rowno)
-    deleteat!(bt.a1, rowno)
-    deleteat!(bt.a2, rowno)
-    deleteat!(bt.order, rowno)
-    deleteat!(bt.properties, rowno)
-    deleteat!(bt.flags, rowno)
-    nothing
-end
-
-function Base.empty!(bt::_BondTable)
-    empty!(bt.idx)
-    empty!(bt.a1)
-    empty!(bt.a2)
-    empty!(bt.order)
-    empty!(bt.properties)
-    empty!(bt.flags)
-    empty!(bt._idx_map)
-    bt
-end
-
 function _bond_table(itr)
     bt = _BondTable()
     for b in itr

@@ -65,25 +65,6 @@ function Base.push!(
     mt
 end
 
-function _delete!(mt::_MoleculeTable, rowno::Int)
-    deleteat!(mt.idx, rowno)
-    deleteat!(mt.name, rowno)
-    deleteat!(mt.variant, rowno)
-    deleteat!(mt.properties, rowno)
-    deleteat!(mt.flags, rowno)
-    nothing
-end
-
-function Base.empty!(mt::_MoleculeTable)
-    empty!(mt.idx)
-    empty!(mt.name)
-    empty!(mt.variant)
-    empty!(mt.properties)
-    empty!(mt.flags)
-    empty!(mt._idx_map)
-    mt
-end
-
 function _molecule_table(itr)
     mt = _MoleculeTable()
     for m in itr

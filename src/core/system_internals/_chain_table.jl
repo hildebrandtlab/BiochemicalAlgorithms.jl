@@ -65,25 +65,6 @@ function Base.push!(
     ct
 end
 
-function _delete!(ct::_ChainTable, rowno::Int)
-    deleteat!(ct.idx, rowno)
-    deleteat!(ct.name, rowno)
-    deleteat!(ct.properties, rowno)
-    deleteat!(ct.flags, rowno)
-    deleteat!(ct.molecule_idx, rowno)
-    nothing
-end
-
-function Base.empty!(ct::_ChainTable)
-    empty!(ct.idx)
-    empty!(ct.name)
-    empty!(ct.properties)
-    empty!(ct.flags)
-    empty!(ct.molecule_idx)
-    empty!(ct._idx_map)
-    ct
-end
-
 function _chain_table(itr)
     ct = _ChainTable()
     for c in itr
