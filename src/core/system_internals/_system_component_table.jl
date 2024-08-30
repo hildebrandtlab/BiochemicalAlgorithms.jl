@@ -10,9 +10,11 @@ end
     ColumnTableRow(_rowno_by_idx(at, idx), at)
 end
 
-@inline function _rebuild_idx_map!(at::_AbstractSystemComponentTable)
+function _rebuild_idx_map!(at::_AbstractSystemComponentTable)
     empty!(at._idx_map)
-    merge!(at._idx_map, Dict(v => k for (k, v) in enumerate(at.idx)))
+    for (k, v) in enumerate(at.idx)
+        setindex!(at._idx_map, k, v)
+    end
     at
 end
 
