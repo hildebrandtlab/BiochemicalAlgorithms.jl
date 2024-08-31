@@ -10,8 +10,6 @@
     @test a.element == Elements.O
     @test a.charge ≈ -0.834
     @test a.r ≈ Vector3(0.59038, -0.410275, -0.860515)
-    # TODO: handle radii
-    # @test a.radius == 1.4
     @test nbonds(a) == 2
 
     @test get_property(sys, :temperature) ≈ 297.5626
@@ -31,4 +29,24 @@
 
     @test_throws SystemError load_hinfile(ball_data_path("../test/data/ASDFASDFASEFADSFASDFAEW.hin"))
     @test_throws MethodError load_hinfile(ball_data_path("../test/data/hinfile_test_invalid.hin"))
+end
+
+@testitem "writing HIN files" begin
+    sys = load_hinfile(ball_data_path("../test/data/hinfile_test.hin"))
+
+    outfname = tempname()
+    write_hinfile(outfname, sys)
+
+    sys2 = load_hinfile(outfname)
+
+    @test sys == sys2
+
+    # test name truncation
+    first(atoms(sys)).name = "TEST NAME"
+
+    write_hinfile(outfname, sys)
+
+    sys2 = load_hinfile(outfname)
+
+    @test first(atoms(sys2)).name == "TEST"
 end
