@@ -1,4 +1,4 @@
-export load_hinfile
+export load_hinfile, write_hinfile
 
 mutable struct HINParserState{T<:Real}
     line::String
@@ -41,8 +41,6 @@ function handle_hin_atom_!(parser_state::HINParserState{T}) where {T<:Real}
     # Amber writes "lone pair atoms" with pseudo-element "Lp" -- we treat these differently; right now,
     # we keep them around and remove them later
     atom_element = fields[4] == "Lp" ? Elements.Unknown : parse(ElementType, fields[4])
-
-    # TODO: BALL used to set the radius to the van der Waals - Radius of the Element; should we do that, too?
     
     atom_type = fields[5] == "**" ? "?" : String(strip(fields[5]))
 
@@ -366,4 +364,118 @@ function load_hinfile(fname::String, T=Float32)
     end
 
     parser_state.s
+end
+
+"""
+    write_hinfile(
+        fname::String,
+        ac::AtomContainer{T}
+    )
+
+Save an AtomContainer as HyperChem HIN file.
+
+Note: HIN files define molecules as connected components in the molecular graph. If the AtomContainer is
+      missing bonds, e.g., after reading a PDB file and not postprocessing it correctly, the HIN file may
+      contain a surprisingly large number of molecules.
+"""
+function write_hinfile(fname::String, ac::AbstractAtomContainer{T}) where {T<:Real}
+    mg = convert(MolecularGraph.SDFMolGraph, ac)
+    hin_molecules = connected_components(mg)
+
+    open(fname, "w") do io
+        write(io, "; HyperChem file created by BiochemicalAlgorithms\n")
+        write(io, ";\n")
+        write(io, "forcefield AMBER\n")
+
+        write(io, "sys $(get_property(ac, :temperature, 0.0))\n")
+
+        if has_property(ac, :periodic_box_width) && has_property(ac, :periodic_box_height) && has_property(ac, :periodic_box_depth)
+            write(io, "box $(get_property(ac, :periodic_box_width)) $(get_property(ac, :periodic_box_height)) $(get_property(ac, :periodic_box_depth))\n")
+        end
+
+        # now, for each connected component, create a molecule
+        for (mi, m) in enumerate(hin_molecules)
+            # getting the name of the molecule is not entirely simple...
+            # we use the first atom of the connected component to map back to the parent molecule, as many components can arise from the same parent molecule
+            mol_name = parent_molecule(atom_by_idx(ac, mg.gprops[:atom_idx][first(m)])).name
+
+            # names cannot contain double quotes
+            mol_name = replace(strip(mol_name), "\"" => "")
+
+            # newer HyperChem releases require molecule names to be enclosed in double quotes
+            write(io, mol_name != "" ? "mol $(mi) \"$(mol_name)\"\n" : "mol $(mi)\n")
+
+            # we need to re-number the atoms; the input are global numbers, unique over all molecules, while HIN wants atom numbers to be relative to the
+            # current molecule
+            index_map = Dict(a => ai for (ai, a) in enumerate(m))
+
+            # now, handle each atom
+            last_fragment = nothing
+            num_fragments = 1
+            for a in m
+                orig_atom = atom_by_idx(ac, mg.gprops[:atom_idx][a])
+
+                current_fragment = parent_fragment(orig_atom)
+
+                if current_fragment != last_fragment
+                    # do we need to close a fragment?
+                    if !isnothing(last_fragment)
+                        write(io, "endres $(num_fragments)\n")
+                        num_fragments += 1
+                    end
+
+                    # do we need to open a new fragment?
+                    if !isnothing(current_fragment)
+                        frag_name = strip(current_fragment.name) != "" ? strip(current_fragment.name) : "-"
+                        chain_name = strip(parent_chain(current_fragment).name) != "" ? strip(parent_chain(current_fragment).name) : "-"
+
+                        het_id = (is_amino_acid(current_fragment) || current_fragment.variant == FragmentVariant.Residue) ? "-" : "h"
+                        write(io, "res $(num_fragments) $(frag_name) $(current_fragment.number) $(het_id) $(chain_name)\n")
+                    end
+
+                    last_fragment = current_fragment
+                end
+
+                # now, write the atom itself
+                atom_name = strip(orig_atom.name) == "" ? "-" : strip(orig_atom.name)
+                if occursin(" ", atom_name)
+                    @warn "Atom names in HIN files cannot contain spaces!"
+
+                    atom_name = first(split(atom_name))
+                end
+
+                atom_type = strip(orig_atom.atom_type) == "" ? "-" : strip(orig_atom.atom_type)
+
+                atom_string  = "atom $(index_map[a]) $(atom_name) $(orig_atom.element) $(atom_type) - $(orig_atom.charge) $(orig_atom.r[1]) $(orig_atom.r[2]) $(orig_atom.r[3])"
+                atom_string *= " $(nbonds(orig_atom))"
+
+                for b in neighbors(mg, a)
+                    # find the corresponding edge
+                    e = mg.eprops[MolecularGraph.u_edge(mg, a, b)]
+
+                    order = 
+                        if e.order == 1
+                            's'
+                        elseif e.order == 2
+                            'd'
+                        elseif e.order == 3
+                            't'
+                        else 
+                            '-'
+                        end
+
+                    atom_string *= " $(index_map[b]) $(order)"
+                end
+
+                atom_string *= "\n"
+
+                write(io, atom_string)
+                
+                # write the velocities
+                write(io, "vel $(index_map[a]) $(orig_atom.v[1]) $(orig_atom.v[2]) $(orig_atom.v[3])\n")
+            end
+
+            write(io, "endmol $(mi)\n")
+        end
+    end
 end
