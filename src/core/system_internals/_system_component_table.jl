@@ -50,6 +50,27 @@ end
     Expr(:block, args..., :(at))
 end
 
+@inline function _sort_table_getperm(at, idx)
+    map(i -> at._idx_map[i], idx)
+end
+
+@inline function _sort_table_getidx(e)
+    e.idx
+end
+
+@generated function Base.sort!(at::_AbstractSystemComponentTable; kwargs...)
+    Expr(:block,
+        :(perm = _sort_table_getperm(at, getproperty.(sort(collect(at); by=_sort_table_getidx, kwargs...), :idx))),
+        [
+            :(permute!(getfield(at, $(QuoteNode(nm))), perm))
+            for nm in fieldnames(at)
+            if nm !== :_idx_map
+        ]...,
+        :(_rebuild_idx_map!(at)),
+        :(at)
+    )
+end
+
 @inline Base.size(at::_AbstractSystemComponentTable) = (length(at.idx), length(Tables.columnnames(at)))
 
 @inline function Tables.getcolumn(at::_AbstractSystemComponentTable, nm::Symbol)
