@@ -34,6 +34,22 @@ Tables.jl-compatible system component table for a specific `System{T}` and syste
 @auto_hash_equals struct SystemComponentTable{T, C <: AbstractSystemComponent{T}} <: AbstractSystemComponentTable{T}
     _sys::System{T}
     _idx::Vector{Int}
+    _cols::Vector{Symbol}
+
+    @inline function SystemComponentTable{T, C}(
+        sys::System{T},
+        idx::Vector{Int}
+    ) where {T, C <: AbstractSystemComponent{T}}
+        new(sys, idx, collect(Symbol, Tables.columnnames(_table(sys, C))))
+    end
+
+    @inline function SystemComponentTable{T, C}(
+        sys::System{T},
+        idx::Vector{Int},
+        cols::Vector{Symbol}
+    ) where {T, C <: AbstractSystemComponent{T}}
+        new(sys, idx, cols)
+    end
 end
 
 @inline _table(ct::SystemComponentTable{T, C}) where {T, C} = _table(ct._sys, C)
@@ -43,11 +59,20 @@ end
     C(ct._sys, idx)
 end
 
-@inline Tables.columnnames(ct::SystemComponentTable) = Tables.columnnames(_table(ct))
-@inline Tables.schema(ct::SystemComponentTable) = Tables.schema(_table(ct))
+@inline function Tables.columnnames(ct::SystemComponentTable)
+    ct._cols
+end
+
+@inline function Tables.schema(ct::SystemComponentTable)
+    baseT = typeof(_table(ct))
+    Tables.Schema(
+        ct._cols,
+        collect(DataType, fieldtype(baseT, col) for col in ct._cols)
+    )
+end
 
 @inline function Base.filter(f::Function, ct::SystemComponentTable{T, C}) where {T, C}
-    SystemComponentTable{T, C}(ct._sys, _filter_idx(f, ct))
+    SystemComponentTable{T, C}(ct._sys, _filter_idx(f, ct), ct._cols)
 end
 
 @inline function Base.iterate(ct::SystemComponentTable, st = 1)
@@ -57,7 +82,7 @@ end
 end
 
 @inline function Base.copy(ct::SystemComponentTable{T, C}) where {T, C}
-    SystemComponentTable{T, C}(ct._sys, copy(ct._idx))
+    SystemComponentTable{T, C}(ct._sys, copy(ct._idx), copy(ct._cols))
 end
 
 @inline function Base.propertynames(ct::SystemComponentTable)
@@ -66,11 +91,25 @@ end
 
 @inline Base.eltype(::SystemComponentTable{T, C}) where {T, C} = C
 @inline Base.size(ct::SystemComponentTable) = (length(ct._idx), length(Tables.columnnames(ct)))
-@inline Base.getindex(ct::SystemComponentTable, i::Int) = _element_by_idx(ct, ct._idx[i])
-@inline Base.getindex(ct::SystemComponentTable, ::Colon) = copy(ct)
 
-@inline function Base.getindex(ct::SystemComponentTable{T, C}, I::AbstractArray) where {T, C}
-    SystemComponentTable{T, C}(ct._sys, collect(Int, map(i -> ct._idx[i], I)))
+@inline function Base.getindex(ct::SystemComponentTable, i::Int)
+    _element_by_idx(ct, ct._idx[i])
+end
+
+@inline function Base.getindex(ct::SystemComponentTable, ::Colon)
+    copy(ct)
+end
+
+@inline function Base.getindex(ct::SystemComponentTable{T, C}, ::Colon, cols::Vector{Symbol}) where {T, C}
+    SystemComponentTable{T, C}(ct._sys, copy(ct._idx), cols)
+end
+
+@inline function Base.getindex(ct::SystemComponentTable{T, C}, I::AbstractVector{Int}) where {T, C}
+    SystemComponentTable{T, C}(ct._sys, collect(Int, map(i -> ct._idx[i], I)), copy(ct._cols))
+end
+
+@inline function Base.getindex(ct::SystemComponentTable{T, C}, rows::AbstractVector{Int}, cols::Vector{Symbol}) where {T, C}
+    getindex(getindex(ct, rows), :, cols)
 end
 
 @inline function Base.getindex(ct::SystemComponentTable, I::BitVector)

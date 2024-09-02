@@ -182,12 +182,29 @@
         @test isequal(ft2, ft)
         @test ft2 == ft
         @test ft2 !== ft
+        @test size(ft2) == size(ft)
+        @test Tables.columnnames(ft2) == Tables.columnnames(ft)
+        @test Tables.schema(ft2) == Tables.schema(ft)
+
+        ft2 = ft[:, [:idx, :flags]]
+        @test ft2 isa FragmentTable{T}
+        @test size(ft2) == (6, 2)
+        @test Tables.columnnames(ft2) == [:idx, :flags]
+        @test Tables.schema(ft2).names == (:idx, :flags)
+        @test Tables.schema(ft2).types == (Vector{Int}, Vector{Flags})
 
         ft2 = ft[2:-1:1]
         @test ft2 isa FragmentTable{T}
         @test length(ft2) == 2
         @test ft2[1] === ft[2]
         @test ft2[2] === ft[1]
+
+        ft2 = ft[2:-1:1, [:idx, :flags]]
+        @test ft2 isa FragmentTable{T}
+        @test size(ft2) == (2, 2)
+        @test Tables.columnnames(ft2) == [:idx, :flags]
+        @test Tables.schema(ft2).names == (:idx, :flags)
+        @test Tables.schema(ft2).types == (Vector{Int}, Vector{Flags})
 
         ft2 = ft[ft.idx .== -1]
         @test ft2 isa FragmentTable{T}
@@ -335,12 +352,29 @@ end
         @test isequal(ft2, ft)
         @test ft2 == ft
         @test ft2 !== ft
+        @test size(ft2) == size(ft)
+        @test Tables.columnnames(ft2) == Tables.columnnames(ft)
+        @test Tables.schema(ft2) == Tables.schema(ft)
+
+        ft2 = ft[:, [:idx, :flags]]
+        @test ft2 isa FragmentTable{T}
+        @test size(ft2) == (2, 2)
+        @test Tables.columnnames(ft2) == [:idx, :flags]
+        @test Tables.schema(ft2).names == (:idx, :flags)
+        @test Tables.schema(ft2).types == (Vector{Int}, Vector{Flags})
 
         ft2 = ft[2:-1:1]
         @test ft2 isa FragmentTable{T}
         @test length(ft2) == 2
         @test ft2[1] === ft[2]
         @test ft2[2] === ft[1]
+
+        ft2 = ft[2:-1:1, [:idx, :flags]]
+        @test ft2 isa FragmentTable{T}
+        @test size(ft2) == (2, 2)
+        @test Tables.columnnames(ft2) == [:idx, :flags]
+        @test Tables.schema(ft2).names == (:idx, :flags)
+        @test Tables.schema(ft2).types == (Vector{Int}, Vector{Flags})
 
         ft2 = ft[ft.idx .== -1]
         @test ft2 isa FragmentTable{T}
@@ -463,12 +497,29 @@ end
         @test isequal(nt2, nt)
         @test nt2 == nt
         @test nt2 !== nt
+        @test size(nt2) == size(nt)
+        @test Tables.columnnames(nt2) == Tables.columnnames(nt)
+        @test Tables.schema(nt2) == Tables.schema(nt)
+
+        nt2 = nt[:, [:idx, :flags]]
+        @test nt2 isa FragmentTable{T}
+        @test size(nt2) == (2, 2)
+        @test Tables.columnnames(nt2) == [:idx, :flags]
+        @test Tables.schema(nt2).names == (:idx, :flags)
+        @test Tables.schema(nt2).types == (Vector{Int}, Vector{Flags})
 
         nt2 = nt[2:-1:1]
         @test nt2 isa FragmentTable{T}
         @test length(nt2) == 2
         @test nt2[1] === nt[2]
         @test nt2[2] === nt[1]
+
+        nt2 = nt[2:-1:1, [:idx, :flags]]
+        @test nt2 isa FragmentTable{T}
+        @test size(nt2) == (2, 2)
+        @test Tables.columnnames(nt2) == [:idx, :flags]
+        @test Tables.schema(nt2).names == (:idx, :flags)
+        @test Tables.schema(nt2).types == (Vector{Int}, Vector{Flags})
 
         nt2 = nt[nt.idx .== -1]
         @test nt2 isa FragmentTable{T}
@@ -591,12 +642,29 @@ end
         @test isequal(rt2, rt)
         @test rt2 == rt
         @test rt2 !== rt
+        @test size(rt2) == size(rt)
+        @test Tables.columnnames(rt2) == Tables.columnnames(rt)
+        @test Tables.schema(rt2) == Tables.schema(rt)
+
+        rt2 = rt[:, [:idx, :flags]]
+        @test rt2 isa FragmentTable{T}
+        @test size(rt2) == (2, 2)
+        @test Tables.columnnames(rt2) == [:idx, :flags]
+        @test Tables.schema(rt2).names == (:idx, :flags)
+        @test Tables.schema(rt2).types == (Vector{Int}, Vector{Flags})
 
         rt2 = rt[2:-1:1]
         @test rt2 isa FragmentTable{T}
         @test length(rt2) == 2
         @test rt2[1] === rt[2]
         @test rt2[2] === rt[1]
+
+        rt2 = rt[2:-1:1, [:idx, :flags]]
+        @test rt2 isa FragmentTable{T}
+        @test size(rt2) == (2, 2)
+        @test Tables.columnnames(rt2) == [:idx, :flags]
+        @test Tables.schema(rt2).names == (:idx, :flags)
+        @test Tables.schema(rt2).types == (Vector{Int}, Vector{Flags})
 
         rt2 = rt[rt.idx .== -1]
         @test rt2 isa FragmentTable{T}

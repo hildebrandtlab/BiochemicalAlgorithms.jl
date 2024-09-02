@@ -165,12 +165,29 @@
         @test isequal(at2, at)
         @test at2 == at
         @test at2 !== at
+        @test size(at2) == size(at)
+        @test Tables.columnnames(at2) == Tables.columnnames(at)
+        @test Tables.schema(at2) == Tables.schema(at)
+
+        at2 = at[:, [:idx, :flags]]
+        @test at2 isa AtomTable{T}
+        @test size(at2) == (2, 2)
+        @test Tables.columnnames(at2) == [:idx, :flags]
+        @test Tables.schema(at2).names == (:idx, :flags)
+        @test Tables.schema(at2).types == (Vector{Int}, Vector{Flags})
 
         at2 = at[2:-1:1]
         @test at2 isa AtomTable{T}
         @test length(at2) == 2
         @test at2[1] === at[2]
         @test at2[2] === at[1]
+
+        at2 = at[2:-1:1, [:idx, :flags]]
+        @test at2 isa AtomTable{T}
+        @test size(at2) == (2, 2)
+        @test Tables.columnnames(at2) == [:idx, :flags]
+        @test Tables.schema(at2).names == (:idx, :flags)
+        @test Tables.schema(at2).types == (Vector{Int}, Vector{Flags})
 
         at2 = at[at.idx .== -1]
         @test at2 isa AtomTable{T}
