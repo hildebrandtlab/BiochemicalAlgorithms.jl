@@ -38,9 +38,8 @@
         @test nresidues(sys) == 0
 
         # atoms
+        ## sort + sort! + sort_atoms!
         sys = deepcopy(testsys)
-
-        ## sort + sort!
         at = atoms(sys)[100:2:200]
         at2 = sort(at; rev = true)
         @test at2 isa AtomTable{T}
@@ -58,7 +57,14 @@
         @test sort!(at; by = atom -> atom.name) === at
         @test at.name == sort(atoms(sys)[100:2:200].name)
 
+        @test sort_atoms!(sys; rev = true) === sys
+        @test issorted(atoms(sys).idx; rev = true)
+
+        @test sort_atoms!(sys; by = atom -> atom.name) === sys
+        @test issorted(atoms(sys).name)
+
         ## delete! + revalidate_indices!
+        sys = deepcopy(testsys)
         at  = atoms(sys)[100:2:200]
         aidx = Set(at.idx)
         bidx = Set(bonds(at).idx)
@@ -97,9 +103,8 @@
         @test nbonds(sys) == 0
 
         # bonds
+        ## sort + sort! + sort_bonds!
         sys = deepcopy(testsys)
-
-        ## sort + sort!
         bt = bonds(sys)[100:2:200]
         bt2 = sort(bt; rev = true)
         @test bt2 isa BondTable{T}
@@ -117,7 +122,14 @@
         @test sort!(bt; by = bond -> bond.a2) === bt
         @test bt.a2 == sort(bonds(sys)[100:2:200].a2)
 
+        @test sort_bonds!(sys; rev = true) === sys
+        @test issorted(bonds(sys).idx; rev = true)
+
+        @test sort_bonds!(sys; by = bond -> bond.a2) === sys
+        @test issorted(bonds(sys).a2)
+
         ## delete! + revalidate_indices!
+        sys = deepcopy(testsys)
         bt  = bonds(sys)[100:2:200]
         bidx = Set(bt.idx)
         @test delete!(bt) === bt
@@ -148,10 +160,9 @@
         @test nbonds(sys) == 0
 
         # molecules
+        ## sort + sort! + sort_molecules!
         sys = deepcopy(testsys)
         Molecule(sys)
-
-        ## sort + sort!
         mt = molecules(sys)
         mt2 = sort(mt; rev = true)
         @test mt2 isa MoleculeTable{T}
@@ -168,6 +179,12 @@
 
         @test sort!(mt; by = mol -> mol.name) === mt
         @test mt.name == sort(molecules(sys).name)
+
+        @test sort_molecules!(sys; rev = true) === sys
+        @test issorted(molecules(sys).idx; rev = true)
+
+        @test sort_molecules!(sys; by = mol -> mol.name) === sys
+        @test issorted(molecules(sys).name)
 
         ## delete! + revalidate_indices!
         sys = deepcopy(testsys)
@@ -229,9 +246,8 @@
         @test nfragments(sys) == 0
 
         # chains
+        ## sort + sort! + sort_chains!
         sys = deepcopy(testsys)
-
-        ## sort + sort!
         ct = chains(sys)[1:2]
         ct2 = sort(ct; rev = true)
         @test ct2 isa ChainTable{T}
@@ -249,7 +265,14 @@
         @test sort!(ct; by = chain -> chain.name) === ct
         @test ct.name == sort(chains(sys)[1:2].name)
 
+        @test sort_chains!(sys; rev = true) === sys
+        @test issorted(chains(sys).idx; rev = true)
+
+        @test sort_chains!(sys; by = chain -> chain.name) === sys
+        @test issorted(chains(sys).name)
+
         ## delete! + revalidate_indices!
+        sys = deepcopy(testsys)
         ct = chains(sys)[1:2]
         @test delete!(ct; keep_atoms = true) === ct
         @test length(ct) == 0
@@ -304,9 +327,8 @@
         @test nfragments(sys) == 13
 
         # secondary structures
+        ## sort + sort! + sort_secondary_structures!
         sys = deepcopy(testsys)
-
-        ## sort + sort!
         st = secondary_structures(sys)[1:2]
         st2 = sort(st; rev = true)
         @test st2 isa SecondaryStructureTable{T}
@@ -324,7 +346,14 @@
         @test sort!(st; by = ss -> ss.name) === st
         @test st.name == sort(secondary_structures(sys)[1:2].name)
 
+        @test sort_secondary_structures!(sys; rev = true) === sys
+        @test issorted(secondary_structures(sys).idx; rev = true)
+
+        @test sort_secondary_structures!(sys; by = ss -> ss.name) === sys
+        @test issorted(secondary_structures(sys).name)
+
         ## delete! + revalidate_indices!
+        sys = deepcopy(testsys)
         st = secondary_structures(sys)[1:2]
         @test delete!(st; keep_fragments = true) === st
         @test length(st) == 0
@@ -379,9 +408,8 @@
         @test nfragments(sys) == 205
 
         # fragments
+        ## sort + sort! + sort_fragments!
         sys = deepcopy(testsys)
-
-        ## sort + sort!
         ft = fragments(sys)[1:2:end]
         ft2 = sort(ft; rev = true)
         @test ft2 isa FragmentTable{T}
@@ -399,7 +427,14 @@
         @test sort!(ft; by = frag -> frag.name) === ft
         @test ft.name == sort(fragments(sys)[1:2:end].name)
 
+        @test sort_fragments!(sys; rev = true) === sys
+        @test issorted(fragments(sys).idx; rev = true)
+
+        @test sort_fragments!(sys; by = frag -> frag.name) === sys
+        @test issorted(fragments(sys).name)
+
         ## delete! + revalidate_indices!
+        sys = deepcopy(testsys)
         ft = fragments(sys)[1:2:end]
         @test delete!(ft; keep_atoms = true) === ft
         @test length(ft) == 0

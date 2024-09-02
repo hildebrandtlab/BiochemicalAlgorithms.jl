@@ -13,6 +13,12 @@ export
     parent_system,
     set_flag!,
     set_property!,
+    sort_atoms!,
+    sort_bonds!,
+    sort_chains!,
+    sort_fragments!,
+    sort_molecules!,
+    sort_secondary_structures!,
     unset_flag!
 
 """
@@ -211,6 +217,90 @@ Returns the `System{T}` containing the given object. Alias for
 [`Base.parent`](@ref Base.parent(::System)).
 """ parent_system
 parent_system(s::System) = s
+
+"""
+    sort_atoms!(::System)
+
+Sorts the atoms in the given system by `idx` (default) or according to the given
+keyword arguments.
+
+# Supported keyword arguments
+Same as `Base.sort`
+"""
+@inline function sort_atoms!(sys::System; kwargs...)
+    sort!(sys._atoms; kwargs...)
+    sys
+end
+
+"""
+    sort_bonds!(::System)
+
+Sorts the bonds in the given system by `idx` (default) or according to the given
+keyword arguments.
+
+# Supported keyword arguments
+Same as `Base.sort`
+"""
+@inline function sort_bonds!(sys::System; kwargs...)
+    sort!(sys._bonds; kwargs...)
+    sys
+end
+
+"""
+    sort_molecules!(::System)
+
+Sorts the molecules in the given system by `idx` (default) or according to the given
+keyword arguments.
+
+# Supported keyword arguments
+Same as `Base.sort`
+"""
+@inline function sort_molecules!(sys::System; kwargs...)
+    sort!(sys._molecules; kwargs...)
+    sys
+end
+
+"""
+    sort_chains!(::System)
+
+Sorts the chains in the given system by `idx` (default) or according to the given
+keyword arguments.
+
+# Supported keyword arguments
+Same as `Base.sort`
+"""
+@inline function sort_chains!(sys::System; kwargs...)
+    sort!(sys._chains; kwargs...)
+    sys
+end
+
+"""
+    sort_secondary_structures!(::System)
+
+Sorts the secondary structures in the given system by `idx` (default) or according
+to the given keyword arguments.
+
+# Supported keyword arguments
+Same as `Base.sort`
+"""
+@inline function sort_secondary_structures!(sys::System; kwargs...)
+    sort!(sys._secondary_structures; kwargs...)
+    sys
+end
+
+"""
+    sort_fragments!(::System)
+
+Sorts the fragments in the given system by `idx` (default) or according to the given
+keyword arguments.
+
+# Supported keyword arguments
+Same as `Base.sort`
+"""
+@inline function sort_fragments!(sys::System; kwargs...)
+    sort!(sys._fragments; kwargs...)
+    sys
+end
 
 @auto_hash_equals struct SystemComponent{T, C} <: AbstractSystemComponent{T}
     _sys::System{T}
