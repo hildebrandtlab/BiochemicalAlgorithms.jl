@@ -31,6 +31,8 @@ revalidate_indices!
 set_flag!
 set_property!
 unset_flag!
+Base.sort(::SystemComponentTable)
+Base.sort!(::SystemComponentTable)
 ```
 
 ## Atoms
