@@ -112,12 +112,29 @@
         @test isequal(st2, st)
         @test st2 == st
         @test st2 !== st
+        @test size(st2) == size(st)
+        @test Tables.columnnames(st2) == Tables.columnnames(st)
+        @test Tables.schema(st2) == Tables.schema(st)
+
+        st2 = st[:, [:idx, :flags]]
+        @test st2 isa SecondaryStructureTable{T}
+        @test size(st2) == (2, 2)
+        @test Tables.columnnames(st2) == [:idx, :flags]
+        @test Tables.schema(st2).names == (:idx, :flags)
+        @test Tables.schema(st2).types == (Vector{Int}, Vector{Flags})
 
         st2 = st[2:-1:1]
         @test st2 isa SecondaryStructureTable{T}
         @test length(st2) == 2
         @test st2[1] === st[2]
         @test st2[2] === st[1]
+
+        st2 = st[2:-1:1, [:idx, :flags]]
+        @test st2 isa SecondaryStructureTable{T}
+        @test size(st2) == (2, 2)
+        @test Tables.columnnames(st2) == [:idx, :flags]
+        @test Tables.schema(st2).names == (:idx, :flags)
+        @test Tables.schema(st2).types == (Vector{Int}, Vector{Flags})
 
         st2 = st[st.idx .== -1]
         @test st2 isa SecondaryStructureTable{T}

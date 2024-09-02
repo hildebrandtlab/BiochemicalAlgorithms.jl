@@ -99,12 +99,29 @@
         @test isequal(bt2, bt)
         @test bt2 == bt
         @test bt2 !== bt
+        @test size(bt2) == size(bt)
+        @test Tables.columnnames(bt2) == Tables.columnnames(bt)
+        @test Tables.schema(bt2) == Tables.schema(bt)
+
+        bt2 = bt[:, [:idx, :flags]]
+        @test bt2 isa BondTable{T}
+        @test size(bt2) == (2, 2)
+        @test Tables.columnnames(bt2) == [:idx, :flags]
+        @test Tables.schema(bt2).names == (:idx, :flags)
+        @test Tables.schema(bt2).types == (Vector{Int}, Vector{Flags})
 
         bt2 = bt[2:-1:1]
         @test bt2 isa BondTable{T}
         @test length(bt2) == 2
         @test bt2[1] === bt[2]
         @test bt2[2] === bt[1]
+
+        bt2 = bt[2:-1:1, [:idx, :flags]]
+        @test bt2 isa BondTable{T}
+        @test size(bt2) == (2, 2)
+        @test Tables.columnnames(bt2) == [:idx, :flags]
+        @test Tables.schema(bt2).names == (:idx, :flags)
+        @test Tables.schema(bt2).types == (Vector{Int}, Vector{Flags})
 
         bt2 = bt[bt.idx .== -1]
         @test bt2 isa BondTable{T}
