@@ -114,6 +114,36 @@ end
     getindex(ct, getindex(eachindex(ct), I))
 end
 
+"""
+    sort(::SystemComponentTable)
+
+Returns a copy of the given table, sorted by `idx` (default) or according to the given
+keyword arguments.
+
+# Supported keyword arguments
+Same as `Base.sort`
+"""
+@inline function Base.sort(ct::SystemComponentTable{T, C}; kwargs...) where {T, C}
+    SystemComponentTable{T, C}(
+        ct._sys,
+        getproperty.(sort(collect(ct); by=e -> e.idx, kwargs...), :idx),
+        isnothing(ct._cols) ? nothing : copy(ct._cols)
+    )
+end
+
+"""
+    sort!(::SystemComponentTable)
+
+In-place variant of [`sort`](@ref Base.sort(::SystemComponentTable)).
+
+!!! note
+    Only the given table is modified, not the underlying system!
+"""
+@inline function Base.sort!(ct::SystemComponentTable; kwargs...)
+    ct._idx .= getproperty.(sort(collect(ct); by=e -> e.idx, kwargs...), :idx)
+    ct
+end
+
 @inline _row_by_idx(ct::SystemComponentTable, idx::Int) = _row_by_idx(_table(ct), idx)
 
 """
