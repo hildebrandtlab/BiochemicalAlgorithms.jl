@@ -34,19 +34,12 @@ Tables.jl-compatible system component table for a specific `System{T}` and syste
 @auto_hash_equals struct SystemComponentTable{T, C <: AbstractSystemComponent{T}} <: AbstractSystemComponentTable{T}
     _sys::System{T}
     _idx::Vector{Int}
-    _cols::Vector{Symbol}
-
-    @inline function SystemComponentTable{T, C}(
-        sys::System{T},
-        idx::Vector{Int}
-    ) where {T, C <: AbstractSystemComponent{T}}
-        new(sys, idx, collect(Symbol, Tables.columnnames(_table(sys, C))))
-    end
+    _cols::Union{Nothing, Vector{Symbol}}
 
     @inline function SystemComponentTable{T, C}(
         sys::System{T},
         idx::Vector{Int},
-        cols::Vector{Symbol}
+        cols::Union{Nothing, Vector{Symbol}} = nothing
     ) where {T, C <: AbstractSystemComponent{T}}
         new(sys, idx, cols)
     end
@@ -60,10 +53,11 @@ end
 end
 
 @inline function Tables.columnnames(ct::SystemComponentTable)
-    ct._cols
+    isnothing(ct._cols) ? Tables.columnnames(_table(ct)) : ct._cols
 end
 
 @inline function Tables.schema(ct::SystemComponentTable)
+    isnothing(ct._cols) && return Tables.schema(_table(ct))
     baseT = typeof(_table(ct))
     Tables.Schema(
         ct._cols,
@@ -82,7 +76,7 @@ end
 end
 
 @inline function Base.copy(ct::SystemComponentTable{T, C}) where {T, C}
-    SystemComponentTable{T, C}(ct._sys, copy(ct._idx), copy(ct._cols))
+    SystemComponentTable{T, C}(ct._sys, copy(ct._idx), isnothing(ct._cols) ? nothing : copy(ct._cols))
 end
 
 @inline function Base.propertynames(ct::SystemComponentTable)
@@ -105,7 +99,11 @@ end
 end
 
 @inline function Base.getindex(ct::SystemComponentTable{T, C}, I::AbstractVector{Int}) where {T, C}
-    SystemComponentTable{T, C}(ct._sys, collect(Int, map(i -> ct._idx[i], I)), copy(ct._cols))
+    SystemComponentTable{T, C}(
+        ct._sys,
+        collect(Int, map(i -> ct._idx[i], I)),
+        isnothing(ct._cols) ? nothing : copy(ct._cols)
+    )
 end
 
 @inline function Base.getindex(ct::SystemComponentTable{T, C}, rows::AbstractVector{Int}, cols::Vector{Symbol}) where {T, C}
