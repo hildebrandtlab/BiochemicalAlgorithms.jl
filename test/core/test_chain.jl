@@ -90,12 +90,29 @@
         @test isequal(ct2, ct)
         @test ct2 == ct
         @test ct2 !== ct
+        @test size(ct2) == size(ct)
+        @test Tables.columnnames(ct2) == Tables.columnnames(ct)
+        @test Tables.schema(ct2) == Tables.schema(ct)
+
+        ct2 = ct[:, [:idx, :flags]]
+        @test ct2 isa ChainTable{T}
+        @test size(ct2) == (2, 2)
+        @test Tables.columnnames(ct2) == [:idx, :flags]
+        @test Tables.schema(ct2).names == (:idx, :flags)
+        @test Tables.schema(ct2).types == (Vector{Int}, Vector{Flags})
 
         ct2 = ct[2:-1:1]
         @test ct2 isa ChainTable{T}
         @test length(ct2) == 2
         @test ct2[1] === ct[2]
         @test ct2[2] === ct[1]
+
+        ct2 = ct[2:-1:1, [:idx, :flags]]
+        @test ct2 isa ChainTable{T}
+        @test size(ct2) == (2, 2)
+        @test Tables.columnnames(ct2) == [:idx, :flags]
+        @test Tables.schema(ct2).names == (:idx, :flags)
+        @test Tables.schema(ct2).types == (Vector{Int}, Vector{Flags})
 
         ct2 = ct[ct.idx .== -1]
         @test ct2 isa ChainTable{T}

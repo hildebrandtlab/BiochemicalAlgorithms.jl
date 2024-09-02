@@ -104,12 +104,29 @@
         @test isequal(mt2, mt)
         @test mt2 == mt
         @test mt2 !== mt
+        @test size(mt2) == size(mt)
+        @test Tables.columnnames(mt2) == Tables.columnnames(mt)
+        @test Tables.schema(mt2) == Tables.schema(mt)
+
+        mt2 = mt[:, [:idx, :flags]]
+        @test mt2 isa MoleculeTable{T}
+        @test size(mt2) == (2, 2)
+        @test Tables.columnnames(mt2) == [:idx, :flags]
+        @test Tables.schema(mt2).names == (:idx, :flags)
+        @test Tables.schema(mt2).types == (Vector{Int}, Vector{Flags})
 
         mt2 = mt[2:-1:1]
         @test mt2 isa MoleculeTable{T}
         @test length(mt2) == 2
         @test mt2[1] === mt[2]
         @test mt2[2] === mt[1]
+
+        mt2 = mt[2:-1:1, [:idx, :flags]]
+        @test mt2 isa MoleculeTable{T}
+        @test size(mt2) == (2, 2)
+        @test Tables.columnnames(mt2) == [:idx, :flags]
+        @test Tables.schema(mt2).names == (:idx, :flags)
+        @test Tables.schema(mt2).types == (Vector{Int}, Vector{Flags})
 
         mt2 = mt[mt.idx .== -1]
         @test mt2 isa MoleculeTable{T}
@@ -266,12 +283,29 @@ end
         @test isequal(mt2, mt)
         @test mt2 == mt
         @test mt2 !== mt
+        @test size(mt2) == size(mt)
+        @test Tables.columnnames(mt2) == Tables.columnnames(mt)
+        @test Tables.schema(mt2) == Tables.schema(mt)
+
+        mt2 = mt[:, [:idx, :flags]]
+        @test mt2 isa MoleculeTable{T}
+        @test size(mt2) == (2, 2)
+        @test Tables.columnnames(mt2) == [:idx, :flags]
+        @test Tables.schema(mt2).names == (:idx, :flags)
+        @test Tables.schema(mt2).types == (Vector{Int}, Vector{Flags})
 
         mt2 = mt[2:-1:1]
         @test mt2 isa MoleculeTable{T}
         @test length(mt2) == 2
         @test mt2[1] === mt[2]
         @test mt2[2] === mt[1]
+
+        mt2 = mt[2:-1:1, [:idx, :flags]]
+        @test mt2 isa MoleculeTable{T}
+        @test size(mt2) == (2, 2)
+        @test Tables.columnnames(mt2) == [:idx, :flags]
+        @test Tables.schema(mt2).names == (:idx, :flags)
+        @test Tables.schema(mt2).types == (Vector{Int}, Vector{Flags})
 
         mt2 = mt[mt.idx .== -1]
         @test mt2 isa MoleculeTable{T}
@@ -375,12 +409,29 @@ end
         @test isequal(pt2, pt)
         @test pt2 == pt
         @test pt2 !== pt
+        @test size(pt2) == size(pt)
+        @test Tables.columnnames(pt2) == Tables.columnnames(pt)
+        @test Tables.schema(pt2) == Tables.schema(pt)
+
+        pt2 = pt[:, [:idx, :flags]]
+        @test pt2 isa MoleculeTable{T}
+        @test size(pt2) == (2, 2)
+        @test Tables.columnnames(pt2) == [:idx, :flags]
+        @test Tables.schema(pt2).names == (:idx, :flags)
+        @test Tables.schema(pt2).types == (Vector{Int}, Vector{Flags})
 
         pt2 = pt[2:-1:1]
         @test pt2 isa MoleculeTable{T}
         @test length(pt2) == 2
         @test pt2[1] === pt[2]
         @test pt2[2] === pt[1]
+
+        pt2 = pt[2:-1:1, [:idx, :flags]]
+        @test pt2 isa MoleculeTable{T}
+        @test size(pt2) == (2, 2)
+        @test Tables.columnnames(pt2) == [:idx, :flags]
+        @test Tables.schema(pt2).names == (:idx, :flags)
+        @test Tables.schema(pt2).types == (Vector{Int}, Vector{Flags})
 
         pt2 = pt[pt.idx .== -1]
         @test pt2 isa MoleculeTable{T}
