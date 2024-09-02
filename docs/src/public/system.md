@@ -46,6 +46,7 @@ is_bound_to
 is_geminal
 is_vicinal
 natoms
+sort_atoms!
 Base.delete!(::Atom)
 Base.push!(::System{T}, ::Atom{T}) where T
 ```
@@ -57,6 +58,7 @@ BondTable
 bond_by_idx
 bonds
 nbonds
+sort_bonds!
 Base.delete!(::Bond)
 Base.push!(::System{T}, ::Bond{T}) where T
 ```
@@ -75,6 +77,7 @@ molecule_by_idx
 molecules
 nmolecules
 parent_molecule
+sort_molecules!
 Base.delete!(::Molecule)
 Base.push!(::System{T}, ::Molecule{T}) where T
 ```
@@ -97,6 +100,7 @@ chain_by_idx
 chains
 nchains
 parent_chain
+sort_chains!
 Base.delete!(::Chain)
 Base.push!(::Molecule{T}, ::Chain{T}) where T
 ```
@@ -109,6 +113,7 @@ secondary_structure_by_idx
 secondary_structures
 nsecondary_structures
 parent_secondary_structure
+sort_secondary_structures!
 Base.delete!(::SecondaryStructure)
 Base.push!(::Chain{T}, ::SecondaryStructure{T}) where T
 ```
@@ -127,6 +132,7 @@ fragment_by_idx
 fragments
 nfragments
 parent_fragment
+sort_fragments!
 Base.delete!(::Fragment)
 Base.push!(::SecondaryStructure{T}, ::Fragment{T}) where T
 Base.push!(::Chain{T}, ::Fragment{T}) where T
