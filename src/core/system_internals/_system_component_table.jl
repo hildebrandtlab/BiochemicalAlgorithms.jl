@@ -50,17 +50,8 @@ end
     Expr(:block, args..., :(at))
 end
 
-@inline function _sort_table_getperm(at, idx)
-    map(i -> at._idx_map[i], idx)
-end
-
-@inline function _sort_table_getidx(e)
-    e.idx
-end
-
-@generated function Base.sort!(at::_AbstractSystemComponentTable; kwargs...)
+@generated function Base.permute!(at::_AbstractSystemComponentTable, perm::AbstractVector)
     Expr(:block,
-        :(perm = _sort_table_getperm(at, getproperty.(sort(collect(at); by=_sort_table_getidx, kwargs...), :idx))),
         [
             :(permute!(getfield(at, $(QuoteNode(nm))), perm))
             for nm in fieldnames(at)
@@ -71,7 +62,13 @@ end
     )
 end
 
-@inline Base.size(at::_AbstractSystemComponentTable) = (length(at.idx), length(Tables.columnnames(at)))
+@inline function Base.sort!(at::_AbstractSystemComponentTable; kwargs...)
+    permute!(at, map(i -> at._idx_map[i], getproperty.(sort(collect(at); by=e -> e.idx, kwargs...), :idx)))
+end
+
+@inline function Base.size(at::_AbstractSystemComponentTable)
+    (length(at.idx), length(Tables.columnnames(at)))
+end
 
 @inline function Tables.getcolumn(at::_AbstractSystemComponentTable, nm::Symbol)
     @assert _hascolumn(at, nm) "type $(typeof(at)) has no column $nm"
