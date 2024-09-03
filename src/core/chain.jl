@@ -61,6 +61,10 @@ generated using [`chains`](@ref) or filtered from other chain tables (via `Base.
 """
 const ChainTable{T} = SystemComponentTable{T, Chain{T}}
 
+@inline function _wrap_chains(sys::System{T}) where T
+    ChainTable{T}(sys, getfield(getfield(sys, :_chains), :idx))
+end
+
 @inline function _filter_chains(f::Function, sys::System{T}) where T
     ChainTable{T}(sys, _filter_idx(f, sys._chains))
 end
