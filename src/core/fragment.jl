@@ -114,6 +114,10 @@ generated using [`fragments`](@ref) or filtered from other fragment tables (via 
 """
 const FragmentTable{T} = SystemComponentTable{T, Fragment{T}}
 
+@inline function _wrap_fragments(sys::System{T}) where T
+    FragmentTable{T}(sys, getfield(getfield(sys, :_fragments), :idx))
+end
+
 @inline function _filter_fragments(f::Function, sys::System{T}) where T
     FragmentTable{T}(sys, _filter_idx(f, sys._fragments))
 end

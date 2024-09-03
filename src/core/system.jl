@@ -234,7 +234,7 @@ keyword arguments.
 Same as `Base.sort`
 """
 @inline function sort_atoms!(sys::System; kwargs...)
-    _sort_table!(sys._atoms, atoms(sys); kwargs...)
+    _sort_table!(sys._atoms, _wrap_atoms(sys); kwargs...)
     sys
 end
 
@@ -248,7 +248,7 @@ keyword arguments.
 Same as `Base.sort`
 """
 @inline function sort_bonds!(sys::System; kwargs...)
-    _sort_table!(sys._bonds, bonds(sys); kwargs...)
+    _sort_table!(sys._bonds, _wrap_bonds(sys); kwargs...)
     sys
 end
 
@@ -262,7 +262,7 @@ keyword arguments.
 Same as `Base.sort`
 """
 @inline function sort_molecules!(sys::System; kwargs...)
-    _sort_table!(sys._molecules, molecules(sys); kwargs...)
+    _sort_table!(sys._molecules, _wrap_molecules(sys); kwargs...)
     sys
 end
 
@@ -276,7 +276,7 @@ keyword arguments.
 Same as `Base.sort`
 """
 @inline function sort_chains!(sys::System; kwargs...)
-    _sort_table!(sys._chains, chains(sys); kwargs...)
+    _sort_table!(sys._chains, _wrap_chains(sys); kwargs...)
     sys
 end
 
@@ -290,7 +290,7 @@ to the given keyword arguments.
 Same as `Base.sort`
 """
 @inline function sort_secondary_structures!(sys::System; kwargs...)
-    _sort_table!(sys._secondary_structures, secondary_structures(sys); kwargs...)
+    _sort_table!(sys._secondary_structures, _wrap_secondary_structures(sys); kwargs...)
     sys
 end
 
@@ -304,7 +304,7 @@ keyword arguments.
 Same as `Base.sort`
 """
 @inline function sort_fragments!(sys::System; kwargs...)
-    _sort_table!(sys._fragments, fragments(sys); kwargs...)
+    _sort_table!(sys._fragments, _wrap_fragments(sys); kwargs...)
     sys
 end
 
