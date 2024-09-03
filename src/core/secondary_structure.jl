@@ -72,6 +72,10 @@ generated using [`secondary_structures`](@ref) or filtered from other secondary 
 """
 const SecondaryStructureTable{T} = SystemComponentTable{T, SecondaryStructure{T}}
 
+@inline function _wrap_secondary_structures(sys::System{T}) where T
+    SecondaryStructureTable{T}(sys, getfield(getfield(sys, :_secondary_structures), :idx))
+end
+
 @inline function _filter_secondary_structures(f::Function, sys::System{T}) where T
     SecondaryStructureTable{T}(sys, _filter_idx(f, sys._secondary_structures))
 end

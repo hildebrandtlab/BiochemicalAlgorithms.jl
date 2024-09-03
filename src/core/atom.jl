@@ -130,6 +130,10 @@ generated using [`atoms`](@ref) or filtered from other atom tables (via `Base.fi
 """
 const AtomTable{T} = SystemComponentTable{T, Atom{T}}
 
+@inline function _wrap_atoms(sys::System{T}) where T
+    AtomTable{T}(sys, getfield(getfield(sys, :_atoms), :idx))
+end
+
 @inline function _filter_atoms(f::Function, sys::System{T}) where T
     AtomTable{T}(sys, _filter_idx(f, sys._atoms))
 end

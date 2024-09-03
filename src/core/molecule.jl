@@ -82,6 +82,10 @@ generated using [`molecules`](@ref) or filtered from other molecule tables (via 
 """
 const MoleculeTable{T} = SystemComponentTable{T, Molecule{T}}
 
+@inline function _wrap_molecules(sys::System{T}) where T
+    MoleculeTable{T}(sys, getfield(getfield(sys, :_molecules), :idx))
+end
+
 @inline function _filter_molecules(f::Function, sys::System{T}) where T
     MoleculeTable{T}(sys, _filter_idx(f, sys._molecules))
 end

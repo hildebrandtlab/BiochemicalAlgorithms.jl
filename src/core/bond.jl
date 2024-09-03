@@ -112,6 +112,10 @@ generated using [`bonds`](@ref) or filtered from other bond tables (via `Base.fi
 """
 const BondTable{T} = SystemComponentTable{T, Bond{T}}
 
+@inline function _wrap_bonds(sys::System{T}) where T
+    BondTable{T}(sys, getfield(getfield(sys, :_bonds), :idx))
+end
+
 @inline function _filter_bonds(f::Function, sys::System{T}) where T
     BondTable{T}(sys, _filter_idx(f, sys._bonds))
 end
