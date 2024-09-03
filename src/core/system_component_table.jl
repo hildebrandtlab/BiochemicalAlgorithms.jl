@@ -2,6 +2,7 @@ export
     AbstractSystemComponentTable,
     SystemComponentTable,
     SystemComponentTableCol,
+    full_table,
     revalidate_indices!
 
 """
@@ -142,6 +143,15 @@ In-place variant of [`sort`](@ref Base.sort(::SystemComponentTable)).
 @inline function Base.sort!(ct::SystemComponentTable; kwargs...)
     ct._idx .= getproperty.(sort(collect(ct); by=e -> e.idx, kwargs...), :idx)
     ct
+end
+
+"""
+    full_table(::SystemComponentTable)
+
+Returns an extended copy of the given table, with all columns being visible.
+"""
+@inline function full_table(ct::SystemComponentTable)
+    ct[:, collect(Symbol, propertynames(ct))]
 end
 
 @inline _row_by_idx(ct::SystemComponentTable, idx::Int) = _row_by_idx(_table(ct), idx)

@@ -24,6 +24,7 @@ AbstractSystemComponent
 AbstractSystemComponentTable
 SystemComponentTable
 SystemComponentTableCol
+full_table
 get_property
 has_flag
 has_property
