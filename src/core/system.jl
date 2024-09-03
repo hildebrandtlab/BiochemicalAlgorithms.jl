@@ -218,6 +218,12 @@ Returns the `System{T}` containing the given object. Alias for
 """ parent_system
 parent_system(s::System) = s
 
+@inline function _sort_table!(at::_AbstractSystemComponentTable, view; kwargs...)
+    permute!(at,
+        map(i -> at._idx_map[i], getproperty.(sort(view; by=e -> e.idx, kwargs...), :idx))
+    )
+end
+
 """
     sort_atoms!(::System)
 
@@ -228,7 +234,7 @@ keyword arguments.
 Same as `Base.sort`
 """
 @inline function sort_atoms!(sys::System; kwargs...)
-    sort!(sys._atoms; kwargs...)
+    _sort_table!(sys._atoms, atoms(sys); kwargs...)
     sys
 end
 
@@ -242,7 +248,7 @@ keyword arguments.
 Same as `Base.sort`
 """
 @inline function sort_bonds!(sys::System; kwargs...)
-    sort!(sys._bonds; kwargs...)
+    _sort_table!(sys._bonds, bonds(sys); kwargs...)
     sys
 end
 
@@ -256,7 +262,7 @@ keyword arguments.
 Same as `Base.sort`
 """
 @inline function sort_molecules!(sys::System; kwargs...)
-    sort!(sys._molecules; kwargs...)
+    _sort_table!(sys._molecules, molecules(sys); kwargs...)
     sys
 end
 
@@ -270,7 +276,7 @@ keyword arguments.
 Same as `Base.sort`
 """
 @inline function sort_chains!(sys::System; kwargs...)
-    sort!(sys._chains; kwargs...)
+    _sort_table!(sys._chains, chains(sys); kwargs...)
     sys
 end
 
@@ -284,7 +290,7 @@ to the given keyword arguments.
 Same as `Base.sort`
 """
 @inline function sort_secondary_structures!(sys::System; kwargs...)
-    sort!(sys._secondary_structures; kwargs...)
+    _sort_table!(sys._secondary_structures, secondary_structures(sys); kwargs...)
     sys
 end
 
@@ -298,7 +304,7 @@ keyword arguments.
 Same as `Base.sort`
 """
 @inline function sort_fragments!(sys::System; kwargs...)
-    sort!(sys._fragments; kwargs...)
+    _sort_table!(sys._fragments, fragments(sys); kwargs...)
     sys
 end
 
