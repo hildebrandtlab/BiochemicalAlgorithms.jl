@@ -24,7 +24,7 @@ In BiochemicalAlgorithms.jl, all molecules are stored in so-called `Systems`. Wh
 s = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
 ```
 
-    System with 2241 atoms (2ptc.pdb)
+    System{Float32} with 2241 atoms (2ptc.pdb)
 
 You can then run methods on this system, e.g.
 

@@ -11,7 +11,7 @@ In `BiochemicalAlgorithms.jl` atoms and bonds are existing inside a `System`. Ty
 sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 ```
 
-    System with 23 atoms (AlaAla.pdb)
+    System{Float32} with 23 atoms (AlaAla.pdb)
 
 You can, e.g., print all atoms of the given system as a table:
 
