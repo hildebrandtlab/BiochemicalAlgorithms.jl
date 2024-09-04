@@ -1,0 +1,14 @@
+
+
+\section{Conclusion}
+
+In this manuscript, we introduced BiochemicalAlgorithms.jl, a comprehensive framework designed for RAD in the field of structure-based bioinformatics. Unlike many existing Julia packages in this field that typically focus on single tasks, our library serves as a versatile foundation that encompasses a wide range of functionalities, including file I/O, molecular modeling, molecular mechanics methods, and is accompanied by a visualization tool.\\
+Changing our development platform from C++ to Julia has greatly simplified conforming to the design goals: ease-of-use, openness, robustness, and functionality. \\
+
+We believe that our framework facilitates both novice and experienced users in conducting molecular structure analysis with minimal effort. \biochem\ provides a robust yet flexible core with additional functionalities. The integration of the fragment database is particularly valuable for structure preprocessing, including normalization of different naming standards, reconstruction of missing fragments, and bond computation. Additionally, the implemented visualization tool allows for immediate visual inspection of the structures. \\
+Thereby, \biochem\ is not intended to replace functionality already provided by packages inside the Julia ecosystem such as \textit{BioStructures.jl}, but rather to provide a general platform allowing interoperability of functionalities. 
+\biochem includes well-defined interfaces, such as those for molecular force fields, empowering experienced users to implement custom applications.  Table \ref{table2_benchmark_amber} shows timings for our implementation of an AMBER force field in comparison to \ball. These results indicate comparable performance with some tasks being slower in \biochem\. We are committed to improving performance of the force field implementation and working on alternative force field implementations such as CHARMM, which will be available in the near future. \\
+
+Future directions will include an extensive benchmark study to evaluate our implementation against its predecessor, \ball. This will involve creating a modern benchmarking suite in C++ for BALL to allow comparison with results from \textit{BenchmarkTools}.
+
+Overall, we see \biochem as a valuable contribution to the field of structural bioinformatics in Julia, combining ease of use with powerful functionality to support a wide range of applications.

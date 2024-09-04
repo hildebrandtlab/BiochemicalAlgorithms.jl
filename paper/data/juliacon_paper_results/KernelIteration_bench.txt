@@ -1,0 +1,40 @@
+Version: $Id: KernelIteration_bench.C,v 1.3 2002/02/27 12:20:32 sturm Exp $
+ResidueIteration: 3.30006 s (weight = 0.3)
+AtomIteration: 3.18006 s (weight = 0.7)
+3.21606
+Version: $Id: KernelIteration_bench.C,v 1.3 2002/02/27 12:20:32 sturm Exp $
+ResidueIteration: 3.61006 s (weight = 0.3)
+AtomIteration: 3.37006 s (weight = 0.7)
+3.44206
+Version: $Id: KernelIteration_bench.C,v 1.3 2002/02/27 12:20:32 sturm Exp $
+ResidueIteration: 3.38007 s (weight = 0.3)
+AtomIteration: 3.17006 s (weight = 0.7)
+3.23306
+Version: $Id: KernelIteration_bench.C,v 1.3 2002/02/27 12:20:32 sturm Exp $
+ResidueIteration: 3.48006 s (weight = 0.3)
+AtomIteration: 3.42006 s (weight = 0.7)
+3.43806
+Version: $Id: KernelIteration_bench.C,v 1.3 2002/02/27 12:20:32 sturm Exp $
+ResidueIteration: 3.58006 s (weight = 0.3)
+AtomIteration: 3.22006 s (weight = 0.7)
+3.32806
+Version: $Id: KernelIteration_bench.C,v 1.3 2002/02/27 12:20:32 sturm Exp $
+ResidueIteration: 3.42006 s (weight = 0.3)
+AtomIteration: 3.13006 s (weight = 0.7)
+3.21706
+Version: $Id: KernelIteration_bench.C,v 1.3 2002/02/27 12:20:32 sturm Exp $
+ResidueIteration: 3.46006 s (weight = 0.3)
+AtomIteration: 3.22005 s (weight = 0.7)
+3.29206
+Version: $Id: KernelIteration_bench.C,v 1.3 2002/02/27 12:20:32 sturm Exp $
+ResidueIteration: 3.46006 s (weight = 0.3)
+AtomIteration: 3.22006 s (weight = 0.7)
+3.29206
+Version: $Id: KernelIteration_bench.C,v 1.3 2002/02/27 12:20:32 sturm Exp $
+ResidueIteration: 3.49006 s (weight = 0.3)
+AtomIteration: 3.39006 s (weight = 0.7)
+3.42006
+Version: $Id: KernelIteration_bench.C,v 1.3 2002/02/27 12:20:32 sturm Exp $
+ResidueIteration: 3.38006 s (weight = 0.3)
+AtomIteration: 3.15005 s (weight = 0.7)
+3.21906

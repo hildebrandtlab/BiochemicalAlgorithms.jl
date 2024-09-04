@@ -1,0 +1,22 @@
+title: "Structure-based bioinformatics with BiochemicalAlgorithms.jl"
+keywords:
+  - Julia
+  - Structure-based bioinformatics
+  - C++
+  - BALL
+  
+authors:
+  - name: Jennifer Leclaire
+    orcid: 0000-0002-0587-1636
+    affiliation: 1
+  - name: Thomas Kemmer
+    orcid: 0000-0003-1180-746X
+    affiliation: 1
+  - name: Andreas Hildebrandt
+    orcid: 0000-0003-2180-6516
+    affiliation: 1
+affiliations:
+  - name: Scientific Computing and Bioinformatics, Institute of Computer Science, Johannes Gutenberg-University Mainz
+    index: 1
+date: 30 December 2024
+bibliography: ref.bib
