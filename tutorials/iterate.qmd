@@ -8,6 +8,7 @@ engine: julia
 #| output: false
 
 using BiochemicalAlgorithms
+Base.active_module() = BiochemicalAlgorithms
 ```
 
 When working with molecular entities, we want to run over all atoms of a system, over all chains, etc. In this tutorial we will learn how this can be done.
@@ -38,7 +39,7 @@ natoms(sys)
 Similar functions exist for other system components, including bonds, molecules, chains, and fragments.
 
 
-## How can I iterate over all atoms of a system? 
+## How can I iterate over all atoms of a system?
 We can just as easily iterate over all atoms:
 ```{julia}
 for atom in atoms(sys)
