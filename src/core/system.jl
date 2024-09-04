@@ -172,7 +172,7 @@ end
 
 Base.show(io::IO, ::MIME"text/plain", sys::System) = show(io, sys)
 Base.show(io::IO, sys::System) = print(io,
-    "System with ", natoms(sys), " atoms", isempty(sys.name) ? "" : " ($(sys.name))")
+    "$(typeof(sys)) with ", natoms(sys), " atoms", isempty(sys.name) ? "" : " ($(sys.name))")
 
 """
     empty!(::System)
