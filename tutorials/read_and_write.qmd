@@ -8,9 +8,10 @@ engine: julia
 #| output: false
 
 using BiochemicalAlgorithms
+Base.active_module() = BiochemicalAlgorithms
 ```
 
-BiochemicalAlgorithms.jl supports the reading and writing of several common structural data formats. 
+BiochemicalAlgorithms.jl supports the reading and writing of several common structural data formats.
 
 
 ## Protein Data Bank Format (PDB)
@@ -29,7 +30,7 @@ write_pdb("Ala_out.pdb", sys)
 
 ## PubChem
 
-In addition to PDB, the [pubchem data base](https://pubchem.ncbi.nlm.nih.gov/) plays an important role as a source of structural data. Pubchem allows to retrieve data in JSON which is read by BiochemicalAlgorithms.jl as shown below: 
+In addition to PDB, the [pubchem data base](https://pubchem.ncbi.nlm.nih.gov/) plays an important role as a source of structural data. Pubchem allows to retrieve data in JSON which is read by BiochemicalAlgorithms.jl as shown below:
 ```{julia}
 sys = load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json"))
 ```

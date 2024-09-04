@@ -5,7 +5,7 @@
 
 ``` julia
 # create a system first
-sys = System{Float32}() # this system will be of single precision, i.e., atom positions, velocities... 
+sys = System{Float32}() # this system will be of single precision, i.e., atom positions, velocities...
 
 # as well as a molecule
 h2o = Molecule(sys)
@@ -149,7 +149,7 @@ all_chains = chains(sys)
 |   1 | 2   | E    |
 |   2 | 349 | I    |
 
-BiochemicalAlgorithms.ChainTable{Float32} with 2 rows:
+ChainTable{Float32} with 2 rows:
 
 This snippet will create separate PDB files for the two chains of the system:
 

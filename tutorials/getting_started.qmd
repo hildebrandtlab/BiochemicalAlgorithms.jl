@@ -22,6 +22,12 @@ and use it in your code:
 using BiochemicalAlgorithms
 ```
 
+```{julia}
+#| echo: false
+#| output: false
+
+Base.active_module() = BiochemicalAlgorithms
+```
 
 ## Representing molecular systems
 
