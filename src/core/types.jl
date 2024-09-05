@@ -30,7 +30,7 @@ end
 ) = getindex(M._base, getindex(M._rows, i))
 
 @inline Base.setindex!(
-    M::_RowProjectionVector{T},
-    v::T,
+    M::_RowProjectionVector,
+    v,
     i::Int
-) where T = setindex!(M._base, v, getindex(M._rows, i))
+) = setindex!(M._base, v, getindex(M._rows, i))
