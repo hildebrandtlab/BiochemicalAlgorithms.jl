@@ -60,6 +60,7 @@ include("substructures/sssr.jl")
 
 # file formats
 include("fileformats/ball_ini_file.jl")
+include("fileformats/hinfile.jl")
 include("fileformats/pdb.jl")
 include("fileformats/pubchem_json.jl")
 include("fileformats/sdfile.jl")
