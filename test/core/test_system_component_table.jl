@@ -20,7 +20,7 @@
         @test_throws BoundsError u[0]
         @test_throws BoundsError u[0] = T(41)
         @test u[1] == v[3]
-        u[1] = T(11)
+        u[1] = 11
         @test u[1] == v[3] == 11
         @test u[2] == v[1]
         @test_throws BoundsError u[3]
@@ -28,7 +28,7 @@
 
         u = SystemComponentTableCol(v, [3, 1], Dict(3 => 1, 1 => 3))
         @test u[1] == v[1]
-        u[1] = T(11)
+        u[1] = 11
         @test u[1] == v[1] == 11
         @test u[2] == v[3]
 
@@ -39,9 +39,9 @@
         @test_throws BoundsError u[0]
         @test_throws BoundsError u[0] = T(41)
         @test u[1] == u[2] == v[2]
-        u[1] = T(11)
+        u[1] = 11
         @test u[1] == u[2] == v[2] == 11
-        u[2] = T(12)
+        u[2] = 12
         @test u[1] == u[2] == v[2] == 12
         @test_throws BoundsError u[3]
         @test_throws BoundsError u[3] = T(42)
