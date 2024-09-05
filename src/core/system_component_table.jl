@@ -179,7 +179,7 @@ end
     getindex(M._base, getindex(M._idx_map, getindex(M._idx, i)))
 end
 
-@inline function Base.setindex!(M::SystemComponentTableCol{T}, v::T, i::Int) where T
+@inline function Base.setindex!(M::SystemComponentTableCol, v, i::Int)
     setindex!(M._base, v, getindex(M._idx_map, getindex(M._idx, i)))
 end
 
