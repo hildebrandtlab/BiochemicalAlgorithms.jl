@@ -14,7 +14,8 @@ kernel_creation["FragmentCreation"] = @benchmarkable Fragment($chain,1) samples 
 sys2 = System()
 mol = Molecule(sys2)
 chain2 = Chain(mol)
-kernel_creation["ResidueCreation"] = @benchmarkable Residue($chain, 1, AminoAcid('D')) samples = 1000000
+
+kernel_creation["ResidueCreation"] = @benchmarkable Residue($chain, 1, name = "ALA") samples = 1000000
 
 
 sys3 = System()
