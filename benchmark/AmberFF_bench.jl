@@ -1,7 +1,7 @@
 function prepare_mol(fname)
     fdb = FragmentDB()
 
-    m = load_pdb("../benchmark/data/$(fname)")
+    m = load_pdb(ball_data_path("../benchmark/data/$(fname)"))
 
     function atom_filter(a_idx)
         a = atom_by_idx(m, a_idx.idx)
@@ -36,3 +36,7 @@ update!(a_ff)
 
 amber_suite["compute_energy!"] = @benchmarkable compute_energy!($a_ff)
 amber_suite["compute_forces!"] = @benchmarkable compute_forces!($a_ff)
+
+for i in a_ff.components
+    amber_suite[i.name * "_comp"] = @benchmarkable compute_energy($i)
+end
