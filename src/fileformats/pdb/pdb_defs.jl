@@ -158,12 +158,12 @@ const FORMAT_AUTHOR           = "  %2ld%-60.60s"
 const FORMAT_CAVEAT           = "  %2ld %4.4s    %51.51s"
 const FORMAT_CISPEP           = " %3ld %3.3s %c %4ld%c   %3.3s %c %4ld%c       %3ld       %6f"
 const FORMAT_COMPND           = "  %2ld%-60.60s"
-const FORMAT_CONECT           = "%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld"
 const FORMAT_CON06            = "%5ld%5ld%5ld%5ld%5ld"
 const FORMAT_CON061           = "%5ld"
 const FORMAT_CON062           = "%5ld%5ld"
 const FORMAT_CON063           = "%5ld%5ld%5ld"
 const FORMAT_CON064           = "%5ld%5ld%5ld%5ld"
+const FORMAT_CONECT           = "%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld"
 const FORMAT_CRYST1           = "%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f %-11.11s%4ld"
 const FORMAT_DBREF            = " %4.4s %c %4ld%c %4ld%c %6.6s %8.8s %12.12s %5ld%c %5ld%c"
 const FORMAT_END              = ""
@@ -218,12 +218,12 @@ const RECORD_TAG_AUTHOR  = "AUTHOR"
 const RECORD_TAG_CAVEAT  = "CAVEAT"
 const RECORD_TAG_CISPEP  = "CISPEP"
 const RECORD_TAG_COMPND  = "COMPND"
-const RECORD_TAG_CONECT  = "CONECT"
 const RECORD_TAG_CON061  = "CONECT"
 const RECORD_TAG_CON062  = "CONECT"
 const RECORD_TAG_CON063  = "CONECT"
 const RECORD_TAG_CON064  = "CONECT"
 const RECORD_TAG_CON06   = "CONECT"
+const RECORD_TAG_CONECT  = "CONECT"
 const RECORD_TAG_CRYST1  = "CRYST1"
 const RECORD_TAG_DBREF   = "DBREF "
 const RECORD_TAG_END     = "END   "
@@ -279,12 +279,12 @@ const RECORD_TYPE_FORMAT = [
     RecordTypeFormat(RECORD_TYPE__CAVEAT,  RECORD_TAG_CAVEAT,  FORMAT_CAVEAT),
     RecordTypeFormat(RECORD_TYPE__CISPEP,  RECORD_TAG_CISPEP,  FORMAT_CISPEP),
     RecordTypeFormat(RECORD_TYPE__COMPND,  RECORD_TAG_COMPND,  FORMAT_COMPND),
-    RecordTypeFormat(RECORD_TYPE__CONECT,  RECORD_TAG_CONECT,  FORMAT_CONECT),
     RecordTypeFormat(RECORD_TYPE__CON06,   RECORD_TAG_CON06,   FORMAT_CON06),
     RecordTypeFormat(RECORD_TYPE__CON061,  RECORD_TAG_CON061,  FORMAT_CON061),
     RecordTypeFormat(RECORD_TYPE__CON062,  RECORD_TAG_CON062,  FORMAT_CON062),
     RecordTypeFormat(RECORD_TYPE__CON063,  RECORD_TAG_CON063,  FORMAT_CON063),
     RecordTypeFormat(RECORD_TYPE__CON064,  RECORD_TAG_CON064,  FORMAT_CON064),
+    RecordTypeFormat(RECORD_TYPE__CONECT,  RECORD_TAG_CONECT,  FORMAT_CONECT),
     RecordTypeFormat(RECORD_TYPE__CRYST1,  RECORD_TAG_CRYST1,  FORMAT_CRYST1),
     RecordTypeFormat(RECORD_TYPE__DBREF,   RECORD_TAG_DBREF,   FORMAT_DBREF),
     RecordTypeFormat(RECORD_TYPE__END,     RECORD_TAG_END,     FORMAT_END),
@@ -333,6 +333,7 @@ const RECORD_TYPE_FORMAT = [
     RecordTypeFormat(RECORD_TYPE__TVECT,   RECORD_TAG_TVECT,   FORMAT_TVECT)
 ]
 
+# TODO: Better idea for just the tag
 const RECORD_MAP = Dict(
     rtf.tag => rtf for rtf in RECORD_TYPE_FORMAT
 )
