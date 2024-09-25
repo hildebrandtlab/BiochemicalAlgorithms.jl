@@ -57,6 +57,7 @@ function handle_record(line, sys, pdb_info; strict_line_checking, kwargs...)
 
     if tag ∉ keys(RECORD_MAP)
         # handle unknown record type
+        @warn "Record of PDB not identified: $tag. Record will be skipped." 
     else
         parse_record(
             line, 
@@ -78,7 +79,7 @@ function ftype(s, T=Float32)
         elseif s == "c"
             String
         else
-            Nothing
+            Nothing 
         end
     return result
 end
@@ -433,6 +434,91 @@ function interpret_record(
     )
 end
 
+
+"""
+    _atom_by_number(
+        ac::AbstractAtomContainer{T} = default_system(),
+        idx::Int
+    ) -> Atom{T}
+
+Returns the first `Atom{T}` associated with the given `number` in `sys`. Throws a `KeyError` if no such
+atom exists.
+"""
+@inline function _atom_by_number(
+    ac::AbstractAtomContainer{T},
+    serial_number::Int;
+) where T
+    idx = filter(atom -> atom.number == serial_number, atoms(ac)).idx
+    isempty(idx) ? nothing : atom_by_idx(parent(ac), first(idx))
+end
+
+function interpret_record(
+    ::Val{RECORD_TYPE__CONECT},
+    tag,
+    serial_number,
+    bond_atom1,
+    bond_atom2,
+    bond_atom3,
+    bond_atom4,
+    hbond_atom1,
+    hbond_atom2, 
+    salt_bridge_atom1, 
+    hbond_atom3, 
+    hbond_atom4,
+    salt_bridge_atom2;
+    sys,
+    pdb_info,
+    kwargs...)
+
+    # find the corresponding atom which bonds we want to recreate
+    nonmetals = [
+        Elements.Sb, Elements.As, Elements.At, Elements.Fm, Elements.Ge,
+        Elements.H, Elements.Ne, Elements.O, Elements.P, Elements.Po,
+        Elements.Rn, Elements.Si, Elements.Te, Elements.Ar, Elements.B, 
+        Elements.Br, Elements.C, Elements.Cl, Elements.F, Elements.He, 
+        Elements.I, Elements.Kr, Elements.N, Elements.S, Elements.Xe]
+
+ 
+    a = _atom_by_number(sys, serial_number)
+    bond_atoms = [bond_atom1, bond_atom2, bond_atom3]
+    hbond_atoms = [hbond_atom1, hbond_atom2, hbond_atom3, hbond_atom4]
+    salt_bridge_atoms = [salt_bridge_atom1, salt_bridge_atom2]
+
+    if a.element in nonmetals
+        for b_idx in bond_atoms
+            b = _atom_by_number(sys, b_idx)
+            if !isnothing(b) && !is_bound_to(b, a)
+                if b.element in nonmetals
+                    flags = Flags()
+                    push!(flags, :TYPE__COVALENT)
+                    Bond(sys, a.idx, b.idx, BondOrder.Single; flags)
+                end
+            end
+        end
+        for h_idx in hbond_atoms
+            h = _atom_by_number(sys, h_idx)
+            if !isnothing(h) && h.element in nonmetals
+                if !is_bound_to(h, a)
+                    flags = Flags()
+                    push!(flags, :TYPE__HYDROGEN)
+                    Bond(sys, a.idx, h.idx, BondOrder.Single; flags)
+                end
+            end
+        end
+    end
+
+    # create salt bridges
+    for b_idx in salt_bridge_atoms
+        b = _atom_by_number(sys, b_idx)
+        if !isnothing(b) && !is_bound_to(b, a)
+            flags = Flags()
+            push!(flags, :TYPE__SALT_BRIDGE)
+            Bond(sys, a.idx, b.idx, BondOrder.Single; flags)
+        end
+    end
+end
+
+
 function interpret_record(record_type, tag, record_data...; sys, pdb_info, kwargs...)
     push!(pdb_info.records, PDBRecord(tag, record_data))
 end
@@ -448,9 +534,20 @@ function postprocess_ssbonds_!(sys, pdb_info, fragment_cache)
         # build the bond
         a1 = findfirst(a -> a.element == Elements.S, atoms(f1))
         a2 = findfirst(a -> a.element == Elements.S, atoms(f2))
-
+     
         if !isnothing(a1) && !isnothing(a2)
-            Bond(sys, atoms(f1)[a1].idx, atoms(f2)[a2].idx, BondOrder.Single; flags=Flags((:DISULPHIDE_BOND,)))
+            # if the information about disulfid bonds were in connections, the bond already exists
+            # we will only add the corresponding flag 
+            bond_idx = findfirst(
+                b -> 
+                ((b.a1 == atoms(f1)[a1].idx) && (b.a2 == atoms(f2)[a2].idx)) ||
+                ((b.a1 == atoms(f2)[a2].idx) && (b.a2 == atoms(f1)[a1].idx)), bonds(sys))
+           
+            if !isnothing(bond_idx)
+                set_flag!(bonds(sys)[bond_idx],(:TYPE__DISULPHIDE_BOND)) 
+            else
+                Bond(sys, atoms(f1)[a1].idx, atoms(f2)[a2].idx, BondOrder.Single; flags=Flags((:TYPE__DISULPHIDE_BOND,)))
+            end
         end
     end
 end
