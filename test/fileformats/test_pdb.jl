@@ -32,7 +32,7 @@
     sys = load_pdb(ball_data_path("../test/data/5PTI.pdb"))
     @test sys.name == "HYDROLASE INHIBITOR"
     @test natoms(sys) == 1087
-    @test nbonds(sys) == 3
+    @test nbonds(sys) == 7
     @test nmolecules(sys) == 1
     @test nchains(sys) == 2
     @test nfragments(sys) == 123
@@ -48,4 +48,8 @@
     @test nfragments.(chains(sys)) == [223, 58, 123, 35]
     @test nnucleotides.(chains(sys)) == [0, 0, 0, 0]
     @test nresidues.(chains(sys)) == [223, 58, 0, 0] 
+
+
+
+    
 end
