@@ -1,8 +1,9 @@
-const _atom_table_cols = (:idx, :number, :element, :name, :atom_type, :r, :v, :F, :formal_charge, :charge, :radius)
+const _atom_table_cols_main = (:idx, :number, :element, :name, :atom_type, :r, :v, :F, :formal_charge, :charge, :radius)
+const _atom_table_cols_extra = (:properties, :flags, :frame_id, :molecule_idx, :chain_idx, :fragment_idx)
+const _atom_table_cols = (_atom_table_cols_main..., _atom_table_cols_extra...)
 const _atom_table_cols_set = Set(_atom_table_cols)
-const _atom_table_cols_priv = Set([:properties, :flags, :frame_id, :molecule_idx, :chain_idx, :fragment_idx])
 
-@auto_hash_equals struct _AtomTable{T <: Real} <: AbstractColumnTable
+@auto_hash_equals struct _AtomTable{T <: Real} <: _AbstractSystemComponentTable
     # public columns
     idx::Vector{Int}
     number::Vector{Int}
@@ -25,7 +26,7 @@ const _atom_table_cols_priv = Set([:properties, :flags, :frame_id, :molecule_idx
     fragment_idx::Vector{MaybeInt}
 
     # internals
-    _idx_map::Dict{Int,Int}
+    _idx_map::_IdxMap
 
     function _AtomTable{T}() where T
         new(
@@ -46,26 +47,29 @@ const _atom_table_cols_priv = Set([:properties, :flags, :frame_id, :molecule_idx
             MaybeInt[],
             MaybeInt[],
             MaybeInt[],
-            Dict{Int,Int}()
+            _IdxMap()
         )
     end
 end
 
-@inline Tables.columnnames(::_AtomTable) = _atom_table_cols
+@inline function _hascolumn(::Union{_AtomTable, Type{<: _AtomTable}}, nm::Symbol)
+    nm in _atom_table_cols_set
+end
+
+@inline function Tables.columnnames(::_AtomTable)
+    _atom_table_cols_main
+end
 
 @inline function Tables.schema(::_AtomTable{T}) where T
     Tables.Schema(
-        _atom_table_cols,
+        _atom_table_cols_main,
         (Int, Int, ElementType, String, String, Vector3{T}, Vector3{T}, Vector3{T}, Int, T, T)
     )
 end
 
-@inline function Tables.getcolumn(at::_AtomTable, nm::Symbol)
-    @assert nm in _atom_table_cols_priv || nm in _atom_table_cols_set "type _AtomTable has no column $nm"
-    getfield(at, nm)
+@inline function Base.propertynames(::_AtomTable)
+    _atom_table_cols
 end
-
-@inline Base.size(at::_AtomTable) = (length(at.idx), length(_atom_table_cols))
 
 function Base.push!(
     at::_AtomTable{T},
@@ -131,25 +135,3 @@ function _atom_table(::Type{T}, itr) where T
     at
 end
 @inline Tables.materializer(::Type{_AtomTable{T}}) where T = itr -> _atom_table(T, itr)
-
-@auto_hash_equals struct _AtomTableRow{T} <: _AbstractColumnTableRow
-    _row::Int
-    _tab::_AtomTable{T}
-end
-
-@inline Tables.getcolumn(atr::_AtomTableRow, nm::Symbol) = Tables.getcolumn(getfield(atr, :_tab), nm)[getfield(atr, :_row)]
-@inline Tables.getcolumn(atr::_AtomTableRow, i::Int) = getfield(atr, Tables.columnnames(atr)[i])
-@inline Tables.columnnames(::_AtomTableRow) = _atom_table_cols
-
-@inline _row_by_idx(at::_AtomTable{T}, idx::Int) where T = _AtomTableRow{T}(getfield(at, :_idx_map)[idx], at)
-
-@inline function Base.getproperty(atr::_AtomTableRow, nm::Symbol)
-    getindex(getfield(getfield(atr, :_tab), nm), getfield(atr, :_row))
-end
-
-@inline function Base.setproperty!(atr::_AtomTableRow, nm::Symbol, val)
-    setindex!(getproperty(getfield(atr, :_tab), nm), val, getfield(atr, :_row))
-end
-
-@inline Base.eltype(::_AtomTable{T}) where T = _AtomTableRow{T}
-@inline Base.iterate(at::_AtomTable, st=1) = st > length(at) ? nothing : (_AtomTableRow(st, at), st + 1)

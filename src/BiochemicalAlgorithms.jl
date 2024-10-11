@@ -29,21 +29,25 @@ include("core/element.jl")
 include("core/amino_acid.jl")
 include("core/bond_order.jl")
 include("core/variants.jl")
+include("core/secondary_structure_type.jl")
 
 # system
+include("core/system_internals/_system_component_table.jl")
 include("core/system_internals/_atom_table.jl")
 include("core/system_internals/_bond_table.jl")
 include("core/system_internals/_molecule_table.jl")
 include("core/system_internals/_chain_table.jl")
+include("core/system_internals/_secondary_structure_table.jl")
 include("core/system_internals/_fragment_table.jl")
 include("core/system.jl")
 
 # system components
 include("core/system_component_table.jl")
-include("core/bond.jl")
 include("core/atom.jl")
+include("core/bond.jl")
 include("core/molecule.jl")
 include("core/chain.jl")
+include("core/secondary_structure.jl")
 include("core/fragment.jl")
 
 # molgraph

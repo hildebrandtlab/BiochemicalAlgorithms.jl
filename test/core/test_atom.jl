@@ -20,8 +20,14 @@
 
         at = atoms(sys)
 
-        # AutoHashEquals and identity
+        # AutoHashEquals, copy, and identity
         at2 = atoms(sys)
+        @test at == at2
+        @test isequal(at, at2)
+        @test hash(at) == hash(at2)
+        @test at !== at2
+
+        at2 = copy(at)
         @test at == at2
         @test isequal(at, at2)
         @test hash(at) == hash(at2)
@@ -154,6 +160,44 @@
         @test_throws BoundsError at[0]
         @test_throws BoundsError at[3]
 
+        at2 = at[:]
+        @test at2 isa AtomTable{T}
+        @test isequal(at2, at)
+        @test at2 == at
+        @test at2 !== at
+        @test size(at2) == size(at)
+        @test Tables.columnnames(at2) == Tables.columnnames(at)
+        @test Tables.schema(at2) == Tables.schema(at)
+
+        at2 = at[:, [:idx, :flags]]
+        @test at2 isa AtomTable{T}
+        @test size(at2) == (2, 2)
+        @test Tables.columnnames(at2) == [:idx, :flags]
+        @test Tables.schema(at2).names == (:idx, :flags)
+        @test Tables.schema(at2).types == (Vector{Int}, Vector{Flags})
+
+        at2 = at[2:-1:1]
+        @test at2 isa AtomTable{T}
+        @test length(at2) == 2
+        @test at2[1] === at[2]
+        @test at2[2] === at[1]
+
+        at2 = at[2:-1:1, [:idx, :flags]]
+        @test at2 isa AtomTable{T}
+        @test size(at2) == (2, 2)
+        @test Tables.columnnames(at2) == [:idx, :flags]
+        @test Tables.schema(at2).names == (:idx, :flags)
+        @test Tables.schema(at2).types == (Vector{Int}, Vector{Flags})
+
+        at2 = at[at.idx .== -1]
+        @test at2 isa AtomTable{T}
+        @test length(at2) == 0
+
+        at2 = at[at.idx .== a2.idx]
+        @test at2 isa AtomTable{T}
+        @test length(at2) == 1
+        @test only(at2) === a2
+
         # filter
         @test filter(_ -> true, at) == at
         @test only(filter(a -> a.idx == a1.idx, at)) === a1
@@ -162,6 +206,17 @@
         av = collect(at)
         @test av isa Vector{Atom{T}}
         @test length(av) == 2
+
+        # atoms
+        @test natoms(at) == 2
+
+        # bonds
+        @test length(bonds(at)) == 0
+        @test nbonds(at) == 0
+
+        Bond(sys, a1.idx, a2.idx, BondOrder.Single)
+        @test length(bonds(at)) == 1
+        @test nbonds(at) == 1
     end
 end
 
@@ -220,12 +275,6 @@ end
             fragment_idx = 13
         )
 
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(atom._row) == 11
-
         # getproperty
         @test atom.idx isa Int
         @test atom.number isa Int
@@ -260,7 +309,7 @@ end
         @test isnothing(atom.fragment_idx)
 
         @test atom._sys isa System{T}
-        @test atom._row isa BiochemicalAlgorithms._AtomTableRow{T}
+        @test atom._idx isa Int
 
         @test atom2.frame_id isa Int
         @test atom2.frame_id == 10
@@ -383,7 +432,7 @@ end
 
         Bond(sys, a.idx, b.idx, BondOrder.Single)
         Bond(sys, b.idx, c.idx, BondOrder.Single)
-        
+
         @test !is_geminal(a, b)
         @test is_geminal(a, c)
         @test is_geminal(c, a)
@@ -435,5 +484,18 @@ end
         )) === sys
         @test length(bonds(atom)) == 2
         @test nbonds(atom) == 2
+
+        # delete!
+        @test natoms(sys) == 13
+        @test nbonds(sys) == 8
+
+        aidx = atom.idx
+        bidx = Set(bonds(atom).idx)
+        @test delete!(atom) === nothing
+        @test natoms(sys) == 12
+        @test nbonds(sys) == 6
+        @test aidx ∉ atoms(sys).idx
+        @test length(bidx ∩ Set(bonds(sys).idx)) == 0
+        @test_throws KeyError atom.idx
     end
 end

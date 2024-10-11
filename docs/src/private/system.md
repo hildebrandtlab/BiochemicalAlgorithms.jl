@@ -1,4 +1,4 @@
-# Model
+# Biomolecular systems
 ```@meta
 CurrentModule = BiochemicalAlgorithms
 ```
@@ -9,5 +9,5 @@ Pages = ["system.md"]
 
 ```@docs
 _default_system
-_next_idx
+_next_idx!
 ```

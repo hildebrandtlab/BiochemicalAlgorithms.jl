@@ -13,6 +13,12 @@ export
     parent_system,
     set_flag!,
     set_property!,
+    sort_atoms!,
+    sort_bonds!,
+    sort_chains!,
+    sort_fragments!,
+    sort_molecules!,
+    sort_secondary_structures!,
     unset_flag!
 
 """
@@ -109,6 +115,7 @@ Creates a new and empty `System{T}`.
     _bonds::_BondTable
     _molecules::_MoleculeTable
     _chains::_ChainTable
+    _secondary_structures::_SecondaryStructureTable
     _fragments::_FragmentTable
     _curr_idx::Int
 
@@ -125,6 +132,7 @@ Creates a new and empty `System{T}`.
             _BondTable(),
             _MoleculeTable(),
             _ChainTable(),
+            _SecondaryStructureTable(),
             _FragmentTable(),
             0
         )
@@ -158,18 +166,36 @@ end
 
 Returns the next available `idx` for the given system.
 """
-@inline function _next_idx(sys::System{T}) where T
+@inline function _next_idx!(sys::System{T}) where T
     sys._curr_idx += 1
 end
 
 Base.show(io::IO, ::MIME"text/plain", sys::System) = show(io, sys)
-Base.show(io::IO, sys::System) = print(io, 
-    "System with ", natoms(sys), " atoms", isempty(sys.name) ? "" : " ($(sys.name))")
+Base.show(io::IO, sys::System) = print(io,
+    "$(typeof(sys)) with ", natoms(sys), " atoms", isempty(sys.name) ? "" : " ($(sys.name))")
+
+"""
+    empty!(::System)
+
+Removes all components from the system.
+"""
+function Base.empty!(sys::System)
+    empty!(sys.properties)
+    empty!(sys.flags)
+    empty!(sys._atoms)
+    empty!(sys._bonds)
+    empty!(sys._molecules)
+    empty!(sys._chains)
+    empty!(sys._secondary_structures)
+    empty!(sys._fragments)
+    sys
+end
 
 @doc raw"""
     parent(::Atom)
     parent(::Bond)
     parent(::Chain)
+    parent(::SecondaryStructure)
     parent(::Fragment)
     parent(::Molecule)
     parent(::System)
@@ -182,48 +208,155 @@ Base.parent(s::System) = s
     parent_system(::Atom)
     parent_system(::Bond)
     parent_system(::Chain)
+    parent_system(::SecondaryStructure)
     parent_system(::Fragment)
     parent_system(::Molecule)
     parent_system(::System)
 
-Returns the `System{T}` containing the given object. Alias for 
+Returns the `System{T}` containing the given object. Alias for
 [`Base.parent`](@ref Base.parent(::System)).
 """ parent_system
 parent_system(s::System) = s
 
-@auto_hash_equals struct SystemComponent{T, R <: _AbstractColumnTableRow} <: AbstractSystemComponent{T}
+@inline function _sort_table!(at::_AbstractSystemComponentTable, view; kwargs...)
+    permute!(at,
+        map(i -> at._idx_map[i], getproperty.(sort(view; by=e -> e.idx, kwargs...), :idx))
+    )
+end
+
+"""
+    sort_atoms!(::System)
+
+Sorts the atoms in the given system by `idx` (default) or according to the given
+keyword arguments.
+
+# Supported keyword arguments
+Same as `Base.sort`
+"""
+@inline function sort_atoms!(sys::System; kwargs...)
+    _sort_table!(sys._atoms, _wrap_atoms(sys); kwargs...)
+    sys
+end
+
+"""
+    sort_bonds!(::System)
+
+Sorts the bonds in the given system by `idx` (default) or according to the given
+keyword arguments.
+
+# Supported keyword arguments
+Same as `Base.sort`
+"""
+@inline function sort_bonds!(sys::System; kwargs...)
+    _sort_table!(sys._bonds, _wrap_bonds(sys); kwargs...)
+    sys
+end
+
+"""
+    sort_molecules!(::System)
+
+Sorts the molecules in the given system by `idx` (default) or according to the given
+keyword arguments.
+
+# Supported keyword arguments
+Same as `Base.sort`
+"""
+@inline function sort_molecules!(sys::System; kwargs...)
+    _sort_table!(sys._molecules, _wrap_molecules(sys); kwargs...)
+    sys
+end
+
+"""
+    sort_chains!(::System)
+
+Sorts the chains in the given system by `idx` (default) or according to the given
+keyword arguments.
+
+# Supported keyword arguments
+Same as `Base.sort`
+"""
+@inline function sort_chains!(sys::System; kwargs...)
+    _sort_table!(sys._chains, _wrap_chains(sys); kwargs...)
+    sys
+end
+
+"""
+    sort_secondary_structures!(::System)
+
+Sorts the secondary structures in the given system by `idx` (default) or according
+to the given keyword arguments.
+
+# Supported keyword arguments
+Same as `Base.sort`
+"""
+@inline function sort_secondary_structures!(sys::System; kwargs...)
+    _sort_table!(sys._secondary_structures, _wrap_secondary_structures(sys); kwargs...)
+    sys
+end
+
+"""
+    sort_fragments!(::System)
+
+Sorts the fragments in the given system by `idx` (default) or according to the given
+keyword arguments.
+
+# Supported keyword arguments
+Same as `Base.sort`
+"""
+@inline function sort_fragments!(sys::System; kwargs...)
+    _sort_table!(sys._fragments, _wrap_fragments(sys); kwargs...)
+    sys
+end
+
+@auto_hash_equals struct SystemComponent{T, C} <: AbstractSystemComponent{T}
     _sys::System{T}
-    _row::R
+    _idx::Int
+end
+
+@inline _table(sc::SystemComponent{T, :Atom}) where T = getfield(getfield(sc, :_sys), :_atoms)
+@inline _table(sc::SystemComponent{T, :Bond}) where T = getfield(getfield(sc, :_sys), :_bonds)
+@inline _table(sc::SystemComponent{T, :Chain}) where T = getfield(getfield(sc, :_sys), :_chains)
+@inline _table(sc::SystemComponent{T, :SecondaryStructure}) where T = getfield(getfield(sc, :_sys), :_secondary_structures)
+@inline _table(sc::SystemComponent{T, :Fragment}) where T = getfield(getfield(sc, :_sys), :_fragments)
+@inline _table(sc::SystemComponent{T, :Molecule}) where T = getfield(getfield(sc, :_sys), :_molecules)
+
+@inline function Base.propertynames(sc::SystemComponent)
+    propertynames(_table(sc))
 end
 
 @inline function Base.getproperty(sc::SystemComponent, name::Symbol)
-    (name === :_sys || name === :_row) && return getfield(sc, name)
-    getproperty(getfield(sc, :_row), name)
+    (name === :_sys || name === :_idx) && return getfield(sc, name)
+    tab = _table(sc)
+    getindex(getfield(tab, name), _rowno_by_idx(tab, getfield(sc, :_idx)))
 end
 
 @inline function Base.setproperty!(sc::SystemComponent, name::Symbol, val)
-    (name === :_sys || name === :_row) && return setfield!(sc, name, val)
-    setproperty!(getfield(sc, :_row), name, val)
+    (name === :_sys || name === :_idx) && return setfield!(sc, name, val)
+    setindex!(getfield(_table(sc), name), val, _rowno_by_idx(_table(sc), getfield(sc, :_idx)))
 end
 
 @inline Base.show(io::IO, ::MIME"text/plain", sc::SystemComponent) = show(io, sc)
 @inline function Base.show(io::IO, sc::SystemComponent; display_name::String=repr(typeof(sc)))
     print(io, "$display_name: ")
-    show(io, NamedTuple(sc._row))
+    show(io, NamedTuple(_row_by_idx(_table(sc), sc._idx)))
 end
 
 @inline Base.parent(sc::SystemComponent) = sc._sys
 @inline parent_system(sc::SystemComponent) = parent(sc)
 
-@auto_hash_equals struct AtomContainer{T, R <: _AbstractColumnTableRow} <: AbstractAtomContainer{T}
-    _comp::SystemComponent{T, R}
+@auto_hash_equals struct AtomContainer{T, C} <: AbstractAtomContainer{T}
+    _comp::SystemComponent{T, C}
 
-    function AtomContainer{T, R}(
+    function AtomContainer{T, C}(
         sys::System{T},
-        row::R
-    ) where {T, R <: _AbstractColumnTableRow}
-        new(SystemComponent(sys, row))
+        idx::Int
+    ) where {T, C}
+        new(SystemComponent{T, C}(sys, idx))
     end
+end
+
+@inline function Base.propertynames(ac::AtomContainer)
+    propertynames(ac._comp)
 end
 
 @inline function Base.getproperty(ac::AtomContainer, name::Symbol)

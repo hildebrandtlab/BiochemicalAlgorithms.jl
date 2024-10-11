@@ -1,12 +1,13 @@
+const _bond_table_cols_main = (:idx, :a1, :a2, :order)
+const _bond_table_cols_extra = (:properties, :flags)
+const _bond_table_cols = (_bond_table_cols_main..., _bond_table_cols_extra...)
+const _bond_table_cols_set = Set(_bond_table_cols)
 const _bond_table_schema = Tables.Schema(
-    (:idx, :a1, :a2, :order),
+    _bond_table_cols_main,
     (Int, Int, Int, BondOrderType)
 )
-const _bond_table_cols = _bond_table_schema.names
-const _bond_table_cols_set = Set(_bond_table_cols)
-const _bond_table_cols_priv = Set([:properties, :flags])
 
-@auto_hash_equals struct _BondTable <: AbstractColumnTable
+@auto_hash_equals struct _BondTable <: _AbstractSystemComponentTable
     idx::Vector{Int}
     a1::Vector{Int}
     a2::Vector{Int}
@@ -17,7 +18,7 @@ const _bond_table_cols_priv = Set([:properties, :flags])
     flags::Vector{Flags}
 
     # internals
-    _idx_map::Dict{Int,Int}
+    _idx_map::_IdxMap
 
     function _BondTable()
         new(
@@ -27,20 +28,26 @@ const _bond_table_cols_priv = Set([:properties, :flags])
             BondOrderType[],
             Properties[],
             Flags[],
-            Dict{Int,Int}()
+            _IdxMap()
         )
     end
 end
 
-@inline Tables.columnnames(::_BondTable) = _bond_table_cols
-@inline Tables.schema(::_BondTable) = _bond_table_schema
-
-@inline function Tables.getcolumn(bt::_BondTable, nm::Symbol)
-    @assert nm in _bond_table_cols_priv || nm in _bond_table_cols "type _BondTable has no column $nm"
-    getfield(bt, nm)
+@inline function _hascolumn(::Union{_BondTable, Type{_BondTable}}, nm::Symbol)
+    nm in _bond_table_cols_set
 end
 
-@inline Base.size(bt::_BondTable) = (length(bt.idx), length(_bond_table_cols))
+@inline function Tables.columnnames(::_BondTable)
+    _bond_table_cols_main
+end
+
+@inline function Tables.schema(::_BondTable)
+    _bond_table_schema
+end
+
+@inline function Base.propertynames(::_BondTable)
+    _bond_table_cols
+end
 
 function Base.push!(
     bt::_BondTable,
@@ -72,25 +79,3 @@ function _bond_table(itr)
     bt
 end
 Tables.materializer(::Type{_BondTable}) = _bond_table
-
-@auto_hash_equals struct _BondTableRow <: _AbstractColumnTableRow
-    _row::Int
-    _tab::_BondTable
-end
-
-@inline Tables.getcolumn(btr::_BondTableRow, nm::Symbol) = Tables.getcolumn(getfield(btr, :_tab), nm)[getfield(btr, :_row)]
-@inline Tables.getcolumn(btr::_BondTableRow, i::Int) = getfield(btr, Tables.columnnames(btr)[i])
-@inline Tables.columnnames(::_BondTableRow) = _bond_table_cols
-
-@inline _row_by_idx(bt::_BondTable, idx::Int) = _BondTableRow(getfield(bt, :_idx_map)[idx], bt)
-
-@inline function Base.getproperty(btr::_BondTableRow, nm::Symbol)
-    getindex(getfield(getfield(btr, :_tab), nm), getfield(btr, :_row))
-end
-
-@inline function Base.setproperty!(btr::_BondTableRow, nm::Symbol, val)
-    setindex!(getproperty(getfield(btr, :_tab), nm), val, getfield(btr, :_row))
-end
-
-@inline Base.eltype(::_BondTable) = _BondTableRow
-@inline Base.iterate(bt::_BondTable, st=1) = st > length(bt) ? nothing : (_BondTableRow(st, bt), st + 1)

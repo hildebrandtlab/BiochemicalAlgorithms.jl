@@ -15,8 +15,14 @@
 
         mt = molecules(sys)
 
-        # AutoHashEquals and identity
+        # AutoHashEquals, copy, and identity
         mt2 = molecules(sys)
+        @test mt == mt2
+        @test isequal(mt, mt2)
+        @test hash(mt) == hash(mt2)
+        @test mt !== mt2
+
+        mt2 = copy(mt)
         @test mt == mt2
         @test isequal(mt, mt2)
         @test hash(mt) == hash(mt2)
@@ -24,6 +30,12 @@
 
         pt = proteins(sys)
         pt2 = proteins(sys)
+        @test pt == pt2
+        @test isequal(pt, pt2)
+        @test hash(pt) == hash(pt2)
+        @test pt !== pt2
+
+        pt2 = copy(pt)
         @test pt == pt2
         @test isequal(pt, pt2)
         @test hash(pt) == hash(pt2)
@@ -87,6 +99,44 @@
         @test_throws BoundsError mt[0]
         @test_throws BoundsError mt[3]
 
+        mt2 = mt[:]
+        @test mt2 isa MoleculeTable{T}
+        @test isequal(mt2, mt)
+        @test mt2 == mt
+        @test mt2 !== mt
+        @test size(mt2) == size(mt)
+        @test Tables.columnnames(mt2) == Tables.columnnames(mt)
+        @test Tables.schema(mt2) == Tables.schema(mt)
+
+        mt2 = mt[:, [:idx, :flags]]
+        @test mt2 isa MoleculeTable{T}
+        @test size(mt2) == (2, 2)
+        @test Tables.columnnames(mt2) == [:idx, :flags]
+        @test Tables.schema(mt2).names == (:idx, :flags)
+        @test Tables.schema(mt2).types == (Vector{Int}, Vector{Flags})
+
+        mt2 = mt[2:-1:1]
+        @test mt2 isa MoleculeTable{T}
+        @test length(mt2) == 2
+        @test mt2[1] === mt[2]
+        @test mt2[2] === mt[1]
+
+        mt2 = mt[2:-1:1, [:idx, :flags]]
+        @test mt2 isa MoleculeTable{T}
+        @test size(mt2) == (2, 2)
+        @test Tables.columnnames(mt2) == [:idx, :flags]
+        @test Tables.schema(mt2).names == (:idx, :flags)
+        @test Tables.schema(mt2).types == (Vector{Int}, Vector{Flags})
+
+        mt2 = mt[mt.idx .== -1]
+        @test mt2 isa MoleculeTable{T}
+        @test length(mt2) == 0
+
+        mt2 = mt[mt.idx .== p1.idx]
+        @test mt2 isa MoleculeTable{T}
+        @test length(mt2) == 1
+        @test only(mt2) === p1
+
         # filter
         @test filter(_ -> true, mt) == mt
         @test only(filter(m -> m.idx == m1.idx, mt)) === m1
@@ -95,6 +145,59 @@
         mv = collect(mt)
         @test mv isa Vector{Molecule{T}}
         @test length(mv) == 2
+
+        # atoms
+        @test length(atoms(mt)) == 0
+        @test natoms(mt) == 0
+
+        a1 = Atom(m1, 1, Elements.C)
+        a2 = Atom(p1, 1, Elements.O)
+        @test length(atoms(mt)) == 2
+        @test natoms(mt) == 2
+
+        # bonds
+        @test length(bonds(mt)) == 0
+        @test nbonds(mt) == 0
+
+        Bond(sys, a1.idx, a2.idx, BondOrder.Single)
+        @test length(bonds(mt)) == 1
+        @test nbonds(mt) == 1
+
+        # molecules
+        @test nmolecules(mt) == 2
+        @test nmolecules(mt; variant = MoleculeVariant.None) == 1
+        @test nproteins(mt) == 1
+
+        # chains
+        @test length(chains(mt)) == 0
+        @test nchains(mt) == 0
+
+        c1 = Chain(m1)
+        c2 = Chain(p1)
+        @test length(chains(mt)) == 2
+        @test nchains(mt) == 2
+
+        # fragments
+        @test length(fragments(mt)) == 0
+        @test nfragments(mt) == 0
+        @test length(fragments(mt; variant = FragmentVariant.None)) == 0
+        @test nfragments(mt; variant = FragmentVariant.None) == 0
+        @test length(nucleotides(mt)) == 0
+        @test nnucleotides(mt) == 0
+        @test length(residues(mt)) == 0
+        @test nresidues(mt) == 0
+
+        Fragment(c1, 1)
+        Nucleotide(c1, 1)
+        Residue(c2, 1)
+        @test length(fragments(mt)) == 3
+        @test nfragments(mt) == 3
+        @test length(fragments(mt; variant = FragmentVariant.None)) == 1
+        @test nfragments(mt; variant = FragmentVariant.None) == 1
+        @test length(nucleotides(mt)) == 1
+        @test nnucleotides(mt) == 1
+        @test length(residues(mt)) == 1
+        @test nresidues(mt) == 1
     end
 end
 
@@ -174,6 +277,44 @@ end
         @test mt[2] === m2
         @test_throws BoundsError mt[0]
         @test_throws BoundsError mt[3]
+
+        mt2 = mt[:]
+        @test mt2 isa MoleculeTable{T}
+        @test isequal(mt2, mt)
+        @test mt2 == mt
+        @test mt2 !== mt
+        @test size(mt2) == size(mt)
+        @test Tables.columnnames(mt2) == Tables.columnnames(mt)
+        @test Tables.schema(mt2) == Tables.schema(mt)
+
+        mt2 = mt[:, [:idx, :flags]]
+        @test mt2 isa MoleculeTable{T}
+        @test size(mt2) == (2, 2)
+        @test Tables.columnnames(mt2) == [:idx, :flags]
+        @test Tables.schema(mt2).names == (:idx, :flags)
+        @test Tables.schema(mt2).types == (Vector{Int}, Vector{Flags})
+
+        mt2 = mt[2:-1:1]
+        @test mt2 isa MoleculeTable{T}
+        @test length(mt2) == 2
+        @test mt2[1] === mt[2]
+        @test mt2[2] === mt[1]
+
+        mt2 = mt[2:-1:1, [:idx, :flags]]
+        @test mt2 isa MoleculeTable{T}
+        @test size(mt2) == (2, 2)
+        @test Tables.columnnames(mt2) == [:idx, :flags]
+        @test Tables.schema(mt2).names == (:idx, :flags)
+        @test Tables.schema(mt2).types == (Vector{Int}, Vector{Flags})
+
+        mt2 = mt[mt.idx .== -1]
+        @test mt2 isa MoleculeTable{T}
+        @test length(mt2) == 0
+
+        mt2 = mt[mt.idx .== m2.idx]
+        @test mt2 isa MoleculeTable{T}
+        @test length(mt2) == 1
+        @test only(mt2) === m2
 
         # filter
         @test filter(_ -> true, mt) == mt
@@ -263,6 +404,44 @@ end
         @test_throws BoundsError pt[0]
         @test_throws BoundsError pt[3]
 
+        pt2 = pt[:]
+        @test pt2 isa MoleculeTable{T}
+        @test isequal(pt2, pt)
+        @test pt2 == pt
+        @test pt2 !== pt
+        @test size(pt2) == size(pt)
+        @test Tables.columnnames(pt2) == Tables.columnnames(pt)
+        @test Tables.schema(pt2) == Tables.schema(pt)
+
+        pt2 = pt[:, [:idx, :flags]]
+        @test pt2 isa MoleculeTable{T}
+        @test size(pt2) == (2, 2)
+        @test Tables.columnnames(pt2) == [:idx, :flags]
+        @test Tables.schema(pt2).names == (:idx, :flags)
+        @test Tables.schema(pt2).types == (Vector{Int}, Vector{Flags})
+
+        pt2 = pt[2:-1:1]
+        @test pt2 isa MoleculeTable{T}
+        @test length(pt2) == 2
+        @test pt2[1] === pt[2]
+        @test pt2[2] === pt[1]
+
+        pt2 = pt[2:-1:1, [:idx, :flags]]
+        @test pt2 isa MoleculeTable{T}
+        @test size(pt2) == (2, 2)
+        @test Tables.columnnames(pt2) == [:idx, :flags]
+        @test Tables.schema(pt2).names == (:idx, :flags)
+        @test Tables.schema(pt2).types == (Vector{Int}, Vector{Flags})
+
+        pt2 = pt[pt.idx .== -1]
+        @test pt2 isa MoleculeTable{T}
+        @test length(pt2) == 0
+
+        pt2 = pt[pt.idx .== p2.idx]
+        @test pt2 isa MoleculeTable{T}
+        @test length(pt2) == 1
+        @test only(pt2) === p2
+
         # filter
         @test filter(_ -> true, pt) == pt
         @test only(filter(m -> m.idx == p1.idx, pt)) === p1
@@ -297,6 +476,40 @@ end
         # nmolecules
         @test nmolecules(sys) isa Int
         @test nmolecules(sys) == 2
+
+        # delete!
+        frag = Fragment(Chain(mol), 1)
+        Bond(Atom(frag, 1, Elements.H), Atom(frag, 2, Elements.C), BondOrder.Single)
+        @test natoms(sys) == 2
+        @test nbonds(sys) == 1
+        @test nmolecules(sys) == 2
+        @test nchains(sys) == 1
+        @test nfragments(sys) == 1
+
+        @test delete!(mol; keep_atoms = true) === nothing
+        @test natoms(sys) == 2
+        @test nbonds(sys) == 1
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 0
+        @test nfragments(sys) == 0
+        @test_throws KeyError mol.idx
+        @test all(isnothing, atoms(sys).molecule_idx)
+
+        frag = Fragment(Chain(prot), 1)
+        Bond(Atom(frag, 1, Elements.H), Atom(frag, 2, Elements.C), BondOrder.Single)
+        @test natoms(sys) == 4
+        @test nbonds(sys) == 2
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 1
+        @test nfragments(sys) == 1
+
+        @test delete!(prot; keep_atoms = false) === nothing
+        @test natoms(sys) == 2
+        @test nbonds(sys) == 1
+        @test nmolecules(sys) == 0
+        @test nchains(sys) == 0
+        @test nfragments(sys) == 0
+        @test_throws KeyError prot.idx
     end
 end
 
@@ -320,12 +533,6 @@ end
 
         mol2 = Molecule(sys; name = "something", properties = Properties(:a => 1), flags = Flags([:A, :B]))
 
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(mol._row) == 2
-
         # getproperty
         @test mol.idx isa Int
         @test mol.name isa String
@@ -339,7 +546,7 @@ end
         @test mol.variant == MoleculeVariant.None
 
         @test mol._sys isa System{T}
-        @test mol._row isa BiochemicalAlgorithms._MoleculeTableRow
+        @test mol._idx isa Int
 
         @test mol2.name == "something"
         @test mol2.properties == Properties(:a => 1)
@@ -437,12 +644,6 @@ end
 
         prot2 = Protein(sys; name = "something", properties = Properties(:a => 1), flags = Flags([:A, :B]))
 
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(prot._row) == 2
-
         # getproperty
         @test prot.idx isa Int
         @test prot.name isa String
@@ -456,7 +657,7 @@ end
         @test prot.variant === MoleculeVariant.Protein
 
         @test prot._sys isa System{T}
-        @test prot._row isa BiochemicalAlgorithms._MoleculeTableRow
+        @test prot._idx isa Int
 
         @test prot2.name == "something"
         @test prot2.properties == Properties(:a => 1)

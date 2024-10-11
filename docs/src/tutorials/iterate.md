@@ -11,7 +11,7 @@ In `BiochemicalAlgorithms.jl` atoms and bonds are existing inside a `System`. Ty
 sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 ```
 
-    System with 23 atoms (AlaAla.pdb)
+    System{Float32} with 23 atoms (AlaAla.pdb)
 
 You can, e.g., print all atoms of the given system as a table:
 
@@ -45,7 +45,7 @@ atoms(sys)
 | 22 | 26 | 22 | O | O |  | Float32\[0.531, -1.358, 3.421\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
 | 23 | 27 | 23 | O | OXT |  | Float32\[0.462, -0.512, 5.473\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
 
-BiochemicalAlgorithms.AtomTable{Float32} with 23 rows:
+AtomTable{Float32} with 23 rows:
 
 Single columns can be directly accessed by their name:
 
@@ -53,7 +53,7 @@ Single columns can be directly accessed by their name:
 atoms(sys).name
 ```
 
-    23-element BiochemicalAlgorithms._RowProjectionVector{String}:
+    23-element SystemComponentTableCol{String}:
      "N"
      "CA"
      "C"
@@ -116,7 +116,7 @@ ca_atoms = filter(atom -> atom.name == "CA", atoms(sys))
 | 1 | 6 | 2 | C | CA |  | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
 | 2 | 18 | 14 | C | CA |  | Float32\[0.605, 0.98, 3.639\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
 
-BiochemicalAlgorithms.AtomTable{Float32} with 2 rows:
+AtomTable{Float32} with 2 rows:
 
 And here we only want the heavy atoms:
 
@@ -138,7 +138,7 @@ heavy_atoms = filter(atom -> atom.element != Elements.H, atoms(sys))
 | 10 | 26 | 22 | O | O |  | Float32\[0.531, -1.358, 3.421\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
 | 11 | 27 | 23 | O | OXT |  | Float32\[0.462, -0.512, 5.473\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
 
-BiochemicalAlgorithms.AtomTable{Float32} with 11 rows:
+AtomTable{Float32} with 11 rows:
 
 Instead of a system, we can use any other system component as an argument to the `atoms` function to only list the atoms of the same component. For example, the following system contains two chains:
 
@@ -152,7 +152,7 @@ chains(sys)
 |   1 | 2   | E    |
 |   2 | 349 | I    |
 
-BiochemicalAlgorithms.ChainTable{Float32} with 2 rows:
+ChainTable{Float32} with 2 rows:
 
 In order to get all atoms of the first chain, we can use:
 

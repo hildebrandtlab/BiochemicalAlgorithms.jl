@@ -5,6 +5,7 @@
         sys = System{T}()
         mol = Molecule(sys)
         chain = Chain(mol)
+        ss = SecondaryStructure(chain, 1, SecondaryStructureElement.Helix; name="H1")
 
         f1 = Fragment(chain, 1;
             name = "my fragment",
@@ -18,10 +19,28 @@
             name = "my residue"
         )
 
+        f2 = Fragment(ss, 4;
+        name = "my fragment",
+        properties = Properties(:first => 'a', :second => "b"),
+            flags = Flags([:third])
+        )
+        n2 = Nucleotide(ss, 5;
+            name = "my nucleotide"
+        )
+        r2 = Residue(ss, 6;
+            name = "my residue"
+        )
+
         ft = fragments(sys)
 
-        # AutoHashEquals and identity
+        # AutoHashEquals, copy, and identity
         ft2 = fragments(sys)
+        @test ft == ft2
+        @test isequal(ft, ft2)
+        @test hash(ft) == hash(ft2)
+        @test ft !== ft2
+
+        ft2 = copy(ft)
         @test ft == ft2
         @test isequal(ft, ft2)
         @test hash(ft) == hash(ft2)
@@ -34,8 +53,20 @@
         @test hash(nt) == hash(nt2)
         @test nt !== nt2
 
+        nt2 = copy(nt)
+        @test nt == nt2
+        @test isequal(nt, nt2)
+        @test hash(nt) == hash(nt2)
+        @test nt !== nt2
+
         rt = residues(sys)
         rt2 = residues(sys)
+        @test rt == rt2
+        @test isequal(rt, rt2)
+        @test hash(rt) == hash(rt2)
+        @test rt !== rt2
+
+        rt2 = copy(rt)
         @test rt == rt2
         @test isequal(rt, rt2)
         @test hash(rt) == hash(rt2)
@@ -49,54 +80,80 @@
         @test !isnothing(Tables.rows(ft))
 
         # AbstractArray interface
-        @test size(ft) == (3, 3)
-        @test length(ft) == 3
+        @test size(ft) == (6, 3)
+        @test length(ft) == 6
         @test eltype(ft) == Fragment{T}
-        @test keys(ft) == [1, 2, 3]
+        @test keys(ft) == [1, 2, 3, 4, 5, 6]
 
         # getproperty
         @test ft._sys === sys
-        @test ft._idx == [f1.idx, n1.idx, r1.idx]
+        @test ft._idx == [f1.idx, n1.idx, r1.idx,
+                          f2.idx, n2.idx, r2.idx]
 
         @test ft.idx isa AbstractVector{Int}
-        @test ft.idx == [f1.idx, n1.idx, r1.idx]
+        @test ft.idx == [f1.idx, n1.idx, r1.idx,
+                         f2.idx, n2.idx, r2.idx]
         @test ft.number isa AbstractVector{Int}
-        @test ft.number == [f1.number, n1.number, r1.number]
+        @test ft.number == [f1.number, n1.number, r1.number,
+                            f2.number, n2.number, r2.number]
         @test ft.name isa AbstractVector{String}
-        @test ft.name == [f1.name, n1.name, r1.name]
+        @test ft.name == [f1.name, n1.name, r1.name,
+                          f2.name, n2.name, r2.name]
 
         @test ft.properties isa AbstractVector{Properties}
-        @test ft.properties == [f1.properties, n1.properties, r1.properties]
+        @test ft.properties == [f1.properties, n1.properties, r1.properties,
+                                f2.properties, n2.properties, r2.properties]
         @test ft.flags isa AbstractVector{Flags}
-        @test ft.flags == [f1.flags, n1.flags, r1.flags]
+        @test ft.flags == [f1.flags, n1.flags, r1.flags,
+                           f2.flags, n2.flags, r2.flags]
         @test ft.variant isa AbstractVector{FragmentVariantType}
-        @test ft.variant == [f1.variant, n1.variant, r1.variant]
+        @test ft.variant == [f1.variant, n1.variant, r1.variant,
+                             f2.variant, n2.variant, r2.variant]
         @test ft.molecule_idx isa AbstractVector{Int}
-        @test ft.molecule_idx == [f1.molecule_idx, n1.molecule_idx, r1.molecule_idx]
+        @test ft.molecule_idx == [f1.molecule_idx, n1.molecule_idx, r1.molecule_idx,
+                                  f2.molecule_idx, n2.molecule_idx, r2.molecule_idx]
         @test ft.chain_idx isa AbstractVector{Int}
-        @test ft.chain_idx == [f1.chain_idx, n1.chain_idx, r1.chain_idx]
+        @test ft.chain_idx == [f1.chain_idx, n1.chain_idx, r1.chain_idx,
+                               f2.chain_idx, n2.chain_idx, r2.chain_idx]
+        @test ft.secondary_structure_idx isa AbstractVector{MaybeInt}
+        @test ft.secondary_structure_idx ==
+            [f1.secondary_structure_idx, n1.secondary_structure_idx, r1.secondary_structure_idx,
+             f2.secondary_structure_idx, n2.secondary_structure_idx, r2.secondary_structure_idx]
+
 
         # Tables.getcolumn
         @test Tables.getcolumn(ft, :idx) isa AbstractVector{Int}
         @test Tables.getcolumn(ft, 1) isa AbstractVector{Int}
-        @test Tables.getcolumn(ft, :idx) == Tables.getcolumn(ft, 1) == [f1.idx, n1.idx, r1.idx]
+        @test Tables.getcolumn(ft, :idx) == Tables.getcolumn(ft, 1) == [f1.idx, n1.idx, r1.idx,
+                                                                        f2.idx, n2.idx, r2.idx]
         @test Tables.getcolumn(ft, :number) isa AbstractVector{Int}
         @test Tables.getcolumn(ft, 2) isa AbstractVector{Int}
-        @test Tables.getcolumn(ft, :number) == Tables.getcolumn(ft, 2) == [f1.number, n1.number, r1.number]
+        @test Tables.getcolumn(ft, :number) == Tables.getcolumn(ft, 2) == [f1.number, n1.number, r1.number,
+                                                                           f2.number, n2.number, r2.number]
         @test Tables.getcolumn(ft, :name) isa AbstractVector{String}
         @test Tables.getcolumn(ft, 3) isa AbstractVector{String}
-        @test Tables.getcolumn(ft, :name) == Tables.getcolumn(ft, 3) == [f1.name, n1.name, r1.name]
+        @test Tables.getcolumn(ft, :name) == Tables.getcolumn(ft, 3) == [f1.name, n1.name, r1.name,
+                                                                         f2.name, n2.name, r2.name]
 
         @test Tables.getcolumn(ft, :properties) isa AbstractVector{Properties}
-        @test Tables.getcolumn(ft, :properties) == [f1.properties, n1.properties, r1.properties]
+        @test Tables.getcolumn(ft, :properties) == [f1.properties, n1.properties, r1.properties,
+                                                    f2.properties, n2.properties, r2.properties]
         @test Tables.getcolumn(ft, :flags) isa AbstractVector{Flags}
-        @test Tables.getcolumn(ft, :flags) == [f1.flags, n1.flags, r1.flags]
+        @test Tables.getcolumn(ft, :flags) == [f1.flags, n1.flags, r1.flags,
+                                               f2.flags, n2.flags, r2.flags]
         @test Tables.getcolumn(ft, :variant) isa AbstractVector{FragmentVariantType}
-        @test Tables.getcolumn(ft, :variant) == [f1.variant, n1.variant, r1.variant]
+        @test Tables.getcolumn(ft, :variant) == [f1.variant, n1.variant, r1.variant,
+                                                 f2.variant, n2.variant, r2.variant]
         @test Tables.getcolumn(ft, :molecule_idx) isa AbstractVector{Int}
-        @test Tables.getcolumn(ft, :molecule_idx) == [f1.molecule_idx, n1.molecule_idx, r1.molecule_idx]
+        @test Tables.getcolumn(ft, :molecule_idx) == [f1.molecule_idx, n1.molecule_idx, r1.molecule_idx,
+                                                      f2.molecule_idx, n2.molecule_idx, r2.molecule_idx]
         @test Tables.getcolumn(ft, :chain_idx) isa AbstractVector{Int}
-        @test Tables.getcolumn(ft, :chain_idx) == [f1.chain_idx, n1.chain_idx, r1.chain_idx]
+        @test Tables.getcolumn(ft, :chain_idx) == [f1.chain_idx, n1.chain_idx, r1.chain_idx,
+                                                   f2.chain_idx, n2.chain_idx, r2.chain_idx]
+        @test Tables.getcolumn(ft, :secondary_structure_idx) isa AbstractVector{MaybeInt}
+        @test Tables.getcolumn(ft, :secondary_structure_idx) ==
+            [f1.secondary_structure_idx, n1.secondary_structure_idx, r1.secondary_structure_idx,
+             f2.secondary_structure_idx, n2.secondary_structure_idx, r2.secondary_structure_idx]
 
         # setproperty!
         @test_throws ErrorException ft.idx = [999, 998, 997]
@@ -108,13 +165,55 @@
         @test_throws ErrorException ft.variant = [FragmentVariant.Residue, FragmentVariant.Residue, FragmentVariant.Residue]
         @test_throws ErrorException ft.molecule_idx = [993, 992, 991]
         @test_throws ErrorException ft.chain_idx = [990, 989, 988]
+        @test_throws ErrorException ft.secondary_structure_idx = [987, 986, 985]
 
         # getindex
         @test ft[1] === f1
         @test ft[2] === n1
         @test ft[3] === r1
+        @test ft[4] === f2
+        @test ft[5] === n2
+        @test ft[6] === r2
         @test_throws BoundsError ft[0]
-        @test_throws BoundsError ft[4]
+        @test_throws BoundsError ft[7]
+
+        ft2 = ft[:]
+        @test ft2 isa FragmentTable{T}
+        @test isequal(ft2, ft)
+        @test ft2 == ft
+        @test ft2 !== ft
+        @test size(ft2) == size(ft)
+        @test Tables.columnnames(ft2) == Tables.columnnames(ft)
+        @test Tables.schema(ft2) == Tables.schema(ft)
+
+        ft2 = ft[:, [:idx, :flags]]
+        @test ft2 isa FragmentTable{T}
+        @test size(ft2) == (6, 2)
+        @test Tables.columnnames(ft2) == [:idx, :flags]
+        @test Tables.schema(ft2).names == (:idx, :flags)
+        @test Tables.schema(ft2).types == (Vector{Int}, Vector{Flags})
+
+        ft2 = ft[2:-1:1]
+        @test ft2 isa FragmentTable{T}
+        @test length(ft2) == 2
+        @test ft2[1] === ft[2]
+        @test ft2[2] === ft[1]
+
+        ft2 = ft[2:-1:1, [:idx, :flags]]
+        @test ft2 isa FragmentTable{T}
+        @test size(ft2) == (2, 2)
+        @test Tables.columnnames(ft2) == [:idx, :flags]
+        @test Tables.schema(ft2).names == (:idx, :flags)
+        @test Tables.schema(ft2).types == (Vector{Int}, Vector{Flags})
+
+        ft2 = ft[ft.idx .== -1]
+        @test ft2 isa FragmentTable{T}
+        @test length(ft2) == 0
+
+        ft2 = ft[ft.idx .== f2.idx]
+        @test ft2 isa FragmentTable{T}
+        @test length(ft2) == 1
+        @test only(ft2) === f2
 
         # filter
         @test filter(_ -> true, ft) == ft
@@ -123,7 +222,32 @@
         # collect
         fv = collect(ft)
         @test fv isa Vector{Fragment{T}}
-        @test length(fv) == 3
+        @test length(fv) == 6
+
+        # atoms
+        @test length(atoms(ft)) == 0
+        @test natoms(ft) == 0
+
+        a1 = Atom(f1, 1, Elements.H)
+        a2 = Atom(n1, 1, Elements.C)
+        a3 = Atom(r1, 1, Elements.O)
+        @test length(atoms(ft)) == 3
+        @test natoms(ft) == 3
+
+        # bonds
+        @test length(bonds(ft)) == 0
+        @test nbonds(ft) == 0
+
+        Bond(sys, a1.idx, a2.idx, BondOrder.Single)
+        Bond(sys, a2.idx, a3.idx, BondOrder.Double)
+        @test length(bonds(ft)) == 2
+        @test nbonds(ft) == 2
+
+        # fragments
+        @test nfragments(ft) == 6
+        @test nfragments(ft; variant = FragmentVariant.None) == 2
+        @test nnucleotides(ft) == 2
+        @test nresidues(ft) == 2
     end
 end
 
@@ -222,6 +346,44 @@ end
         @test ft[2] === f2
         @test_throws BoundsError ft[0]
         @test_throws BoundsError ft[3]
+
+        ft2 = ft[:]
+        @test ft2 isa FragmentTable{T}
+        @test isequal(ft2, ft)
+        @test ft2 == ft
+        @test ft2 !== ft
+        @test size(ft2) == size(ft)
+        @test Tables.columnnames(ft2) == Tables.columnnames(ft)
+        @test Tables.schema(ft2) == Tables.schema(ft)
+
+        ft2 = ft[:, [:idx, :flags]]
+        @test ft2 isa FragmentTable{T}
+        @test size(ft2) == (2, 2)
+        @test Tables.columnnames(ft2) == [:idx, :flags]
+        @test Tables.schema(ft2).names == (:idx, :flags)
+        @test Tables.schema(ft2).types == (Vector{Int}, Vector{Flags})
+
+        ft2 = ft[2:-1:1]
+        @test ft2 isa FragmentTable{T}
+        @test length(ft2) == 2
+        @test ft2[1] === ft[2]
+        @test ft2[2] === ft[1]
+
+        ft2 = ft[2:-1:1, [:idx, :flags]]
+        @test ft2 isa FragmentTable{T}
+        @test size(ft2) == (2, 2)
+        @test Tables.columnnames(ft2) == [:idx, :flags]
+        @test Tables.schema(ft2).names == (:idx, :flags)
+        @test Tables.schema(ft2).types == (Vector{Int}, Vector{Flags})
+
+        ft2 = ft[ft.idx .== -1]
+        @test ft2 isa FragmentTable{T}
+        @test length(ft2) == 0
+
+        ft2 = ft[ft.idx .== f2.idx]
+        @test ft2 isa FragmentTable{T}
+        @test length(ft2) == 1
+        @test only(ft2) === f2
 
         # filter
         @test filter(_ -> true, ft) == ft
@@ -330,6 +492,44 @@ end
         @test_throws BoundsError nt[0]
         @test_throws BoundsError nt[3]
 
+        nt2 = nt[:]
+        @test nt2 isa FragmentTable{T}
+        @test isequal(nt2, nt)
+        @test nt2 == nt
+        @test nt2 !== nt
+        @test size(nt2) == size(nt)
+        @test Tables.columnnames(nt2) == Tables.columnnames(nt)
+        @test Tables.schema(nt2) == Tables.schema(nt)
+
+        nt2 = nt[:, [:idx, :flags]]
+        @test nt2 isa FragmentTable{T}
+        @test size(nt2) == (2, 2)
+        @test Tables.columnnames(nt2) == [:idx, :flags]
+        @test Tables.schema(nt2).names == (:idx, :flags)
+        @test Tables.schema(nt2).types == (Vector{Int}, Vector{Flags})
+
+        nt2 = nt[2:-1:1]
+        @test nt2 isa FragmentTable{T}
+        @test length(nt2) == 2
+        @test nt2[1] === nt[2]
+        @test nt2[2] === nt[1]
+
+        nt2 = nt[2:-1:1, [:idx, :flags]]
+        @test nt2 isa FragmentTable{T}
+        @test size(nt2) == (2, 2)
+        @test Tables.columnnames(nt2) == [:idx, :flags]
+        @test Tables.schema(nt2).names == (:idx, :flags)
+        @test Tables.schema(nt2).types == (Vector{Int}, Vector{Flags})
+
+        nt2 = nt[nt.idx .== -1]
+        @test nt2 isa FragmentTable{T}
+        @test length(nt2) == 0
+
+        nt2 = nt[nt.idx .== n2.idx]
+        @test nt2 isa FragmentTable{T}
+        @test length(nt2) == 1
+        @test only(nt2) === n2
+
         # filter
         @test filter(_ -> true, nt) == nt
         @test only(filter(f -> f.idx == n1.idx, nt)) === n1
@@ -437,6 +637,44 @@ end
         @test_throws BoundsError rt[0]
         @test_throws BoundsError rt[3]
 
+        rt2 = rt[:]
+        @test rt2 isa FragmentTable{T}
+        @test isequal(rt2, rt)
+        @test rt2 == rt
+        @test rt2 !== rt
+        @test size(rt2) == size(rt)
+        @test Tables.columnnames(rt2) == Tables.columnnames(rt)
+        @test Tables.schema(rt2) == Tables.schema(rt)
+
+        rt2 = rt[:, [:idx, :flags]]
+        @test rt2 isa FragmentTable{T}
+        @test size(rt2) == (2, 2)
+        @test Tables.columnnames(rt2) == [:idx, :flags]
+        @test Tables.schema(rt2).names == (:idx, :flags)
+        @test Tables.schema(rt2).types == (Vector{Int}, Vector{Flags})
+
+        rt2 = rt[2:-1:1]
+        @test rt2 isa FragmentTable{T}
+        @test length(rt2) == 2
+        @test rt2[1] === rt[2]
+        @test rt2[2] === rt[1]
+
+        rt2 = rt[2:-1:1, [:idx, :flags]]
+        @test rt2 isa FragmentTable{T}
+        @test size(rt2) == (2, 2)
+        @test Tables.columnnames(rt2) == [:idx, :flags]
+        @test Tables.schema(rt2).names == (:idx, :flags)
+        @test Tables.schema(rt2).types == (Vector{Int}, Vector{Flags})
+
+        rt2 = rt[rt.idx .== -1]
+        @test rt2 isa FragmentTable{T}
+        @test length(rt2) == 0
+
+        rt2 = rt[rt.idx .== r2.idx]
+        @test rt2 isa FragmentTable{T}
+        @test length(rt2) == 1
+        @test only(rt2) === r2
+
         # filter
         @test filter(_ -> true, rt) == rt
         @test only(filter(f -> f.idx == r1.idx, rt)) === r1
@@ -452,11 +690,16 @@ end
     for T in [Float32, Float64]
         sys = System{T}()
         chain = Chain(Molecule(sys))
+        ss = SecondaryStructure(chain, 1, SecondaryStructureElement.Helix; name="H1")
 
         # constructors + parent
         frag = Fragment(chain, 1)
         nuc = Nucleotide(chain, 2)
         res = Residue(chain, 3)
+
+        frag2 = Fragment(ss, 4)
+        nuc2 = Nucleotide(ss, 5)
+        res2 = Residue(ss, 6)
 
         # fragment_by_idx
         @test_throws KeyError fragment_by_idx(sys, -1)
@@ -466,16 +709,70 @@ end
         @test fragment_by_idx(sys, nuc.idx) == nuc
         @test fragment_by_idx(sys, res.idx) isa Fragment{T}
         @test fragment_by_idx(sys, res.idx) == res
+        @test fragment_by_idx(sys, frag2.idx) isa Fragment{T}
+        @test fragment_by_idx(sys, frag2.idx) == frag2
+        @test fragment_by_idx(sys, nuc2.idx) isa Fragment{T}
+        @test fragment_by_idx(sys, nuc2.idx) == nuc2
+        @test fragment_by_idx(sys, res2.idx) isa Fragment{T}
+        @test fragment_by_idx(sys, res2.idx) == res2
 
         # fragments
         ft = fragments(sys)
         @test ft isa FragmentTable{T}
-        @test length(ft) == 3
-        @test length(fragments(sys)) == 3
+        @test length(ft) == 6
+        @test length(fragments(sys)) == 6
 
         # nfragments
         @test nfragments(sys) isa Int
-        @test nfragments(sys) == 3
+        @test nfragments(sys) == 6
+
+        # delete!
+        Bond(Atom(frag, 1, Elements.H), Atom(frag, 2, Elements.C), BondOrder.Single)
+        @test natoms(sys) == 2
+        @test nbonds(sys) == 1
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 1
+        @test nsecondary_structures(sys) == 1
+        @test nfragments(sys) == 6
+        @test nfragments(sys; variant = FragmentVariant.None) == 2
+        @test nnucleotides(sys) == 2
+        @test nresidues(sys) == 2
+
+        @test delete!(frag; keep_atoms = true) === nothing
+        @test natoms(sys) == 2
+        @test nbonds(sys) == 1
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 1
+        @test nsecondary_structures(sys) == 1
+        @test nfragments(sys) == 5
+        @test nfragments(sys; variant = FragmentVariant.None) == 1
+        @test nnucleotides(sys) == 2
+        @test nresidues(sys) == 2
+        @test_throws KeyError frag.idx
+        @test all(isnothing, atoms(sys).fragment_idx)
+
+        Bond(Atom(nuc, 1, Elements.H), Atom(res, 2, Elements.C), BondOrder.Single)
+        @test natoms(sys) == 4
+        @test nbonds(sys) == 2
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 1
+        @test nsecondary_structures(sys) == 1
+        @test nfragments(sys) == 5
+        @test nfragments(sys; variant = FragmentVariant.None) == 1
+        @test nnucleotides(sys) == 2
+        @test nresidues(sys) == 2
+
+        @test delete!(nuc; keep_atoms = false) === nothing
+        @test natoms(sys) == 3
+        @test nbonds(sys) == 1
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 1
+        @test nsecondary_structures(sys) == 1
+        @test nfragments(sys) == 4
+        @test nfragments(sys; variant = FragmentVariant.None) == 1
+        @test nnucleotides(sys) == 1
+        @test nresidues(sys) == 2
+        @test_throws KeyError nuc.idx
     end
 end
 
@@ -515,12 +812,6 @@ end
             flags = Flags([:A, :B])
         )
 
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(frag._row) == 3
-
         # getproperty
         @test frag.idx isa Int
         @test frag.number isa Int
@@ -540,8 +831,8 @@ end
         @test frag.chain_idx == chain.idx
 
         @test frag._sys isa System{T}
-        @test frag._row isa BiochemicalAlgorithms._FragmentTableRow
-        
+        @test frag._idx isa Int
+
         @test frag2.number == 1
         @test frag2.name == "something"
         @test frag2.properties == Properties(:a => 1)
@@ -735,12 +1026,6 @@ end
             flags = Flags([:A, :B])
         )
 
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(nuc._row) == 3
-
         # getproperty
         @test nuc.idx isa Int
         @test nuc.number isa Int
@@ -760,8 +1045,8 @@ end
         @test nuc.chain_idx == chain.idx
 
         @test nuc._sys isa System{T}
-        @test nuc._row isa BiochemicalAlgorithms._FragmentTableRow
-        
+        @test nuc._idx isa Int
+
         @test nuc2.number == 1
         @test nuc2.name == "something"
         @test nuc2.properties == Properties(:a => 1)
@@ -955,12 +1240,6 @@ end
             flags = Flags([:A, :B])
         )
 
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(res._row) == 3
-
         # getproperty
         @test res.idx isa Int
         @test res.number isa Int
@@ -980,8 +1259,8 @@ end
         @test res.chain_idx == chain.idx
 
         @test res._sys isa System{T}
-        @test res._row isa BiochemicalAlgorithms._FragmentTableRow
-        
+        @test res._idx isa Int
+
         @test res2.number == 1
         @test res2.name == "something"
         @test res2.properties == Properties(:a => 1)

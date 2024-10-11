@@ -50,13 +50,13 @@ Molecule(;
 ```
 Creates a new `Molecule{Float32}` in the default system.
 """
-const Molecule{T} = AtomContainer{T, _MoleculeTableRow}
+const Molecule{T} = AtomContainer{T, :Molecule}
 
 @inline function Molecule(
     sys::System{T};
     kwargs...
 ) where T
-    idx = _next_idx(sys)
+    idx = _next_idx!(sys)
     push!(sys._molecules, idx; kwargs...)
     molecule_by_idx(sys, idx)
 end
@@ -82,6 +82,10 @@ generated using [`molecules`](@ref) or filtered from other molecule tables (via 
 """
 const MoleculeTable{T} = SystemComponentTable{T, Molecule{T}}
 
+@inline function _wrap_molecules(sys::System{T}) where T
+    MoleculeTable{T}(sys, getfield(getfield(sys, :_molecules), :idx))
+end
+
 @inline function _filter_molecules(f::Function, sys::System{T}) where T
     MoleculeTable{T}(sys, _filter_idx(f, sys._molecules))
 end
@@ -89,7 +93,7 @@ end
 @inline _table(sys::System{T}, ::Type{Molecule{T}}) where T = sys._molecules
 
 @inline function _hascolumn(::Type{<: Molecule}, nm::Symbol)
-    nm in _molecule_table_cols_set || nm in _molecule_table_cols_priv
+    _hascolumn(_MoleculeTable, nm)
 end
 
 @doc raw"""
@@ -126,7 +130,8 @@ Returns the `Molecule{T}` associated with the given `idx` in `sys`. Throws a `Ke
 molecule exists.
 """
 @inline function molecule_by_idx(sys::System{T}, idx::Int) where T
-    Molecule{T}(sys, _row_by_idx(sys._molecules, idx))
+    _rowno_by_idx(_table(sys, Molecule{T}), idx) # check idx
+    Molecule{T}(sys, idx)
 end
 
 @inline function molecule_by_idx(idx::Int)
@@ -158,8 +163,61 @@ Returns the number of molecules in the given system.
 # Supported keyword arguments
 See [`molecules`](@ref)
 """
-function nmolecules(sys::System = default_system(); kwargs...)
+@inline function nmolecules(sys::System = default_system(); kwargs...)
     length(molecules(sys; kwargs...))
+end
+
+"""
+    nmolecules(::MoleculeTable)
+
+Returns the number of molecules in the given table.
+
+# Supported keyword arguments
+See [`molecules`](@ref)
+"""
+@inline function nmolecules(
+    mt::MoleculeTable;
+    variant::Union{Nothing, MoleculeVariantType} = nothing
+)
+    isnothing(variant) ?
+        length(mt) :
+        length(filter(mol -> mol.variant == something(variant), mt))
+end
+
+"""
+    delete!(::Molecule)
+    delete!(::MoleculeTable)
+    delete!(::MoleculeTable, idx::Int)
+
+Removes the given molecule(s) and all associated chains, secondary_structures and fragments from the
+associated system.
+
+# Supported keyword arguments
+ - `keep_atoms::Bool = false`
+   Determines whether associated atoms (and their bonds) are removed as well
+"""
+function Base.delete!(mol::Molecule; keep_atoms::Bool = false)
+    keep_atoms ? atoms(mol).molecule_idx .= Ref(nothing) : delete!(atoms(mol))
+    delete!(secondary_structures(mol); keep_fragments = true)
+    delete!(chains(mol); keep_atoms = keep_atoms)
+    delete!(parent(mol)._molecules, mol.idx)
+    nothing
+end
+
+function Base.delete!(mt::MoleculeTable; keep_atoms::Bool = false)
+    keep_atoms ? atoms(mt).molecule_idx .= Ref(nothing) : delete!(atoms(mt))
+    delete!(secondary_structures(mt); keep_fragments = true)
+    delete!(chains(mt); keep_atoms = keep_atoms)
+    delete!(_table(mt), mt._idx)
+    empty!(mt._idx)
+    mt
+end
+
+function Base.delete!(mt::MoleculeTable, idx::Int; kwargs...)
+    idx in mt._idx || throw(KeyError(idx))
+    delete!(molecule_by_idx(mt._sys, idx); kwargs...)
+    deleteat!(mt._idx, findall(i -> i == idx, mt._idx))
+    mt
 end
 
 #=
@@ -177,11 +235,21 @@ end
     mol
 end
 
+@inline function atoms(mt::MoleculeTable)
+    idx = Set(mt._idx)
+    _filter_atoms(atom -> atom.molecule_idx in idx, mt._sys)
+end
+
+@inline natoms(mt::MoleculeTable) = length(atoms(mt))
+
 #=
     Molecule bonds
 =#
 @inline bonds(mol::Molecule; kwargs...) = bonds(parent(mol); molecule_idx = mol.idx, kwargs...)
 @inline nbonds(mol::Molecule; kwargs...) = nbonds(parent(mol); molecule_idx = mol.idx, kwargs...)
+
+@inline bonds(mt::MoleculeTable) = bonds(atoms(mt))
+@inline nbonds(mt::MoleculeTable) = nbonds(atoms(mt))
 
 #=
     Variant: Protein
@@ -250,6 +318,15 @@ See [`molecules`](@ref)
 """
 @inline function nproteins(sys::System = default_system(); kwargs...)
     nmolecules(sys; variant = MoleculeVariant.Protein, kwargs...)
+end
+
+"""
+    nproteins(::MoleculeTable)
+
+Returns the number of [`MoleculeVariant.Protein`](@ref MoleculeVariant) molecules in the given table.
+"""
+@inline function nproteins(mt::MoleculeTable)
+    length(filter(isprotein, mt))
 end
 
 """

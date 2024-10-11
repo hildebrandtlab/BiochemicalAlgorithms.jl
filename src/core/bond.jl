@@ -28,19 +28,7 @@ Mutable representation of an individual bond in a system.
 # Constructors
 ```julia
 Bond(
-    sys::System{T}, 
-    a1::Int, 
-    a2::Int, 
-    order::BondOrderType;
-    # keyword arguments
-    properties::Properties = Properties(),
-    flags::Flags = Flags()
-)
-```
-Creates a new `Bond{T}` in the given system.
-
-```julia
-Bond(
+    ac::AbstractAtomContainer{T} = default_system(),
     a1::Int,
     a2::Int,
     order::BondOrderType;
@@ -49,18 +37,30 @@ Bond(
     flags::Flags = Flags()
 )
 ```
-Creates a new `Bond{Float32}` in the default system.
+Creates a new `Bond{T}` in the given (atom container's) system.
+
+```julia
+Bond(
+    a1::Atom{T},
+    a2::Atom{T},
+    order::BondOrderType;
+    # keyword arguments
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+)
+```
+Creates a new `Bond{T}` for the given atoms. Both atoms must belong to the same system.
 """
-const Bond{T} = AtomContainer{T, _BondTableRow}
+const Bond{T} = AtomContainer{T, :Bond}
 
 @inline function Bond(
-    sys::System{T}, 
-    a1::Int, 
-    a2::Int, 
+    sys::System{T},
+    a1::Int,
+    a2::Int,
     order::BondOrderType;
     kwargs...
 ) where T
-    idx = _next_idx(sys)
+    idx = _next_idx!(sys)
     push!(sys._bonds, idx, a1, a2, order; kwargs...)
     bond_by_idx(sys, idx)
 end
@@ -84,6 +84,16 @@ end
     Bond(parent(ac), a1, a2, order; kwargs...)
 end
 
+@inline function Bond(
+    a1::Atom{T},
+    a2::Atom{T},
+    order::BondOrderType;
+    kwargs...
+) where T
+    @assert parent(a1) === parent(a2) "given atoms must belong to the same system to form a bond"
+    Bond(parent(a1), a1.idx, a2.idx, order; kwargs...)
+end
+
 """
     BondTable{T} <: AbstractSystemComponentTable{T}
 
@@ -102,6 +112,10 @@ generated using [`bonds`](@ref) or filtered from other bond tables (via `Base.fi
 """
 const BondTable{T} = SystemComponentTable{T, Bond{T}}
 
+@inline function _wrap_bonds(sys::System{T}) where T
+    BondTable{T}(sys, getfield(getfield(sys, :_bonds), :idx))
+end
+
 @inline function _filter_bonds(f::Function, sys::System{T}) where T
     BondTable{T}(sys, _filter_idx(f, sys._bonds))
 end
@@ -109,7 +123,7 @@ end
 @inline _table(sys::System{T}, ::Type{Bond{T}}) where T = sys._bonds
 
 @inline function _hascolumn(::Type{<: Bond}, nm::Symbol)
-    nm in _bond_table_cols_set || nm in _bond_table_cols_priv
+    _hascolumn(_BondTable, nm)
 end
 
 """
@@ -122,7 +136,8 @@ Returns the `Bond{T}` associated with the given `idx` in `sys`. Throws a `KeyErr
 bond exists.
 """
 @inline function bond_by_idx(sys::System{T}, idx::Int) where T
-    Bond{T}(sys, _row_by_idx(sys._bonds, idx))
+    _rowno_by_idx(_table(sys, Bond{T}), idx) # check idx
+    Bond{T}(sys, idx)
 end
 
 @inline function bond_by_idx(idx::Int)
@@ -150,6 +165,15 @@ function bonds(sys::System = default_system(); kwargs...)
     )
 end
 
+@doc raw"""
+    bonds(::ChainTable)
+    bonds(::FragmentTable)
+    bonds(::MoleculeTable)
+
+Returns a `BondTable{T}` containing all bonds where at least one associated atom belongs to
+the given table.
+""" bonds(::SystemComponentTable)
+
 """
     nbonds(::Chain)
     nbonds(::Fragment)
@@ -162,8 +186,45 @@ is contained in the same container.
 # Supported keyword arguments
 See [`atoms`](@ref)
 """
-function nbonds(sys::System = default_system(); kwargs...)
+@inline function nbonds(sys::System = default_system(); kwargs...)
     length(bonds(sys; kwargs...))
+end
+
+"""
+    nbonds(::BondTable)
+    nbonds(::ChainTable)
+    nbonds(::FragmentTable)
+    nbonds(::MoleculeTable)
+
+Returns the number of bonds where at least one associated atom belongs to the given table.
+"""
+@inline function nbonds(bt::BondTable)
+    length(bt)
+end
+
+"""
+    delete!(::Bond)
+    delete!(::BondTable)
+    delete!(::BondTable, idx::Int)
+
+Removes the given bond(s) from the associated system.
+"""
+@inline function Base.delete!(bond::Bond)
+    delete!(parent(bond)._bonds, bond.idx)
+    nothing
+end
+
+function Base.delete!(bt::BondTable)
+    delete!(_table(bt), bt._idx)
+    empty!(bt._idx)
+    bt
+end
+
+function Base.delete!(bt::BondTable, idx::Int)
+    idx in bt._idx || throw(KeyError(idx))
+    delete!(bond_by_idx(bt._sys, idx))
+    deleteat!(bt._idx, findall(i -> i == idx, bt._idx))
+    bt
 end
 
 """

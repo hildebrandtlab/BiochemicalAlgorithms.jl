@@ -70,7 +70,7 @@ Atom(
 ```
 Creates a new `Atom{Float32}` in the default system. Supports the same keyword arguments as above.
 """
-const Atom{T} = SystemComponent{T, _AtomTableRow{T}}
+const Atom{T} = SystemComponent{T, :Atom}
 
 @inline function Atom(
     sys::System{T},
@@ -82,7 +82,7 @@ const Atom{T} = SystemComponent{T, _AtomTableRow{T}}
     fragment_idx::MaybeInt = nothing,
     kwargs...
 ) where T
-    idx = _next_idx(sys)
+    idx = _next_idx!(sys)
     push!(sys._atoms, idx, number, element;
         frame_id = frame_id,
         molecule_idx = molecule_idx,
@@ -130,6 +130,10 @@ generated using [`atoms`](@ref) or filtered from other atom tables (via `Base.fi
 """
 const AtomTable{T} = SystemComponentTable{T, Atom{T}}
 
+@inline function _wrap_atoms(sys::System{T}) where T
+    AtomTable{T}(sys, getfield(getfield(sys, :_atoms), :idx))
+end
+
 @inline function _filter_atoms(f::Function, sys::System{T}) where T
     AtomTable{T}(sys, _filter_idx(f, sys._atoms))
 end
@@ -137,10 +141,10 @@ end
 @inline _table(sys::System{T}, ::Type{Atom{T}}) where T = sys._atoms
 
 @inline function _hascolumn(::Type{<: Atom}, nm::Symbol)
-    nm in _atom_table_cols_set || nm in _atom_table_cols_priv
+    _hascolumn(_AtomTable, nm)
 end
 
-@inline function parent_molecule(atom::Atom) 
+@inline function parent_molecule(atom::Atom)
     isnothing(atom.molecule_idx) ?
         nothing :
         molecule_by_idx(parent(atom), atom.molecule_idx)
@@ -150,6 +154,14 @@ end
     isnothing(atom.chain_idx) ?
         nothing :
         chain_by_idx(atom._sys, atom.chain_idx)
+end
+
+@inline function parent_secondary_structure(atom::Atom)
+    pf = parent_fragment(atom)
+
+    isnothing(pf) || isnothing(pf.secondary_structure_idx) ?
+        nothing :
+        secondary_structure_by_idx(parent(atom), pf.secondary_structure_idx)
 end
 
 @inline function parent_fragment(atom::Atom)
@@ -168,7 +180,8 @@ Returns the `Atom{T}` associated with the given `idx` in `sys`. Throws a `KeyErr
 atom exists.
 """
 @inline function atom_by_idx(sys::System{T}, idx::Int) where T
-    Atom{T}(sys, _row_by_idx(sys._atoms, idx))
+    _rowno_by_idx(_table(sys, Atom{T}), idx) # check idx
+    Atom{T}(sys, idx)
 end
 
 @inline function atom_by_idx(idx::Int)
@@ -232,6 +245,14 @@ All keyword arguments limit the results to atoms matching the given IDs. Keyword
     )
 end
 
+@doc raw"""
+    atoms(::ChainTable)
+    atoms(::FragmentTable)
+    atoms(::MoleculeTable)
+
+Returns an `AtomTable{T}` containing all atoms of the given table.
+""" atoms(::SystemComponentTable)
+
 """
     natoms(::Chain)
     natoms(::Fragment)
@@ -248,9 +269,22 @@ See [`atoms`](@ref)
 end
 
 """
-    bonds(::Atom)
+    natoms(::AtomTable)
+    natoms(::ChainTable)
+    natoms(::FragmentTable)
+    natoms(::MoleculeTable)
 
-Returns a `BondTable{T}` containing all bonds of the given atom.
+Returns the number of atoms in the given table.
+"""
+@inline function natoms(at::AtomTable)
+    length(at)
+end
+
+"""
+    bonds(::Atom)
+    bonds(::AtomTable)
+
+Returns a `BondTable{T}` containing all bonds of the given atom(s).
 """
 @inline function bonds(atom::Atom)
     aidx = atom.idx
@@ -260,13 +294,53 @@ Returns a `BondTable{T}` containing all bonds of the given atom.
     )
 end
 
+@inline function bonds(at::AtomTable)
+    aidx = Set(at.idx)
+    _filter_bonds(
+        bond -> bond.a1 in aidx || bond.a2 in aidx,
+        at._sys
+    )
+end
+
 """
     nbonds(::Atom)
+    nbonds(::AtomTable)
 
-Returns the number of bonds of the given atom.
+Returns the number of bonds of the given atom(s).
 """
 @inline function nbonds(atom::Atom)
     length(bonds(atom))
+end
+
+@inline function nbonds(at::AtomTable)
+    length(bonds(at))
+end
+
+"""
+    delete!(::Atom)
+    delete!(::AtomTable)
+    delete!(::AtomTable, idx::Int)
+
+Removes the given atom(s) and all associated bonds from the associated system.
+"""
+@inline function Base.delete!(atom::Atom)
+    delete!(bonds(atom))
+    delete!(parent(atom)._atoms, atom.idx)
+    nothing
+end
+
+function Base.delete!(at::AtomTable)
+    delete!(bonds(at))
+    delete!(_table(at), at._idx)
+    empty!(at._idx)
+    at
+end
+
+function Base.delete!(at::AtomTable, idx::Int)
+    idx in at._idx || throw(KeyError(idx))
+    delete!(atom_by_idx(at._sys, idx))
+    deleteat!(at._idx, findall(i -> i == idx, at._idx))
+    at
 end
 
 """
@@ -363,9 +437,9 @@ function is_bound_to(a1::Atom, a2::Atom)
 
     return !isnothing(
         findfirst(
-            b::Bond -> 
+            b ->
                 ((b.a1 == a1.idx) && (b.a2 == a2.idx)) ||
-                ((b.a1 == a2.idx) && (b.a2 == a1.idx)), 
+                ((b.a1 == a2.idx) && (b.a2 == a1.idx)),
             non_hydrogen_bonds(s)
         )
     )
@@ -375,9 +449,9 @@ end
     $(TYPEDSIGNATURES)
 
 Decides if two atoms are geminal.
-    
+
 Two atoms are geminal if they do not share a common bond but both have a
-bond to a third atom. For example the two hydrogen atoms in water are geminal. 
+bond to a third atom. For example the two hydrogen atoms in water are geminal.
 Hydrogen bonds (`has_flag(bond, :TYPE__HYDROGEN)`) are ignored.
 """
 function is_geminal(a1::Atom, a2::Atom)

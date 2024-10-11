@@ -1,12 +1,13 @@
+const _chain_table_cols_main = (:idx, :name)
+const _chain_table_cols_extra = (:properties, :flags, :molecule_idx)
+const _chain_table_cols = (_chain_table_cols_main..., _chain_table_cols_extra...)
+const _chain_table_cols_set = Set(_chain_table_cols)
 const _chain_table_schema = Tables.Schema(
-    (:idx, :name),
+    _chain_table_cols_main,
     (Int, String)
 )
-const _chain_table_cols = _chain_table_schema.names
-const _chain_table_cols_set = Set(_chain_table_cols)
-const _chain_table_cols_priv = Set([:properties, :flags, :molecule_idx])
 
-@auto_hash_equals struct _ChainTable <: AbstractColumnTable
+@auto_hash_equals struct _ChainTable <: _AbstractSystemComponentTable
     # public columns
     idx::Vector{Int}
     name::Vector{String}
@@ -17,7 +18,7 @@ const _chain_table_cols_priv = Set([:properties, :flags, :molecule_idx])
     molecule_idx::Vector{Int}
 
     # internals
-    _idx_map::Dict{Int,Int}
+    _idx_map::_IdxMap
 
     function _ChainTable()
         new(
@@ -26,20 +27,26 @@ const _chain_table_cols_priv = Set([:properties, :flags, :molecule_idx])
             Properties[],
             Flags[],
             Int[],
-            Dict{Int,Int}()
+            _IdxMap()
         )
     end
 end
 
-@inline Tables.columnnames(::_ChainTable) = _chain_table_cols
-@inline Tables.schema(::_ChainTable) = _chain_table_schema
-
-@inline function Tables.getcolumn(ct::_ChainTable, nm::Symbol)
-    @assert nm in _chain_table_cols_priv || nm in _chain_table_cols_set "type _ChainTable has no column $nm"
-    getfield(ct, nm)
+@inline function _hascolumn(::Union{_ChainTable, Type{_ChainTable}}, nm::Symbol)
+    nm in _chain_table_cols_set
 end
 
-@inline Base.size(ct::_ChainTable) = (length(ct.idx), length(_chain_table_cols))
+@inline function Tables.columnnames(::_ChainTable)
+    _chain_table_cols_main
+end
+
+@inline function Tables.schema(::_ChainTable)
+    _chain_table_schema
+end
+
+@inline function Base.propertynames(::_ChainTable)
+    _chain_table_cols
+end
 
 function Base.push!(
     ct::_ChainTable,
@@ -70,25 +77,3 @@ function _chain_table(itr)
     ct
 end
 @inline Tables.materializer(::Type{_ChainTable}) = itr -> _chain_table(itr)
-
-@auto_hash_equals struct _ChainTableRow <: _AbstractColumnTableRow
-    _row::Int
-    _tab::_ChainTable
-end
-
-@inline Tables.getcolumn(ctr::_ChainTableRow, nm::Symbol) = Tables.getcolumn(getfield(ctr, :_tab), nm)[getfield(ctr, :_row)]
-@inline Tables.getcolumn(ctr::_ChainTableRow, i::Int) = getfield(ctr, Tables.columnnames(ctr)[i])
-@inline Tables.columnnames(::_ChainTableRow) = _chain_table_cols
-
-@inline _row_by_idx(ct::_ChainTable, idx::Int) = _ChainTableRow(getfield(ct, :_idx_map)[idx], ct)
-
-@inline function Base.getproperty(ctr::_ChainTableRow, nm::Symbol)
-    getindex(getfield(getfield(ctr, :_tab), nm), getfield(ctr, :_row))
-end
-
-@inline function Base.setproperty!(ctr::_ChainTableRow, nm::Symbol, val)
-    setindex!(getproperty(getfield(ctr, :_tab), nm), val, getfield(ctr, :_row))
-end
-
-@inline Base.eltype(::_ChainTable) = _ChainTableRow
-@inline Base.iterate(ct::_ChainTable, st=1) = st > length(ct) ? nothing : (_ChainTableRow(st, ct), st + 1)

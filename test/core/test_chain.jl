@@ -14,8 +14,14 @@
 
         ct = chains(sys)
 
-        # AutoHashEquals and identity
+        # AutoHashEquals, copy, and identity
         ct2 = chains(sys)
+        @test ct == ct2
+        @test isequal(ct, ct2)
+        @test hash(ct) == hash(ct2)
+        @test ct !== ct2
+
+        ct2 = copy(ct)
         @test ct == ct2
         @test isequal(ct, ct2)
         @test hash(ct) == hash(ct2)
@@ -79,6 +85,44 @@
         @test_throws BoundsError ct[0]
         @test_throws BoundsError ct[3]
 
+        ct2 = ct[:]
+        @test ct2 isa ChainTable{T}
+        @test isequal(ct2, ct)
+        @test ct2 == ct
+        @test ct2 !== ct
+        @test size(ct2) == size(ct)
+        @test Tables.columnnames(ct2) == Tables.columnnames(ct)
+        @test Tables.schema(ct2) == Tables.schema(ct)
+
+        ct2 = ct[:, [:idx, :flags]]
+        @test ct2 isa ChainTable{T}
+        @test size(ct2) == (2, 2)
+        @test Tables.columnnames(ct2) == [:idx, :flags]
+        @test Tables.schema(ct2).names == (:idx, :flags)
+        @test Tables.schema(ct2).types == (Vector{Int}, Vector{Flags})
+
+        ct2 = ct[2:-1:1]
+        @test ct2 isa ChainTable{T}
+        @test length(ct2) == 2
+        @test ct2[1] === ct[2]
+        @test ct2[2] === ct[1]
+
+        ct2 = ct[2:-1:1, [:idx, :flags]]
+        @test ct2 isa ChainTable{T}
+        @test size(ct2) == (2, 2)
+        @test Tables.columnnames(ct2) == [:idx, :flags]
+        @test Tables.schema(ct2).names == (:idx, :flags)
+        @test Tables.schema(ct2).types == (Vector{Int}, Vector{Flags})
+
+        ct2 = ct[ct.idx .== -1]
+        @test ct2 isa ChainTable{T}
+        @test length(ct2) == 0
+
+        ct2 = ct[ct.idx .== c2.idx]
+        @test ct2 isa ChainTable{T}
+        @test length(ct2) == 1
+        @test only(ct2) === c2
+
         # filter
         @test filter(_ -> true, ct) == ct
         @test only(filter(c -> c.idx == c1.idx, ct)) === c1
@@ -87,6 +131,48 @@
         cv = collect(ct)
         @test cv isa Vector{Chain{T}}
         @test length(cv) == 2
+
+        # atoms
+        @test length(atoms(ct)) == 0
+        @test natoms(ct) == 0
+
+        a1 = Atom(c1, 1, Elements.H)
+        a2 = Atom(c2, 1, Elements.C)
+        @test length(atoms(ct)) == 2
+        @test natoms(ct) == 2
+
+        # bonds
+        @test length(bonds(ct)) == 0
+        @test nbonds(ct) == 0
+
+        Bond(sys, a1.idx, a2.idx, BondOrder.Single)
+        @test length(bonds(ct)) == 1
+        @test nbonds(ct) == 1
+
+        # chains
+        @test nchains(ct) == 2
+
+        # fragments
+        @test length(fragments(ct)) == 0
+        @test nfragments(ct) == 0
+        @test length(fragments(ct; variant = FragmentVariant.None)) == 0
+        @test nfragments(ct; variant = FragmentVariant.None) == 0
+        @test length(nucleotides(ct)) == 0
+        @test nnucleotides(ct) == 0
+        @test length(residues(ct)) == 0
+        @test nresidues(ct) == 0
+
+        Fragment(c1, 1)
+        Nucleotide(c1, 1)
+        Residue(c2, 1)
+        @test length(fragments(ct)) == 3
+        @test nfragments(ct) == 3
+        @test length(fragments(ct; variant = FragmentVariant.None)) == 1
+        @test nfragments(ct; variant = FragmentVariant.None) == 1
+        @test length(nucleotides(ct)) == 1
+        @test nnucleotides(ct) == 1
+        @test length(residues(ct)) == 1
+        @test nresidues(ct) == 1
     end
 end
 
@@ -114,12 +200,6 @@ end
 
         chain2 = Chain(mol2; name = "something", properties = Properties(:a => 1), flags = Flags([:A, :B]))
 
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(chain._row) == 2
-
         # getproperty
         @test chain.idx isa Int
         @test chain.name isa String
@@ -133,7 +213,7 @@ end
         @test chain.molecule_idx == mol.idx
 
         @test chain._sys isa System{T}
-        @test chain._row isa BiochemicalAlgorithms._ChainTableRow
+        @test chain._idx isa Int
 
         @test chain2.name == "something"
         @test chain2.properties == Properties(:a => 1)
@@ -160,7 +240,7 @@ end
         @test_throws KeyError chain_by_idx(sys, -1)
         @test chain_by_idx(sys, chain.idx) isa Chain{T}
         @test chain_by_idx(sys, chain.idx) == chain
-        
+
         # chains
         cv = chains(sys)
         @test cv isa ChainTable{T}
@@ -266,5 +346,38 @@ end
         @test bonds(chain) == bonds(sys, chain_idx = chain.idx)
         @test nbonds(chain) == 3
         @test nbonds(chain) == nbonds(sys, chain_idx = chain.idx)
+
+        # delete!
+        @test natoms(sys) == 12
+        @test nbonds(sys) == 3
+        @test nmolecules(sys) == 3
+        @test nchains(sys) == 4
+        @test nfragments(sys) == 3
+
+        aidx = Set(atoms(chain).idx)
+        @test delete!(chain; keep_atoms = true) === nothing
+        @test natoms(sys) == 12
+        @test nbonds(sys) == 3
+        @test nmolecules(sys) == 3
+        @test nchains(sys) == 3
+        @test nfragments(sys) == 0
+        @test_throws KeyError chain.idx
+        @test all(isnothing, filter(a -> a.idx in aidx, atoms(sys)).chain_idx)
+
+        frag = Fragment(chain2, 1)
+        Bond(Atom(frag, 1, Elements.H), Atom(frag, 2, Elements.C), BondOrder.Single)
+        @test natoms(sys) == 14
+        @test nbonds(sys) == 4
+        @test nmolecules(sys) == 3
+        @test nchains(sys) == 3
+        @test nfragments(sys) == 1
+
+        @test delete!(chain2; keep_atoms = false) === nothing
+        @test natoms(sys) == 12
+        @test nbonds(sys) == 3
+        @test nmolecules(sys) == 3
+        @test nchains(sys) == 2
+        @test nfragments(sys) == 0
+        @test_throws KeyError chain2.idx
     end
 end

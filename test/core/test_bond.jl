@@ -16,8 +16,14 @@
 
         bt = bonds(sys)
 
-        # AutoHashEquals and identity
+        # AutoHashEquals, copy, and identity
         bt2 = bonds(sys)
+        @test bt == bt2
+        @test isequal(bt, bt2)
+        @test hash(bt) == hash(bt2)
+        @test bt !== bt2
+
+        bt2 = copy(bt)
         @test bt == bt2
         @test isequal(bt, bt2)
         @test hash(bt) == hash(bt2)
@@ -88,6 +94,44 @@
         @test_throws BoundsError bt[0]
         @test_throws BoundsError bt[3]
 
+        bt2 = bt[:]
+        @test bt2 isa BondTable{T}
+        @test isequal(bt2, bt)
+        @test bt2 == bt
+        @test bt2 !== bt
+        @test size(bt2) == size(bt)
+        @test Tables.columnnames(bt2) == Tables.columnnames(bt)
+        @test Tables.schema(bt2) == Tables.schema(bt)
+
+        bt2 = bt[:, [:idx, :flags]]
+        @test bt2 isa BondTable{T}
+        @test size(bt2) == (2, 2)
+        @test Tables.columnnames(bt2) == [:idx, :flags]
+        @test Tables.schema(bt2).names == (:idx, :flags)
+        @test Tables.schema(bt2).types == (Vector{Int}, Vector{Flags})
+
+        bt2 = bt[2:-1:1]
+        @test bt2 isa BondTable{T}
+        @test length(bt2) == 2
+        @test bt2[1] === bt[2]
+        @test bt2[2] === bt[1]
+
+        bt2 = bt[2:-1:1, [:idx, :flags]]
+        @test bt2 isa BondTable{T}
+        @test size(bt2) == (2, 2)
+        @test Tables.columnnames(bt2) == [:idx, :flags]
+        @test Tables.schema(bt2).names == (:idx, :flags)
+        @test Tables.schema(bt2).types == (Vector{Int}, Vector{Flags})
+
+        bt2 = bt[bt.idx .== -1]
+        @test bt2 isa BondTable{T}
+        @test length(bt2) == 0
+
+        bt2 = bt[bt.idx .== b2.idx]
+        @test bt2 isa BondTable{T}
+        @test length(bt2) == 1
+        @test only(bt2) === b2
+
         # filter
         @test filter(_ -> true, bt) == bt
         @test only(filter(b -> b.idx == b1.idx, bt)) === b1
@@ -96,6 +140,9 @@
         bv = collect(bt)
         @test bv isa Vector{Bond{T}}
         @test length(bv) == 2
+
+        # bonds
+        @test length(bt) == 2
     end
 end
 
@@ -130,15 +177,9 @@ end
         Bond(
             sys,
             Atom(sys, 1, Elements.H; frame_id = 2).idx,
-            Atom(sys, 2, Elements.C; frame_id = 2).idx, 
+            Atom(sys, 2, Elements.C; frame_id = 2).idx,
             BondOrder.Single
         )
-
-        #=
-            Make sure we test for the correct number of fields.
-            Add missing tests if the following test fails!
-        =#
-        @test length(bond._row) == 4
 
         # getproperty
         @test bond.idx isa Int
@@ -155,7 +196,7 @@ end
         @test bond.flags == Flags()
 
         @test bond._sys isa System{T}
-        @test bond._row isa BiochemicalAlgorithms._BondTableRow
+        @test bond._idx isa Int
 
         @test bond2.idx isa Int
         @test bond2.a1 isa Int
@@ -221,5 +262,14 @@ end
         @test lbond.order == bond.order
         @test lbond.properties == bond.properties
         @test lbond.flags == bond.flags
+
+        # delete!
+        @test nbonds(sys) == 3
+
+        bidx = bond.idx
+        @test delete!(bond) === nothing
+        @test nbonds(sys) == 2
+        @test bidx ∉ bonds(sys).idx
+        @test_throws KeyError bond.idx
     end
 end

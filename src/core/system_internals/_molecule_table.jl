@@ -1,12 +1,13 @@
+const _molecule_table_cols_main = (:idx, :name)
+const _molecule_table_cols_extra = (:variant, :properties, :flags)
+const _molecule_table_cols = (_molecule_table_cols_main..., _molecule_table_cols_extra...)
+const _molecule_table_cols_set = Set(_molecule_table_cols)
 const _molecule_table_schema = Tables.Schema(
-    (:idx, :name),
+    _molecule_table_cols_main,
     (Int, String)
 )
-const _molecule_table_cols = _molecule_table_schema.names
-const _molecule_table_cols_set = Set(_molecule_table_cols)
-const _molecule_table_cols_priv = Set([:variant, :properties, :flags])
 
-@auto_hash_equals struct _MoleculeTable <: AbstractColumnTable
+@auto_hash_equals struct _MoleculeTable <: _AbstractSystemComponentTable
     # public columns
     idx::Vector{Int}
     name::Vector{String}
@@ -17,7 +18,7 @@ const _molecule_table_cols_priv = Set([:variant, :properties, :flags])
     flags::Vector{Flags}
 
     # internals
-    _idx_map::Dict{Int,Int}
+    _idx_map::_IdxMap
 
     function _MoleculeTable()
         new(
@@ -26,20 +27,26 @@ const _molecule_table_cols_priv = Set([:variant, :properties, :flags])
             MoleculeVariantType[],
             Properties[],
             Flags[],
-            Dict{Int,Int}()
+            _IdxMap()
         )
     end
 end
 
-@inline Tables.columnnames(::_MoleculeTable) = _molecule_table_cols
-@inline Tables.schema(::_MoleculeTable) = _molecule_table_schema
-
-@inline function Tables.getcolumn(mt::_MoleculeTable, nm::Symbol)
-    @assert nm in _molecule_table_cols_priv || nm in _molecule_table_cols "type _MoleculeTable has no column $nm"
-    getfield(mt, nm)
+@inline function _hascolumn(::Union{_MoleculeTable, Type{_MoleculeTable}}, nm::Symbol)
+    nm in _molecule_table_cols_set
 end
 
-@inline Base.size(mt::_MoleculeTable) = (length(mt.idx), length(_molecule_table_cols))
+@inline function Tables.columnnames(::_MoleculeTable)
+    _molecule_table_cols_main
+end
+
+@inline function Tables.schema(::_MoleculeTable)
+    _molecule_table_schema
+end
+
+@inline function Base.propertynames(::_MoleculeTable)
+    _molecule_table_cols
+end
 
 function Base.push!(
     mt::_MoleculeTable,
@@ -71,25 +78,3 @@ function _molecule_table(itr)
     mt
 end
 Tables.materializer(::Type{_MoleculeTable}) = _molecule_table
-
-@auto_hash_equals struct _MoleculeTableRow <: _AbstractColumnTableRow
-    _row::Int
-    _tab::_MoleculeTable
-end
-
-@inline Tables.getcolumn(mtr::_MoleculeTableRow, nm::Symbol) = Tables.getcolumn(getfield(mtr, :_tab), nm)[getfield(mtr, :_row)]
-@inline Tables.getcolumn(mtr::_MoleculeTableRow, i::Int) = getfield(mtr, Tables.columnnames(mtr)[i])
-@inline Tables.columnnames(::_MoleculeTableRow) = _molecule_table_cols
-
-@inline _row_by_idx(mt::_MoleculeTable, idx::Int) = _MoleculeTableRow(getfield(mt, :_idx_map)[idx], mt)
-
-@inline function Base.getproperty(mtr::_MoleculeTableRow, nm::Symbol)
-    getindex(getfield(getfield(mtr, :_tab), nm), getfield(mtr, :_row))
-end
-
-@inline function Base.setproperty!(mtr::_MoleculeTableRow, nm::Symbol, val) 
-    setindex!(getproperty(getfield(mtr, :_tab), nm), val, getfield(mtr, :_row))
-end
-
-@inline Base.eltype(::_MoleculeTable) = _MoleculeTableRow
-@inline Base.iterate(mt::_MoleculeTable, st=1) = st > length(mt) ? nothing : (_MoleculeTableRow(st, mt), st + 1)

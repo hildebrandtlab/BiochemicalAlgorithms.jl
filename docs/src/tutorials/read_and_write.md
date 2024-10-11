@@ -13,7 +13,7 @@ Read a PDB file from the BiochemicalAlgorithms.jl repository:
 sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 ```
 
-    System with 23 atoms (AlaAla.pdb)
+    System{Float32} with 23 atoms (AlaAla.pdb)
 
 Write the same system back into a new PDB file:
 
@@ -29,7 +29,7 @@ In addition to PDB, the [pubchem data base](https://pubchem.ncbi.nlm.nih.gov/) p
 sys = load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json"))
 ```
 
-    System with 21 atoms
+    System{Float32} with 21 atoms
 
 ## SD file
 
@@ -37,7 +37,7 @@ sys = load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json"))
 sys = load_sdfile(ball_data_path("../test/data/rings_test.sdf"))
 ```
 
-    System with 148 atoms (rings_test.sdf)
+    System{Float32} with 148 atoms (rings_test.sdf)
 
 Write the system into a new SD file:
 

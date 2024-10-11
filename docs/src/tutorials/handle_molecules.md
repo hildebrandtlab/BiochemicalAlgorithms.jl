@@ -5,7 +5,7 @@
 
 ``` julia
 # create a system first
-sys = System{Float32}() # this system will be of single precision, i.e., atom positions, velocities... 
+sys = System{Float32}() # this system will be of single precision, i.e., atom positions, velocities...
 
 # as well as a molecule
 h2o = Molecule(sys)
@@ -149,7 +149,7 @@ all_chains = chains(sys)
 |   1 | 2   | E    |
 |   2 | 349 | I    |
 
-BiochemicalAlgorithms.ChainTable{Float32} with 2 rows:
+ChainTable{Float32} with 2 rows:
 
 This snippet will create separate PDB files for the two chains of the system:
 
@@ -182,3 +182,22 @@ println("RMSD after mapping:\t", compute_rmsd(mol2, mol))
 
     RMSD before mapping:    3.0
     RMSD after mapping: 3.881571e-6
+
+## How can I remove water molecules from a system?
+
+``` julia
+sys = load_pdb(ball_data_path("../test/data/1tgh.pdb"))
+
+println("Number of atoms before removing water: ", natoms(sys))
+
+# find all water fragments
+ft = filter(frag -> frag.name == "HOH", fragments(sys))
+
+# delete the found fragments, including all atoms and bonds
+delete!(ft)
+
+println("Number of atoms after removing water: ", natoms(sys))
+```
+
+    Number of atoms before removing water: 2355
+    Number of atoms after removing water: 2301

@@ -1,4 +1,4 @@
-# System representation
+# Biomolecular systems
 ```@meta
 CurrentModule = BiochemicalAlgorithms
 ```
@@ -7,30 +7,33 @@ CurrentModule = BiochemicalAlgorithms
 Pages = ["system.md"]
 ```
 
-## Abstract types
-```@docs
-AbstractColumnTable
-AbstractSystemComponentTable
-AbstractSystemComponent
-AbstractAtomContainer
-```
-
-## Common functions
-```@docs
-has_property
-get_property
-set_property!
-has_flag
-set_flag!
-unset_flag!
-```
-
 ## Systems
 ```@docs
 System
 default_system
-Base.parent(::System)
 parent_system
+Base.parent(::System)
+Base.empty!(::System)
+```
+
+## System components
+```@docs
+AbstractAtomContainer
+AbstractColumnTable
+AbstractSystemComponent
+AbstractSystemComponentTable
+SystemComponentTable
+SystemComponentTableCol
+full_table
+get_property
+has_flag
+has_property
+revalidate_indices!
+set_flag!
+set_property!
+unset_flag!
+Base.sort(::SystemComponentTable)
+Base.sort!(::SystemComponentTable)
 ```
 
 ## Atoms
@@ -44,6 +47,8 @@ is_bound_to
 is_geminal
 is_vicinal
 natoms
+sort_atoms!
+Base.delete!(::Atom)
 Base.push!(::System{T}, ::Atom{T}) where T
 ```
 
@@ -54,23 +59,31 @@ BondTable
 bond_by_idx
 bonds
 nbonds
+sort_bonds!
+Base.delete!(::Bond)
 Base.push!(::System{T}, ::Bond{T}) where T
 ```
 
 ## Molecules
 ```@docs
-Molecule
-MoleculeTable
 MoleculeVariant
 MoleculeVariantType
+```
+
+### Molecules (all variants)
+```@docs
+Molecule
+MoleculeTable
 molecule_by_idx
 molecules
 nmolecules
 parent_molecule
+sort_molecules!
+Base.delete!(::Molecule)
 Base.push!(::System{T}, ::Molecule{T}) where T
 ```
 
-### Proteins (molecule variant)
+### Proteins (`MoleculeVariant.Protein`)
 ```@docs
 Protein
 isprotein
@@ -88,23 +101,45 @@ chain_by_idx
 chains
 nchains
 parent_chain
+sort_chains!
+Base.delete!(::Chain)
 Base.push!(::Molecule{T}, ::Chain{T}) where T
+```
+
+## Secondary structures
+```@docs
+SecondaryStructure
+SecondaryStructureTable
+secondary_structure_by_idx
+secondary_structures
+nsecondary_structures
+parent_secondary_structure
+sort_secondary_structures!
+Base.delete!(::SecondaryStructure)
+Base.push!(::Chain{T}, ::SecondaryStructure{T}) where T
 ```
 
 ## Fragments
 ```@docs
-Fragment
-FragmentTable
 FragmentVariant
 FragmentVariantType
+```
+
+### Fragments (all variants)
+```@docs
+Fragment
+FragmentTable
 fragment_by_idx
 fragments
 nfragments
 parent_fragment
+sort_fragments!
+Base.delete!(::Fragment)
+Base.push!(::SecondaryStructure{T}, ::Fragment{T}) where T
 Base.push!(::Chain{T}, ::Fragment{T}) where T
 ```
 
-### Nucleotides (fragment variant)
+### Nucleotides (`FragmentVariant.Nucleotide`)
 ```@docs
 Nucleotide
 isnucleotide
@@ -114,7 +149,7 @@ nucleotides
 parent_nucleotide
 ```
 
-### Residues (fragment variant)
+### Nucleotides (`FragmentVariant.Residue`)
 ```@docs
 Residue
 isresidue

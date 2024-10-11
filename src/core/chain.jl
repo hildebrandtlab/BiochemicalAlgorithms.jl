@@ -32,14 +32,14 @@ Chain(
 ```
 Creates a new `Chain{T}` in the given molecule.
 """
-const Chain{T} = AtomContainer{T, _ChainTableRow}
+const Chain{T} = AtomContainer{T, :Chain}
 
 @inline function Chain(
     mol::Molecule;
     kwargs...
 )
     sys = parent(mol)
-    idx = _next_idx(sys)
+    idx = _next_idx!(sys)
     push!(sys._chains, idx, mol.idx; kwargs...)
     chain_by_idx(sys, idx)
 end
@@ -61,6 +61,10 @@ generated using [`chains`](@ref) or filtered from other chain tables (via `Base.
 """
 const ChainTable{T} = SystemComponentTable{T, Chain{T}}
 
+@inline function _wrap_chains(sys::System{T}) where T
+    ChainTable{T}(sys, getfield(getfield(sys, :_chains), :idx))
+end
+
 @inline function _filter_chains(f::Function, sys::System{T}) where T
     ChainTable{T}(sys, _filter_idx(f, sys._chains))
 end
@@ -68,7 +72,7 @@ end
 @inline _table(sys::System{T}, ::Type{Chain{T}}) where T = sys._chains
 
 @inline function _hascolumn(::Type{<: Chain}, nm::Symbol)
-    nm in _chain_table_cols_set || nm in _chain_table_cols_priv
+    _hascolumn(_ChainTable, nm)
 end
 
 @inline parent_molecule(chain::Chain) = molecule_by_idx(parent(chain), chain.molecule_idx)
@@ -90,7 +94,8 @@ Returns the `Chain{T}` associated with the given `idx` in `sys`. Throws a `KeyEr
 chain exists.
 """
 @inline function chain_by_idx(sys::System{T}, idx::Int) where T
-    Chain{T}(sys, _row_by_idx(sys._chains, idx))
+    _rowno_by_idx(_table(sys, Chain{T}), idx) # check idx
+    Chain{T}(sys, idx)
 end
 
 @inline function chain_by_idx(idx::Int)
@@ -135,6 +140,65 @@ end
 @inline nchains(mol::Molecule) = nchains(parent(mol), molecule_idx = mol.idx)
 
 """
+    chains(::MoleculeTable)
+
+Returns a `ChainTable{T}` containing all chains of the given molecule table.
+"""
+@inline function chains(mt::MoleculeTable)
+    idx = Set(mt.idx)
+    _filter_chains(chain -> chain.molecule_idx in idx, mt._sys)
+end
+
+"""
+    nchains(::ChainTable)
+    nchains(::MolculeTable)
+
+Returns the number of chains belonging to the given molecule table.
+"""
+@inline function nchains(ct::ChainTable)
+    length(ct)
+end
+
+@inline function nchains(mt::MoleculeTable)
+    length(chains(mt))
+end
+
+"""
+    delete!(::Chain)
+    delete!(::ChainTable)
+    delete!(::ChainTable, idx::Int)
+
+Removes the given chain(s) and all associated secondary structures and fragments from the associated system.
+
+# Supported keyword arguments
+ - `keep_atoms::Bool = false`
+   Determines whether associated atoms (and their bonds) are removed as well
+"""
+function Base.delete!(chain::Chain; keep_atoms::Bool = false)
+    keep_atoms ? atoms(chain).chain_idx .= Ref(nothing) : delete!(atoms(chain))
+    delete!(secondary_structures(chain); keep_fragments = true)
+    delete!(fragments(chain); keep_atoms = keep_atoms)
+    delete!(parent(chain)._chains, chain.idx)
+    nothing
+end
+
+function Base.delete!(ct::ChainTable; keep_atoms::Bool = false)
+    keep_atoms ? atoms(ct).chain_idx .= Ref(nothing) : delete!(atoms(ct))
+    delete!(secondary_structures(ct); keep_fragments = true)
+    delete!(fragments(ct); keep_atoms = keep_atoms)
+    delete!(_table(ct), ct._idx)
+    empty!(ct._idx)
+    ct
+end
+
+function Base.delete!(ct::ChainTable, idx::Int; kwargs...)
+    idx in ct._idx || throw(KeyError(idx))
+    delete!(chain_by_idx(ct._sys, idx); kwargs...)
+    deleteat!(ct._idx, findall(i -> i == idx, ct._idx))
+    ct
+end
+
+"""
     push!(::Molecule{T}, ::Chain{T})
 
 Creates a copy of the given chain in the given molecule. The new chain is automatically assigned a
@@ -172,8 +236,18 @@ end
     chain
 end
 
+@inline function atoms(ct::ChainTable)
+    idx = Set(ct._idx)
+    _filter_atoms(atom -> atom.chain_idx in idx, ct._sys)
+end
+
+@inline natoms(ct::ChainTable) = length(atoms(ct))
+
 #=
     Chain bonds
 =#
 @inline bonds(chain::Chain; kwargs...) = bonds(parent(chain); chain_idx = chain.idx, kwargs...)
 @inline nbonds(chain::Chain; kwargs...) = nbonds(parent(chain); chain_idx = chain.idx, kwargs...)
+
+@inline bonds(ct::ChainTable) = bonds(atoms(ct))
+@inline nbonds(ct::ChainTable) = nbonds(atoms(ct))
