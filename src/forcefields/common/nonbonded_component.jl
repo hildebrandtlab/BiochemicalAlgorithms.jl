@@ -315,7 +315,16 @@ function setup!(nbc::NonBondedComponent{T}) where {T<:Real}
     ]
 
     # cache the is_bound_to-, geminal-, and vicinal-relationships
-    mg = MetaGraph(DataFrame(non_hydrogen_bonds(nbc.ff.system)), :a1, :a2)
+    nhbs = non_hydrogen_bonds(nbc.ff.system)
+    nodes = Dict(name => nodeno for (nodeno, name) in enumerate(sort!(unique!([nhbs.a1; nhbs.a2]))))
+    mg = MetaGraph(length(nodes))
+    for nhb in nhbs
+        add_edge!(mg, nodes[nhb.a1], nodes[nhb.a2])
+    end
+    for (name, nodeno) in nodes
+        mg.vprops[nodeno] = Dict(:name => name)
+    end
+    set_indexing_prop!(mg, :name)
 
     nh_0 = Set.(map(v -> mg.vprops[v][:name], vertices(mg)))
 
