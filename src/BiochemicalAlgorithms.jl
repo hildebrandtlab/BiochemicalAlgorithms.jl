@@ -7,8 +7,9 @@ using DataFrames
 using DataStructures
 using DocStringExtensions
 using EnumX
-using Graphs, GraphDataFrameBridge
+using Graphs
 using LinearAlgebra: Hermitian, eigen
+using MetaGraphs
 using Rotations: RotMatrix3
 using Statistics: mean
 using Unitful, UnitfulAtomic
