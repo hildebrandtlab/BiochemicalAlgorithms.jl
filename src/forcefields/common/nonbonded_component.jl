@@ -57,7 +57,7 @@ end
 #   d/dR sw(R) = 12 R -----------------------------------
 #                           (r_{off}^2 - r_{on}^2)^3
 #
-function switching_function(f::CubicSwitchingFunction{T}, sq_distance::T)::T where {T<:Real}
+function switching_function(f::CubicSwitchingFunction{T}, sq_distance::T)::T where T
     below_off = ((sq_distance < f.sq_cutoff) ? one(T) : zero(T));
     below_on  = ((sq_distance < f.sq_cuton)  ? one(T) : zero(T));
 
@@ -66,7 +66,7 @@ function switching_function(f::CubicSwitchingFunction{T}, sq_distance::T)::T whe
                 * f.inverse_distance_off_on_3)
 end
 
-function switching_derivative(f::CubicSwitchingFunction{T}, sq_distance::T) where {T<:Real}
+function switching_derivative(f::CubicSwitchingFunction{T}, sq_distance::T) where T
     primal = (f.sq_cutoff - sq_distance)^2 *
                 (f.sq_cutoff + T(2.0) * sq_distance - T(3.0) * f.sq_cuton) *
                 f.inverse_distance_off_on_3
@@ -135,16 +135,17 @@ end
 end
 
 @inline function _try_assign_vdw!(
-        nbc::NonBondedComponent{T},
-        atom_1::Atom{T},
-        type_atom_1,
-        atom_2::Atom{T},
-        type_atom_2,
-        distance::T,
-        scaling_factor::T,
-        lj_combinations,
-        lj_interactions,
-        switching_function) where {T<:Real}
+    nbc::NonBondedComponent{T},
+    atom_1::Atom{T},
+    type_atom_1::String,
+    atom_2::Atom{T},
+    type_atom_2::String,
+    distance::T,
+    scaling_factor::T,
+    lj_combinations,
+    lj_interactions,
+    switching_function::CubicSwitchingFunction{T}
+) where T
 
     ff = nbc.ff
 
@@ -175,7 +176,7 @@ end
     end
 end
 
-function _setup_vdw!(nbc::NonBondedComponent{T}) where {T<:Real}
+function _setup_vdw!(nbc::NonBondedComponent{T}) where T
     # extract the parameter section for quadratic angle bends
     lj_section = extract_section(nbc.ff.parameters, "LennardJones")
     lj_df = lj_section.data
@@ -246,7 +247,7 @@ function _setup_vdw!(nbc::NonBondedComponent{T}) where {T<:Real}
     nbc.cache.scaling_vdw_1_4 = scaling_vdw_1_4
 end
 
-function _setup_hydrogenbonds!(nbc::NonBondedComponent{T}) where {T<:Real}
+function _setup_hydrogenbonds!(nbc::NonBondedComponent{T}) where T
     # we will also need the hydrogen bond section to determine if parameters are missing for a pair of atoms
     hydrogen_bonds_section = extract_section(nbc.ff.parameters, "HydrogenBonds")
     hydrogen_bonds_df = hydrogen_bonds_section.data
@@ -274,7 +275,7 @@ function _setup_hydrogenbonds!(nbc::NonBondedComponent{T}) where {T<:Real}
     nbc.cache.hydrogen_bond_combinations = hydrogen_bond_combinations_cache
 end
 
-function _setup_electrostatic_interactions!(nbc::NonBondedComponent{T}) where {T<:Real}
+function _setup_electrostatic_interactions!(nbc::NonBondedComponent{T}) where T
     es_cutoff::T = nbc.ff.options[:electrostatic_cutoff]
     es_cuton::T  = nbc.ff.options[:electrostatic_cuton]
 
@@ -295,7 +296,7 @@ function _setup_electrostatic_interactions!(nbc::NonBondedComponent{T}) where {T
     nbc.cache.scaling_es_1_4 = scaling_es_1_4
 end
 
-function setup!(nbc::NonBondedComponent{T}) where {T<:Real}
+function setup!(nbc::NonBondedComponent{T}) where T
     _setup_vdw!(nbc)
     _setup_hydrogenbonds!(nbc)
     _setup_electrostatic_interactions!(nbc)
@@ -344,7 +345,7 @@ function setup!(nbc::NonBondedComponent{T}) where {T<:Real}
     nbc.cache.vicinal_cache = to_set(setdiff.(nh_3, nh_2))
 end
 
-function update!(nbc::NonBondedComponent{T}) where {T<:Real}
+function update!(nbc::NonBondedComponent{T}) where T
     ff = nbc.ff
 
     periodic_box = nbc.cache.periodic_box
@@ -482,23 +483,23 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
     nothing
 end
 
-@inline function compute_energy(lji::LennardJonesInteraction{T, 12, 6})::T where {T<:Real}
+@inline function compute_energy(lji::LennardJonesInteraction{T, 12, 6})::T where T
     inv_dist_6::T = lji.distance^-6
 
     inv_dist_6 * (inv_dist_6 * lji.A - lji.B) * lji.scaling_factor * switching_function(lji.switching_function, lji.distance^2)
 end
 
-@inline function compute_energy(hb::LennardJonesInteraction{T, 12, 10})::T where {T<:Real}
+@inline function compute_energy(hb::LennardJonesInteraction{T, 12, 10})::T where T
     hb.distance^-12 * hb.A - hb.distance^-10 * hb.B * hb.scaling_factor * switching_function(hb.switching_function, hb.distance^2)
 end
 
-@inline function compute_energy(esi::ElectrostaticInteraction{T})::T where {T<:Real}
+@inline function compute_energy(esi::ElectrostaticInteraction{T})::T where T
     energy::T = esi.distance_dependent_dielectric ? esi.q1q2 / 4 / esi.distance^2 : esi.q1q2 / esi.distance
 
     energy * esi.scaling_factor * switching_function(esi.switching_function, esi.distance^2) * T(ES_Prefactor)
 end
 
-function compute_energy!(nbc::NonBondedComponent{T})::T where {T<:Real}
+function compute_energy!(nbc::NonBondedComponent{T})::T where T
     # iterate over all interactions in the system
     vdw_energy   = mapreduce(compute_energy, +, nbc.lj_interactions;            init=zero(T))
     hbond_energy = mapreduce(compute_energy, +, nbc.hydrogen_bonds;             init=zero(T))
@@ -511,7 +512,7 @@ function compute_energy!(nbc::NonBondedComponent{T})::T where {T<:Real}
     vdw_energy + hbond_energy + es_energy
 end
 
-function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where {T<:Real}
+function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where T
     direction = lji.a1.r .- lji.a2.r
 
     sq_distance = squared_norm(direction)
@@ -547,7 +548,7 @@ function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where {T<:Real}
     end
 end
 
-function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where {T<:Real}
+function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where T
     direction = hb.a1.r .- hb.a2.r
 
     sq_distance = squared_norm(direction)
@@ -587,7 +588,7 @@ function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where {T<:Real}
     end
 end
 
-function compute_forces!(esi::ElectrostaticInteraction{T}) where {T<:Real}
+function compute_forces!(esi::ElectrostaticInteraction{T}) where T
     direction = esi.a1.r .- esi.a2.r
 
     sq_distance = squared_norm(direction)
@@ -642,7 +643,7 @@ function compute_forces!(esi::ElectrostaticInteraction{T}) where {T<:Real}
     end
 end
 
-function compute_forces!(nbc::NonBondedComponent{T}) where {T<:Real}
+function compute_forces!(nbc::NonBondedComponent)
     if isempty(nbc.ff.constrained_atoms)
         map(compute_forces!, nbc.lj_interactions)
         map(compute_forces!, nbc.hydrogen_bonds)
@@ -658,11 +659,11 @@ function compute_forces!(nbc::NonBondedComponent{T}) where {T<:Real}
     nothing
 end
 
-function count_warnings(nbc::NonBondedComponent{T}) where {T<:Real}
+function count_warnings(nbc::NonBondedComponent)
     length(nbc.unassigned_lj_interactions)
 end
 
-function print_warnings(nbc::NonBondedComponent{T}) where {T<:Real}
+function print_warnings(nbc::NonBondedComponent)
     for ulj in nbc.unassigned_lj_interactions
         atom_1, atom_2 = ulj
 

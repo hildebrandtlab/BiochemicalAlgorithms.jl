@@ -18,12 +18,12 @@ end
     unassigned_bends::Vector{Tuple{Atom{T}, Atom{T}, Atom{T}}}
     bends::Vector{QuadraticAngleBend{T}}
 
-    function QuadraticBendComponent{T}(ff::ForceField{T}) where {T<:Real}
+    function QuadraticBendComponent{T}(ff::ForceField{T}) where T
         new("QuadraticAngleBend", ff, Dict{Symbol, Any}(), Dict{String, T}(), [])
     end
 end
 
-function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
+function setup!(qbc::QuadraticBendComponent{T}) where T
     ff = qbc.ff
 
     # extract the parameter section for quadratic angle bends
@@ -109,11 +109,11 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
     qbc.bends = bends
 end
 
-function update!(qbc::QuadraticBendComponent{T}) where {T<:Real}
+function update!(::QuadraticBendComponent)
     nothing
 end
 
-@inline function compute_energy(qab::QuadraticAngleBend{T})::T where {T<:Real}
+@inline function compute_energy(qab::QuadraticAngleBend{T})::T where T
     v1 = qab.a1.r .- qab.a2.r
     v2 = qab.a3.r .- qab.a2.r
 
@@ -135,7 +135,7 @@ end
     qab.k * (θ - qab.θ₀)^2
 end
 
-function compute_energy!(qbc::QuadraticBendComponent{T})::T where {T<:Real}
+function compute_energy!(qbc::QuadraticBendComponent{T})::T where T
     # iterate over all bends in the system
     total_energy = mapreduce(compute_energy, +, qbc.bends; init=zero(T))
 
@@ -189,18 +189,18 @@ function compute_forces!(qab::QuadraticAngleBend{T}) where {T<:Real}
     qab.a3.F += n2
 end
 
-function compute_forces!(qbc::QuadraticBendComponent{T}) where {T<:Real}
+function compute_forces!(qbc::QuadraticBendComponent)
     # iterate over all bends in the system
     map(compute_forces!, qbc.bends)
 
     nothing
 end
 
-function count_warnings(qbc::QuadraticBendComponent{T}) where {T<:Real}
+function count_warnings(qbc::QuadraticBendComponent)
     length(qbc.unassigned_bends)
 end
 
-function print_warnings(qbc::QuadraticBendComponent{T}) where {T<:Real}
+function print_warnings(qbc::QuadraticBendComponent)
     for ub in qbc.unassigned_bends
         a1, a2, a3 = ub
 

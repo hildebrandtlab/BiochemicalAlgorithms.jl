@@ -28,7 +28,7 @@ end
     end
 end
 
-function _get_torsion_data(ff::ForceField{T}, section::String)::Tuple{T, T, GroupedDataFrame{DataFrame}} where {T<:Real}
+function _get_torsion_data(ff::ForceField{T}, section::String)::Tuple{T, T, GroupedDataFrame{DataFrame}} where T
     # extract the parameter section for quadratic bond stretches
     torsion_section = extract_section(ff.parameters, section)
     torsion_df = torsion_section.data
@@ -51,16 +51,17 @@ function _get_torsion_data(ff::ForceField{T}, section::String)::Tuple{T, T, Grou
 end
 
 function _try_assign_torsion!(
-        tc::TorsionComponent{T},
-        torsions::Vector{CosineTorsion{T}},
-        torsion_combinations::Dict{K, V},
-        a1::Atom{T},
-        a2::Atom{T},
-        a3::Atom{T},
-        a4::Atom{T},
-        V_factor::T,
-        ϕ₀_factor::T,
-        is_proper::Bool) where {T<:Real, K, V}
+    tc::TorsionComponent{T},
+    torsions::Vector{CosineTorsion{T}},
+    torsion_combinations::Dict{K, V},
+    a1::Atom{T},
+    a2::Atom{T},
+    a3::Atom{T},
+    a4::Atom{T},
+    V_factor::T,
+    ϕ₀_factor::T,
+    is_proper::Bool
+) where {T, K, V}
 
     ff = tc.ff
 
@@ -119,7 +120,7 @@ function _try_assign_torsion!(
     end
 end
 
-function setup!(tc::TorsionComponent{T}) where {T<:Real}
+function setup!(tc::TorsionComponent)
     # first, set up the proper torsions
     _setup_proper_torsions!(tc)
 
@@ -127,7 +128,7 @@ function setup!(tc::TorsionComponent{T}) where {T<:Real}
     _setup_improper_torsions!(tc)
 end
 
-function _setup_improper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
+function _setup_improper_torsions!(tc::TorsionComponent{T}) where T
     ff = tc.ff
 
     V_factor, ϕ₀_factor, torsion_combinations = _get_torsion_data(ff, "ImproperTorsions")
@@ -181,7 +182,7 @@ function _setup_improper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
     tc.improper_torsions = improper_torsions
 end
 
-function _setup_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
+function _setup_proper_torsions!(tc::TorsionComponent{T}) where T
     ff = tc.ff
 
     V_factor, ϕ₀_factor, torsion_combinations = _get_torsion_data(ff, "Torsions")
@@ -251,11 +252,11 @@ function _setup_proper_torsions!(tc::TorsionComponent{T}) where {T<:Real}
     tc.proper_torsions = proper_torsions
 end
 
-function update!(::TorsionComponent{T}) where {T<:Real}
+function update!(::TorsionComponent)
     nothing
 end
 
-@inline function compute_energy(pt::CosineTorsion{T})::T where {T<:Real}
+@inline function compute_energy(pt::CosineTorsion{T})::T where T
     energy = zero(T)
 
     a23 = pt.a3.r .- pt.a2.r
@@ -278,7 +279,7 @@ end
     energy
 end
 
-function compute_energy!(tc::TorsionComponent{T})::T where {T<:Real}
+function compute_energy!(tc::TorsionComponent{T})::T where T
     # iterate over all proper torsions in the system
     proper_torsion_energy   = mapreduce(compute_energy, +, tc.proper_torsions; init=zero(T))
     improper_torsion_energy = mapreduce(compute_energy, +, tc.improper_torsions; init=zero(T))
@@ -291,7 +292,7 @@ function compute_energy!(tc::TorsionComponent{T})::T where {T<:Real}
     total_energy
 end
 
-function compute_forces!(ct::CosineTorsion{T}) where {T<:Real}
+function compute_forces!(ct::CosineTorsion{T}) where T
     a21 = ct.a1.r .- ct.a2.r
     a23 = ct.a3.r .- ct.a2.r
     a34 = ct.a4.r .- ct.a3.r
@@ -339,18 +340,18 @@ function compute_forces!(ct::CosineTorsion{T}) where {T<:Real}
     end
 end
 
-function compute_forces!(tc::TorsionComponent{T}) where {T<:Real}
+function compute_forces!(tc::TorsionComponent)
     map(compute_forces!, tc.proper_torsions)
     map(compute_forces!, tc.improper_torsions)
 
     nothing
 end
 
-function count_warnings(tc::TorsionComponent{T}) where {T<:Real}
+function count_warnings(tc::TorsionComponent)
     length(tc.unassigned_torsions)
 end
 
-function print_warnings(tc::TorsionComponent{T}) where {T<:Real}
+function print_warnings(tc::TorsionComponent)
     for ut in tc.unassigned_torsions
         a1, a2, a3, a4, is_proper = ut
 
