@@ -168,7 +168,7 @@ end
                 )
         )
     else
-        push!(nbc.unassigned_lj_interactions)
+        push!(nbc.unassigned_lj_interactions, (atom_1, atom_2))
 
         push!(ff.unassigned_atoms, atom_1)
         push!(ff.unassigned_atoms, atom_2)
