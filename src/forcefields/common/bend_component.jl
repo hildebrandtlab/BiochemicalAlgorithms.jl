@@ -124,9 +124,9 @@ end
     end
 
     cos_θ = dot(v1, v2) / sqrt(sq_length)
-    θ = if cos_θ > T(1.0)
+    θ = if cos_θ > one(T)
             zero(T)
-        elseif cos_θ < T(-1.0)
+        elseif cos_θ < -one(T)
             π
         else
             acos(cos_θ)
@@ -160,9 +160,9 @@ function compute_forces!(qab::QuadraticAngleBend{T}) where {T<:Real}
     v2 /= v2_length
 
     cos_θ = dot(v1, v2)
-    θ = if cos_θ > T(1.0)
+    θ = if cos_θ > one(T)
             zero(T)
-        elseif cos_θ < T(-1.0)
+        elseif cos_θ < -one(T)
             π
         else
             acos(cos_θ)
