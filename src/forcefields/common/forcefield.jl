@@ -27,7 +27,7 @@ abstract type AbstractForceFieldComponent{T<:Real} end
     constrained_atoms::Vector{Int}
 end
 
-function init_atom_types(params::AbstractForceFieldParameters, T=Float32)
+function init_atom_types(params::AbstractForceFieldParameters, ::Type{T}=Float32) where {T <: Real}
     tpl_section = extract_section(params, "ChargesAndTypeNames")
 
     unit_q  = get(tpl_section.properties, "unit_q", "e_au")
@@ -46,13 +46,14 @@ function init_atom_types(params::AbstractForceFieldParameters, T=Float32)
 end
 
 function _try_assign!(
-        templates::Dict{String, AtomTypeTemplate{T}},
-        name::String,
-        atom::Atom{T};
-        assign_typenames::Bool,
-        overwrite_typenames::Bool,
-        assign_charges::Bool,
-        overwrite_charges::Bool) where {T<:Real}
+    templates::Dict{String, AtomTypeTemplate{T}},
+    name::String,
+    atom::Atom{T};
+    assign_typenames::Bool,
+    overwrite_typenames::Bool,
+    assign_charges::Bool,
+    overwrite_charges::Bool
+) where T
     if haskey(templates, name)
         qbs = templates[name]
 
@@ -70,7 +71,7 @@ function _try_assign!(
     end
 end
 
-function assign_typenames_and_charges!(ff::ForceField{T}) where {T<:Real}
+function assign_typenames_and_charges!(ff::ForceField)
     assign_typenames = ff.options[:assign_typenames]
     assign_charges   = ff.options[:assign_charges]
 
@@ -134,12 +135,12 @@ function assign_typenames_and_charges!(ff::ForceField{T}) where {T<:Real}
 end
 
 
-function setup!(component::AbstractForceFieldComponent) end
-function update!(component::AbstractForceFieldComponent) end
-function count_warnings(component::AbstractForceFieldComponent) 0 end
-function print_warnings(component::AbstractForceFieldComponent) end
+function setup!(::AbstractForceFieldComponent) end
+function update!(::AbstractForceFieldComponent) end
+function count_warnings(::AbstractForceFieldComponent) 0 end
+function print_warnings(::AbstractForceFieldComponent) end
 
-function setup!(ff::ForceField{T}) where {T<:Real}
+function setup!(ff::ForceField)
     map(setup!, ff.components)
 
     warning_counts = map(count_warnings, ff.components)
@@ -175,12 +176,12 @@ Update the internal data structures of the force field when the system changes
     Changes to the options or the topology require a call to `setup!` prior to
     the call to `update!`.
 """
-@inline function update!(ff::ForceField{T}) where {T<:Real}
+@inline function update!(ff::ForceField)
     map(update!, ff.components)
     nothing
 end
 
-function compute_energy!(ff::ForceField{T}; verbose=false)::T where {T<:Real}
+function compute_energy!(ff::ForceField{T}; verbose::Bool=false)::T where T
     total_energy = mapreduce(compute_energy!, +, ff.components; init=zero(T))
 
     for c in ff.components
@@ -206,7 +207,7 @@ function compute_energy!(ff::ForceField{T}; verbose=false)::T where {T<:Real}
     total_energy
 end
 
-function compute_forces!(ff::ForceField{T}) where {T<:Real}
+function compute_forces!(ff::ForceField{T}) where T
     # first, zero out the current forces
     atoms(ff.system).F .= Ref(zero(Vector3{T}))
 
@@ -215,7 +216,7 @@ function compute_forces!(ff::ForceField{T}) where {T<:Real}
     nothing
 end
 
-function print_warnings(ff::ForceField{T}) where {T<:Real}
+function print_warnings(ff::ForceField)
     for component in ff.components
         print_warnings(component)
     end
