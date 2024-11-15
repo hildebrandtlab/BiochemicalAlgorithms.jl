@@ -265,7 +265,7 @@ end
     cross2334 = normalize(cross(a23, pt.a4.r .- pt.a3.r))
 
     if !isnan(cross2321[1]) && !isnan(cross2334[1])
-        cos_ϕ = clamp(dot(cross2321, cross2334), T(-1.0), T(1.0))
+        cos_ϕ = clamp(dot(cross2321, cross2334), -one(T), one(T))
 
         terms = pt.V ./ pt.div .* (Ref(1) .+ cos.(pt.f .* Ref(acos(cos_ϕ)) .- pt.ϕ₀))
 
@@ -304,7 +304,7 @@ function compute_forces!(ct::CosineTorsion{T}) where T
     length_cross2334 = norm(cross2334)
 
     if length_cross2321 ≠ zero(T) && length_cross2334 ≠ zero(T)
-        cos_ϕ = clamp(dot(cross2321, cross2334) / (length_cross2321 * length_cross2334), T(-1.0), T(1.0))
+        cos_ϕ = clamp(dot(cross2321, cross2334) / (length_cross2321 * length_cross2334), -one(T), one(T))
 
         terms = -ct.V./ct.div .* ct.f .* (sin.(ct.f .* Ref(acos(cos_ϕ)) .- ct.ϕ₀))
 
@@ -318,7 +318,7 @@ function compute_forces!(ct::CosineTorsion{T}) where T
 
         direction = dot(cross(cross2321, cross2334), a23)
 
-        if direction > 0.0
+        if direction > zero(T)
             ∂E∂ϕ *= -1
         end
 

@@ -31,13 +31,13 @@ const ES_Prefactor_force = ustrip(Constants.e₀^2 / (4.0 * π * Constants.ε₀
 
         inverse_distance_off_on_3 = (sq_cutoff - sq_cuton)^3
 
-        if (inverse_distance_off_on_3 <= T(0.0))
+        if (inverse_distance_off_on_3 <= zero(T))
             @warn "NonBondedComponent(): cuton value should be smaller than cutoff -- " *
                     "switching function disabled."
 
-            inverse_distance_off_on_3 = T(0.0)
+            inverse_distance_off_on_3 = zero(T)
         else
-            inverse_distance_off_on_3 = T(1.0) / inverse_distance_off_on_3
+            inverse_distance_off_on_3 = one(T) / inverse_distance_off_on_3
         end
 
         new(cutoff, cuton, sq_cutoff, sq_cuton, inverse_distance_off_on_3)
@@ -62,19 +62,19 @@ function switching_function(f::CubicSwitchingFunction{T}, sq_distance::T)::T whe
     below_on  = ((sq_distance < f.sq_cuton)  ? one(T) : zero(T));
 
     below_off * (below_on + (one(T) - below_on) * (f.sq_cutoff - sq_distance)^2
-                * (f.sq_cutoff + T(2.0) * sq_distance - T(3.0) * f.sq_cuton)
+                * (f.sq_cutoff + T(2) * sq_distance - T(3) * f.sq_cuton)
                 * f.inverse_distance_off_on_3)
 end
 
 function switching_derivative(f::CubicSwitchingFunction{T}, sq_distance::T) where T
     primal = (f.sq_cutoff - sq_distance)^2 *
-                (f.sq_cutoff + T(2.0) * sq_distance - T(3.0) * f.sq_cuton) *
+                (f.sq_cutoff + T(2) * sq_distance - T(3) * f.sq_cuton) *
                 f.inverse_distance_off_on_3
 
     difference_to_off = f.sq_cutoff - sq_distance
     difference_to_on  = f.sq_cuton  - sq_distance
 
-    derivative = T(12.0) * difference_to_off * difference_to_on *
+    derivative = T(12) * difference_to_off * difference_to_on *
                     f.inverse_distance_off_on_3
 
     primal, derivative
@@ -212,13 +212,13 @@ function _setup_vdw!(nbc::NonBondedComponent{T}) where T
 
     r_6 = ((radius_averaging == "arithmetic")
             ? (lj_combinations.R_i .+ lj_combinations.R_j)
-            : T(2.0) * sqrt.(lj_combinations.R_i .* lj_combinations.Rj)
+            : T(2) * sqrt.(lj_combinations.R_i .* lj_combinations.Rj)
         ).^6
 
     ϵ = sqrt.(lj_combinations.epsilon_i .* lj_combinations.epsilon_j)
 
     lj_combinations.A_ij = ϵ .* r_6.^2
-    lj_combinations.B_ij = T(2.0) * ϵ .* r_6
+    lj_combinations.B_ij = T(2) * ϵ .* r_6
 
     lj_combinations_cache = Dict{@NamedTuple{I::String, J::String}, @NamedTuple{A_ij::T, B_ij::T}}(
         (I=r.I, J=r.J) => (A_ij=r.A_ij, B_ij=r.B_ij)
@@ -232,13 +232,13 @@ function _setup_vdw!(nbc::NonBondedComponent{T}) where T
     vdw_switching_function = CubicSwitchingFunction{T}(vdw_cutoff, vdw_cuton)
 
     scaling_vdw_1_4::T = nbc.ff.options[:scaling_vdw_1_4]
-    if (scaling_vdw_1_4 == T(0.0))
+    if (scaling_vdw_1_4 == zero(T))
         @warn "NonBondedComponent(): illegal - 1-4 vdW scaling factor: must be non-zero!"
         @warn "Resetting to 1.0."
 
-        scaling_vdw_1_4 = T(1.0)
+        scaling_vdw_1_4 = one(T)
     else
-        scaling_vdw_1_4 = T(1.0) / scaling_vdw_1_4
+        scaling_vdw_1_4 = one(T) / scaling_vdw_1_4
     end
 
     # remember those parts that stay constant when only the system is updated
@@ -282,13 +282,13 @@ function _setup_electrostatic_interactions!(nbc::NonBondedComponent{T}) where T
     es_switching_function  = CubicSwitchingFunction{T}(es_cutoff, es_cuton)
 
     scaling_es_1_4::T = nbc.ff.options[:scaling_electrostatic_1_4]
-    if (scaling_es_1_4 == T(0.0))
+    if (scaling_es_1_4 == zero(T))
         @warn "NonBondedComponent(): illegal - 1-4 electrostatic scaling factor: must be non-zero!"
         @warn "Resetting to 1.0."
 
-        scaling_es_1_4 = T(1.0)
+        scaling_es_1_4 = one(T)
     else
-        scaling_es_1_4 = T(1.0) / scaling_es_1_4
+        scaling_es_1_4 = one(T) / scaling_es_1_4
     end
 
     # remember those parts that stay constant when only the system is updated
@@ -411,7 +411,7 @@ function update!(nbc::NonBondedComponent{T}) where T
             es = ElectrostaticInteraction{T}(
                 q1q2,
                 lj_candidate[3],
-                vicinal_pair ? scaling_es_1_4 : T(1.0),
+                vicinal_pair ? scaling_es_1_4 : one(T),
                 distance_dependent_dielectric,
                 atom_1,
                 atom_2,
@@ -439,7 +439,7 @@ function update!(nbc::NonBondedComponent{T}) where T
                         only(h_params.A),
                         only(h_params.B),
                         T(lj_candidate[3]),
-                        T(1.0),
+                        one(T),
                         atom_1,
                         atom_2,
                         vdw_switching_function
@@ -453,7 +453,7 @@ function update!(nbc::NonBondedComponent{T}) where T
                     atom_2,
                     atom_2_type,
                     T(lj_candidate[3]),
-                    T(1.0),
+                    one(T),
                     lj_combinations,
                     lj_interactions,
                     vdw_switching_function
@@ -554,7 +554,7 @@ function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where T
     sq_distance = squared_norm(direction)
 
     if (sq_distance > zero(T) && sq_distance <= hb.switching_function.sq_cutoff)
-        inv_distance_2 =  T(1.0) / sq_distance
+        inv_distance_2 =  one(T) / sq_distance
         inv_distance_10 = sq_distance^-5
         inv_distance_12 = sq_distance^-6
 
@@ -594,7 +594,7 @@ function compute_forces!(esi::ElectrostaticInteraction{T}) where T
     sq_distance = squared_norm(direction)
 
     if (sq_distance > zero(T) && sq_distance <= esi.switching_function.sq_cutoff)
-        inv_distance_2 = T(1.0) / sq_distance
+        inv_distance_2 = one(T) / sq_distance
         inv_distance = sqrt(inv_distance_2)
 
         factor = esi.q1q2 * inv_distance_2 * esi.scaling_factor * ES_Prefactor_force
