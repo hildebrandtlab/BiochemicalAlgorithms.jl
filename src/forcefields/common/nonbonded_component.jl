@@ -86,9 +86,7 @@ end
     distance::T
     scaling_factor::T
     a1::Atom{T}
-    a1r::Vector3{T}
     a2::Atom{T}
-    a2r::Vector3{T}
     switching_function::CubicSwitchingFunction{T}
 end
 
@@ -98,9 +96,7 @@ end
     scaling_factor::T
     distance_dependent_dielectric::Bool
     a1::Atom{T}
-    a1r::Vector3{T}
     a2::Atom{T}
-    a2r::Vector3{T}
     switching_function::CubicSwitchingFunction{T}
 end
 
@@ -162,8 +158,8 @@ end
                     params.B_ij,
                     T(distance),
                     scaling_factor,
-                    atom_1, atom_1.r,
-                    atom_2, atom_2.r,
+                    atom_1,
+                    atom_2,
                     switching_function
                 )
         )
@@ -416,8 +412,8 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
                 lj_candidate[3],
                 vicinal_pair ? scaling_es_1_4 : T(1.0),
                 distance_dependent_dielectric,
-                atom_1, atom_1.r,
-                atom_2, atom_2.r,
+                atom_1,
+                atom_2,
                 es_switching_function
             )
             push!(electrostatic_interactions, es)
@@ -443,8 +439,8 @@ function update!(nbc::NonBondedComponent{T}) where {T<:Real}
                         only(h_params.B),
                         T(lj_candidate[3]),
                         T(1.0),
-                        atom_1, atom_1.r,
-                        atom_2, atom_2.r,
+                        atom_1,
+                        atom_2,
                         vdw_switching_function
                     )
                 )
@@ -516,7 +512,7 @@ function compute_energy!(nbc::NonBondedComponent{T})::T where {T<:Real}
 end
 
 function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where {T<:Real}
-    direction = lji.a1r .- lji.a2r
+    direction = lji.a1.r .- lji.a2.r
 
     sq_distance = squared_norm(direction)
 
@@ -552,7 +548,7 @@ function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where {T<:Real}
 end
 
 function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where {T<:Real}
-    direction = hb.a1r .- hb.a2r
+    direction = hb.a1.r .- hb.a2.r
 
     sq_distance = squared_norm(direction)
 
@@ -592,7 +588,7 @@ function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where {T<:Real}
 end
 
 function compute_forces!(esi::ElectrostaticInteraction{T}) where {T<:Real}
-    direction = esi.a1r .- esi.a2r
+    direction = esi.a1.r .- esi.a2.r
 
     sq_distance = squared_norm(direction)
 

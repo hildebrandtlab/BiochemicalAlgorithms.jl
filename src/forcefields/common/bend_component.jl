@@ -6,11 +6,8 @@ export
     θ₀::T
     k::T
     a1::Atom{T}
-    a1r::Vector3{T}
     a2::Atom{T}
-    a2r::Vector3{T}
     a3::Atom{T}
-    a3r::Vector3{T}
 end
 
 @auto_hash_equals mutable struct QuadraticBendComponent{T<:Real} <: AbstractForceFieldComponent{T}
@@ -100,9 +97,9 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
                         QuadraticAngleBend(
                             T(θ₀_factor*only(qab.theta0)),
                             T(k_factor*only(qab.k)),
-                            a1, a1.r,
-                            a2, a2.r,
-                            a3, a3.r
+                            a1,
+                            a2,
+                            a3,
                         ))
                 end
             end
@@ -117,8 +114,8 @@ function update!(qbc::QuadraticBendComponent{T}) where {T<:Real}
 end
 
 @inline function compute_energy(qab::QuadraticAngleBend{T})::T where {T<:Real}
-    v1 = qab.a1r .- qab.a2r
-    v2 = qab.a3r .- qab.a2r
+    v1 = qab.a1.r .- qab.a2.r
+    v2 = qab.a3.r .- qab.a2.r
 
     sq_length = squared_norm(v1) * squared_norm(v2)
 
@@ -149,8 +146,8 @@ end
 
 function compute_forces!(qab::QuadraticAngleBend{T}) where {T<:Real}
     # calculate the vectors between the atoms and normalize if possible
-    v1 = qab.a1r .- qab.a2r
-    v2 = qab.a3r .- qab.a2r
+    v1 = qab.a1.r .- qab.a2.r
+    v2 = qab.a3.r .- qab.a2.r
 
     v1_length = norm(v1)
     v2_length = norm(v2)
