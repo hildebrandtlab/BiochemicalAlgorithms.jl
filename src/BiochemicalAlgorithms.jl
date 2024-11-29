@@ -90,8 +90,6 @@ include("preprocessing/build_bonds.jl")
 include("preprocessing/add_hydrogens.jl")
 include("preprocessing/reconstruct_fragments.jl")
 
-include("deprecation.jl")
-
 export
     ball_data_path
 
