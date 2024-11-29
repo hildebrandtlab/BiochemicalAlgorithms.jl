@@ -8,6 +8,7 @@ Pages = ["forcefields.md"]
 ```
 
 ```@docs
-update!
+optimize_structure!
 read_ball_ini_file
+update!
 ```

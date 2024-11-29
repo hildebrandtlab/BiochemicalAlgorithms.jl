@@ -17,6 +17,7 @@ using Quaternions: quat
 
 import JSON3
 import MolecularGraph
+import Optimization
 import PrettyTables
 import StaticArrays
 import Tables, TableOperations
@@ -89,6 +90,9 @@ include("preprocessing/normalize_names.jl")
 include("preprocessing/build_bonds.jl")
 include("preprocessing/add_hydrogens.jl")
 include("preprocessing/reconstruct_fragments.jl")
+
+# optimization
+include("optimization/optimize_structure.jl")
 
 export
     ball_data_path
