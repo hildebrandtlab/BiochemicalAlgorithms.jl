@@ -86,9 +86,9 @@ end
     distance::T
     scaling_factor::T
     a1::Atom{T}
-    a1r::Vector3{T}
+    a1r::Vector3{T} # unused, to be removed
     a2::Atom{T}
-    a2r::Vector3{T}
+    a2r::Vector3{T} # unused, to be removed
     switching_function::CubicSwitchingFunction{T}
 end
 
@@ -98,9 +98,9 @@ end
     scaling_factor::T
     distance_dependent_dielectric::Bool
     a1::Atom{T}
-    a1r::Vector3{T}
+    a1r::Vector3{T} # unused, to be removed
     a2::Atom{T}
-    a2r::Vector3{T}
+    a2r::Vector3{T} # unused, to be removed
     switching_function::CubicSwitchingFunction{T}
 end
 
@@ -516,7 +516,7 @@ function compute_energy!(nbc::NonBondedComponent{T})::T where {T<:Real}
 end
 
 function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where {T<:Real}
-    direction = lji.a1r .- lji.a2r
+    direction = lji.a1.r .- lji.a2.r
 
     sq_distance = squared_norm(direction)
 
@@ -552,7 +552,7 @@ function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where {T<:Real}
 end
 
 function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where {T<:Real}
-    direction = hb.a1r .- hb.a2r
+    direction = hb.a1.r .- hb.a2.r
 
     sq_distance = squared_norm(direction)
 
@@ -592,7 +592,7 @@ function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where {T<:Real}
 end
 
 function compute_forces!(esi::ElectrostaticInteraction{T}) where {T<:Real}
-    direction = esi.a1r .- esi.a2r
+    direction = esi.a1.r .- esi.a2.r
 
     sq_distance = squared_norm(direction)
 
