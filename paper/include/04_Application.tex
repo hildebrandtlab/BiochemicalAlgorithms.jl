@@ -1,0 +1,93 @@
+\section{Applications}
+A trivial comparison between C++ and Julia
+
+\subsection{Water molecule}
+As shown in the code example Code listing~\ref{lst:code-water} the interaction with core components of BiochemicalAlgorithms.jl is straightforward.
+\begin{lstlisting}[
+language = Julia, 
+numbers=left, 
+label={lst:code-water}, 
+caption={Intuitive usage of BiochemicalAlgorithms.jl core components}
+]
+using BiochemicalAlgorithms
+using BiochemicalVisualization
+
+sys = System() 
+h2o = Molecule(sys)
+
+o1 = Atom(h2o, 1, Elements.O)
+h1 = Atom(h2o, 2, Elements.H)
+h2 = Atom(h2o, 3, Elements.H)
+
+h1.r = [1, 0, 0]
+h2.r = [cos(deg2rad(105)), sin(deg2rad(105)), 0]
+
+Bond(h2o, o1.idx, h1.idx, BondOrder.Single)
+Bond(h2o, o1.idx, h2.idx, BondOrder.Single)
+
+println("Number of atoms: ", natoms(h2o))
+println("Number of bonds: ", nbonds(h2o))
+
+ball_and_stick(sys)	
+stick(sys)
+van_der_waals(sys)
+\end{lstlisting}
+
+
+\subsection{RMSD computation and Application of Amber}
+
+
+\begin{lstlisting}[
+    language = Julia, 
+    numbers=left, 
+    label={lst:rmsd-and-amber}, 
+    caption={Comparison and mapping of two similar structures}
+]
+sys = load_pdb.(["data/arnd1.pdb", 
+				 "data/arnd2.pdb"])
+
+fdb = FragmentDB()
+normalize_names!.(sys, Ref(fdb))
+reconstruct_fragments!.(sys, Ref(fdb))
+build_bonds!.(sys, Ref(fdb))
+
+println.(sys)
+
+compute_energy.(AmberFF.(sys), verbose=true)
+
+println("RMSD before mapping: ", 
+		compute_rmsd(sys[1], sys[2]))
+
+map_rigid!(sys[1], sys[2])
+
+println("RMSD after mapping: ", 
+		compute_rmsd(sys[1], sys[2]))
+\end{lstlisting}
+
+
+\subsection{Visualization using BiochemicalVisualization.jl}
+
+A key feature of BiochemicalAlgorithms.jl is the visualization tool \textit{BiochemicalVisualization.jl} that
+has been developed alongside the main framework. As can be seen in Figure~\ref{fig:biochem_water}
+BiochemicalVisualization.jl currently supports three different representation of protein structures, namely \texttt{ball-and-stick}, \texttt{van-der-Waals} and \texttt{stick} (cf. code listing~\ref{lst:code-water}).
+
+When dealing with three dimensional structures of macromolecules, visualization plays an important role for supporting the development of insights into molecular functions. The possibility to visualize and interactively modify the representations provides great support during modelling scenarios. For instance, the tool has been used to visualize different steps from code listing~\ref{lst:rmsd-and-amber}. The first image left represent the raw input read from the underlying pdb file, the image in the middle shows the same input after preprocession it with the fragment data base (lines4-7). Finally, the mapping of both structures is shown in the image on the left. As can be seen, the structures don't match perfectly onto each other. 
+
+Even this rather simple example already demonstrates the advantage of a visual representation that can be modified and manipulated in context of modelling scenarios and how the visualization supports the development of knowledge of molecular functions.
+
+ \begin{figure}[t]
+	\includegraphics[width=16cm]{gfx/biovis-2.png} 
+	\caption{The \texttt{ball-and-stick}, \texttt{stick} and \texttt{van-der-waals} representation of the code listing~\ref{lst:code-water}.}
+	\label{fig:biochem_water}
+\end{figure}
+
+
+
+\begin{figure}[t]
+ 	\includegraphics[width=16cm]{gfx/biovis.png} 
+ 	\caption{The \texttt{ball-and-stick}-representation of the code listing~\ref{lst:rmsd-and-amber}.}
+ 		\label{fig:biochem_visualization}
+\end{figure}
+
+
+\section{Integration into Julia Universe}

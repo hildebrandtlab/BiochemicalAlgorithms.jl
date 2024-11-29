@@ -1,0 +1,28 @@
+\section{Introduction}
+
+The aim of structural bioinformatics is the analysis and targeted manipulation of three dimensional structures of biological macromolecules such as proteins and nucleic acids.
+
+
+Applications include structure minimization, molecular dynamics (MD) simulations and molecular docking scenarios. These molecular modelling techniques typically rely on molecular mechanics in which a molecular force fields is being used to compute the energy of the examining structure.  
+Molecular force fields are just one example of the highly interdisciplinary character of this research field. It combines and applies knowledge from diverse disciplines ranging from fundamental physical laws such as Newton's equation of motion to challenges of numerical computation and to complex situations requiring in-depth knowledge of biochemistry.
+
+
+
+
+Why do we have to run simulations on the computer? Why is it necessary to perform it on a computer? Example Protein Ligand Docking... As an example.
+
+A popular application of molecular simulation is found in the area of drug discovery. Molecular docking aims to find the best configuration for a given protein and a ligand (the drug) and compute the binding affinity. This evident shows the important effect 
+
+
+The first attempts to 
+
+
+Here, we present BiochemicalAlgorithms.jl. We provide the basis for interesting analysis encompassing the entire molecular modelling pipeline:
+\begin{itemize}
+	\item Reading common data formats such as PDB, hin, mol and JSON
+	\item Preprocessing the input by preparing the entire system ready to simulate.
+	\item Molecular Mechanics such as AMBER ForceField
+	\item (Output writing) such as JSON
+\end{itemize}
+
+BiochemicalAlgorithms is designed to be a platform from which other packages can be included.

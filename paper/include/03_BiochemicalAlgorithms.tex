@@ -1,0 +1,24 @@
+
+\section{BiochemicalAlgorithms.jl}
+\label{sec:juliaball}
+
+\subsection{Why Julia?}
+
+\subsection{The core}
+
+\subsection{The internal representation}
+When working with structural data of molecular entities such as proteins, or nucleic acid molecules (DNA/RNA), the representation of three dimensional coordinates play an important role. 
+Just like in BALL we define a similar hierarchical structure...as can be seen in fig..
+Optimized for random access to any atoms...
+same hand easy to use for Julia users or Python users familiar with Pandas DataFrames...
+So initially, representation was based on DataFrames. While theis is extremely intuitive, it has some 
+
+\begin{figure*}[t]
+	\centerline{\includegraphics[width=20cm]{gfx/uml.png}}
+	\caption{UML-Diagramm of the core of BiochemicalAlgorithms.jl . In the center resides the \texttt{System} interface. All other functionalities are grouped around that core piece. Only the most important functionalities of each class are  shown.}
+	\label{fig:ball_architecture}
+\end{figure*}
+
+\subsection{Benchmarks}
+On par with its C++ predecessor
+it is intuitiv to write code that is 
