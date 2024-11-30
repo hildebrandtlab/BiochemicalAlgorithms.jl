@@ -6,9 +6,9 @@ export
     r0::T
     k::T
     a1::Atom{T}
-    a1r::Vector3{T}
+    a1r::Vector3{T} # unused, to be removed
     a2::Atom{T}
-    a2r::Vector3{T}
+    a2r::Vector3{T} # unused, to be removed
 end
 
 @auto_hash_equals mutable struct QuadraticStretchComponent{T<:Real} <: AbstractForceFieldComponent{T}
@@ -101,7 +101,7 @@ function update!(qsc::QuadraticStretchComponent{T}) where {T<:Real}
 end
 
 @inline function compute_energy(qbs::QuadraticBondStretch{T})::T where {T<:Real}
-    d = distance(qbs.a1r, qbs.a2r)
+    d = distance(qbs.a1.r, qbs.a2.r)
 
     qbs.k * (d - qbs.r0)^2
 end
@@ -117,7 +117,7 @@ function compute_energy!(qsc::QuadraticStretchComponent{T})::T where {T<:Real}
 end
 
 function compute_forces!(qbs::QuadraticBondStretch{T}) where {T<:Real}
-    direction = qbs.a1r .- qbs.a2r
+    direction = qbs.a1.r .- qbs.a2.r
     distance = norm(direction)
 
     if distance == zero(T)
