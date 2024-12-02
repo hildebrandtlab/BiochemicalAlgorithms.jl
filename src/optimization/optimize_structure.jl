@@ -21,10 +21,12 @@ function optimize_structure!(ff::ForceField; alg = Optimization.LBFGS(), kwargs.
             update!(ff)
             compute_energy!(ff)
         end,
-        grad = (F, r, _) -> begin
+        grad = (grad, r, _) -> begin
             update!(ff)
             compute_forces!(ff)
-            F .= -collect(Float64, Iterators.flatten(atoms(ff.system).F)) ./ force_prefactor
+            F = atoms(ff.system).F
+            F[ff.constrained_atoms] .= Ref(zeros(3))
+            grad .= -collect(Float64, Iterators.flatten(F)) ./ force_prefactor
             nothing
         end
     )
