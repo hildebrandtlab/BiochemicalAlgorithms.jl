@@ -17,6 +17,7 @@ using Quaternions: quat
 
 import JSON3
 import MolecularGraph
+import Observables
 import Optimization
 import PrettyTables
 import StaticArrays

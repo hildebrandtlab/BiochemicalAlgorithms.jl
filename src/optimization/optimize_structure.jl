@@ -53,3 +53,17 @@ function optimize_hydrogen_positions!(ff::ForceField; kwargs...)
     append!(ff.constrained_atoms, old_constrained)
     solution
 end
+
+for fun in [:optimize_structure!, :optimize_hydrogen_positions!]
+    @eval begin
+        function $(fun)(ff::Observables.Observable{ForceField{T}}; notification_frequency::Int = 1, kwargs...) where T
+            iterations = 0
+            _update = () -> begin
+                iterations += 1
+                iterations % notification_frequency == 0 && notify(ff)
+                false
+            end
+            $(fun)(ff[]; callback=(θ, l) -> _update(), kwargs...)
+        end
+    end
+end
