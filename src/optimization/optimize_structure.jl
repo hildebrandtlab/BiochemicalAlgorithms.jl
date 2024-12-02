@@ -1,4 +1,5 @@
 export
+    optimize_hydrogen_positions!,
     optimize_structure!
 
 """
@@ -33,4 +34,22 @@ function optimize_structure!(ff::ForceField; alg = Optimization.LBFGS(), kwargs.
     prob = Optimization.OptimizationProblem(optf, r0)
 
     Optimization.solve(prob, alg; kwargs...)
+end
+
+"""
+    optimize_hydrogen_positions!(ff::ForceField)
+
+Variant of [`optimize_structure!`](@ref) that only optimizes hydrogen atom positions.
+
+# Supported keyword arguments
+Same as [`optimize_structure!`](@ref)
+"""
+function optimize_hydrogen_positions!(ff::ForceField; kwargs...)
+    old_constrained = copy(ff.constrained_atoms)
+    empty!(ff.constrained_atoms)
+    append!(ff.constrained_atoms, findall(a -> a.element != Elements.H, atoms(ff.system)))
+    solution = optimize_structure!(ff; kwargs...)
+    empty!(ff.constrained_atoms)
+    append!(ff.constrained_atoms, old_constrained)
+    solution
 end
