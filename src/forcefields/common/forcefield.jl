@@ -177,6 +177,7 @@ Update the internal data structures of the force field when the system changes
 """
 @inline function update!(ff::ForceField{T}) where {T<:Real}
     map(update!, ff.components)
+    nothing
 end
 
 function compute_energy!(ff::ForceField{T}; verbose=false)::T where {T<:Real}
