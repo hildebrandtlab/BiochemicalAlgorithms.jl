@@ -1,4 +1,5 @@
-export normalize_names!
+export
+    normalize_names!
 
 function match_name_(residue_name::AbstractString, atom_name::AbstractString, mapping::Dict{String, String})
     # start with the residue name
@@ -29,15 +30,15 @@ function match_name_(residue_name::AbstractString, atom_name::AbstractString, ma
 
             residue_name = "*"
             atom_name    = mapped_name[2]
-    
-            hit = true        
+
+            hit = true
         end
     end
 
     return hit, residue_name, atom_name
 end
 
-function do_match_(residue_name::AbstractString, residue_suffix::AbstractString, atom_name::AbstractString, mapping::Dict{String, String})      
+function do_match_(residue_name::AbstractString, residue_suffix::AbstractString, atom_name::AbstractString, mapping::Dict{String, String})
     # first, try to match exactly
     if residue_suffix != ""
         full_residue_name = residue_name * residue_suffix
@@ -137,7 +138,7 @@ function normalize_names!(
     # Determine the most likely naming standard used in the given molecule
     mapping_candidates = Dict{String, Int}(
         n => 0 for (n,v) in filter(
-            ((mk, mv),) -> mv.maps_to == naming_standard, 
+            ((mk, mv),) -> mv.maps_to == naming_standard,
             fdb.name_mappings)
     )
 
@@ -151,14 +152,14 @@ function normalize_names!(
         return
     end
 
-    # Now, sort the fragments into parent containers, i.e., protein chains or nucleid acids, 
+    # Now, sort the fragments into parent containers, i.e., protein chains or nucleid acids,
     # if available. Normalizing names over a whole collection of fragments should give a more
     # stable estimate of the source naming scheme.
     parent_chains = chains(m)
 
     for chain in parent_chains
         frags = fragments(chain)
-    
+
         for scheme in keys(mapping_candidates)
             mapping_candidates[scheme] = count_hits_(fdb.name_mappings[scheme], frags)
         end
@@ -170,7 +171,7 @@ function normalize_names!(
         if hits > 0
             normalize_fragments_!(frags, fdb.name_mappings[mapping].mappings)
         else
-            @warn "normalize_names could not find a suitable mapping!"
+            @warn "normalize_names could not find a suitable mapping for $(chain)!"
         end
     end
 end
