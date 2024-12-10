@@ -70,8 +70,7 @@ println("RMSD after mapping: ",
 \subsection{Visualization using \bioviz}
 
 A key feature of \biochem is the visualization tool \textit{\bioviz} that
-has been developed alongside the main framework. As can be seen in Figure~\ref{fig:biochem_water}
-BiochemicalVisualization.jl currently supports three different representation of protein structures, namely \texttt{ball-and-stick}, \texttt{van-der-Waals} and \texttt{stick} (cf. code listing~\ref{lst:code-water}).
+has been developed alongside the main framework. As shown in Figure~\ref{fig:biochem_water} \ \bioviz currently supports three different representation of protein structures, namely \texttt{ball-and-stick}, \texttt{van-der-Waals} and \texttt{stick} (cf. code listing~\ref{lst:code-water}).
 
 When dealing with three dimensional structures of macromolecules, visualization plays an important role for supporting the development of insights into molecular functions. The possibility to visualize and interactively modify the representations provides great support during modelling scenarios. For instance, the tool has been used to visualize different steps from code listing~\ref{lst:rmsd-and-amber}. The first image left represent the raw input read from the underlying pdb file, the image in the middle shows the same input after preprocession it with the fragment data base (lines4-7). Finally, the mapping of both structures is shown in the image on the left. As can be seen, the structures do not match perfectly onto each other. 
 
@@ -88,6 +87,3 @@ Even this rather simple example already demonstrates the advantage of a visual r
 	\caption{The \texttt{ball-and-stick}-representation of the code listing~\ref{lst:rmsd-and-amber}.}
 	\label{fig:biochem_visualization}
 \end{figure*}
-
-
-\section{Integration into Julia Universe}

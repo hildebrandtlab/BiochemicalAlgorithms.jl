@@ -6,9 +6,9 @@ This research area combines and applies knowledge from diverse disciplines rangi
 
 
 
-More precisely, molecular modelling techniques typically rely on molecular mechanics in which a molecular force fields is being used to compute the energy of the examining structure.  
+More precisely, molecular modeling techniques typically rely on molecular mechanics in which a molecular force fields is being used to compute the energy of the examining structure.  
 Resulting applications include structure minimization, molecular dynamics (MD) simulations and molecular docking scenarios. The latter is inevitable for drug design because it computes the best configuration for a given protein and a ligand (the drug) and compute the binding affinity. 
-The importance of molecular applications has been demonstrated during the Covid-19 pandemic. Tools for molecular modelling and in particular docking suites were attracting widespread interest again in order to model SARS-COV-2 proteins and running molecular docking simultions. 
+The importance of molecular applications has been demonstrated during the Covid-19 pandemic. Tools for molecular modeling and in particular docking suites were attracting widespread interest again in order to model SARS-COV-2 proteins and running molecular docking simulations. 
 
 
 
@@ -18,7 +18,7 @@ The importance of molecular applications has been demonstrated during the Covid-
 Why do we have to run simulations on the computer? Why is it necessary to perform it on a computer? Example Protein Ligand Docking... As an example.
 
 For more than 50 years researcher have been studying molecular functions of proteins. 
-The first attempts date back to 1959, when Max Perutz and John Kendrew used X-ray christallography to to solve the structure of hemoglobine. 
+The first attempts date back to 1959, when Max Perutz and John Kendrew used X-ray crystallography to to solve the structure of hemoglobin. 
 
 A vital aspect of this research field is the availability of molecular structure data, which was solved by the initialization of the protein data bank in 1972. Although it only contained 7 structures, it now provides 227.561 experimentally solved structures (dated on: \todo{check number of structures in pdb} ). With the rapid rise of computed structures 
 
@@ -41,14 +41,14 @@ The development of software packages for structural bioinformatics remains a cha
 
 Several packages already exist in Julia related to structural bioinformatics. Most prominently, the packages under the two Github communities \textit{Molecular Simulation in Julia} and \textit{BioJulia}, which puts an emphasis on sequential bioinformatics. 
 
-\textit{Molly.jl} is an excellent package for molecular simulations written in Julia and ist part of the \textit{Molecular Simulation in Julia} Github community. 
+\textit{Molly.jl} is an excellent package for molecular simulations written in Julia and is part of the \textit{Molecular Simulation in Julia} Github community. 
 Additionally, \textit{ProtoSyn.jl} is an interesting approach to handle and manipulate oligopeptides but does not seem to be actively maintained any more (the last push is 10 months ago).
 
-A platform from which molecular file formats can be read and write, the entrie preprocessing pipeline can be integrated and the infrastructure for molecular mechanics are provided is still lacking. 
+A platform from which molecular file formats can be read and write, the entire preprocessing pipeline can be integrated and the infrastructure for molecular mechanics are provided is still lacking. 
 There remains a need for a basis from which software packages for handling molecular file formats and the proper preprocessing
 
 
-Here, we present \biochem. We provide the basis for interesting analysis encompassing the entire molecular modelling pipeline:
+Here, we present \biochem. We provide the basis for interesting analysis encompassing the entire molecular modeling pipeline:
 \begin{itemize}
 	\item Reading common data formats such as PDB, hin, mol and JSON
 	\item Preprocessing the input by preparing the entire system ready to simulate.

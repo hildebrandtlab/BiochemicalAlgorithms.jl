@@ -1,21 +1,23 @@
 \section{\ball -  \ballFull}
-As already mentioned, \ball was written in C++, which was the best choice for the given requirements: \textit{ease of use}, \textit{openness}, \textit{robustness} and \textit{functionality}.
-
 \label{sec:ball}
+As already mentioned, \biochem is  based on the \ball framework. The main intention for the development of \ball as well as for \biochem is to generate a framework for rapid prototyping of molecular applications. This section summarizes the key concepts of \ball that motivated the design of our project \footnote{An in-depth description of the entire \ball framwork is beyond the scope of this article. Confer the main publications~\cite{kohlbacher_ballrapid_2000, hildebrandt_ball_2010} for more details.}\\
+The initial work on the \ball project started in 1996 resulting in the C++ written library \ball and its accompanying molecular viewer \textit{\ballview} \cite{bibid}. The development followed an object-oriented design and was focused on four design goals: \textit{ease of use}, \textit{openness}, \textit{robustness} and \textit{functionality}. Hildebrandt et al published an updated version in 2010 featuring among other things CMake-Buildsystem and Python-Bindings. \\
+One reason for the success of \ball is its sophisticated design: As can be seen in Figure~\ref{fig:ball_architecture} it is structured in several layers. On top of the standard template library (STL), resides the foundation classes providing a set of general data structures such as hash sets and mathematical objects e.g. matrices, vectors,... . The third layer is the actual core of the library: the \texttt{KERNEL} classes, which contains data structures for molecular entities. The basic components represent basic functionalities and are placed on top of the core with the exception of the visualization module that is based on QT and Open GL. Finally, the application layers can be used to develop own applications or use the available tools. Bindings in Python were created for the purpose of increasing usability without the necessity of interacting with the C++ kernel.\\
+The latter is shown in Figure~\ref{fig:ball_structure} and its classes are forming three different frameworks: the general molecular framework, the protein and the nucleic acid frameworks. All kernel classes are implemented through the realization of a composite pattern. More precisely, the composite class is the base class for all derived classes representing molecular entities such as \texttt{Atom}, \texttt{Protein}, etc. or container classes \texttt{System}, \texttt{AtomContainer}, and so on. \\
+Taken together \ball is a very well designed and structured software package, which is also reflected by its long lasting popularity. It used to have one of the biggest user community for an open-source software in this area. 
 
-\todo{Find out source}
+
+
 \begin{figure*}[t]
 	\centerline{\includegraphics[width=11cm]{gfx/BALL-architecture.jpeg}}
-	\caption{If necessary, the images can be extended both columns. }
+	\caption{\ball's architecture is structured in several layers. Upon the standard libary layer are the foundation classes and ontop of them the kernel. Several module extend the interface for visualization, file import and expoert, molecular mechanics, solvation, structure and NMR. The C++ written frameworkis extended by Python interface for fast scripting purposes. The figure was taken from the official \ball documentation \cite{ball_tutorial}.}
 	\label{fig:ball_architecture}
 \end{figure*}
-\todo{cite ballproject homepagehttps://github.com/BALL-Project/ball/blob/master/doc/TUTORIAL/}
 
 
 
 \begin{figure*}[t]
-	\centerline{\includegraphics[width=11cm]{gfx/KERNEL.png}}
-	\caption{\ball's architecture is structured in several layers. Upon the standard libary layer are the foundation classes and ontop of them the kernel. Several module extend the interface for visualization, file import and expoert, molecular mechanics, solvation, structure and NMR. The C++ written frameworkis extended by Python interface for fast scripting purposes. The figure was taken from: https://github.com/BALL-Project/ball/tree/master/doc/doxygen/images  }
+	\centerline{\includegraphics[width=14cm]{gfx/KERNEL.png}}
+	\caption{UML class diagram of the kernel classes. The kernel classes form three frameworks and are implemented using the composite pattern. The figure was taken from the official \ball documentation \cite{ball_tutorial}.}
 	\label{fig:ball_structure}
 \end{figure*}
-\todo{cite ballproject homepage}

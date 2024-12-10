@@ -1,10 +1,22 @@
 
 \section{ A fresh approach for Structural Bioinformatics: \biochem}
 \label{sec:juliaball}
-As described in the introduction \biochem is a redesign of \ball, a framework for structural analysis and simulation written in C++. 
-However, the development times are highly dependent on the chosen programming language.
+In this work, we sought to redesign the popular \ball framework for molecular analysis and simulation. In this section, we first present the reason for a redesign, followed by a description of the core implementation of \biochem and the internal representation closing with the benchmark results. 
+
 \subsection{Why Julia?}
 
+The previous section briefly gives an overview of the main design principles of \ball. The accomplishment of the design principles are highly dependent on the choice of the programming language. Back in 1996 and 2010, C++ was the best choice for the given requirements: \textit{ease of use}, \textit{openness}, \textit{robustness} and \textit{functionality}.
+However, the development times play a crucial role for the acceptance and usability of the underlying software package. Nowadays, C++ is still a high performace programming language but it takes a long time to actually learn this language. 
+
+\begin{itemize}
+	\item portability
+	\item development times
+	\item usability
+	\item boilerplate code
+\end{itemize}
+
+
+The goals can be achieved much easier ..
 \subsection{The core}
 
 \subsection{The internal representation}
@@ -17,7 +29,7 @@ So initially, representation was based on DataFrames. While theis is extremely i
 \begin{figure*}[t]
 	\centerline{\includegraphics[width=20cm]{gfx/uml.png}}
 	\caption{UML-Diagramm of the core of \biochem . In the center resides the \texttt{System} interface. All other functionalities are grouped around that core piece. Only the most important functionalities of each class are  shown.}
-	\label{fig:ball_architecture}
+	\label{fig:biochem_uml}
 \end{figure*}
 
 \subsection{Benchmarks}
