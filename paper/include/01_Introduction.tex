@@ -29,8 +29,7 @@ some software packages provide an additional interface in a scripting language l
 
 The tools were often only designed for one specific task e.g., implementation of a structure minimization algorithm, docking algorithm... \todo{cite single approaches}
 One example for the latter is Schroedinger \todo{cite schroedinger}
-
-
+~\cite{kohlbacher_ballrapid_2000}
 
 
 \begin{itemize}
@@ -41,11 +40,14 @@ The development of software packages for structural bioinformatics remains a cha
 
 Several packages already exist in Julia related to structural bioinformatics. Most prominently, the packages under the two Github communities \textit{Molecular Simulation in Julia} and \textit{BioJulia}, which puts an emphasis on sequential bioinformatics. 
 
-\textit{Molly.jl} is an excellent package for molecular simulations written in Julia and is part of the \textit{Molecular Simulation in Julia} Github community. 
+\textit{Molly.jl} is an excellent package for molecular simulations written in Julia and is part of the \textit{Molecular Simulation in Julia} Github community \cite{Greener2024}. 
 Additionally, \textit{ProtoSyn.jl} is an interesting approach to handle and manipulate oligopeptides but does not seem to be actively maintained any more (the last push is 10 months ago).
 
 A platform from which molecular file formats can be read and write, the entire preprocessing pipeline can be integrated and the infrastructure for molecular mechanics are provided is still lacking. 
 There remains a need for a basis from which software packages for handling molecular file formats and the proper preprocessing
+
+
+To the best of our knowledge a comparable package for molecular analysis does not exist in Julia. Furthermore, the ongoing developments around the \ball project including the molecular viewer indicate a strong need for such a framework. 
 
 
 Here, we present \biochem. We provide the basis for interesting analysis encompassing the entire molecular modeling pipeline:
