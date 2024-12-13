@@ -1,4 +1,6 @@
-export load_hinfile, write_hinfile
+export
+    load_hinfile,
+    write_hinfile
 
 mutable struct HINParserState{T<:Real}
     line::String
@@ -19,7 +21,7 @@ mutable struct HINParserState{T<:Real}
     end
 end
 
-function handle_hin_atom_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_atom!(parser_state::HINParserState{T}) where T
     if parser_state.state ∉ (:IN_MOLECULE, :IN_RESIDUE)
         @error "illegal HIN file in line $(parser_state.line_number): <atom> tag may appear only inside a <mol> or <res> tag!"
     end
@@ -116,7 +118,7 @@ function handle_hin_atom_!(parser_state::HINParserState{T}) where {T<:Real}
     end
 end
 
-function handle_hin_velocity_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_velocity!(parser_state::HINParserState{T}) where T
     if parser_state.state ∉ (:IN_MOLECULE, :IN_RESIDUE)
         @error "illegal HIN file in line $(parser_state.line_number): <vel> tag may appear only inside a <mol> or <res> tag!"
     end
@@ -143,7 +145,7 @@ function handle_hin_velocity_!(parser_state::HINParserState{T}) where {T<:Real}
     parser_state.atom_cache[atom_number].v = Vector3{T}(vel_x, vel_y, vel_z)
 end
 
-function handle_hin_residue_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_residue!(parser_state::HINParserState)
     if parser_state.state ≠ :IN_MOLECULE
         @error "illegal HIN file in line $(parser_state.line_number): <res> tag may appear only inside a <mol> tag!"
     end
@@ -174,7 +176,7 @@ function handle_hin_residue_!(parser_state::HINParserState{T}) where {T<:Real}
     parser_state.current_fragment = Fragment(chain, residue_number; name=residue_name)
 end
 
-function handle_hin_endresidue_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_endresidue!(parser_state::HINParserState)
     if parser_state.state ≠ :IN_RESIDUE
         @error "illegal HIN file in line $(parser_state.line_number): <endres> tag may appear only inside a <res> tag!"
     end
@@ -184,7 +186,7 @@ function handle_hin_endresidue_!(parser_state::HINParserState{T}) where {T<:Real
     parser_state.current_fragment = nothing
 end
 
-function handle_hin_molecule_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_molecule!(parser_state::HINParserState)
     if parser_state.state ≠ :START
         @error "illegal HIN file in line $(parser_state.line_number): <mol> tag may appear only on the top level!"
     end
@@ -203,7 +205,7 @@ function handle_hin_molecule_!(parser_state::HINParserState{T}) where {T<:Real}
     parser_state.current_molecule = Molecule(parser_state.s; name=molecule_name)
 end
 
-function handle_hin_endmolecule_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_endmolecule!(parser_state::HINParserState)
     if parser_state.state ≠ :IN_MOLECULE
         @error "illegal HIN file in line $(parser_state.line_number): <endmol> tag may appear only inside a <mol> tag!"
     end
@@ -264,7 +266,7 @@ function handle_hin_endmolecule_!(parser_state::HINParserState{T}) where {T<:Rea
     parser_state.current_molecule = nothing
 end
 
-function handle_hin_system_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_system!(parser_state::HINParserState{T}) where T
     if parser_state.state ≠ :START
         @error "illegal HIN file in line $(parser_state.line_number): <sys> tag may appear only on the top level!"
     end
@@ -280,7 +282,7 @@ function handle_hin_system_!(parser_state::HINParserState{T}) where {T<:Real}
     set_property!(parser_state.s, :temperature, temperature)
 end
 
-function handle_hin_box_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_box!(parser_state::HINParserState{T}) where T
     if parser_state.state ≠ :START
         @error "illegal HIN file in line $(parser_state.line_number): <box> tag may appear only on the top level!"
     end
@@ -298,26 +300,26 @@ function handle_hin_box_!(parser_state::HINParserState{T}) where {T<:Real}
     set_property!(parser_state.s, :periodic_box_depth,  box_depth)
 end
 
-function handle_hin_line_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_line!(parser_state::HINParserState)
     # the HyperChem tag is always the first word in the line
     tag = first(split(parser_state.line))
 
     if tag == "atom"
-        handle_hin_atom_!(parser_state)
+        _handle_hin_atom!(parser_state)
     elseif tag == "vel"
-        handle_hin_velocity_!(parser_state)
+        _handle_hin_velocity!(parser_state)
     elseif tag == "res"
-        handle_hin_residue_!(parser_state)
+        _handle_hin_residue!(parser_state)
     elseif tag == "endres"
-        handle_hin_endresidue_!(parser_state)
+        _handle_hin_endresidue!(parser_state)
     elseif tag == "mol"
-        handle_hin_molecule_!(parser_state)
+        _handle_hin_molecule!(parser_state)
     elseif tag == "endmol"
-        handle_hin_endmolecule_!(parser_state)
+        _handle_hin_endmolecule!(parser_state)
     elseif tag == "sys"
-        handle_hin_system_!(parser_state)
+        _handle_hin_system!(parser_state)
     elseif tag == "box"
-        handle_hin_box_!(parser_state)
+        _handle_hin_box!(parser_state)
     elseif tag  ∉ ("forcefield", "user1color", "user2color", "user3color", "user4color", "view", "seed",
                    "mass", "basisset", "selection", "endselection", "selectrestraint", "selectatom", "formalcharge") # we know these tags, but ignore them
         @warn "unexpected HIN file format in line $(parser_state.line_number): unkown tag $(tag)!"
@@ -360,7 +362,7 @@ function load_hinfile(fname::String, T=Float32)
         parser_state.line = line
         parser_state.line_number = i
 
-        handle_hin_line_!(parser_state)
+        _handle_hin_line!(parser_state)
     end
 
     parser_state.s
@@ -374,11 +376,12 @@ end
 
 Save an AtomContainer as HyperChem HIN file.
 
-Note: HIN files define molecules as connected components in the molecular graph. If the AtomContainer is
-      missing bonds, e.g., after reading a PDB file and not postprocessing it correctly, the HIN file may
-      contain a surprisingly large number of molecules.
+!!! note
+    HIN files define molecules as connected components in the molecular graph. If the AtomContainer is
+    missing bonds, e.g., after reading a PDB file and not postprocessing it correctly, the HIN file may
+    contain a surprisingly large number of molecules.
 """
-function write_hinfile(fname::String, ac::AbstractAtomContainer{T}) where {T<:Real}
+function write_hinfile(fname::String, ac::AbstractAtomContainer)
     mg = convert(MolecularGraph.SDFMolGraph, ac)
     hin_molecules = connected_components(mg)
 
