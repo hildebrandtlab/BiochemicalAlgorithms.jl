@@ -14,6 +14,7 @@ const pages = Any[
     ],
     "Library" => Any[
         "Biomolecular systems" => "public/system.md",
+        "File formats" => "public/fileformats.md",
         "Force fields" => "public/forcefields.md",
         "Mappings" => "public/mappings.md",
         "Internals" => Any[

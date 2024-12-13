@@ -1,6 +1,8 @@
-export load_hinfile, write_hinfile
+export
+    load_hinfile,
+    write_hinfile
 
-mutable struct HINParserState{T<:Real}
+mutable struct HINParserState{T}
     line::String
     line_number::Int
     s::Union{System{T}, Nothing}
@@ -9,7 +11,7 @@ mutable struct HINParserState{T<:Real}
 
     current_molecule::Union{Molecule{T}, Nothing}
     current_fragment::Union{Fragment{T}, Nothing}
-    
+
     current_bonds::Deque{Tuple{Int, Int, BondOrderType}}
 
     atom_cache::Dict{Int, Atom{T}}
@@ -19,7 +21,7 @@ mutable struct HINParserState{T<:Real}
     end
 end
 
-function handle_hin_atom_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_atom!(parser_state::HINParserState{T}) where T
     if parser_state.state ∉ (:IN_MOLECULE, :IN_RESIDUE)
         @error "illegal HIN file in line $(parser_state.line_number): <atom> tag may appear only inside a <mol> or <res> tag!"
     end
@@ -30,7 +32,7 @@ function handle_hin_atom_!(parser_state::HINParserState{T}) where {T<:Real}
         @error "illegal HIN file in line $(parser_state.line_number): <atom> line requires at least 10 arguments!"
     end
 
-    atom_number  = try 
+    atom_number  = try
         parse(Int, fields[2])
     catch _
         @error "illegal HIN file in line $(parser_state.line_number): could not parse $(fields[2]) as atom number!"
@@ -41,7 +43,7 @@ function handle_hin_atom_!(parser_state::HINParserState{T}) where {T<:Real}
     # Amber writes "lone pair atoms" with pseudo-element "Lp" -- we treat these differently; right now,
     # we keep them around and remove them later
     atom_element = fields[4] == "Lp" ? Elements.Unknown : parse(ElementType, fields[4])
-    
+
     atom_type = fields[5] == "**" ? "?" : String(strip(fields[5]))
 
     charge = try
@@ -97,8 +99,8 @@ function handle_hin_atom_!(parser_state::HINParserState{T}) where {T<:Real}
                 @error "illegal HIN file in line $(parser_state.line_number): could not parse $(fields[11 + 2*current_bond - 1]) as atom index!"
             end
 
-            partner_type_field = strip(String(fields[11 + 2*current_bond])) 
-            partner_type = 
+            partner_type_field = strip(String(fields[11 + 2*current_bond]))
+            partner_type =
                 if partner_type_field == 's'
                     BondOrder.Single
                 elseif partner_type_field == 'd'
@@ -116,19 +118,19 @@ function handle_hin_atom_!(parser_state::HINParserState{T}) where {T<:Real}
     end
 end
 
-function handle_hin_velocity_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_velocity!(parser_state::HINParserState{T}) where T
     if parser_state.state ∉ (:IN_MOLECULE, :IN_RESIDUE)
         @error "illegal HIN file in line $(parser_state.line_number): <vel> tag may appear only inside a <mol> or <res> tag!"
     end
 
     fields = split(parser_state.line)
 
-    atom_number  = try 
+    atom_number  = try
         parse(Int, fields[2])
     catch _
         @error "illegal HIN file in line $(parser_state.line_number): could not parse $(fields[2]) as atom number!"
     end
-    
+
     vel_x, vel_y, vel_z = try
         parse(T, fields[3]), parse(T, fields[4]), parse(T, fields[5])
     catch _
@@ -143,7 +145,7 @@ function handle_hin_velocity_!(parser_state::HINParserState{T}) where {T<:Real}
     parser_state.atom_cache[atom_number].v = Vector3{T}(vel_x, vel_y, vel_z)
 end
 
-function handle_hin_residue_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_residue!(parser_state::HINParserState)
     if parser_state.state ≠ :IN_MOLECULE
         @error "illegal HIN file in line $(parser_state.line_number): <res> tag may appear only inside a <mol> tag!"
     end
@@ -174,7 +176,7 @@ function handle_hin_residue_!(parser_state::HINParserState{T}) where {T<:Real}
     parser_state.current_fragment = Fragment(chain, residue_number; name=residue_name)
 end
 
-function handle_hin_endresidue_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_endresidue!(parser_state::HINParserState)
     if parser_state.state ≠ :IN_RESIDUE
         @error "illegal HIN file in line $(parser_state.line_number): <endres> tag may appear only inside a <res> tag!"
     end
@@ -184,7 +186,7 @@ function handle_hin_endresidue_!(parser_state::HINParserState{T}) where {T<:Real
     parser_state.current_fragment = nothing
 end
 
-function handle_hin_molecule_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_molecule!(parser_state::HINParserState)
     if parser_state.state ≠ :START
         @error "illegal HIN file in line $(parser_state.line_number): <mol> tag may appear only on the top level!"
     end
@@ -203,7 +205,7 @@ function handle_hin_molecule_!(parser_state::HINParserState{T}) where {T<:Real}
     parser_state.current_molecule = Molecule(parser_state.s; name=molecule_name)
 end
 
-function handle_hin_endmolecule_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_endmolecule!(parser_state::HINParserState)
     if parser_state.state ≠ :IN_MOLECULE
         @error "illegal HIN file in line $(parser_state.line_number): <endmol> tag may appear only inside a <mol> tag!"
     end
@@ -225,7 +227,7 @@ function handle_hin_endmolecule_!(parser_state::HINParserState{T}) where {T<:Rea
     for b in parser_state.current_bonds
         a1 = get(parser_state.atom_cache, b[1], nothing)
         a2 = get(parser_state.atom_cache, b[2], nothing)
-        
+
         if nothing ∈ (a1, a2)
             @error "illegal HIN file in line $(parser_state.line_number): cannot finalize bond $(b)!"
         end
@@ -238,7 +240,7 @@ function handle_hin_endmolecule_!(parser_state::HINParserState{T}) where {T<:Rea
         type = b[3]
 
         nb = Bond(parser_state.s, a1.idx, a2.idx, type)
-    
+
         f1 = parent_fragment(a1)
         f2 = parent_fragment(a2)
 
@@ -250,7 +252,7 @@ function handle_hin_endmolecule_!(parser_state::HINParserState{T}) where {T<:Rea
               !isnothing(f2) &&
               has_flag(f1, :IS_AMINO_ACID) &&
               has_flag(f2, :IS_AMINO_ACID)
-            
+
             set_flag!(f1, :HAS_SSBOND)
             set_flag!(f2, :HAS_SSBOND)
 
@@ -264,7 +266,7 @@ function handle_hin_endmolecule_!(parser_state::HINParserState{T}) where {T<:Rea
     parser_state.current_molecule = nothing
 end
 
-function handle_hin_system_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_system!(parser_state::HINParserState{T}) where T
     if parser_state.state ≠ :START
         @error "illegal HIN file in line $(parser_state.line_number): <sys> tag may appear only on the top level!"
     end
@@ -280,7 +282,7 @@ function handle_hin_system_!(parser_state::HINParserState{T}) where {T<:Real}
     set_property!(parser_state.s, :temperature, temperature)
 end
 
-function handle_hin_box_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_box!(parser_state::HINParserState{T}) where T
     if parser_state.state ≠ :START
         @error "illegal HIN file in line $(parser_state.line_number): <box> tag may appear only on the top level!"
     end
@@ -298,26 +300,26 @@ function handle_hin_box_!(parser_state::HINParserState{T}) where {T<:Real}
     set_property!(parser_state.s, :periodic_box_depth,  box_depth)
 end
 
-function handle_hin_line_!(parser_state::HINParserState{T}) where {T<:Real}
+function _handle_hin_line!(parser_state::HINParserState)
     # the HyperChem tag is always the first word in the line
     tag = first(split(parser_state.line))
 
     if tag == "atom"
-        handle_hin_atom_!(parser_state)
+        _handle_hin_atom!(parser_state)
     elseif tag == "vel"
-        handle_hin_velocity_!(parser_state)
+        _handle_hin_velocity!(parser_state)
     elseif tag == "res"
-        handle_hin_residue_!(parser_state)
+        _handle_hin_residue!(parser_state)
     elseif tag == "endres"
-        handle_hin_endresidue_!(parser_state)
+        _handle_hin_endresidue!(parser_state)
     elseif tag == "mol"
-        handle_hin_molecule_!(parser_state)
+        _handle_hin_molecule!(parser_state)
     elseif tag == "endmol"
-        handle_hin_endmolecule_!(parser_state)
+        _handle_hin_endmolecule!(parser_state)
     elseif tag == "sys"
-        handle_hin_system_!(parser_state)
+        _handle_hin_system!(parser_state)
     elseif tag == "box"
-        handle_hin_box_!(parser_state)
+        _handle_hin_box!(parser_state)
     elseif tag  ∉ ("forcefield", "user1color", "user2color", "user3color", "user4color", "view", "seed",
                    "mass", "basisset", "selection", "endselection", "selectrestraint", "selectatom", "formalcharge") # we know these tags, but ignore them
         @warn "unexpected HIN file format in line $(parser_state.line_number): unkown tag $(tag)!"
@@ -360,7 +362,7 @@ function load_hinfile(fname::String, T=Float32)
         parser_state.line = line
         parser_state.line_number = i
 
-        handle_hin_line_!(parser_state)
+        _handle_hin_line!(parser_state)
     end
 
     parser_state.s
@@ -374,11 +376,12 @@ end
 
 Save an AtomContainer as HyperChem HIN file.
 
-Note: HIN files define molecules as connected components in the molecular graph. If the AtomContainer is
-      missing bonds, e.g., after reading a PDB file and not postprocessing it correctly, the HIN file may
-      contain a surprisingly large number of molecules.
+!!! note
+    HIN files define molecules as connected components in the molecular graph. If the AtomContainer is
+    missing bonds, e.g., after reading a PDB file and not postprocessing it correctly, the HIN file may
+    contain a surprisingly large number of molecules.
 """
-function write_hinfile(fname::String, ac::AbstractAtomContainer{T}) where {T<:Real}
+function write_hinfile(fname::String, ac::AbstractAtomContainer)
     mg = convert(MolecularGraph.SDFMolGraph, ac)
     hin_molecules = connected_components(mg)
 
@@ -453,14 +456,14 @@ function write_hinfile(fname::String, ac::AbstractAtomContainer{T}) where {T<:Re
                     # find the corresponding edge
                     e = mg.eprops[MolecularGraph.u_edge(mg, a, b)]
 
-                    order = 
+                    order =
                         if e.order == 1
                             's'
                         elseif e.order == 2
                             'd'
                         elseif e.order == 3
                             't'
-                        else 
+                        else
                             '-'
                         end
 
@@ -470,7 +473,7 @@ function write_hinfile(fname::String, ac::AbstractAtomContainer{T}) where {T<:Re
                 atom_string *= "\n"
 
                 write(io, atom_string)
-                
+
                 # write the velocities
                 write(io, "vel $(index_map[a]) $(orig_atom.v[1]) $(orig_atom.v[2]) $(orig_atom.v[3])\n")
             end
