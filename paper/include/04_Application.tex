@@ -68,12 +68,16 @@ println("RMSD after mapping: ",
 \end{lstlisting}
 
 \todo{output?}
-\subsection{A trivial comparison between C++ and Julia}
+\subsection{RAD in \ball and \biochem}
 
-The verbose nature of C++ comes apparent in a simple task. A typical situation in molecular simulation is to find out, which atoms are in a certain proximity of each other. As these atoms can exert interactions, which are important for the stability of a structure configuration. We would solve this task with advanced data structures such as a hash grids. However, for simplicity, we consider the following task: We want to count the contacts between two separate molecules, that are in close proximity. We will define a contact, if the distance between two carbon atoms $C_\beta$ atoms is smaller than $6$\AA. \\
+Rapid application development is a key feature of the \biochem package. In the following, we show a comparison between \ball and \biochem for a simple task revealing the verbose nature of C++. \\
+A typical situation in molecular simulation is to find out, if atoms are in a certain proximity of each other. This is of interest, because these atoms can exert interactions, which are important for the stability configuration. 
+However, we consider a simplified definition of the problem: We want to count the contacts between two separate molecules, that are in close proximity. We will define a contact, if the distance between two carbon atoms $C_\beta$ atoms is smaller than $6$\AA. \\
 
 The code listing below shows the solution for the task in C++. It is important to note here, that due to readability, the necessary includes for this even short code snippet are not shown. Using two nested for-loops, possible $C_\beta$ atoms are searched, whose distance from each other is computed in the next step. \\
-In contrast, with \biochem this task is solved much
+Although the code is functional, it demonstrates the verbosity if C++ compared to the solution in Julia \ref{lst:code-task-julia}. Here, two functions are created serving for the filtering of the molecules and for the computation of the distances of two atoms. With these two, the actual function for the counting consists only of a single line of code. This examples showcases the elegance of the \biochem framework compared to \ball. 
+More advanced data structures such as hash grids would be more efficient for larger systems, but this example serves to illustrate the basic approach.
+
 \begin{figure*}
 \begin{lstlisting}[
 	language = C++, 
@@ -111,15 +115,10 @@ int count_contacts(const AtomContainer& ac1, const AtomContainer& ac2, double th
 	caption={The resulting Julia code for the example task is much more elegant.}
 	]
 using BiochemicalAlgorithms 
-	
-function filter_cbeta(ac::AbstractAtomContainer{Float32})
-	(atom for atom in atoms(ac) if atom.name == "CB")
-end
-	
-function is_in_contact(r1::Vector3{Float32}, r2::Vector3{Float32})
-	distance(r1, r2) <= 6
-end
-	
+
+filter_cbeta(ac) = (atom for atom in atoms(ac) if atom.name == "CB")
+is_in_contact(r1,r2) = distance(r1,r2) <= 6	
+
 function count_contacts(ac1::AbstractAtomContainer{Float32}, ac2::AbstractAtomContainer{Float32})
 	count( t -> is_in_contact(t...), ((a1.r, a2.r) for a1 in filter_cbeta(ac1), a2 in filter_cbeta(ac2)))
 end
