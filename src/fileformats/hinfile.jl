@@ -329,12 +329,12 @@ end
 """
     load_hinfile(
         fname::String,
-        T=Float32
+        ::Type{T} = Float32
     ) -> System{T}
 
 Read a HyperChem HIN file.
 """
-function load_hinfile(fname::String, T=Float32)
+function load_hinfile(fname::String, ::Type{T} = Float32) where {T <: Real}
     # we use a very simple state machine for parsing HIN files; legal states are
     #   - :START
     #   - :IN_MOLECULE
@@ -371,10 +371,10 @@ end
 """
     write_hinfile(
         fname::String,
-        ac::AtomContainer{T}
+        ac::AtomContainer
     )
 
-Save an AtomContainer as HyperChem HIN file.
+Save an atom container as HyperChem HIN file.
 
 !!! note
     HIN files define molecules as connected components in the molecular graph. If the AtomContainer is
