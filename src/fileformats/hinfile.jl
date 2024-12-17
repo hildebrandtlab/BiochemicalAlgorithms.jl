@@ -328,13 +328,13 @@ end
 
 """
     load_hinfile(
-        fname::String,
+        fname::AbstractString,
         ::Type{T} = Float32
     ) -> System{T}
 
 Read a HyperChem HIN file.
 """
-function load_hinfile(fname::String, ::Type{T} = Float32) where {T <: Real}
+function load_hinfile(fname::AbstractString, ::Type{T} = Float32) where {T <: Real}
     # we use a very simple state machine for parsing HIN files; legal states are
     #   - :START
     #   - :IN_MOLECULE
@@ -370,7 +370,7 @@ end
 
 """
     write_hinfile(
-        fname::String,
+        fname::AbstractString,
         ac::AtomContainer
     )
 
@@ -381,7 +381,7 @@ Save an atom container as HyperChem HIN file.
     missing bonds, e.g., after reading a PDB file and not postprocessing it correctly, the HIN file may
     contain a surprisingly large number of molecules.
 """
-function write_hinfile(fname::String, ac::AbstractAtomContainer)
+function write_hinfile(fname::AbstractString, ac::AbstractAtomContainer)
     mg = convert(MolecularGraph.SDFMolGraph, ac)
     hin_molecules = connected_components(mg)
 
