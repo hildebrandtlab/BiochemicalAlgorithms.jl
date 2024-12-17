@@ -76,8 +76,8 @@ function Base.push!(
     idx::Int,
     number::Int,
     element::ElementType;
-    name::String = "",
-    atom_type::String = "",
+    name::AbstractString = "",
+    atom_type::AbstractString = "",
     r::Vector3{T} = Vector3{T}(0, 0, 0),
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),

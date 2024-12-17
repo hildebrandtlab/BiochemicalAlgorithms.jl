@@ -43,8 +43,8 @@ Atom(
     number::Int,
     element::ElementType;
     # keyword arguments
-    name::String = "",
-    atom_type::String = "",
+    name::AbstractString = "",
+    atom_type::AbstractString = "",
     r::Vector3{T} = Vector3{T}(0, 0, 0),
     v::Vector3{T} = Vector3{T}(0, 0, 0),
     F::Vector3{T} = Vector3{T}(0, 0, 0),
@@ -191,7 +191,7 @@ end
 """
     atom_by_name(
         ac::AbstractAtomContainer{T} = default_system(),
-        name::String
+        name::AbstractString
     ) -> Union{Nothing, Atom{T}}
 
 Returns the first `Atom{T}` associated with the given `name` in `ac`. Returns nothing if no such
@@ -203,14 +203,14 @@ Any value other than `nothing` limits the result to atoms matching this frame ID
 """
 @inline function atom_by_name(
     ac::AbstractAtomContainer{T},
-    name::String;
+    name::AbstractString;
     frame_id::MaybeInt = 1
 ) where T
     idx = filter(atom -> atom.name == name, atoms(ac; frame_id = frame_id)).idx
     isempty(idx) ? nothing : atom_by_idx(parent(ac), first(idx))
 end
 
-@inline function atom_by_name(name::String; kwargs...)
+@inline function atom_by_name(name::AbstractString; kwargs...)
     atom_by_name(default_system(), name; kwargs...)
 end
 

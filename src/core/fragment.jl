@@ -51,7 +51,7 @@ Fragment(
     chain::Chain{T},
     number::Int;
     # keyword arguments
-    name::String = "",
+    name::AbstractString = "",
     variant::FragmentVariantType = FragmentVariant.None,
     properties::Properties = Properties(),
     flags::Flags = Flags()
@@ -64,7 +64,7 @@ Fragment(
     secondary_structure::SecondaryStructure{T},
     number::Int;
     # keyword arguments
-    name::String = "",
+    name::AbstractString = "",
     variant::FragmentVariantType = FragmentVariant.None,
     properties::Properties = Properties(),
     flags::Flags = Flags()
