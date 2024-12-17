@@ -47,7 +47,7 @@ end
 
 function _try_assign!(
     templates::Dict{String, AtomTypeTemplate{T}},
-    name::String,
+    name::AbstractString,
     atom::Atom{T};
     assign_typenames::Bool,
     overwrite_typenames::Bool,
@@ -133,7 +133,6 @@ function assign_typenames_and_charges!(ff::ForceField)
         end
     end
 end
-
 
 function setup!(::AbstractForceFieldComponent) end
 function update!(::AbstractForceFieldComponent) end
