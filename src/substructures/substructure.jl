@@ -1,17 +1,19 @@
-export Substructure, filter_atoms
+export
+    Substructure,
+    filter_atoms
 
 @auto_hash_equals struct Substructure{T<:Real, A<:AbstractAtomContainer{T}} <: AbstractAtomContainer{T}
     name::String
 
     parent::A
-    
+
     _atoms::AtomTable{T}
     _bonds::BondTable{T}
-    
+
     properties::Properties
 
     function Substructure{T,A}(
-        name::String,
+        name::AbstractString,
         parent::A,
         atoms::AtomTable{T},
         bonds::BondTable{T},
@@ -22,14 +24,14 @@ export Substructure, filter_atoms
 end
 
 @inline Substructure(
-    name::String,
+    name::AbstractString,
     parent::A,
     atoms::AtomTable{T},
     bonds::BondTable{T},
     properties::Properties = parent.properties
 ) where {T, A} = Substructure{T, typeof(parent)}(name, parent, atoms, bonds, properties)
 
-function filter_atoms(fn, mol::AbstractAtomContainer{T}; name="", adjacent_bonds=false) where T
+function filter_atoms(fn, mol::AbstractAtomContainer; name::AbstractString="", adjacent_bonds::Bool=false)
     atom_view = filter(fn, atoms(mol))
     idxset = Set(atom_view.idx)
     bond_view = filter(row ->
