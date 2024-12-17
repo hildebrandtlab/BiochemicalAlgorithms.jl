@@ -1,7 +1,7 @@
 export
     AmberFF
 
-get_amber_default_options(T=Float32) = Dict{Symbol, Any}(
+get_amber_default_options(::Type{T} = Float32) where {T <: Real} = Dict{Symbol, Any}(
     :nonbonded_cutoff               => T(20.0),
     :vdw_cutoff                     => T(15.0),
     :vdw_cuton                      => T(13.0),
@@ -22,12 +22,43 @@ get_amber_default_options(T=Float32) = Dict{Symbol, Any}(
     :max_number_of_unassigned_atoms => typemax(Int32)
 )
 
-function AmberFF(
-        ac::AbstractAtomContainer{T},
-        filename=ball_data_path("forcefields/AMBER/amber96.ini");
-        constrained_atoms=Vector{Int}()) where {T<:Real}
+"""
+    AmberFF(
+        ::AbstractAtomContainer{T},
+        param_file::AbstractString = ball_data_path("forcefields/AMBER/amber96.ini")
+    )
 
-    amber_params = AmberFFParameters(filename, T)
+Initializes an AMBER force field for the given atom container and the given parameter
+file (default: AMBER96).
+
+# Supported keyword arguments
+ - `nonbonded_cutoff::T = 20`
+ - `vdw_cutoff::T = 15`
+ - `vdw_cuton::T = 13`
+ - `electrostatic_cutoff::T = 15`
+ - `electrostatic_cuton::T = 13`
+ - `scaling_vdw_1_4 = 2`
+ - `scaling_electrostatic_1_4::T = 1.2`
+ - `distance_dependent_dielectric::Bool = false`
+ - `assign_charges::Bool = true`
+ - `assign_typenames::Bool = true`
+ - `assign_types::Bool = true`
+ - `overwrite_nonzero_charges::Bool = true`
+ - `overwrite_typenames::Bool = false`
+ - `periodic_boundary_conditions::Bool = false`
+ - `periodic_box_width::T = 100`
+ - `periodic_box_height::T = 100`
+ - `periodic_box_depth::T = 100`
+ - `max_number_of_unassigned_atoms::Int = typemax(Int32)`
+"""
+function AmberFF(
+    ac::AbstractAtomContainer{T},
+    param_file::AbstractString=ball_data_path("forcefields/AMBER/amber96.ini");
+    constrained_atoms=Vector{Int}(),
+    kwargs...
+) where T
+
+    amber_params = AmberFFParameters(param_file, T)
     options = get_amber_default_options(T)
 
     # read :scaling_electrostatic_1_4 from parameter file (if present)
@@ -36,6 +67,14 @@ function AmberFF(
         if haskey(props, "SCEE")
             options[:scaling_electrostatic_1_4] = parse(T, props["SCEE"])
         end
+    end
+
+    for (key, value) in kwargs
+        if !haskey(options, key)
+            @warn "AmberFF: ignoring unknown force field option $key"
+            continue
+        end
+        options[key] = value
     end
 
     amber_ff = ForceField{T}(
