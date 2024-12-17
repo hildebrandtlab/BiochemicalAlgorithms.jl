@@ -25,7 +25,7 @@ Mutable representation of an individual chain in a system.
 Chain(
     mol::Molecule{T};
     # keyword arguments
-    name::String = "",
+    name::AbstractString = "",
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )

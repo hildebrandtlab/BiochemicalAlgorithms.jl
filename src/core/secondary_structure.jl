@@ -30,7 +30,7 @@ SecondaryStructure(
     number::Int,
     type::SecondaryStructureType;
     # keyword arguments
-    name::String = "",
+    name::AbstractString = "",
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )
@@ -43,7 +43,7 @@ const SecondaryStructure{T} = AtomContainer{T, :SecondaryStructure}
     chain::Chain,
     number::Int,
     type::SecondaryStructureType;
-    name::String="",
+    name::AbstractString="",
     kwargs...
 )
     sys = parent(chain)

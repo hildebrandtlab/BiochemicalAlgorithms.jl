@@ -52,7 +52,7 @@ function Base.push!(
     ct::_ChainTable,
     idx::Int,
     molecule_idx::Int;
-    name::String = "",
+    name::AbstractString = "",
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )

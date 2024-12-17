@@ -98,11 +98,11 @@ Mutable representation of a biomolecular system.
  - `flags::Flags`
 
 # Constructors
-    System(name::String = "", properties::Properties = Properties(), flags::Flags = Flags())
+    System(name::AbstractString = "", properties::Properties = Properties(), flags::Flags = Flags())
 
 Creates a new and empty `System{Float32}`.
 
-    System{T}(name::String = "", properties::Properties = Properties(), flags::Flags = Flags())
+    System{T}(name::AbstractString = "", properties::Properties = Properties(), flags::Flags = Flags())
 
 Creates a new and empty `System{T}`.
 """
@@ -120,7 +120,7 @@ Creates a new and empty `System{T}`.
     _curr_idx::Int
 
     function System{T}(
-        name::String = "",
+        name::AbstractString = "",
         properties::Properties = Properties(),
         flags::Flags = Flags()
     ) where T
@@ -140,7 +140,7 @@ Creates a new and empty `System{T}`.
 end
 
 System(
-    name::String = "",
+    name::AbstractString = "",
     properties::Properties = Properties(),
     flags::Flags = Flags()
 ) = System{Float32}(name, properties, flags)
@@ -336,7 +336,7 @@ end
 end
 
 @inline Base.show(io::IO, ::MIME"text/plain", sc::SystemComponent) = show(io, sc)
-@inline function Base.show(io::IO, sc::SystemComponent; display_name::String=repr(typeof(sc)))
+@inline function Base.show(io::IO, sc::SystemComponent; display_name::AbstractString=repr(typeof(sc)))
     print(io, "$display_name: ")
     show(io, NamedTuple(_row_by_idx(_table(sc), sc._idx)))
 end

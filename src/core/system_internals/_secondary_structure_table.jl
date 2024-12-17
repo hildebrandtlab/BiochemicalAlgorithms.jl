@@ -61,7 +61,7 @@ function Base.push!(
     type::SecondaryStructureType,
     molecule_idx::Int,
     chain_idx::Int;
-    name::String = "",
+    name::AbstractString = "",
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )

@@ -31,7 +31,7 @@ Mutable representation of an individual molecule in a system.
 Molecule(
     sys::System{T};
     # keyword arguments
-    name::String = "",
+    name::AbstractString = "",
     variant::MoleculeVariantType = MoleculeVariant.None,
     properties::Properties = Properties(),
     flags::Flags = Flags()
@@ -42,7 +42,7 @@ Creates a new `Molecule{T}` in the given system.
 ```julia
 Molecule(;
     #keyword arguments
-    name::String = "",
+    name::AbstractString = "",
     variant::MoleculeVariantType = MoleculeVariant.None,
     properties::Properties = Properties(),
     flags::Flags = Flags()
