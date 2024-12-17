@@ -24,7 +24,7 @@ end
 end
 
 """
-    read_ball_ini_file(fname::String, ::Type{T} = Float32) -> BALLIniFile
+    read_ball_ini_file(fname::AbstractString, ::Type{T} = Float32) -> BALLIniFile
 
 Read a file in BALL's old Ini file format and return it as a BALLIniFile.
 
@@ -32,7 +32,7 @@ Read a file in BALL's old Ini file format and return it as a BALLIniFile.
  - `cleanup_keys::Bool = true` simplifies colon-separated key names
    (e.g., `ver:version` becomes `version`, `key:I` becomes `I`, etc.)
 """
-function read_ball_ini_file(fname::String, ::Type{T} = Float32; cleanup_keys::Bool = true) where {T <: Real}
+function read_ball_ini_file(fname::AbstractString, ::Type{T} = Float32; cleanup_keys::Bool = true) where {T <: Real}
     result = BALLIniFile()
 
     open(fname) do paramfile

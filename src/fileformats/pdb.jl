@@ -187,14 +187,14 @@ function Base.convert(::Type{System{T}}, orig_pdb::MolecularStructure) where T
 end
 
 """
-    load_pdb(fname::String, ::Type{T} = Float32) -> System{T}
+    load_pdb(fname::AbstractString, ::Type{T} = Float32) -> System{T}
 
 Read a PDB file.
 
 !!! note
     Models are stored as frames, using the model number as `frame_id`.
 """
-function load_pdb(fname::String, ::Type{T} = Float32) where {T <: Real}
+function load_pdb(fname::AbstractString, ::Type{T} = Float32) where {T <: Real}
     # TODO: how to handle disordered atoms properly?
 
     # first, read the structure using BioStructures.jl
@@ -203,14 +203,14 @@ function load_pdb(fname::String, ::Type{T} = Float32) where {T <: Real}
 end
 
 """
-    load_mmcif(fname::String, ::Type{T} = Float32) -> System{T}
+    load_mmcif(fname::AbstractString, ::Type{T} = Float32) -> System{T}
 
 Read a PDBx/mmCIF file.
 
 !!! note
     Models are stored as frames, using the model number as `frame_id`.
 """
-function load_mmcif(fname::String, ::Type{T} = Float32) where {T <: Real}
+function load_mmcif(fname::AbstractString, ::Type{T} = Float32) where {T <: Real}
     # TODO: how to handle disordered atoms properly?
 
     # first, read the structure using BioStructures.jl
@@ -270,21 +270,21 @@ function Base.convert(::Type{MolecularStructure}, ac::AbstractAtomContainer{T}) 
 end
 
 """
-    write_pdb(fname::String, ac::AbstractAtomContainer)
+    write_pdb(fname::AbstractString, ac::AbstractAtomContainer)
 
 Save an atom container as PDB file.
 """
-function write_pdb(fname::String, ac::AbstractAtomContainer)
+function write_pdb(fname::AbstractString, ac::AbstractAtomContainer)
     ps = convert(MolecularStructure, ac)
     writepdb(fname, ps)
 end
 
 """
-    write_mmcif(fname::String, ac::AbstractAtomContainer)
+    write_mmcif(fname::AbstractString, ac::AbstractAtomContainer)
 
 Save an atom container as PDBx/mmCIF file.
 """
-function write_mmcif(fname::String, ac::AbstractAtomContainer)
+function write_mmcif(fname::AbstractString, ac::AbstractAtomContainer)
     ps = convert(MolecularStructure, ac)
     writemmcif(fname, ps)
 end

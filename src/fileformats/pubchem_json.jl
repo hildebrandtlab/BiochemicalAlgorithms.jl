@@ -123,14 +123,14 @@ function _parse_props!(mol::Molecule, compound::JSON3.Object)
 end
 
 """
-    load_pubchem_json(fname::String, ::Type{T} = Float32) -> System{T}
+    load_pubchem_json(fname::AbstractString, ::Type{T} = Float32) -> System{T}
 
 Read a PubChem JSON file.
 
 !!! note
     Conformers are stored as frames.
 """
-function load_pubchem_json(fname::String, ::Type{T} = Float32) where {T <: Real}
+function load_pubchem_json(fname::AbstractString, ::Type{T} = Float32) where {T <: Real}
     # TODO: full conversion, adding all properties
 
     pb = JSON3.read(read(fname, String))
