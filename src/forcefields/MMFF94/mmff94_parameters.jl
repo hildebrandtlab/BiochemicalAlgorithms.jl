@@ -7,7 +7,8 @@ export
     electronegativities::Vector{T}
 
     function MMFF94Parameters{T}(
-            path::String = ball_data_path("forcefields/MMFF94/mmff94.ini")) where {T<:Real}
+        path::AbstractString = ball_data_path("forcefields/MMFF94/mmff94.ini")
+    ) where {T<:Real}
 
         ini_file = read_ball_ini_file(path, T)
 
@@ -46,10 +47,10 @@ export
     end
 end
 
-function MMFF94Parameters(path::String = ball_data_path("forcefields/MMFF94/mmff94.ini"))
+function MMFF94Parameters(path::AbstractString = ball_data_path("forcefields/MMFF94/mmff94.ini"))
     MMFF94Parameters{Float32}(path)
 end
 
-Base.show(io::IO, mmff_param::MMFF94Parameters{T}) where {T<:Real} =
-    print(io,
-        "MMFF94 parameters with $(length(mmff_param.sections)) sections.")
+function Base.show(io::IO, mmff_param::MMFF94Parameters)
+    print(io, "MMFF94 parameters with $(length(mmff_param.sections)) sections.")
+end
