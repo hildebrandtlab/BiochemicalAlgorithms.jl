@@ -47,7 +47,7 @@ function find_atom(name, atoms::Vector{DBAtom{T}}) where {T<:Real}
     if length(candidates) != 1
         throw(ArgumentError("FragmentDB::find_atom: atom not found!"))
     end
-    
+
     candidates[1]
 end
 
@@ -86,7 +86,7 @@ end
 
         a1 = raw_data[1]
         a2 = raw_data[2]
-        
+
         order = to_bond_order(raw_data[3])
 
         new(number, a1, a2, order)
@@ -177,7 +177,7 @@ end
 
                 atoms = filter(a -> a.name ∉ db_delete.atoms, atoms)
                 bonds = filter(b -> b.a1 ∉ db_delete.atoms && b.a2 ∉ db_delete.atoms, bonds)
-                
+
                 push!(actions, db_delete)
             elseif child.key == "Rename"
                 db_rename = DBVariantRename(child)
@@ -189,7 +189,7 @@ end
                             get(db_rename.atoms, b.a1, b.a1),
                             get(db_rename.atoms, b.a2, b.a2),
                             b.order), bonds)
-                                
+
                 push!(actions, db_rename)
             else
                 throw(ArgumentError("DBVariant: invalid format!"))
@@ -224,7 +224,7 @@ end
     connections::Array{DBConnection{T}}
     properties::Array{DBProperty}
     variants::Array{DBVariant{T}}
-    
+
     function DBFragment{T}(n::DBNode) where {T<:Real}
         if startswith(n.key, "#include:")
             name = split(n.key, ":")[2]
@@ -234,7 +234,7 @@ end
 
             raw_names = filter(n -> n.key == "Names", raw_fragment_data)
             names = length(raw_names) == 1 ? [n.key for n in raw_names[1].value] : []
-            
+
             raw_atoms = filter(n -> n.key == "Atoms", raw_fragment_data)
             atoms = length(raw_atoms) == 1 ? map(DBAtom{T}, raw_atoms[1].value) : []
 
@@ -243,13 +243,13 @@ end
 
             raw_connections = filter(n -> n.key == "Connections", raw_fragment_data)
             connections = length(raw_connections) == 1 ? map(c -> DBConnection{T}(c), raw_connections[1].value) : []
-            
+
             raw_properties = filter(n -> n.key == "Properties", raw_fragment_data)
             properties = length(raw_properties) == 1 ? map(DBProperty, raw_properties[1].value) : []
 
             raw_variants = filter(n -> n.key == "Variants", raw_fragment_data)
             variants = length(raw_variants) == 1 ? map(v-> DBVariant{T}(v, atoms, bonds), raw_variants[1].value) : []
-            
+
             return new(name, path, names, atoms, bonds, connections, properties, variants)
         end
 
@@ -270,7 +270,7 @@ DBFragment(n::DBNode) = DBFragment{Float32}(n)
         if !startswith(n.key, "#include:")
             throw(ArgumentError("DBNameMapping: invalid format!"))
         end
-    
+
         name = split(n.key, ":")[2]
         path = ball_data_path(split(n.value, ":")[1] * ".json")
 
@@ -306,7 +306,7 @@ end
                 fragments = OrderedDict{String, DBFragment{T}}(
                     f.name => f for f in map(DBFragment{T}, raw_fragments[1].value)
                 )
-                
+
                 name_mappings = OrderedDict{String, DBNameMapping}(
                     nm.name => nm for nm in map(DBNameMapping, raw_names[1].value)
                 )
@@ -318,20 +318,20 @@ end
                 return new(fragments, name_mappings, defaults)
             end
         end
-        
+
         throw(ArgumentError("FragmentDB: invalid format!"))
     end
 
-    function FragmentDB{T}(path::String = ball_data_path("fragments/Fragments.db.json")) where {T<:Real}
+    function FragmentDB{T}(path::AbstractString = ball_data_path("fragments/Fragments.db.json")) where {T<:Real}
         jstring = read(path, String)
-        
+
         JSON3.read(jstring, FragmentDB{T})
     end
 end
 StructTypes.StructType(::Type{FragmentDB{T}}) where {T} = StructTypes.CustomStruct()
 StructTypes.lowertype(::Type{FragmentDB{T}}) where {T} = Array{DBNode}
 
-FragmentDB(path::String = ball_data_path("fragments/Fragments.db.json")) = FragmentDB{Float32}(path)
+FragmentDB(path::AbstractString = ball_data_path("fragments/Fragments.db.json")) = FragmentDB{Float32}(path)
 
 function label_terminal_fragments!(ac::AbstractAtomContainer{T}) where {T<:Real}
     # iterate over all chains and label their terminals
@@ -415,7 +415,7 @@ function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB) where {T<:Real}
     best_variant
 end
 
-Base.show(io::IO, fdb::FragmentDB) = 
-    print(io, 
+Base.show(io::IO, fdb::FragmentDB) =
+    print(io,
         "FragmentDB with $(length(fdb.fragments)) fragments, " *
         "$(length(fdb.name_mappings)) mappings, $(length(fdb.defaults)) defaults.")
