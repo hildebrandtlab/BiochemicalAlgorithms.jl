@@ -101,13 +101,13 @@ function _handle_hin_atom!(parser_state::HINParserState{T}) where T
 
             partner_type_field = strip(String(fields[11 + 2*current_bond]))
             partner_type =
-                if partner_type_field == 's'
+                if partner_type_field == "s"
                     BondOrder.Single
-                elseif partner_type_field == 'd'
+                elseif partner_type_field == "d"
                     BondOrder.Double
-                elseif partner_type_field == 't'
+                elseif partner_type_field == "t"
                     BondOrder.Triple
-                elseif partner_type_field == 'a'
+                elseif partner_type_field == "a"
                     BondOrder.Aromatic
                 else
                     BondOrder.Unknown

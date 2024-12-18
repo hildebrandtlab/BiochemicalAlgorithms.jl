@@ -27,6 +27,10 @@
         @test nresidues(sys) == 3
         @test nchains(sys) == 1
         @test nbonds(sys) == 30
+        @test only(bonds(atom_by_name(sys, "OXT"))).order == BondOrder.Aromatic
+        @test count(b -> b.order == BondOrder.Single, bonds(sys)) == 26
+        @test count(b -> b.order == BondOrder.Double, bonds(sys)) == 2
+        @test count(b -> b.order == BondOrder.Aromatic, bonds(sys)) == 2
 
         @test_throws SystemError load_hinfile(ball_data_path("../test/data/ASDFASDFASEFADSFASDFAEW.hin"), T)
         @test_throws MethodError load_hinfile(ball_data_path("../test/data/hinfile_test_invalid.hin"), T)
