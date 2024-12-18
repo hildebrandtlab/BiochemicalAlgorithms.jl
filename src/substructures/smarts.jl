@@ -3,19 +3,19 @@ export
 
 struct SMARTSQuery
     query::String
-    query_graph::MolecularGraph.SMILESMolGraph
+    query_graph::MolecularGraph.SMARTSMolGraph
 
     function SMARTSQuery(query::String)
-        new(query, smartstomol(query))
+        new(query, MolecularGraph.smartstomol(query))
     end
 end
 
 function _to_substructure(name, mol, m; adjacent_bonds=false)
     matched_atoms = keys(m)
 
-    filter_atoms(
-            :number => n -> n ∈ matched_atoms, mol; 
-            name=name, adjacent_bonds=adjacent_bonds
+    filter_atoms(atom -> atom.number ∈ matched_atoms, mol;
+        name = name,
+        adjacent_bonds = adjacent_bonds
     )
 end
 

@@ -27,7 +27,7 @@ end
     atoms::AtomTable{T},
     bonds::BondTable{T},
     properties::Properties = parent.properties
-) where {T, A} = Substructure{Float32, typeof(parent)}(name, parent, atoms, bonds, properties)
+) where {T, A} = Substructure{T, typeof(parent)}(name, parent, atoms, bonds, properties)
 
 function filter_atoms(fn, mol::AbstractAtomContainer{T}; name="", adjacent_bonds=false) where T
     atom_view = filter(fn, atoms(mol))
