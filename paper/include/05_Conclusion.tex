@@ -1,14 +1,14 @@
 
+
 \section{Conclusion}
 
-We have presented a single and modern platform for the rapid application development of molecular structure analysis and simulations. While other Julia packages focused either on a single task like the manipulation of peptides or molecular dynamic simulations, \biochem serves as framework for exploration studies of structure or the proper initialization of structures for molecular simulations through the usage of the fragmentDB. Like its C++ predecessor, \biochem provides a robust but flexible core with additional functionalities. More precisely, the core has been carefully designed using a costume realization of the \texttt{Tables.jl}-interface. Thereby, our platform 
-\begin{itemize}
-	\item can be integrated to other tools using the tables interface
-	\item fits into julia mol sim or BioJulia
-	\item Achievement: \biochem allows the rapid prototyping of molecular analysis 
-	\item Meaning of achievement: interface is so flexible that parts can be interchanged or it is easy to write your own tool not to take care of proper initialization if you want to implement a molecular force field 
-	\item NOVELTY: Do we have one? 
-	\item We believe that \biochem will be very helpful for scientist who want to do structural bioinformatics and don't know much about....additionally: visualization
-	\item \biochem already provides basic functionalities and interfaces for molecular mechanics but much is still to be done e.g., implementation of a docking interface, implementation of other force fields... we still have to do a lot of stuff to be feature-complete to \ball
-	\item 
-\end{itemize}
+In this manuscript, we introduced BiochemicalAlgorithms.jl, a comprehensive framework designed for RAD in the field of structure-based bioinformatics. Unlike many existing Julia packages in this field that typically focus on single tasks, our library serves as a versatile foundation that encompasses a wide range of functionalities, including file I/O, molecular modeling, molecular mechanics methods, and is accompanied by a visualization tool.\\
+Changing our development platform from C++ to Julia has greatly simplified conforming to the design goals: ease-of-use, openness, robustness, and functionality. \\
+
+We believe that our framework facilitates both novice and experienced users in conducting molecular structure analysis with minimal effort. \biochem\ provides a robust yet flexible core with additional functionalities. The integration of the fragment database is particularly valuable for structure preprocessing, including normalization of different naming standards, reconstruction of missing fragments, and bond computation. Additionally, the implemented visualization tool allows for immediate visual inspection of the structures. \\
+Thereby, \biochem\ is not intended to replace functionality already provided by packages inside the Julia ecosystem such as \textit{BioStructures.jl}, but rather to provide a general platform allowing interoperability of functionalities. 
+\biochem includes well-defined interfaces, such as those for molecular force fields, empowering experienced users to implement custom applications.  Table \ref{table2_benchmark_amber} shows timings for our implementation of an AMBER force field in comparison to \ball. These results indicate comparable performance with some tasks being slower in \biochem\. We are committed to improving performance of the force field implementation and working on alternative force field implementations such as CHARMM, which will be available in the near future. \\
+
+Future directions will include an extensive benchmark study to evaluate our implementation against its predecessor, \ball. This will involve creating a modern benchmarking suite in C++ for BALL to allow comparison with results from \textit{BenchmarkTools}.
+
+Overall, we see \biochem as a valuable contribution to the field of structural bioinformatics in Julia, combining ease of use with powerful functionality to support a wide range of applications.

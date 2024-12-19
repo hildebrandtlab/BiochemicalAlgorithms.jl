@@ -1,0 +1,90 @@
+Version: $Id: KernelClone_bench.C,v 1.4 2002/12/21 16:46:18 oliver Exp $
+Cloning w/o bonds: 0.070002 s (weight = 1)
+Cloning: 0.110002 s (weight = 1)
+Creation: 0.050004 s (weight = 1)
+Assignment: 0.050005 s (weight = 1)
+Cloning (create): 0.070005 s (weight = 1)
+Insertion: 0.060004 s (weight = 1)
+Deleting: 0.050001 s (weight = 1)
+0.460023
+Version: $Id: KernelClone_bench.C,v 1.4 2002/12/21 16:46:18 oliver Exp $
+Cloning w/o bonds: 0.110002 s (weight = 1)
+Cloning: 0.150001 s (weight = 1)
+Creation: 0.04001 s (weight = 1)
+Assignment: 0.030004 s (weight = 1)
+Cloning (create): 0.070008 s (weight = 1)
+Insertion: 0.050004 s (weight = 1)
+Deleting: 0.03 s (weight = 1)
+0.480029
+Version: $Id: KernelClone_bench.C,v 1.4 2002/12/21 16:46:18 oliver Exp $
+Cloning w/o bonds: 0.090003 s (weight = 1)
+Cloning: 0.100004 s (weight = 1)
+Creation: 0.040006 s (weight = 1)
+Assignment: 0.020007 s (weight = 1)
+Cloning (create): 0.040004 s (weight = 1)
+Insertion: 0.040006 s (weight = 1)
+Deleting: 0.03 s (weight = 1)
+0.36003
+Version: $Id: KernelClone_bench.C,v 1.4 2002/12/21 16:46:18 oliver Exp $
+Cloning w/o bonds: 0.090001 s (weight = 1)
+Cloning: 0.14 s (weight = 1)
+Creation: 0.040004 s (weight = 1)
+Assignment: 0.070005 s (weight = 1)
+Cloning (create): 0.040007 s (weight = 1)
+Insertion: 0.080006 s (weight = 1)
+Deleting: 0.040002 s (weight = 1)
+0.500025
+Version: $Id: KernelClone_bench.C,v 1.4 2002/12/21 16:46:18 oliver Exp $
+Cloning w/o bonds: 0.090001 s (weight = 1)
+Cloning: 0.120004 s (weight = 1)
+Creation: 0.010006 s (weight = 1)
+Assignment: 0.050004 s (weight = 1)
+Cloning (create): 0.050007 s (weight = 1)
+Insertion: 0.060007 s (weight = 1)
+Deleting: 0.040003 s (weight = 1)
+0.420032
+Version: $Id: KernelClone_bench.C,v 1.4 2002/12/21 16:46:18 oliver Exp $
+Cloning w/o bonds: 0.070001 s (weight = 1)
+Cloning: 0.12 s (weight = 1)
+Creation: 0.040007 s (weight = 1)
+Assignment: 0.030002 s (weight = 1)
+Cloning (create): 0.060006 s (weight = 1)
+Insertion: 0.100006 s (weight = 1)
+Deleting: 0.03 s (weight = 1)
+0.450022
+Version: $Id: KernelClone_bench.C,v 1.4 2002/12/21 16:46:18 oliver Exp $
+Cloning w/o bonds: 0.05 s (weight = 1)
+Cloning: 0.140003 s (weight = 1)
+Creation: 0.040002 s (weight = 1)
+Assignment: 0.060003 s (weight = 1)
+Cloning (create): 0.040008 s (weight = 1)
+Insertion: 0.090006 s (weight = 1)
+Deleting: 0.05 s (weight = 1)
+0.470022
+Version: $Id: KernelClone_bench.C,v 1.4 2002/12/21 16:46:18 oliver Exp $
+Cloning w/o bonds: 0.090003 s (weight = 1)
+Cloning: 0.12 s (weight = 1)
+Creation: 0.050005 s (weight = 1)
+Assignment: 0.040007 s (weight = 1)
+Cloning (create): 0.040004 s (weight = 1)
+Insertion: 0.040005 s (weight = 1)
+Deleting: 0.040002 s (weight = 1)
+0.420026
+Version: $Id: KernelClone_bench.C,v 1.4 2002/12/21 16:46:18 oliver Exp $
+Cloning w/o bonds: 0.090002 s (weight = 1)
+Cloning: 0.120004 s (weight = 1)
+Creation: 0.010008 s (weight = 1)
+Assignment: 0.040001 s (weight = 1)
+Cloning (create): 0.030009 s (weight = 1)
+Insertion: 0.040005 s (weight = 1)
+Deleting: 0.040001 s (weight = 1)
+0.37003
+Version: $Id: KernelClone_bench.C,v 1.4 2002/12/21 16:46:18 oliver Exp $
+Cloning w/o bonds: 0.090001 s (weight = 1)
+Cloning: 0.130004 s (weight = 1)
+Creation: 0.050002 s (weight = 1)
+Assignment: 0.050003 s (weight = 1)
+Cloning (create): 0.060005 s (weight = 1)
+Insertion: 0.070003 s (weight = 1)
+Deleting: 0.030002 s (weight = 1)
+0.48002

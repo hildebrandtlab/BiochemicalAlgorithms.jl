@@ -1,0 +1,70 @@
+Version: $Id: FragmentDB_bench.C,v 1.6 2004/05/27 19:49:57 oliver Exp $
+Creation: 11.3402 s (weight = 0.5)
+  status: Creating fragment DB
+  status: Readig PDB file
+Name normalization: 2.02 s (weight = 0.1)
+Bond building: 0.91 s (weight = 0.1)
+5.96311
+Version: $Id: FragmentDB_bench.C,v 1.6 2004/05/27 19:49:57 oliver Exp $
+Creation: 11.8002 s (weight = 0.5)
+  status: Creating fragment DB
+  status: Readig PDB file
+Name normalization: 2.01 s (weight = 0.1)
+Bond building: 0.93 s (weight = 0.1)
+6.19411
+Version: $Id: FragmentDB_bench.C,v 1.6 2004/05/27 19:49:57 oliver Exp $
+Creation: 11.5702 s (weight = 0.5)
+  status: Creating fragment DB
+  status: Readig PDB file
+Name normalization: 2.02 s (weight = 0.1)
+Bond building: 0.870001 s (weight = 0.1)
+6.07411
+Version: $Id: FragmentDB_bench.C,v 1.6 2004/05/27 19:49:57 oliver Exp $
+Creation: 11.6402 s (weight = 0.5)
+  status: Creating fragment DB
+  status: Readig PDB file
+Name normalization: 2.01 s (weight = 0.1)
+Bond building: 1.04 s (weight = 0.1)
+6.12511
+Version: $Id: FragmentDB_bench.C,v 1.6 2004/05/27 19:49:57 oliver Exp $
+Creation: 11.3702 s (weight = 0.5)
+  status: Creating fragment DB
+  status: Readig PDB file
+Name normalization: 2.09 s (weight = 0.1)
+Bond building: 0.9 s (weight = 0.1)
+5.98411
+Version: $Id: FragmentDB_bench.C,v 1.6 2004/05/27 19:49:57 oliver Exp $
+Creation: 11.6302 s (weight = 0.5)
+  status: Creating fragment DB
+  status: Readig PDB file
+Name normalization: 2.06 s (weight = 0.1)
+Bond building: 0.9 s (weight = 0.1)
+6.11111
+Version: $Id: FragmentDB_bench.C,v 1.6 2004/05/27 19:49:57 oliver Exp $
+Creation: 11.6802 s (weight = 0.5)
+  status: Creating fragment DB
+  status: Readig PDB file
+Name normalization: 2.05 s (weight = 0.1)
+Bond building: 0.93 s (weight = 0.1)
+6.13811
+Version: $Id: FragmentDB_bench.C,v 1.6 2004/05/27 19:49:57 oliver Exp $
+Creation: 11.2602 s (weight = 0.5)
+  status: Creating fragment DB
+  status: Readig PDB file
+Name normalization: 2.06 s (weight = 0.1)
+Bond building: 0.94 s (weight = 0.1)
+5.93011
+Version: $Id: FragmentDB_bench.C,v 1.6 2004/05/27 19:49:57 oliver Exp $
+Creation: 11.3902 s (weight = 0.5)
+  status: Creating fragment DB
+  status: Readig PDB file
+Name normalization: 2.09 s (weight = 0.1)
+Bond building: 0.930001 s (weight = 0.1)
+5.99711
+Version: $Id: FragmentDB_bench.C,v 1.6 2004/05/27 19:49:57 oliver Exp $
+Creation: 11.6902 s (weight = 0.5)
+  status: Creating fragment DB
+  status: Readig PDB file
+Name normalization: 2.04 s (weight = 0.1)
+Bond building: 0.94 s (weight = 0.1)
+6.14311

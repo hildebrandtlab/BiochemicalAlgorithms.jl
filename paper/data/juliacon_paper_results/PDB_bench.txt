@@ -1,0 +1,30 @@
+Version: $Id: PDB_bench.C,v 1.7 2005/02/15 19:18:41 oliver Exp $
+Reading: 1.36001 s (weight = 0.2)
+0.272001
+Version: $Id: PDB_bench.C,v 1.7 2005/02/15 19:18:41 oliver Exp $
+Reading: 1.41001 s (weight = 0.2)
+0.282001
+Version: $Id: PDB_bench.C,v 1.7 2005/02/15 19:18:41 oliver Exp $
+Reading: 1.38001 s (weight = 0.2)
+0.276001
+Version: $Id: PDB_bench.C,v 1.7 2005/02/15 19:18:41 oliver Exp $
+Reading: 1.3 s (weight = 0.2)
+0.260001
+Version: $Id: PDB_bench.C,v 1.7 2005/02/15 19:18:41 oliver Exp $
+Reading: 1.43 s (weight = 0.2)
+0.286001
+Version: $Id: PDB_bench.C,v 1.7 2005/02/15 19:18:41 oliver Exp $
+Reading: 1.50001 s (weight = 0.2)
+0.300001
+Version: $Id: PDB_bench.C,v 1.7 2005/02/15 19:18:41 oliver Exp $
+Reading: 1.61001 s (weight = 0.2)
+0.322002
+Version: $Id: PDB_bench.C,v 1.7 2005/02/15 19:18:41 oliver Exp $
+Reading: 1.39001 s (weight = 0.2)
+0.278001
+Version: $Id: PDB_bench.C,v 1.7 2005/02/15 19:18:41 oliver Exp $
+Reading: 1.42001 s (weight = 0.2)
+0.284001
+Version: $Id: PDB_bench.C,v 1.7 2005/02/15 19:18:41 oliver Exp $
+Reading: 1.27001 s (weight = 0.2)
+0.254002
