@@ -21,22 +21,22 @@ end
 # benchmarking
 amber_suite = SUITE["ForceFields"]["AmberFF"]
 
-amber_suite["Creation"] = @benchmarkable AmberFF(p) (setup=(p=prepare_mol("AmberFF_bench.pdb")))
+amber_suite["Creation"] = @benchmarkable AmberFF(p) (setup=(p=prepare_mol("AmberFF_bench.pdb"))) samples = 1000
 
 p = prepare_mol("AmberFF_bench.pdb")
 
-amber_suite["setup!"]   = @benchmarkable setup!(a_ff) (setup=(a_ff = AmberFF($p)))
+amber_suite["setup!"]   = @benchmarkable setup!(a_ff) (setup=(a_ff = AmberFF($p)))  samples = 1000
 
 a_ff = AmberFF(p)
 setup!(a_ff)
 
-amber_suite["update!"] = @benchmarkable update!($a_ff)
+amber_suite["update!"] = @benchmarkable update!($a_ff) samples = 1000
 
 update!(a_ff)
 
-amber_suite["compute_energy!(::ForceField)"] = @benchmarkable compute_energy!($a_ff)
-amber_suite["compute_forces!(::ForceField)"] = @benchmarkable compute_forces!($a_ff)
+amber_suite["compute_energy!(::ForceField)"] = @benchmarkable compute_energy!($a_ff) samples = 1000
+amber_suite["compute_forces!(::ForceField)"] = @benchmarkable compute_forces!($a_ff) samples = 1000
 
 for i in a_ff.components
-    amber_suite["compute_energy!(::$(i.name))"] = @benchmarkable compute_energy!($i)
+    amber_suite["compute_energy!(::$(i.name))"] = @benchmarkable compute_energy!($i) samples = 1000
 end
