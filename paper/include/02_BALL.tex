@@ -4,11 +4,9 @@
 
 \begin{figure}[t]
 	\centerline{\includegraphics[width=0.5\textwidth]{gfx/BALL-architecture.jpeg}}
-	\caption{\ball's architecture is structured in several layers. Upon the standard libary layer are the foundation classes and ontop of them the kernel. Several module extend the interface for visualization, file import and expoert, molecular mechanics, solvation, structure and NMR. The C++ written frameworkis extended by Python interface for fast scripting purposes. The figure was taken from the official \ball\ documentation \cite{BALLTutorial}.}
+	\caption{\ball's architecture is structured in several layers. Upon the standard libary layer are the foundation classes and ontop of them the \texttt{KERNEL}. Several module extend the interface for visualization, file import and expoert, molecular mechanics, solvation, structure and NMR. The C++ written frameworkis extended by Python interface for fast scripting purposes. The figure was taken from the official \ball\ documentation \cite{BALLTutorial}.}
 	\label{fig:ball_architecture}
 \end{figure}
-
-
 
 
 The main intention for the development of \ball\ as well as for \biochem\ is to generate a framework for rapid prototyping of molecular applications. This section summarizes the key concepts of \ball\ that motivated the design of our project \footnote{An in-depth description of the entire \ball\ framework is beyond the scope of this article. Confer the main publications~\cite{kohlbacher_ballrapid_2000, hildebrandt_ball_2010}  for more details.}\\
@@ -25,7 +23,7 @@ The object-oriented approach facilitates ease of use in combination with the wel
 \end{itemize}
 Hildebrandt \textit{et al.} published an updated version in 2010, featuring  Python bindings alongside installation with the use of CMake as build system -- enhancements that improved usability and openness while allowing easier integration with external packages across different compilers/ operating systems \cite{hildebrandt_ball_2010}. \\
 
-\ball's uniqueness stems from its rich functionality integrated in a single easily extensible open-source platform. Figure \ref{fig:ball_structure} illustrates how kernel classes form three frameworks: the general molecular framework, the protein framework, the nucleic acid framework -- all implemented through composite patterns \cite{gamma1994design}. More precisely, the composite class is the base class for all derived classes representing molecular entities such as \texttt{Atom}, \texttt{Protein}, etc. or container classes \texttt{System}, \texttt{AtomContainer}, and so on. \\ 
+\ball's uniqueness stems from its rich functionality integrated in a single easily extensible open-source platform. Figure \ref{fig:ball_structure} illustrates how \texttt{KERNEL} classes form three frameworks: the general molecular framework, the protein framework, the nucleic acid framework -- all implemented through composite patterns \cite{gamma1994design}. More precisely, the composite class is the base class for all derived classes representing molecular entities such as \texttt{Atom}, \texttt{Protein}, etc. or container classes \texttt{System}, \texttt{AtomContainer}, and so on. \\ 
 
 These frameworks form the basis for the functionalities of the basic components ranging from preprocessing tools (file import/export) to complex analyses (e.g., energy minimization/mapping) alongside advanced solvation methods. 
 \ball\ is a well-tested library ensuring robustness of the provided functionalities. \\
@@ -35,7 +33,7 @@ These frameworks form the basis for the functionalities of the basic components 
 
 \begin{figure}[t]
 	\centerline{\includegraphics[width=0.5\textwidth]{gfx/KERNEL.png}}
-	\caption{UML class diagram of the kernel classes. The kernel classes form three frameworks and are implemented using the composite pattern. The figure was taken from the official \ball\ documentation \cite{BALLTutorial}.}
+	\caption{UML class diagram of the \texttt{KERNEL} classes. The \texttt{KERNEL} classes form three frameworks and are implemented using the composite pattern\cite{gamma1994design}. The figure was taken from the official \ball\ documentation \cite{BALLTutorial}.}
 	\label{fig:ball_structure}
 \end{figure}
 

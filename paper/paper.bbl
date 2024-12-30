@@ -1,9 +1,184 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
-\bibitem{bezanson2017julia}
-Jeff Bezanson, Alan Edelman, Stefan Karpinski, and Viral~B Shah.
-Julia: A fresh approach to numerical computing.
-{\em SIAM review}, 59(1):65--98, 2017.
-\href{http://dx.doi.org/10.1137/141000671}{doi:10.1137/141000671}.
+\bibitem{BALLTutorial}
+{BALL Project Contributors}.
+Ball project tutorial.
+\url{https://github.com/BALL-Project/ball/blob/master/doc/TUTORIAL/}, 2024.
+Accessed: 2024-12-16.
+
+\bibitem{berman2000protein}
+Helen~M. Berman, John Westbrook, Zukang Feng, Gary Gilliland, T.~N. Bhat, Helge
+  Weissig, Ilya~N. Shindyalov, and Philip~E. Bourne.
+The protein data bank.
+{\em Nucleic acids research}, 28(1):235--242, 2000.
+
+\bibitem{Bouchet-Valat2023}
+Milan Bouchet-Valat and Bogumił Kamiński.
+Dataframes.jl: Flexible and fast tabular data in julia.
+{\em Journal of Statistical Software}, 107(4):1--32, 2023.
+\href{http://dx.doi.org/10.18637/jss.v107.i04}{doi:10.18637/jss.v107.i04}.
+
+\bibitem{BouchetValat2018}
+Milan Bouchet-Valat and Jacob Quinn.
+Tables.jl: A table interface for everyone.
+{\em Journal of Open Source Software}, 3(25):776, 2018.
+\href{http://dx.doi.org/10.21105/joss.00776}{doi:10.21105/joss.00776}.
+
+\bibitem{BenchmarkTools.jl-2016}
+Jiahao {Chen} and Jarrett {Revels}.
+{Robust benchmarking in noisy environments}.
+{\em arXiv e-prints}, Aug 2016.
+1608.04295.
+
+\bibitem{Julia_what}
+Julia Community.
+Two language problem. what is it?
+\url{https://discourse.julialang.org/t/two-language-problem-what-is-it/82925},
+  2023.
+Accessed: December 13, 2024.
+
+\bibitem{Doerr2016HTMD}
+Stefan Doerr, Matthew~J. Harvey, Frank Noé, and Gianni De~Fabritiis.
+Htmd: High-throughput molecular dynamics for molecular discovery.
+{\em Journal of Chemical Theory and Computation}, 12(4):1845--1852, 2016.
+\href{http://dx.doi.org/10.1021/acs.jctc.6b00049}{doi:10.1021/acs.jctc.6b00049}.
+
+\bibitem{gamma1994design}
+Erich Gamma, Richard Helm, Ralph Johnson, and John Vlissides.
+{\em Design Patterns: Elements of Reusable Object-Oriented Software}.
+Addison-Wesley Professional, Reading, Massachusetts, 1994.
+
+\bibitem{Greener2024}
+Joe~G Greener.
+Differentiable simulation to develop molecular dynamics force fields for
+  disordered proteins.
+{\em Chemical Science}, 15:4897--4909, 2024.
+
+\bibitem{Greener2020BioStructures}
+Joe~G Greener, Joel Selvaraj, and Ben~J Ward.
+Biostructures.jl: read, write and manipulate macromolecular structures in
+  julia.
+{\em Bioinformatics}, 36(14):4206--4207, 2020.
+\href{http://dx.doi.org/10.1093/bioinformatics/btaa502}{doi:10.1093/bioinformatics/btaa502}.
+
+\bibitem{hildebrandt_ball_2010}
+Andreas Hildebrandt, Anna~Katharina Dehof, Alexander Rurainski, Andreas
+  Bertsch, Marcel Schumann, Nora~C. Toussaint, Andreas Moll, Daniel Stöckel,
+  Stefan Nickels, Sabine~C. Mueller, Hans-Peter Lenhof, and Oliver Kohlbacher.
+{BALL} - biochemical algorithms library 1.3.
+{\em BMC Bioinformatics}, 11(1):531, October 2010.
+\href{http://dx.doi.org/10.1186/1471-2105-11-531}{doi:10.1186/1471-2105-11-531}.
+
+\bibitem{TestItemRunner}
+{julia-vscode}.
+Testitemrunner.jl: Run julia test items.
+\url{https://github.com/julia-vscode/TestItemRunner.jl}, 2022.
+Julia package.
+
+\bibitem{PkgBenchmark}
+{JuliaCI}.
+Pkgbenchmark.jl: Benchmarking tools for julia packages.
+\url{https://github.com/JuliaCI/PkgBenchmark.jl}, 2024.
+Julia package.
+
+\bibitem{OpenGLWebsite}
+{Khronos Group}.
+Opengl - the industry standard for high performance graphics.
+\url{https://www.opengl.org/}, 2024.
+Accessed: 2024-12-16.
+
+\bibitem{kohlbacher_ballrapid_2000}
+Oliver Kohlbacher and Hans-Peter Lenhof.
+{BALL}—rapid software prototyping in computational molecular biology.
+{\em Bioinformatics}, 16(9):815--824, September 2000.
+\href{http://dx.doi.org/10.1093/bioinformatics/16.9.815}{doi:10.1093/bioinformatics/16.9.815}.
+
+\bibitem{Kumar2021}
+Nitin Kumar, Abhinav Jain, Ashwani Kumar, Pankaj Kumar, Anurag Mishra,
+  Kumardeep Chaudhary, and Gajendra~P.S. Raghava.
+Structural bioinformatics resources for sars-cov-2.
+{\em Briefings in Bioinformatics}, 22(3):931--943, 2021.
+\href{http://dx.doi.org/10.1093/bib/bbaa261}{doi:10.1093/bib/bbaa261}.
+
+\bibitem{Morris2009AutoDock4AA}
+Garrett~M. Morris, Ruth Huey, William Lindstrom, Michel~F. Sanner, Richard~K.
+  Belew, David~S. Goodsell, and Arthur~J. Olson.
+Autodock4 and autodocktools4: Automated docking with selective receptor
+  flexibility.
+{\em Journal of Computational Chemistry}, 30(16):2785--2791, 2009.
+\href{http://dx.doi.org/10.1002/jcc.21256}{doi:10.1002/jcc.21256}.
+
+\bibitem{BioJulia}
+BioJulia Organization.
+Biojulia: Julia packages for bioinformatics and computational biology.
+\url{https://github.com/biojulia}.
+Accessed: December 13, 2024.
+
+\bibitem{JuliaMolSim}
+JuliaMolSim Organization.
+Juliamolsim: Molecular simulation in julia.
+\url{https://github.com/JuliaMolSim}.
+Accessed: December 13, 2024.
+
+\bibitem{Ousterhout1998}
+John~K. Ousterhout.
+Scripting: Higher-level programming for the 21st century.
+{\em Computer}, 31(3):23--30, 1998.
+
+\bibitem{ProtoSyn}
+Diogo Santos-Martins and Sérgio~F. Sousa.
+Protosyn.jl.
+https://github.com/sergio-santos-group/ProtoSyn.jl, 2023.
+Julia package.
+
+\bibitem{SchrödingerLiveDesign}
+Inc. Schrödinger.
+Livedesign: Your complete digital molecular design and discovery lab.
+\url{https://www.schrodinger.com/platform/products/livedesign/}.
+Accessed: 2024-12-17.
+
+\bibitem{SchrödingerPPW}
+Inc. Schrödinger.
+Protein preparation wizard.
+\url{https://www.schrodinger.com/life-science/learn/white-papers/protein-preparation-wizard/}.
+Accessed: December 17, 2024.
+
+\bibitem{Julia_accomplish}
+Julia~Data Science.
+What julia aims to accomplish? - the two-language problem.
+\url{https://juliadatascience.io/julia_accomplish}, 2023.
+
+\bibitem{deepmind}
+Andrew~W Senior, Richard Evans, John Jumper, James Kirkpatrick, Laurent Sifre,
+  Tim Green, Chongli Qin, Augustin {\v{Z}}{\'\i}dek, Alexander W~R Nelson, Alex
+  Bridgland, et~al.
+Improved protein structure prediction using potentials from deep learning.
+{\em Nature}, 577(7792):706--710, 2020.
+
+\bibitem{Qt5}
+{The Qt Company}.
+Qt 5.
+\url{https://doc.qt.io/qt-5/}, 2024.
+Accessed: 2024-12-16.
+
+\bibitem{Trott2010}
+Oliver Trott and Arthur~J. Olson.
+Autodock vina: improving the speed and accuracy of docking with a new scoring
+  function, efficient optimization, and multithreading.
+{\em Journal of Computational Chemistry}, 31(2):455--461, 2010.
+\href{http://dx.doi.org/10.1002/jcc.21334}{doi:10.1002/jcc.21334}.
+
+\bibitem{AlphaFoldDB2023}
+Mihaly Varadi, Samuel Anyango, Mandar Deshpande, Jeyan Nair, Felicity Natassia,
+  Gergana Yordanova, Deming Yuan, Oana Stroe, Amos Pajon, Jake McGreig, Quentin
+  Szabo, Tom Kosciolek, Daniel Lowe, Michele Magrane, Andrew~P. Harrison, M.~S.
+  Madhusudhan, Peer Bork, Bence Sipos, David Suveges, Silvio C.~E. Tosatto,
+  Christine~A. Orengo, Christoph Steinbeck, Jiannis Kourelis, Andrew~R. Leach,
+  Gerard~J. Kleywegt, Sameer Velankar, Julian Gough, Óscar Conchillo-Solé,
+  Alex Bateman, Christine~A. Orengo, Sameer Velankar, and Julian Gough.
+Alphafold protein structure database: Updates, enhancements, and future
+  directions.
+{\em Nucleic Acids Research}, 51(D1):D439--D446, 2023.
+\href{http://dx.doi.org/10.1093/nar/gkac1234}{doi:10.1093/nar/gkac1234}.
 
 \end{thebibliography}
