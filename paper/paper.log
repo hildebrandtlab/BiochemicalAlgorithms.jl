@@ -1,78 +1,77 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.11.25) (preloaded format=pdflatex 2022.12.2)  4 SEP 2024 13:22
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.11.15)  30 DEC 2024 21:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**./paper.tex
-(paper.tex
-LaTeX2e <2022-11-01>
-L3 programming layer <2022-11-02> (juliacon.cls
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\helvet.sty
+**paper.tex
+(./paper.tex
+LaTeX2e <2024-11-01>
+L3 programming layer <2024-11-02>
+(./juliacon.cls (c:/texlive/2024/texmf-dist/tex/latex/psnfss/helvet.sty
 Package: helvet 2020/03/25 PSNFSS-v9.3 (WaS) 
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/graphics\keyval.sty
+(c:/texlive/2024/texmf-dist/tex/latex/graphics/keyval.sty
 Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
-\KV@toks@=\toks16
+\KV@toks@=\toks17
 ))
 Document Class: juliacon 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/base\latexsym.sty
+(c:/texlive/2024/texmf-dist/tex/latex/base/latexsym.sty
 Package: latexsym 1998/08/17 v2.2e Standard LaTeX package (lasy symbols)
 \symlasy=\mathgroup4
 LaTeX Font Info:    Overwriting symbol font `lasy' in version `bold'
 (Font)                  U/lasy/m/n --> U/lasy/b/n on input line 52.
 )
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/url\url.sty
-\Urlmuskip=\muskip16
+(c:/texlive/2024/texmf-dist/tex/latex/url/url.sty
+\Urlmuskip=\muskip17
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 )
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/base\inputenc.sty
-Package: inputenc 2021/02/14 v1.3d Input encoding file
-\inpenc@prehook=\toks17
-\inpenc@posthook=\toks18
+(c:/texlive/2024/texmf-dist/tex/latex/base/inputenc.sty
+Package: inputenc 2024/02/08 v1.3d Input encoding file
+\inpenc@prehook=\toks18
+\inpenc@posthook=\toks19
 )
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/base\fontenc.sty
+(c:/texlive/2024/texmf-dist/tex/latex/base/fontenc.sty
 Package: fontenc 2021/04/29 v2.0v Standard LaTeX package
 )
-\trimheight=\dimen140
-\trimwidth=\dimen141
-\typeheight=\dimen142
-\typewidth=\dimen143
-\normaltextheight=\dimen144
-\blindfoliodrop=\dimen145
-\tempbox=\box51
-
-(journal_dat.tex)
-\tempdimen=\dimen146
-\normaltextheight=\dimen147
-\c@secnumbookdepth=\count185
-\c@theorem=\count186
-\c@strategy=\count187
-\c@property=\count188
-\c@proposition=\count189
-\c@exam=\count190
-\c@part=\count191
-\c@section=\count192
-\c@subsection=\count193
-\c@subsubsection=\count194
-\c@paragraph=\count195
-\c@figure=\count196
-\c@table=\count197
-\belowcaptionskip=\skip47
-\tbbox=\box52
-\tabledim=\dimen148
-\@narrowfig=\dimen149
-\@nfigbox=\box53
-\@nfcapbox=\box54
-\@abstract=\box55
-\@terms=\box56
-\@keywords=\box57
-\bibindent=\dimen150
+\trimheight=\dimen141
+\trimwidth=\dimen142
+\typeheight=\dimen143
+\typewidth=\dimen144
+\normaltextheight=\dimen145
+\blindfoliodrop=\dimen146
+\tempbox=\box52
+ (./journal_dat.tex)
+\tempdimen=\dimen147
+\normaltextheight=\dimen148
+\c@secnumbookdepth=\count196
+\c@theorem=\count197
+\c@strategy=\count198
+\c@property=\count199
+\c@proposition=\count266
+\c@exam=\count267
+\c@part=\count268
+\c@section=\count269
+\c@subsection=\count270
+\c@subsubsection=\count271
+\c@paragraph=\count272
+\c@figure=\count273
+\c@table=\count274
+\belowcaptionskip=\skip49
+\tbbox=\box53
+\tabledim=\dimen149
+\@narrowfig=\dimen150
+\@nfigbox=\box54
+\@nfcapbox=\box55
+\@abstract=\box56
+\@terms=\box57
+\@keywords=\box58
+\bibindent=\dimen151
 LaTeX Info: Redefining \cal on input line 900.
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\times.sty
+(c:/texlive/2024/texmf-dist/tex/latex/psnfss/times.sty
 Package: times 2020/03/25 PSNFSS-v9.3 (SPQR) 
 )
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/tools\bm.sty
-Package: bm 2022/01/05 v1.2f Bold Symbol Support (DPC/FMi)
+(c:/texlive/2024/texmf-dist/tex/latex/tools/bm.sty
+Package: bm 2023/12/19 v1.2f Bold Symbol Support (DPC/FMi)
 \symboldoperators=\mathgroup5
 \symboldletters=\mathgroup6
 \symboldsymbols=\mathgroup7
@@ -81,280 +80,276 @@ Package bm Info: No bold for \OMX/cmex/m/n, using \pmb.
 LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 149.
 LaTeX Info: Redefining \bm on input line 219.
 )
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphicx.sty
+(c:/texlive/2024/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 2021/09/16 v1.2d Enhanced LaTeX Graphics (DPC,SPQR)
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphics.sty
-Package: graphics 2022/03/10 v1.4e Standard LaTeX Graphics (DPC,SPQR)
+(c:/texlive/2024/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/graphics\trig.sty
-Package: trig 2021/08/11 v1.11 sin cos tan (DPC)
+(c:/texlive/2024/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 2023/12/02 v1.11 sin cos tan (DPC)
 )
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\graphics.c
-fg
+(c:/texlive/2024/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
 File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
 )
-Package graphics Info: Driver file: pdftex.def on input line 107.
+Package graphics Info: Driver file: pdftex.def on input line 106.
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/graphics-def\pdftex.def
-File: pdftex.def 2022/09/22 v1.2b Graphics/color driver for pdftex
+(c:/texlive/2024/texmf-dist/tex/latex/graphics-def/pdftex.def
+File: pdftex.def 2024/04/13 v1.2c Graphics/color driver for pdftex
 ))
-\Gin@req@height=\dimen151
-\Gin@req@width=\dimen152
+\Gin@req@height=\dimen152
+\Gin@req@width=\dimen153
 )
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\hyperref.sty
-Package: hyperref 2022-11-13 v7.00u Hypertext links for LaTeX
+(c:/texlive/2024/texmf-dist/tex/latex/hyperref/hyperref.sty
+Package: hyperref 2024-11-05 v7.01l Hypertext links for LaTeX
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/generic/ltxcmds\ltxcmds.sty
-Package: ltxcmds 2020-05-10 v1.25 LaTeX kernel commands for general use (HO)
-)
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/generic/iftex\iftex.sty
+(c:/texlive/2024/texmf-dist/tex/generic/iftex/iftex.sty
 Package: iftex 2022/02/03 v1.0f TeX engine tests
 )
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/generic/pdftexcmds\pdftexcmds
-.sty
+(c:/texlive/2024/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty
+Package: kvsetkeys 2022-10-05 v1.19 Key value parser (HO)
+)
+(c:/texlive/2024/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty
+Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
+)
+(c:/texlive/2024/texmf-dist/tex/generic/pdfescape/pdfescape.sty
+Package: pdfescape 2019/12/09 v1.15 Implements pdfTeX's escape features (HO)
+
+(c:/texlive/2024/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty
+Package: ltxcmds 2023-12-04 v1.26 LaTeX kernel commands for general use (HO)
+)
+(c:/texlive/2024/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty
 Package: pdftexcmds 2020-06-27 v0.33 Utility functions of pdfTeX for LuaTeX (HO
 )
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/generic/infwarerr\infwarerr.s
-ty
+(c:/texlive/2024/texmf-dist/tex/generic/infwarerr/infwarerr.sty
 Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
 )
 Package pdftexcmds Info: \pdf@primitive is available.
 Package pdftexcmds Info: \pdf@ifprimitive is available.
 Package pdftexcmds Info: \pdfdraftmode found.
-)
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/kvsetkeys\kvsetkeys.sty
-Package: kvsetkeys 2022-10-05 v1.19 Key value parser (HO)
-)
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/generic/kvdefinekeys\kvdefine
-keys.sty
-Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
-)
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/generic/pdfescape\pdfescape.s
-ty
-Package: pdfescape 2019/12/09 v1.15 Implements pdfTeX's escape features (HO)
-) (C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/hycolor\hycolor.sty
+))
+(c:/texlive/2024/texmf-dist/tex/latex/hycolor/hycolor.sty
 Package: hycolor 2020-01-27 v1.10 Color options for hyperref/bookmark (HO)
 )
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/letltxmacro\letltxmacro
-.sty
-Package: letltxmacro 2019/12/03 v1.6 Let assignment for LaTeX macros (HO)
-)
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/auxhook\auxhook.sty
-Package: auxhook 2019-12-17 v1.6 Hooks for auxiliary files (HO)
-)
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\nameref.sty
-Package: nameref 2022-05-17 v2.50 Cross-referencing by name of section
+(c:/texlive/2024/texmf-dist/tex/latex/hyperref/nameref.sty
+Package: nameref 2023-11-26 v2.56 Cross-referencing by name of section
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/refcount\refcount.sty
+(c:/texlive/2024/texmf-dist/tex/latex/refcount/refcount.sty
 Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
 )
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/generic/gettitlestring\gettit
-lestring.sty
+(c:/texlive/2024/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty
 Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/kvoptions\kvoptions.sty
+(c:/texlive/2024/texmf-dist/tex/latex/kvoptions/kvoptions.sty
 Package: kvoptions 2022-06-15 v3.15 Key value format for package options (HO)
 ))
-\c@section@level=\count198
+\c@section@level=\count275
 )
-\@linkdim=\dimen153
-\Hy@linkcounter=\count199
-\Hy@pagecounter=\count266
- (C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\pd1enc.def
-File: pd1enc.def 2022-11-13 v7.00u Hyperref: PDFDocEncoding definition (HO)
+(c:/texlive/2024/texmf-dist/tex/latex/etoolbox/etoolbox.sty
+Package: etoolbox 2020/10/05 v2.5k e-TeX tools for LaTeX (JAW)
+\etb@tempcnta=\count276
+)
+(c:/texlive/2024/texmf-dist/tex/generic/stringenc/stringenc.sty
+Package: stringenc 2019/11/29 v1.12 Convert strings between diff. encodings (HO
+)
+)
+\@linkdim=\dimen154
+\Hy@linkcounter=\count277
+\Hy@pagecounter=\count278
+
+(c:/texlive/2024/texmf-dist/tex/latex/hyperref/pd1enc.def
+File: pd1enc.def 2024-11-05 v7.01l Hyperref: PDFDocEncoding definition (HO)
 Now handling font encoding PD1 ...
 ... no UTF-8 mapping file for font encoding PD1
-) (C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/generic/intcalc\intcalc.sty
+)
+(c:/texlive/2024/texmf-dist/tex/generic/intcalc/intcalc.sty
 Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
 )
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/generic/etexcmds\etexcmds.sty
-Package: etexcmds 2019/12/15 v1.7 Avoid name clashes with e-TeX commands (HO)
-)
-\Hy@SavedSpaceFactor=\count267
- (C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\puenc.def
-File: puenc.def 2022-11-13 v7.00u Hyperref: PDF Unicode definition (HO)
+\Hy@SavedSpaceFactor=\count279
+
+(c:/texlive/2024/texmf-dist/tex/latex/hyperref/puenc.def
+File: puenc.def 2024-11-05 v7.01l Hyperref: PDF Unicode definition (HO)
 Now handling font encoding PU ...
 ... no UTF-8 mapping file for font encoding PU
 )
-Package hyperref Info: Hyper figures OFF on input line 4162.
-Package hyperref Info: Link nesting OFF on input line 4167.
-Package hyperref Info: Hyper index ON on input line 4170.
-Package hyperref Info: Plain pages OFF on input line 4177.
-Package hyperref Info: Backreferencing OFF on input line 4182.
+Package hyperref Info: Hyper figures OFF on input line 4157.
+Package hyperref Info: Link nesting OFF on input line 4162.
+Package hyperref Info: Hyper index ON on input line 4165.
+Package hyperref Info: Plain pages OFF on input line 4172.
+Package hyperref Info: Backreferencing OFF on input line 4177.
 Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
-Package hyperref Info: Bookmarks ON on input line 4410.
-\c@Hy@tempcnt=\count268
-LaTeX Info: Redefining \url on input line 4748.
-\XeTeXLinkMargin=\dimen154
+Package hyperref Info: Bookmarks ON on input line 4424.
+\c@Hy@tempcnt=\count280
+LaTeX Info: Redefining \url on input line 4763.
+\XeTeXLinkMargin=\dimen155
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/generic/bitset\bitset.sty
+(c:/texlive/2024/texmf-dist/tex/generic/bitset/bitset.sty
 Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/generic/bigintcalc\bigintcalc
-.sty
+(c:/texlive/2024/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty
 Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO
 )
 ))
-\Fld@menulength=\count269
-\Field@Width=\dimen155
-\Fld@charsize=\dimen156
-Package hyperref Info: Hyper figures OFF on input line 6027.
-Package hyperref Info: Link nesting OFF on input line 6032.
-Package hyperref Info: Hyper index ON on input line 6035.
-Package hyperref Info: backreferencing OFF on input line 6042.
-Package hyperref Info: Link coloring OFF on input line 6047.
-Package hyperref Info: Link coloring with OCG OFF on input line 6052.
-Package hyperref Info: PDF/A mode OFF on input line 6057.
+\Fld@menulength=\count281
+\Field@Width=\dimen156
+\Fld@charsize=\dimen157
+Package hyperref Info: Hyper figures OFF on input line 6042.
+Package hyperref Info: Link nesting OFF on input line 6047.
+Package hyperref Info: Hyper index ON on input line 6050.
+Package hyperref Info: backreferencing OFF on input line 6057.
+Package hyperref Info: Link coloring OFF on input line 6062.
+Package hyperref Info: Link coloring with OCG OFF on input line 6067.
+Package hyperref Info: PDF/A mode OFF on input line 6072.
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/base\atbegshi-ltx.sty
+(c:/texlive/2024/texmf-dist/tex/latex/base/atbegshi-ltx.sty
 Package: atbegshi-ltx 2021/01/10 v1.0c Emulation of the original atbegshi
 package with kernel methods
 )
-\Hy@abspage=\count270
-\c@Item=\count271
-\c@Hfootnote=\count272
+\Hy@abspage=\count282
+\c@Item=\count283
+\c@Hfootnote=\count284
 )
 Package hyperref Info: Driver (autodetected): hpdftex.
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\hpdftex.def
-File: hpdftex.def 2022-11-13 v7.00u Hyperref driver for pdfTeX
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/base\atveryend-ltx.sty
+(c:/texlive/2024/texmf-dist/tex/latex/hyperref/hpdftex.def
+File: hpdftex.def 2024-11-05 v7.01l Hyperref driver for pdfTeX
+
+(c:/texlive/2024/texmf-dist/tex/latex/base/atveryend-ltx.sty
 Package: atveryend-ltx 2020/08/19 v1.0a Emulation of the original atveryend pac
 kage
 with kernel methods
 )
-\Fld@listcount=\count273
-\c@bookmark@seq@number=\count274
+\Fld@listcount=\count285
+\c@bookmark@seq@number=\count286
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/rerunfilecheck\rerunfil
-echeck.sty
+(c:/texlive/2024/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty
 Package: rerunfilecheck 2022-07-10 v1.10 Rerun checks for auxiliary files (HO)
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/generic/uniquecounter\uniquec
-ounter.sty
+(c:/texlive/2024/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty
 Package: uniquecounter 2019/12/15 v1.4 Provide unlimited unique counter (HO)
 )
 Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 85.
 )
-\Hy@SectionHShift=\skip48
-) (jlcode.sty
+\Hy@SectionHShift=\skip50
+)
+(./jlcode.sty
 -- Package: `jlcode' 2.1 <2018/03/06> --
 Package: jlcode 2018/03/06 2.1
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/listings\listings.sty
-\lst@mode=\count275
-\lst@gtempboxa=\box58
-\lst@token=\toks19
-\lst@length=\count276
-\lst@currlwidth=\dimen157
-\lst@column=\count277
-\lst@pos=\count278
-\lst@lostspace=\dimen158
-\lst@width=\dimen159
-\lst@newlines=\count279
-\lst@lineno=\count280
-\abovecaptionskip=\skip49
-\belowcaptionskip=\skip50
-\lst@maxwidth=\dimen160
+(c:/texlive/2024/texmf-dist/tex/latex/listings/listings.sty
+\lst@mode=\count287
+\lst@gtempboxa=\box59
+\lst@token=\toks20
+\lst@length=\count288
+\lst@currlwidth=\dimen158
+\lst@column=\count289
+\lst@pos=\count290
+\lst@lostspace=\dimen159
+\lst@width=\dimen160
+\lst@newlines=\count291
+\lst@lineno=\count292
+\abovecaptionskip=\skip51
+\belowcaptionskip=\skip52
+\lst@maxwidth=\dimen161
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstmisc.sty
-File: lstmisc.sty 2020/03/24 1.8d (Carsten Heinz)
-\c@lstnumber=\count281
-\lst@skipnumbers=\count282
-\lst@framebox=\box59
+(c:/texlive/2024/texmf-dist/tex/latex/listings/lstpatch.sty
+File: lstpatch.sty 2024/09/23 1.10c (Carsten Heinz)
 )
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/listings\listings.cfg
-File: listings.cfg 2020/03/24 1.8d listings configuration
+(c:/texlive/2024/texmf-dist/tex/latex/listings/lstmisc.sty
+File: lstmisc.sty 2024/09/23 1.10c (Carsten Heinz)
+\c@lstnumber=\count293
+\lst@skipnumbers=\count294
+\lst@framebox=\box60
+)
+(c:/texlive/2024/texmf-dist/tex/latex/listings/listings.cfg
+File: listings.cfg 2024/09/23 1.10c listings configuration
 ))
-Package: listings 2020/03/24 1.8d (Carsten Heinz)
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/xcolor\xcolor.sty
-Package: xcolor 2022/06/12 v2.14 LaTeX color extensions (UK)
+Package: listings 2024/09/23 1.10c (Carsten Heinz)
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\color.cfg
+(c:/texlive/2024/texmf-dist/tex/latex/xcolor/xcolor.sty
+Package: xcolor 2024/09/29 v3.02 LaTeX color extensions (UK)
+
+(c:/texlive/2024/texmf-dist/tex/latex/graphics-cfg/color.cfg
 File: color.cfg 2016/01/02 v1.6 sample color configuration
 )
-Package xcolor Info: Driver file: pdftex.def on input line 227.
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/graphics\mathcolor.ltx)
-Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1353.
-Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1357.
-Package xcolor Info: Model `RGB' extended on input line 1369.
-Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1371.
-Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1372.
-Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1373.
-Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1374.
-Package xcolor Info: Model `Gray' substituted by `gray' on input line 1375.
-Package xcolor Info: Model `wave' substituted by `hsb' on input line 1376.
-) (C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/base\textcomp.sty
-Package: textcomp 2020/02/02 v2.0n Standard LaTeX package
+Package xcolor Info: Driver file: pdftex.def on input line 274.
+
+(c:/texlive/2024/texmf-dist/tex/latex/graphics/mathcolor.ltx)
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1349.
+Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1353.
+Package xcolor Info: Model `RGB' extended on input line 1365.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1367.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1368.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1369.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1370.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1371.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1372.
 )
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\amssymb.sty
+(c:/texlive/2024/texmf-dist/tex/latex/base/textcomp.sty
+Package: textcomp 2024/04/24 v2.1b Standard LaTeX package
+)
+(c:/texlive/2024/texmf-dist/tex/latex/amsfonts/amssymb.sty
 Package: amssymb 2013/01/14 v3.01 AMS font symbols
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\amsfonts.sty
+(c:/texlive/2024/texmf-dist/tex/latex/amsfonts/amsfonts.sty
 Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
-\@emptytoks=\toks20
+\@emptytoks=\toks21
 \symAMSa=\mathgroup9
 \symAMSb=\mathgroup10
 LaTeX Font Info:    Redeclaring math symbol \hbar on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
 (Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
-)) (C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/eurosym\eurosym.sty
+))
+(c:/texlive/2024/texmf-dist/tex/latex/eurosym/eurosym.sty
 Package: eurosym 1998/08/06 v1.1 European currency symbol ``Euro''
-\@eurobox=\box60
+\@eurobox=\box61
 )
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/base\fontenc.sty
+(c:/texlive/2024/texmf-dist/tex/latex/base/fontenc.sty
 Package: fontenc 2021/04/29 v2.0v Standard LaTeX package
 LaTeX Font Info:    Trying to load font information for T1+ptm on input line 11
-2.
+6.
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\t1ptm.fd
+(c:/texlive/2024/texmf-dist/tex/latex/psnfss/t1ptm.fd
 File: t1ptm.fd 2001/06/04 font definitions for T1/ptm.
 ))
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/tools\calc.sty
-Package: calc 2017/05/25 v4.3 Infix arithmetic (KKT,FJ)
-\calc@Acount=\count283
-\calc@Bcount=\count284
-\calc@Adimen=\dimen161
-\calc@Bdimen=\dimen162
-\calc@Askip=\skip51
-\calc@Bskip=\skip52
+(c:/texlive/2024/texmf-dist/tex/latex/tools/calc.sty
+Package: calc 2023/07/08 v4.3 Infix arithmetic (KKT,FJ)
+\calc@Acount=\count295
+\calc@Bcount=\count296
+\calc@Adimen=\dimen162
+\calc@Bdimen=\dimen163
+\calc@Askip=\skip53
+\calc@Bskip=\skip54
 LaTeX Info: Redefining \setlength on input line 80.
 LaTeX Info: Redefining \addtolength on input line 81.
-\calc@Ccount=\count285
-\calc@Cskip=\skip53
+\calc@Ccount=\count297
+\calc@Cskip=\skip55
 )
-\bfem=\skip54
-LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 4
-14.
-
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/base\t1cmtt.fd
-File: t1cmtt.fd 2022/07/10 v2.5l Standard LaTeX font definitions
+\bfem=\skip56
+\xmrgn=\skip57
 )
-\xmrgn=\skip55
-)
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/preprint\authblk.sty
+(c:/texlive/2024/texmf-dist/tex/latex/preprint/authblk.sty
 Package: authblk 2001/02/27 1.3 (PWD)
-\affilsep=\skip56
-\@affilsep=\skip57
-\c@Maxaffil=\count286
-\c@authors=\count287
-\c@affil=\count288
+\affilsep=\skip58
+\@affilsep=\skip59
+\c@Maxaffil=\count298
+\c@authors=\count299
+\c@affil=\count300
 )
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/caption\caption.sty
+(c:/texlive/2024/texmf-dist/tex/latex/caption/caption.sty
 Package: caption 2023/08/05 v3.6o Customizing captions (AR)
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/caption\caption3.sty
+(c:/texlive/2024/texmf-dist/tex/latex/caption/caption3.sty
 Package: caption3 2023/07/31 v2.4d caption3 kernel (AR)
-\caption@tempdima=\dimen163
-\captionmargin=\dimen164
-\caption@leftmargin=\dimen165
-\caption@rightmargin=\dimen166
-\caption@width=\dimen167
-\caption@indent=\dimen168
-\caption@parindent=\dimen169
-\caption@hangindent=\dimen170
+\caption@tempdima=\dimen164
+\captionmargin=\dimen165
+\caption@leftmargin=\dimen166
+\caption@rightmargin=\dimen167
+\caption@width=\dimen168
+\caption@indent=\dimen169
+\caption@parindent=\dimen170
+\caption@hangindent=\dimen171
 Package caption Info: Unknown document class (or package),
 (caption)             standard defaults will be used.
 Package caption Info: \@makecaption = \long macro:#1#2->\ifx \FigName \@captype
@@ -372,198 +367,185 @@ Package caption Warning: Unknown document class (or package),
 (caption)                standard defaults will be used.
 See the caption package documentation for explanation.
 
-\c@caption@flags=\count289
-\c@continuedfloat=\count290
+\c@caption@flags=\count301
+\c@continuedfloat=\count302
 Package caption Info: hyperref package is loaded.
 Package caption Info: listings package is loaded.
-))
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-pdf
-tex.def
-File: l3backend-pdftex.def 2022-10-26 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count291
-\l__pdf_internal_box=\box61
-) (paper.aux)
+)) (c:/texlive/2024/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+File: l3backend-pdftex.def 2024-05-08 L3 backend support: PDF output (pdfTeX)
+\l__color_backend_stack_int=\count303
+\l__pdf_internal_box=\box62
+)
+(./paper.aux)
 \openout1 = `paper.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 6.
-LaTeX Font Info:    ... okay on input line 6.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 6.
-LaTeX Font Info:    ... okay on input line 6.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 6.
-LaTeX Font Info:    ... okay on input line 6.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 6.
-LaTeX Font Info:    ... okay on input line 6.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 6.
-LaTeX Font Info:    ... okay on input line 6.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 6.
-LaTeX Font Info:    ... okay on input line 6.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 6.
-LaTeX Font Info:    ... okay on input line 6.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 6.
-LaTeX Font Info:    ... okay on input line 6.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 6.
-LaTeX Font Info:    ... okay on input line 6.
-
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pdf.mk
-ii
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+ (c:/texlive/2024/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count292
-\scratchdimen=\dimen171
-\scratchbox=\box62
-\nofMPsegments=\count293
-\nofMParguments=\count294
-\everyMPshowfont=\toks21
-\MPscratchCnt=\count295
-\MPscratchDim=\dimen172
-\MPnumerator=\count296
-\makeMPintoPDFobject=\count297
-\everyMPtoPDFconversion=\toks22
-)
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/epstopdf-pkg\epstopdf-b
-ase.sty
+\scratchcounter=\count304
+\scratchdimen=\dimen172
+\scratchbox=\box63
+\nofMPsegments=\count305
+\nofMParguments=\count306
+\everyMPshowfont=\toks22
+\MPscratchCnt=\count307
+\MPscratchDim=\dimen173
+\MPnumerator=\count308
+\makeMPintoPDFobject=\count309
+\everyMPtoPDFconversion=\toks23
+) (c:/texlive/2024/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 85.
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/00miktex\epstopdf-sys.c
-fg
-File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
+(c:/texlive/2024/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
+e
 ))
-Package hyperref Info: Link coloring OFF on input line 6.
- (paper.out) (paper.out)
+Package hyperref Info: Link coloring OFF on input line 15.
+
+(./paper.out) (./paper.out)
 \@outlinefile=\write3
 \openout3 = `paper.out'.
 
-\c@lstlisting=\count298
+\c@lstlisting=\count310
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
- (header.tex)
-<gfx/logojuliacon.pdf, id=87, 430.91032pt x 145.96547pt>
+ (./header.tex)
+<gfx/logojuliacon.pdf, id=52, 430.91032pt x 145.96547pt>
 File: gfx/logojuliacon.pdf Graphic file (type pdf)
 <use gfx/logojuliacon.pdf>
-Package pdftex.def Info: gfx/logojuliacon.pdf  used on input line 10.
+Package pdftex.def Info: gfx/logojuliacon.pdf  used on input line 19.
 (pdftex.def)             Requested size: 72.26999pt x 24.4797pt.
-LaTeX Font Info:    Trying to load font information for U+lasy on input line 10
+LaTeX Font Info:    Trying to load font information for U+lasy on input line 19
 .
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/base\ulasy.fd
+(c:/texlive/2024/texmf-dist/tex/latex/base/ulasy.fd
 File: ulasy.fd 1998/08/17 v2.2e LaTeX symbol font definitions
 )
-LaTeX Font Info:    Trying to load font information for U+msa on input line 10.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 19.
 
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsa.fd
+(c:/texlive/2024/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 10.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 19.
 
 
-(C:\Users\Jenny\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.fd
+(c:/texlive/2024/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    Font shape `U/lasy/b/n' in size <8> not available
-(Font)              Font shape `U/lasy/m/n' tried instead on input line 10.
+(Font)              Font shape `U/lasy/m/n' tried instead on input line 19.
 LaTeX Font Info:    Font shape `U/lasy/b/n' in size <6> not available
-(Font)              Font shape `U/lasy/m/n' tried instead on input line 10.
-LaTeX Font Info:    Font shape `U/lasy/b/n' in size <7> not available
-(Font)              Font shape `U/lasy/m/n' tried instead on input line 14.
-LaTeX Font Info:    Font shape `U/lasy/b/n' in size <5> not available
-(Font)              Font shape `U/lasy/m/n' tried instead on input line 14.
-LaTeX Font Info:    Font shape `U/lasy/b/n' in size <9> not available
-(Font)              Font shape `U/lasy/m/n' tried instead on input line 21.
+(Font)              Font shape `U/lasy/m/n' tried instead on input line 19.
 
-Underfull \hbox (badness 3323) in paragraph at lines 59--65
-\T1/ptm/m/n/9 If the file [][]\T1/cmtt/m/n/9 juliacon.cls []\T1/ptm/m/n/9 is no
-t al-ready in the ap-pro-pri-
+(./include/00_Abstract.tex) (./include/01_Introduction.tex
+Underfull \hbox (badness 10000) in paragraph at lines 4--8
+
+ []
+
+
+
+
+Underfull \hbox (badness 1742) in paragraph at lines 9--13
+\T1/ptm/m/n/9 typ-i-cally chal-leng-ing due to its in-ter-dis-ci-plinary na-tur
+e. The
  []
 
 
-Underfull \hbox (badness 3815) in paragraph at lines 59--65
-\T1/ptm/m/n/9 ate sys-tem di-rec-tory for L[]T[]X files, ei-ther ar-range for i
-t
- []
-
-
-Underfull \hbox (badness 6758) in paragraph at lines 59--65
-\T1/ptm/m/n/9 to be put there or copy it to your work-ing di-rec-tory.
- []
-
-
-Underfull \hbox (badness 3179) in paragraph at lines 59--65
-\T1/ptm/m/n/9 The [][]\T1/cmtt/m/n/9 juliacon []\T1/ptm/m/n/9 doc-u-ment class 
-is im-ple-mented as a com-
- []
-
-
-Underfull \hbox (badness 2903) in paragraph at lines 59--65
-\T1/ptm/m/n/9 plete class, not a doc-u-ment style op-tion. In or-der to use
- []
-
-
-Underfull \hbox (badness 1721) in paragraph at lines 59--65
-\T1/ptm/m/n/9 the [][]\T1/cmtt/m/n/9 juliacon  document class, replace \verb[]\
-T1/ptm/m/n/9 article| by
- []
-
-
-Underfull \hbox (badness 2626) in paragraph at lines 83--84
-\T1/ptm/m/n/9 The fol-low-ing ad-di-tional style op-tion is avail-able with the
+Underfull \hbox (badness 10000) in paragraph at lines 9--13
 
  []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
 
 
 Underfull \hbox (badness 10000) has occurred while \output is active
   
  []
 
-[1{C:/Users/Jenny/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}
+[1{c:/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{c:/texlive/202
+4/texmf-dist/fonts/enc/dvips/base/8r.enc}
 Non-PDF special ignored!
 <special> papersize=8.5in,11in
 
 
- <./gfx/logojuliacon.pdf>]
-Overfull \hbox (0.91617pt too wide) in paragraph at lines 161--161
-[]    \T1/cmtt/m/n/9 \normalsize 1st author's email address \\[-3pt][] 
+{c:/texlive/2024/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc} <./gfx/lo
+gojuliacon.pdf>]
+Underfull \hbox (badness 10000) in paragraph at lines 27--28
+
+ []
+
+) (./include/02_BALL.tex
+<gfx/BALL-architecture.jpeg, id=89, 556.0775pt x 230.8625pt>
+File: gfx/BALL-architecture.jpeg Graphic file (type jpg)
+<use gfx/BALL-architecture.jpeg>
+Package pdftex.def Info: gfx/BALL-architecture.jpeg  used on input line 6.
+(pdftex.def)             Requested size: 252.0pt x 104.6234pt.
+LaTeX Font Info:    Font shape `U/lasy/b/n' in size <9> not available
+(Font)              Font shape `U/lasy/m/n' tried instead on input line 12.
+LaTeX Font Info:    Font shape `U/lasy/b/n' in size <5> not available
+(Font)              Font shape `U/lasy/m/n' tried instead on input line 12.
+
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 22--23
+
  []
 
 
-Overfull \hbox (0.91617pt too wide) in paragraph at lines 161--161
-[]    \T1/cmtt/m/n/9 \normalsize 2nd author's email address \\[-3pt][] 
+Underfull \hbox (badness 10000) in paragraph at lines 24--25
+
  []
 
 
-Overfull \hbox (0.91617pt too wide) in paragraph at lines 161--161
-[]    \T1/cmtt/m/n/9 \normalsize 3rd author's email address \\[-3pt][] 
- []
-
-Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 187.
-LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <7> not available
-(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 188.
-
-Overfull \hbox (0.91617pt too wide) in paragraph at lines 229--229
-[]\T1/cmtt/m/n/9 \keywords{Face animation, image-based modelling...}[] 
+Underfull \hbox (badness 1137) in paragraph at lines 26--27
+\T1/ptm/m/n/9 the com-pos-ite class is the base class for all de-rived classes
  []
 
 
-Overfull \hbox (0.91617pt too wide) in paragraph at lines 229--229
-[]\T1/cmtt/m/n/9 the construction of the classification data related[] 
+Underfull \hbox (badness 10000) in paragraph at lines 26--27
+
  []
 
 
-Overfull \hbox (0.91617pt too wide) in paragraph at lines 229--229
-[]\T1/cmtt/m/n/9 process. The parametric identification of the local[] 
+Underfull \hbox (badness 10000) in paragraph at lines 28--30
+
  []
 
+<gfx/KERNEL.png, id=101, 578.16pt x 300.6432pt>
+File: gfx/KERNEL.png Graphic file (type png)
+<use gfx/KERNEL.png>
+Package pdftex.def Info: gfx/KERNEL.png  used on input line 35.
+(pdftex.def)             Requested size: 252.0pt x 131.0402pt.
+) (./include/03_BiochemicalAlgorithms.tex
+<gfx/uml.png, id=106, 749.199pt x 542.025pt>
+File: gfx/uml.png Graphic file (type png)
+<use gfx/uml.png>
+Package pdftex.def Info: gfx/uml.png  used on input line 7.
+(pdftex.def)             Requested size: 426.79134pt x 308.7755pt.
 
-Overfull \hbox (0.91617pt too wide) in paragraph at lines 229--229
-[]\T1/cmtt/m/n/9 models is realized by a new recursive algorithm for[] 
- []
-
-
-Overfull \hbox (0.91617pt too wide) in paragraph at lines 229--229
-[]\T1/cmtt/m/n/9 on line identification of systems with unknown time[] 
- []
 
 
 Overfull \vbox (2.39996pt too high) has occurred while \output is active []
@@ -573,38 +555,61 @@ Underfull \hbox (badness 10000) has occurred while \output is active
   \T1/ptm/m/n/9 2
  []
 
-[2]
-<juliagraphs.png, id=116, 200.75pt x 200.75pt>
-File: juliagraphs.png Graphic file (type png)
-<use juliagraphs.png>
-Package pdftex.def Info: juliagraphs.png  used on input line 313.
-(pdftex.def)             Requested size: 113.81102pt x 113.81297pt.
+[2 <./gfx/BALL-architecture.jpeg>]
+Underfull \hbox (badness 10000) in paragraph at lines 18--19
 
-Overfull \hbox (19.81155pt too wide) in paragraph at lines 338--338
-[]\T1/cmtt/m/n/9 \centerline{\includegraphics[width=20pc]{Graphics.eps}}[] 
  []
 
 
-Underfull \hbox (badness 2080) in paragraph at lines 339--343
-\T1/ptm/m/n/9 Figures can be re-sized us-ing first and sec-ond ar-gu-ment of
+Underfull \hbox (badness 2189) in paragraph at lines 20--26
+\T1/ptm/m/n/9 Moreover, knowl-edge sur-round-ing uti-lized pro-gram-ming lan-
  []
 
 
-Underfull \hbox (badness 1248) in paragraph at lines 344--348
-[]\T1/ptm/m/n/9 Cross-referencing of fig-ures, ta-bles, and num-bered, dis-play
-ed
+Underfull \vbox (badness 5331) has occurred while \output is active []
+
+
+
+
+Underfull \hbox (badness 3471) in paragraph at lines 39--40
+\T1/ptm/m/n/9 The core rep-re-sen-ta-tion in Bio-chem-i-calAl-go-rithms.jl cen-
+ters
  []
 
 
-Underfull \hbox (badness 1158) in paragraph at lines 344--348
-\T1/ptm/m/n/9 equa-tions us-ing the [][]\T1/cmtt/m/n/9 \label []\T1/ptm/m/n/9 a
-nd [][]\T1/cmtt/m/n/9 \ref []\T1/ptm/m/n/9 com-mands is en-cour-
+Underfull \hbox (badness 10000) in paragraph at lines 39--40
+
  []
 
 
-Underfull \hbox (badness 1371) in paragraph at lines 344--348
-\T1/ptm/m/n/9 aged. For ex-am-ple, in ref-er-enc-ing Fig-ure 1 above, we used
+Underfull \hbox (badness 2065) in paragraph at lines 41--43
+\T1/ptm/m/n/9 con-tributes sub-stan-tially to the frame-work's ef-fi-ciency. Af
+-ter
  []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 41--43
+\T1/ptm/m/n/9 The cus-tom im-ple-men-ta-tion main-tains com-pat-i-bil-ity with
+ []
+
+
+Underfull \hbox (badness 1062) in paragraph at lines 41--43
+\T1/ptm/m/n/9 DataFrames.jl through the shared Ta-bles.jl in-ter-face, al-low-i
+ng
+ []
+
+) (./include/04_Application.tex
+<gfx/biovis-2.png, id=141, 1067.6688pt x 341.1144pt>
+File: gfx/biovis-2.png Graphic file (type png)
+<use gfx/biovis-2.png>
+Package pdftex.def Info: gfx/biovis-2.png  used on input line 7.
+(pdftex.def)             Requested size: 512.1496pt x 163.63414pt.
+
+Overfull \hbox (8.1496pt too wide) in paragraph at lines 7--8
+[][] 
+ []
+
+
 
 
 Overfull \vbox (2.39996pt too high) has occurred while \output is active []
@@ -614,17 +619,18 @@ Underfull \hbox (badness 10000) has occurred while \output is active
   \T1/ptm/m/n/9 3
  []
 
-[3 <./juliagraphs.png>]
-Overfull \hbox (0.91617pt too wide) in paragraph at lines 466--466
-[]\T1/cmtt/m/n/9 Equation~(\ref{eq:samplevar}) gives the formula for[] 
- []
+[3 <./gfx/KERNEL.png>]
+
+Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
+nput line 21.
+LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <7> not available
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 22.
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 502--506
-[]\T1/ptm/m/it/9 Four
- []
 
-(bib.tex (paper.bbl))
+
 Overfull \vbox (2.39996pt too high) has occurred while \output is active []
 
 
@@ -632,37 +638,337 @@ Underfull \hbox (badness 10000) has occurred while \output is active
   \T1/ptm/m/n/9 4
  []
 
-[4] (paper.aux)
+[4 <./gfx/uml.png>]
+Underfull \hbox (badness 1603) in paragraph at lines 66--67
+\T1/ptm/m/n/9 This ex-am-ple show-cases Bio-chem-i-calAl-go-rithms.jl's ex-ten-
+sive
+ []
+
+
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 97--100
+
+ []
+
+(c:/texlive/2024/texmf-dist/tex/latex/listings/lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(c:/texlive/2024/texmf-dist/tex/latex/listings/lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+(c:/texlive/2024/texmf-dist/tex/latex/listings/lstmisc.sty
+File: lstmisc.sty 2024/09/23 1.10c (Carsten Heinz)
+)
+Underfull \hbox (badness 10000) in paragraph at lines 149--150
+
+ []
+
+
+Underfull \vbox (badness 3128) has occurred while \output is active []
+
+
+
+
+Overfull \vbox (2.39996pt too high) has occurred while \output is active []
+
+
+Underfull \hbox (badness 10000) has occurred while \output is active
+  \T1/ptm/m/n/9 5
+ []
+
+[5 <./gfx/biovis-2.png>]
+Underfull \hbox (badness 10000) in paragraph at lines 151--152
+
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+
+
+Underfull \hbox (badness 4846) in paragraph at lines 161--162
+[]\T1/ptm/m/n/9 When deal-ing with three-dimensional struc-tures of macro-
+ []
+
+<gfx/biovis.png, id=231, 1155.8382pt x 367.1316pt>
+File: gfx/biovis.png Graphic file (type png)
+<use gfx/biovis.png>
+Package pdftex.def Info: gfx/biovis.png  used on input line 169.
+(pdftex.def)             Requested size: 512.1496pt x 162.6756pt.
+
+Overfull \hbox (8.1496pt too wide) in paragraph at lines 169--170
+[][] 
+ []
+
+) (./include/05_Conclusion.tex
+Underfull \hbox (badness 3009) in paragraph at lines 5--7
+\T1/ptm/m/n/9 In this manuscript, we in-tro-duced Bio-chem-i-calAl-go-rithms.jl
+,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 5--7
+
+ []
+
+
+Underfull \vbox (badness 2828) has occurred while \output is active []
+
+
+
+
+Overfull \vbox (2.39996pt too high) has occurred while \output is active []
+
+
+Underfull \hbox (badness 10000) has occurred while \output is active
+  \T1/ptm/m/n/9 6
+ []
+
+[6]
+Underfull \hbox (badness 1418) in paragraph at lines 8--11
+\T1/ptm/m/n/9 Thereby, Bio-chem-i-calAl-go-rithms.jl is not in-tended to re-pla
+ce
+ []
+
+
+Underfull \hbox (badness 2717) in paragraph at lines 8--11
+\T1/ptm/m/n/9 func-tion-al-ity al-ready pro-vided by pack-ages in-side the Ju-l
+ia
+ []
+
+
+Underfull \hbox (badness 2401) in paragraph at lines 8--11
+\T1/ptm/m/n/9 ecosys-tem such as \T1/ptm/m/it/9 BioStruc-tures.jl\T1/ptm/m/n/9 
+, but rather to pro-vide a
+ []
+
+
+Underfull \hbox (badness 4084) in paragraph at lines 8--11
+\T1/ptm/m/n/9 gen-eral plat-form al-low-ing in-ter-op-er-abil-ity of func-tion-
+al-i-ties.
+ []
+
+
+Underfull \hbox (badness 1424) in paragraph at lines 8--11
+\T1/ptm/m/n/9 as those for molec-u-lar force fields, em-pow-er-ing ex-pe-ri-enc
+ed
+ []
+
+
+Underfull \hbox (badness 2073) in paragraph at lines 8--11
+\T1/ptm/m/n/9 are com-mit-ted to im-prov-ing per-for-mance of the force field
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 8--11
+
+ []
+
+)
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+
+
+Underfull \hbox (badness 1024) in paragraph at lines 35--36
+\T1/ptm/m/n/9 MOGON NHR and/or ad-vi-sory ser-vices of-fered by Jo-hannes
+ []
+
+(./paper.bbl
+Underfull \hbox (badness 10000) in paragraph at lines 4--8
+[]\T1/ptm/m/n/9 BALL Project Con-trib-u-tors. Ball project tu-to-rial.
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 4--8
+[]$\T1/cmtt/m/n/9 https : / / github . com / BALL-[]Project / ball / blob /
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 34--39
+[]\T1/ptm/m/n/9 Julia Com-mu-nity. Two lan-guage prob-lem. what
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 34--39
+\T1/ptm/m/n/9 is it? []$\T1/cmtt/m/n/9 https : / / discourse . julialang . org 
+/ t /
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 34--39
+\T1/cmtt/m/n/9 two-[]language-[]problem-[]what-[]is-[]it / 82925$[]\T1/ptm/m/n/
+9 , 2023.
+ []
+
+
+Underfull \hbox (badness 1735) in paragraph at lines 41--45
+[]\T1/ptm/m/n/9 Stefan Do-err, Matthew J. Har-vey, Frank Noé, and Gi-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 41--45
+\T1/ptm/m/n/9 anni De Fab-ri-tiis. Htmd: High-throughput molec-u-lar
+ []
+
+
+Underfull \hbox (badness 4229) in paragraph at lines 41--45
+\T1/ptm/m/n/9 dy-nam-ics for molec-u-lar dis-cov-ery. \T1/ptm/m/it/9 Jour-nal o
+f Chem-i-
+ []
+
+
+Underfull \hbox (badness 4995) in paragraph at lines 41--45
+\T1/ptm/m/it/9 cal The-ory and Com-pu-ta-tion\T1/ptm/m/n/9 , 12(4):1845--1852, 
+2016.
+ []
+
+
+Underfull \hbox (badness 1005) in paragraph at lines 47--50
+[]\T1/ptm/m/n/9 Erich Gamma, Richard Helm, Ralph John-son, and John
+ []
+
+
+
+
+Overfull \vbox (2.39996pt too high) has occurred while \output is active []
+
+
+Underfull \hbox (badness 10000) has occurred while \output is active
+  \T1/ptm/m/n/9 7
+ []
+
+[7 <./gfx/biovis.png>]
+Underfull \hbox (badness 3058) in paragraph at lines 58--63
+\T1/ptm/m/n/9 tures in ju-lia. \T1/ptm/m/it/9 Bioin-for-mat-ics\T1/ptm/m/n/9 , 
+36(14):4206--4207, 2020.
+ []
+
+
+Underfull \hbox (badness 5274) in paragraph at lines 65--71
+[]\T1/ptm/m/n/9 Andreas Hilde-brandt, Anna Katha-rina De-hof, Alexan-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 65--71
+\T1/ptm/m/n/9 der Ru-rain-ski, An-dreas Bertsch, Mar-cel Schu-mann,
+ []
+
+
+Underfull \hbox (badness 1728) in paragraph at lines 65--71
+\T1/ptm/m/n/9 Nora C. Tou-s-saint, An-dreas Moll, Daniel Stöckel, Ste-
+ []
+
+
+Underfull \hbox (badness 2644) in paragraph at lines 65--71
+\T1/ptm/m/n/9 Oliver Kohlbacher. BALL - bio-chem-i-cal al-go-rithms li-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 73--77
+\T1/cmtt/m/n/9 / / github . com / julia-[]vscode / TestItemRunner . jl$[]\T1/pt
+m/m/n/9 ,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 79--83
+\T1/ptm/m/n/9 ages. []$\T1/cmtt/m/n/9 https : / / github . com / JuliaCI / PkgB
+enchmark .
+ []
+
+
+Underfull \hbox (badness 4913) in paragraph at lines 91--95
+\T1/ptm/m/n/9 soft-ware pro-to-typ-ing in com-pu-ta-tional molec-u-lar bi-ol-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 91--95
+\T1/ptm/m/n/9 ogy. \T1/ptm/m/it/9 Bioin-for-mat-ics\T1/ptm/m/n/9 , 16(9):815--8
+24, Septem-ber 2000.
+ []
+
+
+Underfull \hbox (badness 1052) in paragraph at lines 118--122
+[]\T1/ptm/m/n/9 JuliaMolSim Or-ga-ni-za-tion. Ju-liamol-sim: Molec-u-lar sim-u-
+
+ []
+
+
+Underfull \hbox (badness 1803) in paragraph at lines 129--133
+[]\T1/ptm/m/n/9 Diogo Santos-Martins and Sér-gio F. Sousa. Pro-to-syn.jl.
+ []
+
+
+Underfull \hbox (badness 6808) in paragraph at lines 141--145
+[]\T1/ptm/m/n/9 Inc. Schrödinger. Pro-tein prepa-ra-tion wiz-ard. []$\T1/cmtt/m
+/n/9 https :
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 141--145
+\T1/cmtt/m/n/9 / / www . schrodinger . com / life-[]science / learn /
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 141--145
+\T1/cmtt/m/n/9 white-[]papers / protein-[]preparation-[]wizard/$[]\T1/ptm/m/n/9
+ . Ac-
+ []
+
+
+
+
+Underfull \hbox (badness 2050) in paragraph at lines 165--170
+[]\T1/ptm/m/n/9 Oliver Trott and Arthur J. Ol-son. Autodock vina: im-
+ []
+
+
+Underfull \hbox (badness 1275) in paragraph at lines 172--183
+\T1/ptm/m/n/9 ture database: Up-dates, en-hance-ments, and fu-ture di-rec-
+ []
+
+)
+
+
+Overfull \vbox (2.39996pt too high) has occurred while \output is active []
+
+
+Underfull \hbox (badness 10000) has occurred while \output is active
+  \T1/ptm/m/n/9 8
+ []
+
+[8] (./paper.aux)
+ ***********
+LaTeX2e <2024-11-01>
+L3 programming layer <2024-11-02>
+ ***********
 Package rerunfilecheck Info: File `paper.out' has not changed.
-(rerunfilecheck)             Checksum: 78B8A3A39C785071965F8B4F9F92944E;3332.
+(rerunfilecheck)             Checksum: 779679A176E78702A476E858B175A925;2332.
  ) 
 Here is how much of TeX's memory you used:
- 13920 strings out of 475284
- 215817 string characters out of 2774105
- 582734 words of memory out of 3000000
- 35138 multiletter control sequences out of 15000+600000
- 523544 words of font info for 130 fonts, out of 8000000 for 9000
+ 14588 strings out of 473361
+ 220113 string characters out of 5725029
+ 867986 words of memory out of 5000000
+ 37341 multiletter control sequences out of 15000+600000
+ 605130 words of font info for 128 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 87i,11n,91p,306b,1861s stack positions out of 10000i,1000n,20000p,200000b,80000s
- <C:\Users\Jenny\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi525\ectt
-0800.pk>{C:/Users/Jenny/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/base/8r.e
-nc} <C:\Users\Jenny\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ect
-t0900.pk> <C:\Users\Jenny\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi6
-00\ectt1000.pk><C:/Users/Jenny/AppData/Local/Programs/MiKTeX/fonts/type1/public
-/amsfonts/cmextra/cmex9.pfb><C:/Users/Jenny/AppData/Local/Programs/MiKTeX/fonts
-/type1/public/amsfonts/cm/cmmi6.pfb><C:/Users/Jenny/AppData/Local/Programs/MiKT
-eX/fonts/type1/public/amsfonts/cm/cmmi9.pfb><C:/Users/Jenny/AppData/Local/Progr
-ams/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Users/Jenny/AppData/Loca
-l/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr9.pfb><C:/Users/Jenny/AppDa
-ta/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/Je
-nny/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/latxfont/lcircle1
-.pfb><C:/Users/Jenny/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmb8a
-.pfb><C:/Users/Jenny/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmr8a
-.pfb><C:/Users/Jenny/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmri8
-a.pfb>
-Output written on paper.pdf (4 pages, 187430 bytes).
+ 90i,12n,93p,1292b,1865s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<c:/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb><c:/texl
+ive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb><c:/texlive/2024/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb><c:/texlive/2024/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmr9.pfb><c:/texlive/2024/texmf-dist/fonts/type1/
+public/amsfonts/latxfont/lcircle1.pfb><c:/texlive/2024/texmf-dist/fonts/type1/p
+ublic/cm-super/sftt0800.pfb><c:/texlive/2024/texmf-dist/fonts/type1/public/cm-s
+uper/sftt0900.pfb><c:/texlive/2024/texmf-dist/fonts/type1/urw/times/utmb8a.pfb>
+<c:/texlive/2024/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb><c:/texlive/2024/
+texmf-dist/fonts/type1/urw/times/utmr8a.pfb><c:/texlive/2024/texmf-dist/fonts/t
+ype1/urw/times/utmri8a.pfb>
+Output written on paper.pdf (8 pages, 1174905 bytes).
 PDF statistics:
- 324 PDF objects out of 1000 (max. 8388607)
- 48 named destinations out of 1000 (max. 500000)
- 179 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 389 PDF objects out of 1000 (max. 8388607)
+ 339 compressed objects within 4 object streams
+ 132 named destinations out of 1000 (max. 500000)
+ 127 words of extra memory for PDF output out of 10000 (max. 10000000)
 

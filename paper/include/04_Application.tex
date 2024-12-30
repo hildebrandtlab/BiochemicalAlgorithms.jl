@@ -1,6 +1,5 @@
-
 \section{Applications}
-
+\label{sec:applications}
 
 In this section, we chose four use cases to illustrate \biochem's capabilities in terms of functionality and usability, from basic operations to more advanced applications, while highlighting the advantages of using Julia for bioinformatics tasks.
 We begin with a simple example to show the creation and usage of core structures. Next, we compare two different configurations of the same molecule. Finally, we want to demonstrate the elegance of Julia code in comparison to C++ in the context of \ball\ and \biochem\. In the last application, we briefly introduce the accompanying visualization tool \bioviz that has been developed alongside the \biochem\ framework.
@@ -49,11 +48,11 @@ This approach emphasizes ease of use and functionality, two of the key design go
 
 
 
-\subsection{RMSD computation and Application of Amber}
+\subsection{RMSD computation and Application of AMBER force field}
 
 This example demonstrates the use of \biochem for a common task in structural analysis: comparing two (or more) molecular structures. The process involves several steps (see code listing~\ref{lst:rmsd-and-amber}):
 \begin{itemize}
-	\item Loading structures: Two \pdb s are loaded into a \texttt{Vector} of \texttt{System}, rather than a single system as in the previous example.
+	\item Loading structures: Two PDB files are loaded into a \texttt{Vector} of \texttt{System}, rather than a single system as in the previous example.
 	\item Preprocessing: The systems are preprocessed using the functionalities provided by the \texttt{FragmentDB} interface, a database containing known fragments of molecules: 
 	\begin{itemize}
 		\item Normalizes different naming standards
@@ -151,13 +150,13 @@ The code listing \ref{lst:code-c++} shows the solution for the task in C++. Due 
 
 Although the code is functional, it demonstrates the verbosity of C++ compared to the solution in Julia \ref{lst:code-task-julia}. Here, two functions are created serving for the filtering of the molecules and for the computation of the distances of two atoms. With these two, the actual function for the counting consists only of a single line of code. This examples showcases the elegance of the \biochem\ framework compared to \ball. \\
 
-It is important to note here that we did not include a main program, which would consist of two additional lines of code in \biochem\ for the purpose of reading the structures and calling the function \texttt{count\_contacts}. The resulting snippet is then ready to be run from a Julia REPL without any further circumstances. In contrast, in the case of the C++-program we would have to write a main function, load the structures, call the function \texttt{count\_contacts}. We would needed to include the necessary header files. Then the resulting code would have to be compiled and linked to the \ball\ framework. Even if we used the \textit{CMake} build system, which makes it easier to link and generate an executable of our code to \ball, a \textit{CMakeLists.txt} file is required to be written.  Of course, in order to link to the \ball\ framework, it needs to be built ideally with the same compiler settings. For the purpose of building \ball\ a quite long lists of dependencies have to be built in advance for even just the core \ball\ functionalities. \\
+It is important to note here that we did not actually call the functions. In Julia, only two additional lines of code are necessary: one for reading the structures used as input and one line for calling the function  \texttt{count\_contacts} with the input. The resulting snippet is then ready to be run from a Julia REPL without any further circumstances. In contrast, in the case of the C++-program we would have to write a main function, load the structures, call the function \texttt{count\_contacts}. We would needed to include the necessary header files. Then the resulting code would have to be compiled and linked to the \ball\ framework. Even if we used the \textit{CMake} build system, which makes it easier to link and generate an executable of our code to \ball, a \textit{CMakeLists.txt} file is required to be written.  Of course, in order to link to the \ball\ framework, it needs to be built ideally with the same compiler settings. For the purpose of building \ball\ a quite long lists of dependencies have to be built in advance for even just the core \ball\ functionalities. After managing all these steps successfully, we can finally call the executable to test the code snippet \ref{lst:code-c++}. \\
 This example only serves to illustrate the basic approach for generating a small example using \ball\ or \biochem.
 
 \subsection{Visualization using \bioviz}
 
 A key feature of \biochem\ is the visualization tool \textit{\bioviz} that
-has been developed alongside the main framework. As shown in Figure~\ref{fig:biochem_water} \ \bioviz currently supports three different representation of atomic structures, namely \texttt{ball-and-stick}, \texttt{van-der-Waals}, and \texttt{stick} (cf. code listing~\ref{lst:code-water}).
+has been developed alongside the main framework. As shown in Figure~\ref{fig:biochem_water} \ \bioviz\ currently supports three different representation of atomic structures, namely \texttt{ball-and-stick}, \texttt{van-der-Waals}, and \texttt{stick} (cf. code listing~\ref{lst:code-water}).
 
 When dealing with three-dimensional structures of macromolecules, visualization plays an important role for supporting the development of insights into molecular functions. The possibility to visualize and interactively modify the representations provides great support during modelling scenarios. For instance, the tool has been used to visualize different steps from code listing~\ref{lst:rmsd-and-amber}. The image on the left represents the raw input read from the underlying PDB file, the image in the middle shows the same input after preprocessing it with the fragment data base (lines 4-7). Finally, the mapping of both structures is shown in the image on the right. As can be seen, the structures do not match perfectly onto each other. 
 

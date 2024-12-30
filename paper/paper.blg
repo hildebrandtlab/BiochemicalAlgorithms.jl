@@ -1,48 +1,55 @@
-This is BibTeX, Version 0.99d
+This is BibTeX, Version 0.99d (TeX Live 2024)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: paper.aux
-Reallocating 'name_of_file' (item size: 1) to 9 items.
 The style file: juliacon.bst
-Reallocating 'name_of_file' (item size: 1) to 8 items.
 Database file #1: ref.bib
-You've used 1 entry,
+Warning--entry type for "Qt5" isn't style-file defined
+--line 357 of file ref.bib
+Warning--entry type for "PkgBenchmark" isn't style-file defined
+--line 467 of file ref.bib
+Warning--entry type for "TestItemRunner" isn't style-file defined
+--line 483 of file ref.bib
+Warning--entry type for "ProtoSyn" isn't style-file defined
+--line 565 of file ref.bib
+You've used 28 entries,
             2314 wiz_defined-function locations,
-            532 strings with 4338 characters,
-and the built_in function-call counts, 428 in all, are:
-= -- 41
-> -- 23
+            722 strings with 10209 characters,
+and the built_in function-call counts, 10343 in all, are:
+= -- 973
+> -- 636
 < -- 0
-+ -- 9
-- -- 8
-* -- 39
-:= -- 78
-add.period$ -- 4
-call.type$ -- 1
-change.case$ -- 7
++ -- 255
+- -- 226
+* -- 773
+:= -- 1787
+add.period$ -- 106
+call.type$ -- 28
+change.case$ -- 195
 chr.to.int$ -- 0
-cite$ -- 1
-duplicate$ -- 13
-empty$ -- 30
-format.name$ -- 8
-if$ -- 83
+cite$ -- 28
+duplicate$ -- 297
+empty$ -- 772
+format.name$ -- 226
+if$ -- 2128
 int.to.chr$ -- 0
-int.to.str$ -- 1
-missing$ -- 1
-newline$ -- 9
-num.names$ -- 2
-pop$ -- 6
+int.to.str$ -- 28
+missing$ -- 17
+newline$ -- 165
+num.names$ -- 56
+pop$ -- 253
 preamble$ -- 1
-purify$ -- 6
+purify$ -- 168
 quote$ -- 0
-skip$ -- 7
+skip$ -- 204
 stack$ -- 0
-substring$ -- 24
-swap$ -- 1
+substring$ -- 442
+swap$ -- 28
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 4
+type$ -- 110
 warning$ -- 0
-while$ -- 4
-width$ -- 2
-write$ -- 15
+while$ -- 74
+width$ -- 30
+write$ -- 337
+(There were 4 warnings)
