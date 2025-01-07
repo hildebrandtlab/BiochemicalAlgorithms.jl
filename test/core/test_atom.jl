@@ -497,5 +497,24 @@ end
         @test aidx ∉ atoms(sys).idx
         @test length(bidx ∩ Set(bonds(sys).idx)) == 0
         @test_throws KeyError atom.idx
+
+        # parent functions
+        molecule = Molecule(sys, name="MOLECULE")
+        atom_molecule = Atom(molecule, 1, Elements.C , name="ATOM")
+        @test parent_molecule(atom_molecule) == molecule
+
+        chain = Chain(molecule, name="CHAIN")
+        fragment = Fragment(chain, 1, name="FRAGMENT")
+        atom_fragment = Atom(fragment, 1, Elements.C, name="ATOM")
+        @test parent_fragment(atom_fragment) == fragment
+
+        # get full name
+        # no fragment defined
+        @test get_full_name(atom_molecule) == "MOLECULE:ATOM"
+        # fragment defined
+        @test get_full_name(atom_fragment) == "FRAGMENT:ATOM"
+        # neither fragment nor molecule defined
+        independent_atom = Atom(sys, 1, Elements.C, name="ATOM")
+        @test get_full_name(independent_atom) == "ATOM"
     end
 end
