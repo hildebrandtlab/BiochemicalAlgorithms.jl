@@ -403,7 +403,9 @@ function get_full_name(
     if isnothing(f)
         # look for a molecule containing the atom
         m = parent_molecule(a)
-        parent_name = strip(m.name)
+        if !isnothing(m)
+            parent_name = strip(m.name)
+        end
     else
         # retrieve the fragment name
         parent_name = get_full_name(f, type)
