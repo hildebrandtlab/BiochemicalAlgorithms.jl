@@ -7,6 +7,7 @@ export
 
 using BioStructures:
     read,
+    writemmcif,
     writepdb,
     collectatoms,
     collectchains,
