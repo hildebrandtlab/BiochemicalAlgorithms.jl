@@ -70,21 +70,24 @@ end
 ```
 
 
-## How can I get the one-letter code out of a pdb file?
+## How can I get the one-letter (or three-letter) code out of a pdb file?
 ```{julia}
 sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
 for chain in chains(sys)
     # get all residues from the current chain
-    res = residues(chain).name
+    res = residues(chain)
     println("> Chain $(chain.name)")
-    println(join(one_letter_code.(res), ""))
+    println("One-letter code:")
+    println(join(one_letter_code.(res.name), "")) 
+    println("Three-letter code:")
+    println(join(three_letter_code.(res), " ")) 
 end
 ```
 
 
 ## How can I pick one single chain out of a system containing several chains?
 This is often needed when a receptor and a ligand are co-complexed and you want to treat them separately.
-```{julia}
+```{julia} 
 sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
 
 all_chains = chains(sys)
@@ -120,6 +123,22 @@ println("RMSD after mapping:\t", compute_rmsd(mol2, mol))
 ```
 
 
+## How can I rotate an entire molecule?
+```{julia}
+# read in the first protein
+sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
+mol = first(molecules(sys))
+
+v = Vector3{T}(0, 0, 0) # no translation
+m = Matrix3{T}(1, 0, 0, 0, 0, -1, 0, 1, 0) # counter clockwise rotation by 90 degree
+r = RigidTransform(m, v)
+
+# perform the transformation
+rigid_transform!(mol, r)
+
+```
+
+
 ## How can I remove water molecules from a system?
 
 ```{julia}
@@ -135,3 +154,18 @@ delete!(ft)
 
 println("Number of atoms after removing water: ", natoms(sys))
 ```
+
+
+# How can I identify atoms in a certain spatial proximity efficiently?
+
+Identifying atoms in a certain spatial proximity can be done with `CellListMap.jl` which is already a dependency of BiochemicalAlgorithms.jl. Here is an example with a cutoff distance of 1.5:
+```{julia}
+using CellListMap
+
+sys = load_pdb(ball_data_path("../test/data/1tgh.pdb"))
+
+neighbors = neighborlist([a.r for a in atoms(sys)], 1.5)
+
+```
+
+`neighborlist` returns a tuple consisting of indices for the neighbors and the computed distance between them. For more advanced use cases have a look at the [`CellListMap.jl` documentation](https://m3g.github.io/CellListMap.jl/stable/neighborlists/) . 
