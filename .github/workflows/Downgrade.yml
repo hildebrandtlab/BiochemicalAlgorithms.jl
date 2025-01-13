@@ -1,0 +1,45 @@
+name: CompatDowngrade
+on:
+  schedule:
+    - cron: 0 0 * * *
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  downgrade:
+    name: Downgrade ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental || false }}
+    timeout-minutes: 60
+    permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
+      actions: write
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - 'lts'
+          - '1.11'
+          - 'nightly'
+        os:
+          - ubuntu-latest
+        arch:
+          - x64
+        include:
+          - version: 'nightly'
+            experimental: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+      - uses: julia-actions/cache@v2
+      - uses: julia-actions/julia-downgrade-compat@v1
+        with:
+          skip: LinearAlgebra,Printf,Statistics,Test
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
+        with:
+          coverage: false
