@@ -1,4 +1,4 @@
-@testitem "reading HIN files" begin
+@testitem "Read HIN" begin
     for T in [Float32, Float64]
         sys = load_hinfile(ball_data_path("../test/data/hinfile_test.hin"), T)
 
@@ -37,7 +37,7 @@
     end
 end
 
-@testitem "writing HIN files" begin
+@testitem "Write HIN" begin
     for T in [Float32, Float64]
         sys = load_hinfile(ball_data_path("../test/data/hinfile_test.hin"), T)
 
