@@ -27,7 +27,7 @@ function AmberFF(
         filename=ball_data_path("forcefields/AMBER/amber96.ini");
         constrained_atoms=Vector{Int}()) where {T<:Real}
 
-    amber_params = AmberFFParameters(filename)
+    amber_params = AmberFFParameters(filename, T)
     amber_ff = ForceField{T}(
         "AmberFF",
         ac,
