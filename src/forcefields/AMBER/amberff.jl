@@ -5,7 +5,7 @@ get_amber_default_options(T=Float32) = Dict{Symbol, Any}(
     :nonbonded_cutoff               => T(20.0),
     :vdw_cutoff                     => T(15.0),
     :vdw_cuton                      => T(13.0),
-	:electrostatic_cutoff           => T(15.0),
+    :electrostatic_cutoff           => T(15.0),
     :electrostatic_cuton            => T(13.0),
     :scaling_vdw_1_4                => T(2.0),
     :scaling_electrostatic_1_4      => T(1.2),
@@ -27,12 +27,22 @@ function AmberFF(
         filename=ball_data_path("forcefields/AMBER/amber96.ini");
         constrained_atoms=Vector{Int}()) where {T<:Real}
 
-    amber_params = AmberFFParameters(filename)
+    amber_params = AmberFFParameters(filename, T)
+    options = get_amber_default_options(T)
+
+    # read :scaling_electrostatic_1_4 from parameter file (if present)
+    if haskey(amber_params.sections, "Options")
+        props = extract_section(amber_params, "Options").properties
+        if haskey(props, "SCEE")
+            options[:scaling_electrostatic_1_4] = parse(T, props["SCEE"])
+        end
+    end
+
     amber_ff = ForceField{T}(
         "AmberFF",
         ac,
         amber_params,
-        get_amber_default_options(T),
+        options,
         init_atom_types(amber_params, T),
         Vector{AbstractForceFieldComponent{T}}(),
         Dict{String, T}(),
