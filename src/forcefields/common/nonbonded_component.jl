@@ -58,8 +58,8 @@ end
 #                           (r_{off}^2 - r_{on}^2)^3
 #
 function switching_function(f::CubicSwitchingFunction{T}, sq_distance::T)::T where T
-    below_off = ((sq_distance < f.sq_cutoff) ? one(T) : zero(T));
-    below_on  = ((sq_distance < f.sq_cuton)  ? one(T) : zero(T));
+    below_off = sq_distance < f.sq_cutoff ? one(T) : zero(T)
+    below_on  = sq_distance < f.sq_cuton  ? one(T) : zero(T)
 
     below_off * (below_on + (one(T) - below_on) * (f.sq_cutoff - sq_distance)^2
                 * (f.sq_cutoff + T(2) * sq_distance - T(3) * f.sq_cuton)
@@ -606,7 +606,7 @@ function compute_forces!(esi::ElectrostaticInteraction{T}) where T
             factor *= 0.5 * inv_distance_2
         else
             # distance independent dielectric constant
-            factor *= sqrt(inv_distance_2)
+            factor *= inv_distance
         end
 
         # we have to use the switching function (cuton <= distance <= cutoff)
