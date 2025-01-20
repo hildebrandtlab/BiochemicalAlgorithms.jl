@@ -580,7 +580,7 @@ function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where T
 
         force = factor * direction
 
-        @info "HB $(get_full_name(hb.a1))<->$(get_full_name(hb.a2)) $(force)"
+        #@info "HB $(get_full_name(hb.a1))<->$(get_full_name(hb.a2)) $(force)"
 
 
         hb.a1.F += force
