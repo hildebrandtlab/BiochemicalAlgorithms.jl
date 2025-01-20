@@ -88,40 +88,38 @@ function assign_typenames_and_charges!(ff::ForceField)
 
     for atom in atoms(ff.system)
         if !_try_assign!(
+            ff.atom_type_templates,
+            get_full_name(atom),
+            atom;
+            assign_typenames=assign_typenames,
+            overwrite_typenames=overwrite_typenames,
+            assign_charges=assign_charges,
+            overwrite_charges=overwrite_charges
+        )
+
+            # we don't have a type for the full type name; let's try without
+            # variant extension
+            if !_try_assign!(
                 ff.atom_type_templates,
-                get_full_name(atom),
+                get_full_name(atom, FullNameType.NO_VARIANT_EXTENSIONS),
                 atom;
                 assign_typenames=assign_typenames,
                 overwrite_typenames=overwrite_typenames,
                 assign_charges=assign_charges,
                 overwrite_charges=overwrite_charges
             )
-
-            # we don't have a type for the full type name; let's try without
-            # variant extension
-            name =
-            if !_try_assign!(
+                # ok, one more try... let's try with a wildcard for the residue name
+                if !_try_assign!(
                     ff.atom_type_templates,
-                    get_full_name(atom, FullNameType.NO_VARIANT_EXTENSIONS),
+                    "*:" * atom.name,
                     atom;
                     assign_typenames=assign_typenames,
                     overwrite_typenames=overwrite_typenames,
                     assign_charges=assign_charges,
                     overwrite_charges=overwrite_charges
                 )
-                # ok, one more try... let's try with a wildcard for the residue name
-                name = "*:" * atom.name
-                if !_try_assign!(
-                        ff.atom_type_templates,
-                        "*:" * atom.name,
-                        atom;
-                        assign_typenames=assign_typenames,
-                        overwrite_typenames=overwrite_typenames,
-                        assign_charges=assign_charges,
-                        overwrite_charges=overwrite_charges
-                    )
                     # ok, we really don't know the atom type
-                    @warn "assign_typenames_and_charges!(): cannot assign charge for atom $(get_full_name(atom))"
+                    @warn "assign_typenames_and_charges!(): cannot assign type and/or charge for atom $(get_full_name(atom))"
 
                     push!(ff.unassigned_atoms, atom)
                     if length(ff.unassigned_atoms) > ff.options[:max_number_of_unassigned_atoms]
