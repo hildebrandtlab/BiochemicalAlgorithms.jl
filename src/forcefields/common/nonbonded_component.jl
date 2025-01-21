@@ -380,6 +380,7 @@ function update!(nbc::NonBondedComponent{T}) where T
     lj_interactions = Deque{LennardJonesInteraction{T, 12, 6}}(hint)
     hydrogen_bonds  = Deque{LennardJonesInteraction{T, 12, 10}}(hint)
     electrostatic_interactions = Deque{ElectrostaticInteraction{T}}(hint)
+    empty!(nbc.unassigned_lj_interactions)
 
     idx_cache    = atom_cache.idx
     charge_cache = atom_cache.charge
