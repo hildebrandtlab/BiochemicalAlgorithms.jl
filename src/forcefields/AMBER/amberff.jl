@@ -103,6 +103,7 @@ function AmberFF(
 
     setup!(amber_ff)
     update!(amber_ff)
+    _check_warnings(amber_ff)
 
     amber_ff
 end
