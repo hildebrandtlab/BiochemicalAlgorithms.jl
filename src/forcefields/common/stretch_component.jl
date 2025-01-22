@@ -6,9 +6,7 @@ export
     r0::T
     k::T
     a1::Atom{T}
-    a1r::Vector3{T} # unused, to be removed
     a2::Atom{T}
-    a2r::Vector3{T} # unused, to be removed
 end
 
 @auto_hash_equals mutable struct QuadraticStretchComponent{T<:Real} <: AbstractForceFieldComponent{T}
@@ -23,7 +21,7 @@ end
     end
 end
 
-function setup!(qsc::QuadraticStretchComponent{T}) where {T}
+function setup!(qsc::QuadraticStretchComponent{T}) where T
     ff = qsc.ff
 
     # extract the parameter section for quadratic bond stretches
@@ -60,10 +58,10 @@ function setup!(qsc::QuadraticStretchComponent{T}) where {T}
 
         if has_flag(bond, :TYPE__HYDROGEN)
             # skip hydrogen bonds
-            stretches[i] = QuadraticBondStretch(one(T), zero(T), a1, a1.r, a2, a2.r)
+            stretches[i] = QuadraticBondStretch(one(T), zero(T), a1, a2)
         end
 
-        qbs = coalesce(
+        qbs = @coalesce(
             get(stretch_dict, (type_a1, type_a2,), missing),
             get(stretch_dict, (type_a2, type_a1,), missing),
             get(stretch_dict, (type_a1, "*",    ), missing),
@@ -82,13 +80,13 @@ function setup!(qsc::QuadraticStretchComponent{T}) where {T}
             end
 
             # we don't want to get any force or energy component from this stretch
-            QuadraticBondStretch(one(T), zero(T), a1, a1.r, a2, a2.r)
+            QuadraticBondStretch(one(T), zero(T), a1, a2)
         else
             QuadraticBondStretch(
                 T(r0_factor*only(qbs.r0)),
                 T(k_factor*only(qbs.k)),
-                a1, a1.r,
-                a2, a2.r
+                a1,
+                a2
             )
         end
     end
@@ -96,17 +94,17 @@ function setup!(qsc::QuadraticStretchComponent{T}) where {T}
     qsc.stretches = stretches
 end
 
-function update!(qsc::QuadraticStretchComponent{T}) where {T<:Real}
+function update!(qsc::QuadraticStretchComponent)
     nothing
 end
 
-@inline function compute_energy(qbs::QuadraticBondStretch{T})::T where {T<:Real}
+@inline function compute_energy(qbs::QuadraticBondStretch{T})::T where T
     d = distance(qbs.a1.r, qbs.a2.r)
 
     qbs.k * (d - qbs.r0)^2
 end
 
-function compute_energy!(qsc::QuadraticStretchComponent{T})::T where {T<:Real}
+function compute_energy!(qsc::QuadraticStretchComponent{T})::T where T
     # iterate over all bonds in the system
 
     total_energy = mapreduce(compute_energy, +, qsc.stretches; init=zero(T))
@@ -116,7 +114,7 @@ function compute_energy!(qsc::QuadraticStretchComponent{T})::T where {T<:Real}
     total_energy
 end
 
-function compute_forces!(qbs::QuadraticBondStretch{T}) where {T<:Real}
+function compute_forces!(qbs::QuadraticBondStretch{T}) where T
     direction = qbs.a1.r .- qbs.a2.r
     distance = norm(direction)
 
@@ -132,17 +130,17 @@ function compute_forces!(qbs::QuadraticBondStretch{T}) where {T<:Real}
     qbs.a2.F += direction
 end
 
-function compute_forces!(qsc::QuadraticStretchComponent{T}) where {T<:Real}
+function compute_forces!(qsc::QuadraticStretchComponent)
     map(compute_forces!, qsc.stretches)
 
     nothing
 end
 
-function count_warnings(qsc::QuadraticStretchComponent{T}) where {T<:Real}
+function count_warnings(qsc::QuadraticStretchComponent)
     length(qsc.unassigned_stretches)
 end
 
-function print_warnings(qsc::QuadraticStretchComponent{T}) where {T<:Real}
+function print_warnings(qsc::QuadraticStretchComponent)
     for us in qsc.unassigned_stretches
         a1, a2 = us
 

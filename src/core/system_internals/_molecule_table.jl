@@ -51,7 +51,7 @@ end
 function Base.push!(
     mt::_MoleculeTable,
     idx::Int = 0;
-    name::String = "",
+    name::AbstractString = "",
     variant::MoleculeVariantType = MoleculeVariant.None,
     properties::Properties = Properties(),
     flags::Flags = Flags()

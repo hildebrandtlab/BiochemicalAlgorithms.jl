@@ -1,10 +1,17 @@
-using BioStructures: 
+export
+    is_hetero_atom,
+    load_mmcif,
+    load_pdb,
+    write_mmcif,
+    write_pdb
+
+using BioStructures:
     read,
     writemmcif,
     writepdb,
-    collectatoms, 
-    collectchains, 
-    collectresidues, 
+    collectatoms,
+    collectchains,
+    collectresidues,
     PDBFormat,
     MMCIFFormat,
     MolecularStructure,
@@ -15,17 +22,10 @@ using BioStructures:
 
 using Printf
 
-export load_pdb, load_mmcif, write_pdb, write_mmcif, is_hetero_atom
-
-function is_hetero_atom(a::Atom{T}) where {T<:Real}
+function is_hetero_atom(a::Atom)
     f = parent_fragment(a)
-
-    if has_flag(a, :is_hetero_atom) || isnothing(f) || !is_amino_acid(f)
-        return true
-    end
-
-    false
-end 
+    has_flag(a, :is_hetero_atom) || isnothing(f) || !is_amino_acid(f)
+end
 
 function parse_element_string(es::String)
     result = Elements.Unknown
@@ -58,7 +58,7 @@ function extract_element(pdb_element::String, atom_name::String)
         # this approach is taken from the original BALL PDB parser
 
         # try to reconstruct the element from the atom name
-        # NOTE: this leads to wrong results if names not compatible with the PDB standard are used, 
+        # NOTE: this leads to wrong results if names not compatible with the PDB standard are used,
         #       such as HE12, which would be interpreted as He
         if (atom_name[1] == ' ' || isdigit(atom_name[1]))
             if atom_name[2] == ' '
@@ -75,7 +75,7 @@ function extract_element(pdb_element::String, atom_name::String)
     return element
 end
 
-function Base.convert(::Type{System{T}}, orig_pdb::MolecularStructure) where {T<:Real}
+function Base.convert(::Type{System{T}}, orig_pdb::MolecularStructure) where T
     orig_df  = DataFrame(collectatoms(orig_pdb))
 
     # then, convert to our representation
@@ -90,7 +90,7 @@ function Base.convert(::Type{System{T}}, orig_pdb::MolecularStructure) where {T<
     elements = extract_element.(orig_df.element, getproperty.(collectatoms(orig_pdb, expand_disordered=true), :name))
 
     atoms = DataFrame(
-        number=orig_df.serial, 
+        number=orig_df.serial,
         name=orig_df.atomname,
         element=elements,
         r = r,
@@ -116,7 +116,7 @@ function Base.convert(::Type{System{T}}, orig_pdb::MolecularStructure) where {T<
     ) .∪ map(
         d -> d ? Flags([:is_deuterium]) : Flags(),
         orig_df.element .== "D"
-    )  
+    )
 
     atoms.frame_id = orig_df.modelnumber
     atoms.chain_idx = orig_df.chainid
@@ -187,23 +187,39 @@ function Base.convert(::Type{System{T}}, orig_pdb::MolecularStructure) where {T<
     sys
 end
 
-# Note: models are stored as frames
-# TODO: how to handle disordered atoms properly?
-function load_pdb(fname::String, T=Float32)
+"""
+    load_pdb(fname::AbstractString, ::Type{T} = Float32) -> System{T}
+
+Read a PDB file.
+
+!!! note
+    Models are stored as frames, using the model number as `frame_id`.
+"""
+function load_pdb(fname::AbstractString, ::Type{T} = Float32) where {T <: Real}
+    # TODO: how to handle disordered atoms properly?
+
     # first, read the structure using BioStructures.jl
     orig_pdb = read(fname, PDBFormat)
     convert(System{T}, orig_pdb)
 end
 
-# Note: models are stored as frames
-# TODO: how to handle disordered atoms properly?
-function load_mmcif(fname::String, T=Float32)
+"""
+    load_mmcif(fname::AbstractString, ::Type{T} = Float32) -> System{T}
+
+Read a PDBx/mmCIF file.
+
+!!! note
+    Models are stored as frames, using the model number as `frame_id`.
+"""
+function load_mmcif(fname::AbstractString, ::Type{T} = Float32) where {T <: Real}
+    # TODO: how to handle disordered atoms properly?
+
     # first, read the structure using BioStructures.jl
     orig_mmcif = read(fname, MMCIFFormat)
     convert(System{T}, orig_mmcif)
 end
 
-function _to_atom_record(a::Atom{T}) where {T<:Real}
+function _to_atom_record(a::Atom)
     # TODO: handle alternative location identifiers!
     f = parent_fragment(a)
 
@@ -224,7 +240,7 @@ function _to_atom_record(a::Atom{T}) where {T<:Real}
     )
 end
 
-function Base.convert(::Type{MolecularStructure}, ac::AbstractAtomContainer{T}) where {T<:Real}
+function Base.convert(::Type{MolecularStructure}, ac::AbstractAtomContainer{T}) where T
     # Build a MolecularStructure and add to it incrementally
     struc = MolecularStructure(ac.name)
 
@@ -241,7 +257,7 @@ function Base.convert(::Type{MolecularStructure}, ac::AbstractAtomContainer{T}) 
 
     for (i, frame_id) in enumerate(sys_frame_ids)
         struc[i] = Model(i, struc)
-       
+
         for a in atoms(ac; frame_id=frame_id)
             unsafe_addatomtomodel!(
                 struc[i],
@@ -254,12 +270,22 @@ function Base.convert(::Type{MolecularStructure}, ac::AbstractAtomContainer{T}) 
     struc
 end
 
-function write_pdb(fname::String, ac::AbstractAtomContainer{T}) where {T<:Real}
+"""
+    write_pdb(fname::AbstractString, ac::AbstractAtomContainer)
+
+Save an atom container as PDB file.
+"""
+function write_pdb(fname::AbstractString, ac::AbstractAtomContainer)
     ps = convert(MolecularStructure, ac)
     writepdb(fname, ps)
 end
 
-function write_mmcif(fname::String, ac::AbstractAtomContainer{T}) where {T<:Real}
+"""
+    write_mmcif(fname::AbstractString, ac::AbstractAtomContainer)
+
+Save an atom container as PDBx/mmCIF file.
+"""
+function write_mmcif(fname::AbstractString, ac::AbstractAtomContainer)
     ps = convert(MolecularStructure, ac)
     writemmcif(fname, ps)
 end

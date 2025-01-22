@@ -1,4 +1,6 @@
-export BALLIniFile, read_ball_ini_file
+export
+    BALLIniFile,
+    read_ball_ini_file
 
 using CSV
 using DataStructures: OrderedDict
@@ -22,24 +24,25 @@ end
 end
 
 """
-    $(TYPEDSIGNATURES)
+    read_ball_ini_file(fname::AbstractString, ::Type{T} = Float32) -> BALLIniFile
 
 Read a file in BALL's old Ini file format and return it as a BALLIniFile.
 
-If `cleanup_keys` is set to `true` (the default), keys into the Ini sections are
-simplified (e.g., `ver:version` becomes `version`, `key:I` becomes `I`, ...).
+# Supported keyword arguments
+ - `cleanup_keys::Bool = true` simplifies colon-separated key names
+   (e.g., `ver:version` becomes `version`, `key:I` becomes `I`, etc.)
 """
-function read_ball_ini_file(path::String, T=Float32; cleanup_keys=true)
+function read_ball_ini_file(fname::AbstractString, ::Type{T} = Float32; cleanup_keys::Bool = true) where {T <: Real}
     result = BALLIniFile()
 
-    open(path) do paramfile
+    open(fname) do paramfile
         # filter out comments
         params_string = join(filter(l -> !startswith(strip(l), ";"), readlines(paramfile)), "\n")
 
         # find each section
         for s_match in eachmatch(r"^\[(.*)\]"m, params_string)
             section = BALLIniFileSection()
-            
+
             s_name = s_match.captures[1]
 
             section.name = s_name
@@ -71,12 +74,12 @@ function read_ball_ini_file(path::String, T=Float32; cleanup_keys=true)
             data = join(filter(l -> !startswith(strip(l), "@"), split(data, "\n")), "\n")
 
             s_df = CSV.read(
-                IOBuffer(data), DataFrame; 
-                header=has_header, 
-                comment="#", 
-                ignoreemptyrows=true, 
-                delim=" ", 
-                ignorerepeated=true, 
+                IOBuffer(data), DataFrame;
+                header=has_header,
+                comment="#",
+                ignoreemptyrows=true,
+                delim=" ",
+                ignorerepeated=true,
                 silencewarnings=true
             )
 

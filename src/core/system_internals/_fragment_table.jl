@@ -63,7 +63,7 @@ function Base.push!(
     molecule_idx::Int,
     chain_idx::Int;
     secondary_structure_idx::MaybeInt = nothing,
-    name::String = "",
+    name::AbstractString = "",
     variant::FragmentVariantType = FragmentVariant.None,
     properties::Properties = Properties(),
     flags::Flags = Flags()

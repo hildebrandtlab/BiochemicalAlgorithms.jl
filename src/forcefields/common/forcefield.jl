@@ -25,9 +25,25 @@ abstract type AbstractForceFieldComponent{T<:Real} end
     energy::Dict{String, T}
     unassigned_atoms::Vector{Atom{T}}
     constrained_atoms::Vector{Int}
+    warnings::Vector{String}
+
+    function ForceField{T}(
+        name::String,
+        system::AbstractAtomContainer{T},
+        parameters::AbstractForceFieldParameters,
+        options::Dict{Symbol, Any} = Dict{Symbol, Any}(),
+        atom_type_templates::Dict{String, AtomTypeTemplate{T}} = Dict{String, AtomTypeTemplate{T}}(),
+        components::Vector{AbstractForceFieldComponent{T}} = Vector{AbstractForceFieldComponent{T}}(),
+        energy::Dict{String, T} = Dict{String, T}(),
+        unassigned_atoms::Vector{Atom{T}} = Vector{Atom{T}}(),
+        constrained_atoms::Vector{Int} = Vector{Int}(),
+        warnings::Vector{String} = Vector{String}()
+    ) where T
+        new{T}(name, system, parameters, options, atom_type_templates, components, energy, unassigned_atoms,constrained_atoms, warnings)
+    end
 end
 
-function init_atom_types(params::AbstractForceFieldParameters, T=Float32)
+function init_atom_types(params::AbstractForceFieldParameters, ::Type{T}=Float32) where {T <: Real}
     tpl_section = extract_section(params, "ChargesAndTypeNames")
 
     unit_q  = get(tpl_section.properties, "unit_q", "e_au")
@@ -46,13 +62,14 @@ function init_atom_types(params::AbstractForceFieldParameters, T=Float32)
 end
 
 function _try_assign!(
-        templates::Dict{String, AtomTypeTemplate{T}},
-        name::AbstractString,
-        atom::Atom{T};
-        assign_typenames::Bool,
-        overwrite_typenames::Bool,
-        assign_charges::Bool,
-        overwrite_charges::Bool) where {T<:Real}
+    templates::Dict{String, AtomTypeTemplate{T}},
+    name::AbstractString,
+    atom::Atom{T};
+    assign_typenames::Bool,
+    overwrite_typenames::Bool,
+    assign_charges::Bool,
+    overwrite_charges::Bool
+) where T
     if haskey(templates, name)
         qbs = templates[name]
 
@@ -70,7 +87,7 @@ function _try_assign!(
     end
 end
 
-function assign_typenames_and_charges!(ff::ForceField{T}) where {T<:Real}
+function assign_typenames_and_charges!(ff::ForceField)
     assign_typenames = ff.options[:assign_typenames]
     assign_charges   = ff.options[:assign_charges]
 
@@ -87,44 +104,45 @@ function assign_typenames_and_charges!(ff::ForceField{T}) where {T<:Real}
 
     for atom in atoms(ff.system)
         if !_try_assign!(
+            ff.atom_type_templates,
+            get_full_name(atom),
+            atom;
+            assign_typenames=assign_typenames,
+            overwrite_typenames=overwrite_typenames,
+            assign_charges=assign_charges,
+            overwrite_charges=overwrite_charges
+        )
+
+            # we don't have a type for the full type name; let's try without
+            # variant extension
+            if !_try_assign!(
                 ff.atom_type_templates,
-                get_full_name(atom),
+                get_full_name(atom, FullNameType.NO_VARIANT_EXTENSIONS),
                 atom;
                 assign_typenames=assign_typenames,
                 overwrite_typenames=overwrite_typenames,
                 assign_charges=assign_charges,
                 overwrite_charges=overwrite_charges
             )
-
-            # we don't have a type for the full type name; let's try without
-            # variant extension
-            name =
-            if !_try_assign!(
+                # ok, one more try... let's try with a wildcard for the residue name
+                if !_try_assign!(
                     ff.atom_type_templates,
-                    get_full_name(atom, FullNameType.NO_VARIANT_EXTENSIONS),
+                    "*:" * atom.name,
                     atom;
                     assign_typenames=assign_typenames,
                     overwrite_typenames=overwrite_typenames,
                     assign_charges=assign_charges,
                     overwrite_charges=overwrite_charges
                 )
-                # ok, one more try... let's try with a wildcard for the residue name
-                name = "*:" * atom.name
-                if !_try_assign!(
-                        ff.atom_type_templates,
-                        "*:" * atom.name,
-                        atom;
-                        assign_typenames=assign_typenames,
-                        overwrite_typenames=overwrite_typenames,
-                        assign_charges=assign_charges,
-                        overwrite_charges=overwrite_charges
-                    )
                     # ok, we really don't know the atom type
-                    @warn "assign_typenames_and_charges!(): cannot assign charge for atom $(get_full_name(atom))"
+                    push!(
+                        ff.warnings,
+                        "assign_typenames_and_charges!(): cannot assign type and/or charge for atom $(get_full_name(atom))"
+                    )
 
                     push!(ff.unassigned_atoms, atom)
                     if length(ff.unassigned_atoms) > ff.options[:max_number_of_unassigned_atoms]
-                        @warn "assigned_typenames_and_charges!(): Too many unassigned atoms"
+                        @error "assigned_typenames_and_charges!(): Too many unassigned atoms"
                         throw(TooManyErrors())
                     end
                 end
@@ -133,36 +151,14 @@ function assign_typenames_and_charges!(ff::ForceField{T}) where {T<:Real}
     end
 end
 
+function setup!(::AbstractForceFieldComponent) end
+function update!(::AbstractForceFieldComponent) end
+function count_warnings(::AbstractForceFieldComponent) 0 end
+function print_warnings(::AbstractForceFieldComponent) end
 
-function setup!(component::AbstractForceFieldComponent) end
-function update!(component::AbstractForceFieldComponent) end
-function count_warnings(component::AbstractForceFieldComponent) 0 end
-function print_warnings(component::AbstractForceFieldComponent) end
-
-function setup!(ff::ForceField{T}) where {T<:Real}
+function setup!(ff::ForceField)
     map(setup!, ff.components)
-
-    warning_counts = map(count_warnings, ff.components)
-
-    if sum(warning_counts) > 0
-
-        max_length = maximum(length(c.name) for (i,c) in enumerate(ff.components) if warning_counts[i] > 0)
-
-        warning_string = "$(sum(warning_counts)) warnings occurred during setup that were suppressed:\n"
-        warning_string *= "Components:\n"
-        for (i, c) in enumerate(ff.components)
-            if warning_counts[i] > 0
-                warning_string *= Printf.format(
-                    Printf.Format("%-$(max_length)s: %d warnings\n"),
-                        c.name,
-                        warning_counts[i]
-                )
-            end
-        end
-        warning_string *= "Use print_warnings(ff) to display them."
-
-        @warn warning_string
-    end
+    nothing
 end
 
 """
@@ -175,11 +171,12 @@ Update the internal data structures of the force field when the system changes
     Changes to the options or the topology require a call to `setup!` prior to
     the call to `update!`.
 """
-@inline function update!(ff::ForceField{T}) where {T<:Real}
+@inline function update!(ff::ForceField)
     map(update!, ff.components)
+    nothing
 end
 
-function compute_energy!(ff::ForceField{T}; verbose=false)::T where {T<:Real}
+function compute_energy!(ff::ForceField{T}; verbose::Bool=false)::T where T
     total_energy = mapreduce(compute_energy!, +, ff.components; init=zero(T))
 
     for c in ff.components
@@ -205,7 +202,7 @@ function compute_energy!(ff::ForceField{T}; verbose=false)::T where {T<:Real}
     total_energy
 end
 
-function compute_forces!(ff::ForceField{T}) where {T<:Real}
+function compute_forces!(ff::ForceField{T}) where T
     # first, zero out the current forces
     atoms(ff.system).F .= Ref(zero(Vector3{T}))
 
@@ -214,10 +211,50 @@ function compute_forces!(ff::ForceField{T}) where {T<:Real}
     nothing
 end
 
-function print_warnings(ff::ForceField{T}) where {T<:Real}
-    for component in ff.components
-        print_warnings(component)
+function _check_warnings(ff::ForceField)
+    nwarnings = count_warnings(ff)
+    warning_counts = _warning_counts(ff)
+
+    if nwarnings > 0
+        max_length = maximum(length(name) for (name, cnt) in warning_counts if cnt > 0)
+
+        warning_string = "$(nwarnings) warnings occurred during setup that were suppressed:\n"
+        for (name, cnt) in warning_counts
+            if cnt > 0
+                warning_string *= Printf.format(
+                    Printf.Format(" - %-$(max_length)s: %d warnings\n"),
+                        name,
+                        cnt
+                )
+            end
+        end
+        warning_string *= "Use print_warnings(ff) to display them."
+
+        @warn warning_string
     end
+end
+
+function _warning_counts(ff::ForceField)
+    [
+        "GeneralSetup" => length(ff.warnings),
+        map(comp -> comp.name => count_warnings(comp), ff.components)...
+    ]
+end
+
+function count_warnings(ff::ForceField)
+    length(ff.warnings) + sum(map(count_warnings, ff.components))
+end
+
+function print_warnings(ff::ForceField; include_components::Bool = true)
+    for warn in ff.warnings
+        @warn warn
+    end
+    if include_components
+        for component in ff.components
+            print_warnings(component)
+        end
+    end
+    nothing
 end
 
 @inline Base.show(io::IO, ::MIME"text/plain", ff::ForceField) = println(io,

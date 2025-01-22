@@ -6,11 +6,8 @@ export
     θ₀::T
     k::T
     a1::Atom{T}
-    a1r::Vector3{T} # unused, to be removed
     a2::Atom{T}
-    a2r::Vector3{T} # unused, to be removed
     a3::Atom{T}
-    a3r::Vector3{T} # unused, to be removed
 end
 
 @auto_hash_equals mutable struct QuadraticBendComponent{T<:Real} <: AbstractForceFieldComponent{T}
@@ -21,12 +18,12 @@ end
     unassigned_bends::Vector{Tuple{Atom{T}, Atom{T}, Atom{T}}}
     bends::Vector{QuadraticAngleBend{T}}
 
-    function QuadraticBendComponent{T}(ff::ForceField{T}) where {T<:Real}
+    function QuadraticBendComponent{T}(ff::ForceField{T}) where T
         new("QuadraticAngleBend", ff, Dict{Symbol, Any}(), Dict{String, T}(), [])
     end
 end
 
-function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
+function setup!(qbc::QuadraticBendComponent{T}) where T
     ff = qbc.ff
 
     # extract the parameter section for quadratic angle bends
@@ -79,7 +76,7 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
                 type_a2 = a2.atom_type
                 type_a3 = a3.atom_type
 
-                qab = coalesce(
+                qab = @coalesce(
                     get(bends_dict, (type_a1, type_a2, type_a3,), missing),
                     get(bends_dict, (type_a3, type_a2, type_a1,), missing),
                     get(bends_dict, ("*",     type_a2, "*"    ,), missing)
@@ -97,12 +94,12 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
                     end
                 else
                     push!(bends,
-                        QuadraticAngleBend(
+                        QuadraticAngleBend{T}(
                             T(θ₀_factor*only(qab.theta0)),
                             T(k_factor*only(qab.k)),
-                            a1, a1.r,
-                            a2, a2.r,
-                            a3, a3.r
+                            a1,
+                            a2,
+                            a3,
                         ))
                 end
             end
@@ -112,11 +109,11 @@ function setup!(qbc::QuadraticBendComponent{T}) where {T<:Real}
     qbc.bends = bends
 end
 
-function update!(qbc::QuadraticBendComponent{T}) where {T<:Real}
+function update!(::QuadraticBendComponent)
     nothing
 end
 
-@inline function compute_energy(qab::QuadraticAngleBend{T})::T where {T<:Real}
+@inline function compute_energy(qab::QuadraticAngleBend{T})::T where T
     v1 = qab.a1.r .- qab.a2.r
     v2 = qab.a3.r .- qab.a2.r
 
@@ -127,9 +124,9 @@ end
     end
 
     cos_θ = dot(v1, v2) / sqrt(sq_length)
-    θ = if cos_θ > T(1.0)
+    θ = if cos_θ > one(T)
             zero(T)
-        elseif cos_θ < T(-1.0)
+        elseif cos_θ < -one(T)
             π
         else
             acos(cos_θ)
@@ -138,7 +135,7 @@ end
     qab.k * (θ - qab.θ₀)^2
 end
 
-function compute_energy!(qbc::QuadraticBendComponent{T})::T where {T<:Real}
+function compute_energy!(qbc::QuadraticBendComponent{T})::T where T
     # iterate over all bends in the system
     total_energy = mapreduce(compute_energy, +, qbc.bends; init=zero(T))
 
@@ -163,9 +160,9 @@ function compute_forces!(qab::QuadraticAngleBend{T}) where {T<:Real}
     v2 /= v2_length
 
     cos_θ = dot(v1, v2)
-    θ = if cos_θ > T(1.0)
+    θ = if cos_θ > one(T)
             zero(T)
-        elseif cos_θ < T(-1.0)
+        elseif cos_θ < -one(T)
             π
         else
             acos(cos_θ)
@@ -192,18 +189,18 @@ function compute_forces!(qab::QuadraticAngleBend{T}) where {T<:Real}
     qab.a3.F += n2
 end
 
-function compute_forces!(qbc::QuadraticBendComponent{T}) where {T<:Real}
+function compute_forces!(qbc::QuadraticBendComponent)
     # iterate over all bends in the system
     map(compute_forces!, qbc.bends)
 
     nothing
 end
 
-function count_warnings(qbc::QuadraticBendComponent{T}) where {T<:Real}
+function count_warnings(qbc::QuadraticBendComponent)
     length(qbc.unassigned_bends)
 end
 
-function print_warnings(qbc::QuadraticBendComponent{T}) where {T<:Real}
+function print_warnings(qbc::QuadraticBendComponent)
     for ub in qbc.unassigned_bends
         a1, a2, a3 = ub
 
