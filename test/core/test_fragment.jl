@@ -1417,3 +1417,27 @@ end
         @test nbonds(res) == nbonds(sys, fragment_idx = res.idx)
     end
 end
+
+@testitem "Fragment/calculate_torsion_angle" begin
+    sys = System()
+    a = Atom(sys, 1, Elements.C, r = Vector3{Float32}(0.0f0, 1.0f0, 0.0f0))
+    b = Atom(sys, 2, Elements.C, r = Vector3{Float32}(0.0f0, 1.0f0, -1.0f0))
+    c = Atom(sys, 3, Elements.N, r = Vector3{Float32}(1.0f0, 0.0f0, 0.0f0))
+    d = Atom(sys, 4, Elements.C, r = Vector3{Float32}(1.0f0, -1.0f0, -1.0f0))
+
+    @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)),149.999, atol=10e-3)
+end
+
+@testitem "Fragment/calculate_bond_angle" begin
+    sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+    fdb = FragmentDB()
+    build_bonds!(sys, fdb)
+
+    a = atoms(sys)[1]
+    b = atoms(sys)[2]
+    c = atoms(sys)[3]
+    @test isapprox(rad2deg(calculate_bond_angle(a,b,c)), 109.007, atol=10e-4)
+
+    a.r = b.r
+    @test_logs (:error, "Atoms can't have the same position. No Angle to calculate here.") calculate_bond_angle(a,b,c)
+end
