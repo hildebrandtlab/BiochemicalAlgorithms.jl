@@ -1,4 +1,6 @@
 export
+    calculate_bond_angle,
+    calculate_torsion_angle,
     Fragment,
     FragmentTable,
     Nucleotide,
@@ -8,6 +10,9 @@ export
     get_full_name,
     get_previous,
     get_next,
+    has_torsion_omega,
+    has_torsion_phi,
+    has_torsion_psi,
     is_3_prime,
     is_5_prime,
     is_amino_acid,
@@ -666,6 +671,120 @@ end
     @assert is_amino_acid(frag)
     one_letter_code(frag.name)
 end
+
+@inline function has_torsion_psi(frag::Fragment)
+    chain = parent_chain(frag)
+    if nresidues(chain) < 2
+        return false
+    end
+    return !has_flag(frag, :C_TERMINAL) && is_amino_acid(frag)
+end
+
+@inline function has_torsion_phi(frag::Fragment)
+    chain = parent_chain(frag)
+    if nresidues(chain) < 2
+        return false
+    end
+    return !has_flag(frag, :N_TERMINAL) && is_amino_acid(frag)
+
+end
+
+@inline function has_torsion_omega(frag::Fragment)
+    chain = parent_chain(frag)
+    if nresidues(chain) < 2
+        return false
+    end
+    return !has_flag(frag, :N_TERMINAL) && is_amino_acid(frag)
+
+end
+
+@inline function calculate_torsion_angle(a::Atom, b::Atom, c::Atom, d::Atom)
+
+    n12 = cross(b.r-a.r, c.r-b.r)
+    n34 = cross(c.r-b.r, d.r-c.r)
+
+    if iszero(n12) || iszero(n34)
+        @warn "Illegal positions"
+    end
+
+    n12 /= norm(n12)
+    n34 /= norm(n34)
+
+    scalar_product = clamp(dot(n12,n34), -1.0, 1.0)
+    #take the direction into account direction = dot(cross(n12,n34), (c.r-b.r))
+    return dot(cross(n12,n34), (c.r-b.r)) < 0.0 ? -1.0 * acos(scalar_product) : acos(scalar_product)
+end
+
+@inline function set_torsion_angle(a::Atom, b::Atom, c::Atom, d::Atom, angle::Float32)
+
+    # perform bfs to find the part of the molecule that needs to be rotated
+
+    queue = Deque{Atom}()
+    component = Set{Atom}()
+
+    push!(component, c) # atoms that need to be rotated
+
+    # starting point
+    for bond in bonds(c) # check bonds of atom c
+
+        if bond.a2 != b.idx # b should not be rotated
+            partner_atom = atom_by_idx(bond.a2) # atom to be rotated
+            push!(component, partner_atom)
+            push!(queue, partner_atom)
+        end
+    end
+
+    # perform bfs
+    while(!empty(queue))
+        atom = popfirst!(queue)
+
+        for bond in bonds(atom)
+
+            # we cannot set the torsion angle if b is in the same connected component as the partner atom
+            if bond.a2 == b.idx
+                return false
+            end
+
+            if !in(atom_by_idx(bond.a2), component)
+                push!(atom_by_idx(bond.a2), component)
+                push!(atom_by_idx(bond.a2), queue)
+            end
+        end
+    end
+
+    angle -= calculate_torsion_angle(a,b,c,d)
+
+
+    # setup the rotation
+
+    #TODO
+
+
+
+
+    # perform the rotation
+    for atom in component
+        atom.r *= rotation
+    end
+    return true
+end
+
+@inline function calculate_bond_angle(a::Atom, b::Atom, c::Atom)
+    if a.r == b.r || b.r == c.r
+        @error ("Atoms can't have the same position. No Angle to calculate here.")
+    end
+
+    a12 = a.r-b.r
+    a23 = c.r-b.r
+
+    a12 /= norm(a12)
+    a23 /= norm(a23)
+
+    scalar_product = clamp(dot(a12, a23), -1.0, 1.0)
+
+    return acos(scalar_product)
+end
+
 
 # TODO adapt to variants
 @inline function is_nucleotide(frag::Fragment)
