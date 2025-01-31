@@ -251,9 +251,34 @@ function Base.append!(sys::System{T}, others::System{T}...) where T
     sys
 end
 
-Base.show(io::IO, ::MIME"text/plain", sys::System) = show(io, sys)
-Base.show(io::IO, sys::System) = print(io,
-    "$(typeof(sys)) with ", natoms(sys), " atoms", isempty(sys.name) ? "" : " ($(sys.name))")
+@inline function _component_counts(sys::System)
+    OrderedDict(
+        "atoms" => natoms(sys),
+        "bonds" => nbonds(sys),
+        "molecules" => nmolecules(sys),
+        "chains" => nchains(sys),
+        "secondary structures" => nsecondary_structures(sys),
+        "fragments" => nfragments(sys)
+    )
+end
+
+function Base.show(io::IO, ::MIME"text/plain", sys::System)
+    counts = _component_counts(sys)
+    maxw   = ndigits(max(values(counts)...))
+    println(io, typeof(sys), ":", isempty(sys.name) ? "" : " $(sys.name)")
+    for (cname, cnt) in counts
+        println(io, Printf.format(Printf.Format("  %$(maxw)s $cname"), cnt))
+    end
+end
+
+@inline function Base.show(io::IO, sys::System)
+    print(io,
+        "$(typeof(sys)) with ",
+        natoms(sys), " atoms and ",
+        nbonds(sys), " bonds",
+        isempty(sys.name) ? "" : " ($(sys.name))"
+    )
+end
 
 """
     empty!(::System)
