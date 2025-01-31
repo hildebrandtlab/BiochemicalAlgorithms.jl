@@ -170,6 +170,87 @@ Returns the next available `idx` for the given system.
     sys._curr_idx += 1
 end
 
+@inline function _offset_atom_indices!(sys::System, by::Int)
+    _offset_indices!(sys._atoms, by)
+    _offset_indices!(sys._bonds, :a1, by)
+    _offset_indices!(sys._bonds, :a2, by)
+    sys
+end
+
+@inline function _offset_bond_indices!(sys::System, by::Int)
+    _offset_indices!(sys._bonds, by)
+    sys
+end
+
+@inline function _offset_molecule_indices!(sys::System, by::Int)
+    _offset_indices!(sys._molecules, by)
+    _offset_indices!(sys._atoms, :molecule_idx, by)
+    _offset_indices!(sys._chains, :molecule_idx, by)
+    _offset_indices!(sys._secondary_structures, :molecule_idx, by)
+    _offset_indices!(sys._fragments, :molecule_idx, by)
+    sys
+end
+
+@inline function _offset_chain_indices!(sys::System, by::Int)
+    _offset_indices!(sys._chains, by)
+    _offset_indices!(sys._atoms, :chain_idx, by)
+    _offset_indices!(sys._secondary_structures, :chain_idx, by)
+    _offset_indices!(sys._fragments, :chain_idx, by)
+    sys
+end
+
+@inline function _offset_secondary_structure_indices!(sys::System, by::Int)
+    _offset_indices!(sys._secondary_structures, by)
+    _offset_indices!(sys._fragments, :secondary_structure_idx, by)
+    sys
+end
+
+@inline function _offset_fragment_indices!(sys::System, by::Int)
+    _offset_indices!(sys._fragments, by)
+    _offset_indices!(sys._atoms, :fragment_idx, by)
+    sys
+end
+
+"""
+    $(TYPEDSIGNATURES)
+
+Offsets all `idx` values in the given system by `by`.
+"""
+function _offset_indices!(sys::System, by::Int)
+    _offset_atom_indices!(sys, by)
+    _offset_bond_indices!(sys, by)
+    _offset_molecule_indices!(sys, by)
+    _offset_chain_indices!(sys, by)
+    _offset_secondary_structure_indices!(sys, by)
+    _offset_fragment_indices!(sys, by)
+    sys._curr_idx += by
+    sys
+end
+
+"""
+    Base.append!(sys::System, others::System...)
+
+Copies all system components from `others` to `sys`.
+
+!!! note
+    All copied components are assigned new `idx` values. The (system) names, (system) properties
+    and (system) flags of `others` are ignored.
+"""
+function Base.append!(sys::System{T}, others::System{T}...) where T
+    for other in others
+        offset = other._curr_idx
+        other = _offset_indices!(deepcopy(other), sys._curr_idx)
+        append!(sys._atoms, other._atoms)
+        append!(sys._bonds, other._bonds)
+        append!(sys._molecules, other._molecules)
+        append!(sys._chains, other._chains)
+        append!(sys._secondary_structures, other._secondary_structures)
+        append!(sys._fragments, other._fragments)
+        sys._curr_idx += offset
+    end
+    sys
+end
+
 Base.show(io::IO, ::MIME"text/plain", sys::System) = show(io, sys)
 Base.show(io::IO, sys::System) = print(io,
     "$(typeof(sys)) with ", natoms(sys), " atoms", isempty(sys.name) ? "" : " ($(sys.name))")

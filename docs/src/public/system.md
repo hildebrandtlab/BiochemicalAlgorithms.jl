@@ -13,6 +13,7 @@ System
 default_system
 parent_system
 Base.parent(::System)
+Base.append!(sys::System{T}, others::System{T}...) where T
 Base.empty!(::System)
 ```
 

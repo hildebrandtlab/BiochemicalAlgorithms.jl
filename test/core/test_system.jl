@@ -37,6 +37,41 @@
         @test nnucleotides(sys) == 0
         @test nresidues(sys) == 0
 
+        # append!
+        sys = deepcopy(testsys)
+        @test append!(sys) === sys
+        @test sys == testsys
+        @test append!(sys, System{T}()) === sys
+        @test sys == testsys
+        @test append!(sys, testsys) === sys
+        mol = first(molecules(sys))
+        @test natoms(sys) == 2natoms(testsys)
+        @test natoms(mol) == natoms(testsys)
+        @test nbonds(sys) == 2nbonds(testsys)
+        @test nbonds(mol) == nbonds(testsys)
+        @test nmolecules(sys) == 2nmolecules(testsys)
+        @test nchains(sys) == 2nchains(testsys)
+        @test nchains(mol) == nchains(testsys)
+        @test nsecondary_structures(sys) == 2nsecondary_structures(testsys)
+        @test nsecondary_structures(mol) == nsecondary_structures(testsys)
+        @test nfragments(sys) == 2nfragments(testsys)
+        @test nfragments(mol) == nfragments(testsys)
+        @test nfragments(sys; variant = FragmentVariant.None) == 2nfragments(testsys; variant = FragmentVariant.None)
+        @test nfragments(mol; variant = FragmentVariant.None) == nfragments(testsys; variant = FragmentVariant.None)
+        @test nnucleotides(sys) == 2nnucleotides(testsys)
+        @test nnucleotides(mol) == nnucleotides(testsys)
+        @test nresidues(sys) == 2nresidues(testsys)
+        @test nresidues(mol) == nresidues(testsys)
+        Atom(sys, 9999, Elements.N)
+        @test allunique([
+            atoms(sys).idx;
+            bonds(sys).idx;
+            molecules(sys).idx;
+            chains(sys).idx;
+            secondary_structures(sys).idx;
+            fragments(sys).idx
+        ])
+
         # atoms
         ## sort + sort! + sort_atoms!
         sys = deepcopy(testsys)
