@@ -25,11 +25,15 @@ abstract type AbstractColumnTable <: Tables.AbstractColumns end
 end
 
 @inline function Base.show(io::IO, ::MIME"text/html", at::AbstractColumnTable; kwargs...)
-    _show(io, at; backend = Val(:html), kwargs...)
+    _show(io, at; backend = Val(:html), vcrop_mode = :middle, kwargs...)
+end
+
+@inline function Base.show(io::IO, ::MIME"text/markdown", at::AbstractColumnTable; kwargs...)
+    _show(io, at; backend = Val(:markdown), kwargs...)
 end
 
 @inline function Base.show(io::IO, ::MIME"text/plain", at::AbstractColumnTable; kwargs...)
-    _show(io, at; reserved_display_lines = 2, kwargs...)
+    _show(io, at; reserved_display_lines = 2, vcrop_mode = :middle, kwargs...)
 end
 
 @inline function _show(io::IO, at::AbstractColumnTable; kwargs...)
@@ -39,7 +43,6 @@ end
         row_number_column_title = "#",
         show_row_number = true,
         title  = "$(typeof(at)) with $(length(at)) rows:",
-        vcrop_mode = :middle,
         kwargs...
     )
 end
