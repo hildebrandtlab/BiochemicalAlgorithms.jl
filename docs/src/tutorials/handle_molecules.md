@@ -144,12 +144,10 @@ sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
 all_chains = chains(sys)
 ```
 
-|  \# | idx | name |
-|----:|:----|:-----|
-|   1 | 2   | E    |
-|   2 | 349 | I    |
-
-ChainTable{Float32} with 2 rows:
+| **\#** | **idx** | **name** |
+|-------:|:--------|:---------|
+|  **1** | 2       | E        |
+|  **2** | 349     | I        |
 
 This snippet will create separate PDB files for the two chains of the system:
 

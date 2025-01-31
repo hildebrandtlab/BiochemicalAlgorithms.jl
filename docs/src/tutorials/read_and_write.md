@@ -13,7 +13,13 @@ Read a PDB file from the BiochemicalAlgorithms.jl repository:
 sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 ```
 
-    System{Float32} with 23 atoms (AlaAla.pdb)
+    System{Float32}: AlaAla.pdb
+      23 atoms
+       0 bonds
+       1 molecules
+       1 chains
+       0 secondary structures
+       2 fragments
 
 Write the same system back into a new PDB file:
 
@@ -29,7 +35,13 @@ In addition to PDB, the [pubchem data base](https://pubchem.ncbi.nlm.nih.gov/) p
 sys = load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json"))
 ```
 
-    System{Float32} with 21 atoms
+    System{Float32}:
+      21 atoms
+      21 bonds
+       1 molecules
+       0 chains
+       0 secondary structures
+       0 fragments
 
 ## SD file
 
@@ -37,7 +49,13 @@ sys = load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json"))
 sys = load_sdfile(ball_data_path("../test/data/rings_test.sdf"))
 ```
 
-    System{Float32} with 148 atoms (rings_test.sdf)
+    System{Float32}: rings_test.sdf
+      148 atoms
+      151 bonds
+        9 molecules
+        0 chains
+        0 secondary structures
+        0 fragments
 
 Write the system into a new SD file:
 
@@ -46,5 +64,5 @@ write_sdfile("rings_test_out.sdf", sys)
 ```
 
     ┌ Warning: write_sdfile: writer only supports 2D data; projecting atoms onto xy-plane...
-    └ @ BiochemicalAlgorithms ~/git/ball.jl/src/fileformats/sdfile.jl:23
+    └ @ BiochemicalAlgorithms ~/git/ball.jl/src/fileformats/sdfile.jl:33
     [ Info: 9 records exported.

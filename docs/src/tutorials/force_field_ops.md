@@ -19,7 +19,13 @@ sys
     [ Info: reconstruct_fragments!(): added 0 atoms.
     [ Info: build_bonds!(): built 22 bonds
 
-    System{Float32} with 23 atoms (AlaAla.pdb)
+    System{Float32}: AlaAla.pdb
+      23 atoms
+      22 bonds
+       1 molecules
+       1 chains
+       0 secondary structures
+       2 fragments
 
 ## Setting up a force field
 
@@ -30,10 +36,9 @@ ff = AmberFF(sys)
 ```
 
     ┌ Warning: 2 warnings occurred during setup that were suppressed:
-    │ Components:
-    │ Torsion: 2 warnings
+    │  - Torsion: 2 warnings
     │ Use print_warnings(ff) to display them.
-    └ @ BiochemicalAlgorithms ~/git/ball.jl/src/forcefields/common/forcefield.jl:164
+    └ @ BiochemicalAlgorithms ~/git/ball.jl/src/forcefields/common/forcefield.jl:233
 
     AmberFF for 23 atoms with 22 bonds.
 
@@ -58,26 +63,26 @@ atoms(sys).F   # or, equivalently, atoms(ff.system).F
 ```
 
     23-element SystemComponentTableCol{StaticArraysCore.SVector{3, Float32}}:
-     [-8.905341f-10, -3.7217035f-10, 4.1395054f-10]
-     [7.802113f-10, 5.1211924f-11, -4.5226885f-11]
-     [2.1271647f-9, 7.6049345f-10, -1.7229925f-9]
-     [6.35672f-8, 4.1203478f-8, -1.4751434f-7]
-     [-6.499216f-11, -9.310282f-11, 5.374651f-11]
-     [4.213668f-11, -7.5111216f-11, 1.0826247f-10]
-     [8.747198f-12, -6.8457344f-11, 8.2736526f-11]
-     [6.989254f-11, 1.4578986f-11, -3.0845635f-11]
-     [-1.9595292f-10, -1.1358164f-10, -1.1052925f-10]
-     [7.2654154f-11, 4.829702f-11, -4.4509316f-11]
+     [-8.9053415f-10, -3.7217035f-10, 4.139505f-10]
+     [7.8021095f-10, 5.121153f-11, -4.5226357f-11]
+     [2.1271644f-9, 7.604931f-10, -1.7229931f-9]
+     [6.35672f-8, 4.1203474f-8, -1.4751437f-7]
+     [-6.499216f-11, -9.3102845f-11, 5.374651f-11]
+     [4.2136683f-11, -7.511121f-11, 1.08262434f-10]
+     [8.747169f-12, -6.845735f-11, 8.273652f-11]
+     [6.9892536f-11, 1.4578987f-11, -3.084564f-11]
+     [-1.9595295f-10, -1.1358163f-10, -1.1052923f-10]
+     [7.265452f-11, 4.82974f-11, -4.4509858f-11]
      ⋮
-     [2.4661245f-10, -1.1778086f-9, 2.604445f-9]
-     [8.2778495f-10, -5.4249055f-10, 8.765799f-10]
-     [3.3519593f-11, -1.4663633f-10, 3.168089f-11]
-     [4.1687834f-11, 5.7383577f-12, 1.0522515f-10]
-     [7.105667f-11, -7.6943465f-11, 1.3604341f-10]
+     [2.466124f-10, -1.1778086f-9, 2.6044453f-9]
+     [8.27785f-10, -5.424906f-10, 8.765798f-10]
+     [3.351959f-11, -1.4663636f-10, 3.1680897f-11]
+     [4.1687837f-11, 5.738371f-12, 1.0522515f-10]
+     [7.105667f-11, -7.694347f-11, 1.3604341f-10]
      [-4.5483453f-10, 7.660909f-10, -6.81682f-10]
-     [9.818538f-12, -2.6953412f-10, 2.1820955f-10]
-     [-6.4707145f-8, -4.2964025f-8, 1.470911f-7]
-     [-2.1067495f-10, 1.2029502f-10, -2.3378385f-10]
+     [9.818543f-12, -2.6953412f-10, 2.1820956f-10]
+     [-6.470714f-8, -4.2964025f-8, 1.4709109f-7]
+     [-2.1067495f-10, 1.2029508f-10, -2.3378374f-10]
 
 ## Potential energy computation
 
@@ -101,7 +106,7 @@ ff.energy
       "Bond Stretches"   => 1.36306
       "Van der Waals"    => 1493.18
       "Improper Torsion" => 3.99017f-6
-      "Electrostatic"    => -85.1466
+      "Electrostatic"    => -85.1467
       "Proper Torsion"   => 10.7981
 
 ## Structure optimization
@@ -113,7 +118,7 @@ optimize_structure!(ff)
 compute_energy!(ff)
 ```
 
-    -374.31445f0
+    -374.3145f0
 
 The opmitization function also updates the atom positions correspondingly such that the structure can be visualized in its optimized state, e.g., through [BiochemicalVisualization.jl](https://github.com/hildebrandtlab/BiochemicalVisualization.jl).
 
