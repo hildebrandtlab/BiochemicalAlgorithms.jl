@@ -31,6 +31,7 @@ jobs:
         version:
           - 'lts'
           - '1.11'
+          - '1.12-nightly'
           - 'nightly'
         os:
           - ubuntu-latest
@@ -39,6 +40,8 @@ jobs:
           # Broken by dependency, cf. https://github.com/BioJulia/IndexableBitVectors.jl/issues/9
           # - x86
         include:
+          - version: '1.12-nightly'
+            experimental: true
           - version: 'nightly'
             experimental: true
     steps:
