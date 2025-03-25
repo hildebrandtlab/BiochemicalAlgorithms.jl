@@ -38,7 +38,7 @@ function place_peptide_bond_h_!(frag::Fragment{T}) where T
             maximum(atoms(parent_system(frag)).number)+1, # does this make sense?
             Elements.H,
             name = "H",
-            r = n_atom.r .- (OC .* BOND_LENGTH_N_H) / length,
+            r = n_atom.r .- (OC .* BOND_LENGTH_N_H) ./ length,
         )
 
         Bond(parent_system(frag), n_atom.idx, h_atom.idx, BondOrder.Single)
