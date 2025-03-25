@@ -38,8 +38,7 @@ function place_peptide_bond_h_!(frag::Fragment{T}) where T
             maximum(atoms(parent_system(frag)).number)+1, # does this make sense?
             Elements.H,
             name = "H",
-            atom_type = "",
-            r = n_atom.r - (OC * BOND_LENGTH_N_H) / length,
+            r = n_atom.r .- (OC .* BOND_LENGTH_N_H) / length,
         )
 
         Bond(parent_system(frag), n_atom.idx, h_atom.idx, BondOrder.Single)
@@ -132,7 +131,6 @@ function _add_hydrogen!(atom::Atom{T}, r::Vector3{T}, atom_nr::Int) where {T<:Re
         maximum(atoms(parent_system(atom)).number)+1, # does this make sense?
         Elements.H,
         name = "H" * ((atom_nr > 1) ? (string(atom_nr) * atom.name) : atom.name),
-        atom_type = "",
         r = r
     )
 
