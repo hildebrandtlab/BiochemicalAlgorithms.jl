@@ -30,7 +30,8 @@ export
     parent_nucleotide,
     parent_residue,
     residue_by_idx,
-    residues
+    residues,
+    set_torsion_angle!
 
 """
     Fragment{T} <: AbstractAtomContainer{T}
@@ -715,7 +716,7 @@ end
     return dot(cross(n12,n34), (c.r-b.r)) < 0.0 ? -1.0 * acos(scalar_product) : acos(scalar_product)
 end
 
-@inline function set_torsion_angle(a::Atom, b::Atom, c::Atom, d::Atom, angle::Float32)
+@inline function set_torsion_angle!(a::Atom, b::Atom, c::Atom, d::Atom, angle::Union{Float32, Float64})
 
     # perform bfs to find the part of the molecule that needs to be rotated
 
@@ -726,46 +727,50 @@ end
 
     # starting point
     for bond in bonds(c) # check bonds of atom c
-
         if bond.a2 != b.idx # b should not be rotated
-            partner_atom = atom_by_idx(bond.a2) # atom to be rotated
+            partner_atom = atom_by_idx(parent(c), bond.a2) # atom to be rotated
             push!(component, partner_atom)
             push!(queue, partner_atom)
         end
     end
 
     # perform bfs
-    while(!empty(queue))
+    while(!isempty(queue))
         atom = popfirst!(queue)
 
         for bond in bonds(atom)
-
             # we cannot set the torsion angle if b is in the same connected component as the partner atom
             if bond.a2 == b.idx
                 return false
             end
 
-            if !in(atom_by_idx(bond.a2), component)
-                push!(atom_by_idx(bond.a2), component)
-                push!(atom_by_idx(bond.a2), queue)
+            if !in(atom_by_idx(parent(atom),bond.a2), component)
+                push!(atom_by_idx(parent(atom), bond.a2), component)
+                push!(atom_by_idx(parent(atom), bond.a2), queue)
             end
         end
     end
 
     angle -= calculate_torsion_angle(a,b,c,d)
-
-
     # setup the rotation
+    rotation_axis = c.r-b.r
+    rotation_axis /= norm(rotation_axis)
+    rotation = RotMatrix(AngleAxis(angle, rotation_axis[1], rotation_axis[2], rotation_axis[3]))
 
-    #TODO
+     # Translate b to the origin
+     translation_to_origin = -b.r
 
+     # Apply the transformations to the selected component
+     for atom in component
+         # Translate to origin
+         atom.r += translation_to_origin
 
+         # Apply rotation
+         atom.r = rotation * atom.r
 
-
-    # perform the rotation
-    for atom in component
-        atom.r *= rotation
-    end
+         # Translate back
+         atom.r += -translation_to_origin
+     end
     return true
 end
 
@@ -780,9 +785,7 @@ end
     a12 /= norm(a12)
     a23 /= norm(a23)
 
-    scalar_product = clamp(dot(a12, a23), -1.0, 1.0)
-
-    return acos(scalar_product)
+    return acos(clamp(dot(a12, a23), -1.0, 1.0))
 end
 
 
