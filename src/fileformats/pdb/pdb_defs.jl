@@ -6,6 +6,8 @@ using BiochemicalAlgorithms:
     Chain,
     Fragment
 
+export PDBInfo
+
 @enum(PDBRecordType,
     RECORD_TYPE__UNKNOWN = 0,
     RECORD_TYPE__ANISOU,
@@ -94,6 +96,9 @@ end
     number::Int
     first::UniqueResidueID
     second::UniqueResidueID
+    symmetry_operator_0::Int
+    symmetry_operator_1::Int
+    bond_length::Real
 end
 
 @auto_hash_equals struct HelixRecord
@@ -110,7 +115,7 @@ end
     name::String
     initial_residue::UniqueResidueID
     terminal_residue::UniqueResidueID
-    sense_of_strand::Bool
+    sense_of_strand::Int
 end
 
 @auto_hash_equals struct TurnRecord
@@ -119,6 +124,24 @@ end
     initial_residue::UniqueResidueID
     terminal_residue::UniqueResidueID
     comment::String
+end
+
+@auto_hash_equals mutable struct PDBWriterStats
+    remark_records::Int
+    het_records::Int
+    helix_records::Int
+    sheet_records::Int
+    turn_records::Int
+    site_records::Int
+    coordinate_transformation_records::Int
+    atomic_coordinate_records::Int
+    ter_records::Int
+    conect_records::Int
+    seqres_records::Int
+
+    function PDBWriterStats()
+        new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    end
 end
 
 @auto_hash_equals mutable struct PDBInfo{T}
@@ -142,22 +165,24 @@ end
 
     alternate_location_identifier::String
 
+    writer_stats::PDBWriterStats
+
     function PDBInfo{T}(selected_model=-1) where {T}
         new("", "", "", "", Deque{PDBRecord}(), Deque{SSBondRecord}(), 
             Deque{Union{HelixRecord, SheetRecord, TurnRecord}}(), selected_model, 
-            1, nothing, nothing, "A")
+            1, nothing, nothing, "A", PDBWriterStats())
     end
 end
 
 
 const FORMAT_UNKNOWN          = ""
-const FORMAT_ANISOU           = "%5ld %-4.4s%c%3.3s %c%4ld%c %7ld%7ld%7ld%7ld%7ld%7ld  %4.4s%2.2s%2.2s"
-const FORMAT_ATOM             = "%5ld %-4.4s%c%3.3s %c%4ld%c   %8.3f%8.3f%8.3f%6.2f%6.2f      %4.4s%2.2s%2.2s"
-const FORMAT_ATOM_PARTIAL_CRG = "%5ld %-4.4s%c%3.3s %c%4ld%c   %8.3f%8.3f%8.3f%6.2f%6.2f      %4.4s%4.4s"
-const FORMAT_AUTHOR           = "  %2ld%-60.60s"
-const FORMAT_CAVEAT           = "  %2ld %4.4s    %51.51s"
-const FORMAT_CISPEP           = " %3ld %3.3s %c %4ld%c   %3.3s %c %4ld%c       %3ld       %6f"
-const FORMAT_COMPND           = "  %2ld%-60.60s"
+const FORMAT_ANISOU           = "%5ld %-4.4s%1.1s%3.3s %1.1s%4ld%1.1s %7ld%7ld%7ld%7ld%7ld%7ld  %4.4s%2.2s%2.2s"
+const FORMAT_ATOM             = "%5ld %-4.4s%1.1s%3.3s %1.1s%4ld%1.1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %4.4s%2.2s%2.2s"
+const FORMAT_ATOM_PARTIAL_CRG = "%5ld %-4.4s%1.1s%3.3s %1.1s%4ld%1.1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %4.4s%4.4s"
+const FORMAT_AUTHOR           = "  %2.2s%-60.60s"
+const FORMAT_CAVEAT           = "  %2.2s %4.4s    %-51.51s"
+const FORMAT_CISPEP           = " %3ld %3.3s %1.1s %4ld%1.1s   %3.3s %1.1s %4ld%1.1s       %3ld       %6f"
+const FORMAT_COMPND           = "  %2.2s%-60.60s"
 const FORMAT_CON06            = "%5ld%5ld%5ld%5ld%5ld"
 const FORMAT_CON061           = "%5ld"
 const FORMAT_CON062           = "%5ld%5ld"
@@ -165,29 +190,29 @@ const FORMAT_CON063           = "%5ld%5ld%5ld"
 const FORMAT_CON064           = "%5ld%5ld%5ld%5ld"
 const FORMAT_CONECT           = "%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld"
 const FORMAT_CRYST1           = "%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f %-11.11s%4ld"
-const FORMAT_DBREF            = " %4.4s %c %4ld%c %4ld%c %6.6s %8.8s %12.12s %5ld%c %5ld%c"
+const FORMAT_DBREF            = " %4.4s %1.1s %4ld%1.1s %4ld%1.1s %6.6s %8.8s %12.12s %5ld%1.1s %5ld%1.1s"
 const FORMAT_END              = ""
 const FORMAT_ENDMDL           = ""
-const FORMAT_EXPDTA           = "  %2ld%60.60s"
-const FORMAT_FORMUL           = "  %2ld  %3.3s %2ld%c%51.51s"
-const FORMAT_FTNOTE           = " %3ld %59.59s"
+const FORMAT_EXPDTA           = "  %2.2s%-60.60s"
+const FORMAT_FORMUL           = "  %2.2s  %3.3s %2ld%1.1s%51.51s"
+const FORMAT_FTNOTE           = " %3ld %-59.59s"
 const FORMAT_HEADER           = "    %-40.40s%9.9s   %4.4s"
-const FORMAT_HELIX            = " %3ld %3.3s %3.3s %c %4ld%c %3.3s %c %4ld%c%2ld%30.30s %5ld"
-const FORMAT_HET              = " %3.3s  %c%4ld%c  %5ld  %43.43s"
-const FORMAT_HETATM           = "%5ld %-4.4s%c%3.3s %c%4ld%c   %8.3f%8.3f%8.3f%6.2f%6.2f      %4.4s%2.2s%2.2s"
-const FORMAT_HETNAM           = "  %2ld %3.3s %55.55s"
-const FORMAT_HETSYN           = "  %2ld %3.3s %55.55s"
-const FORMAT_HYDBND           = "      %4.4s%c%3.3s %c%5ld%c %4.4s%c %c%5ld%c %4.4s%c%3.3s %c%5ld%c%6ld %6ld"
+const FORMAT_HELIX            = " %3ld %3.3s %3.3s %1.1s %4ld%1.1s %3.3s %1.1s %4ld%1.1s%2ld%30.30s %5ld"
+const FORMAT_HET              = " %3.3s  %1.1s%4ld%1.1s  %5ld  %43.43s"
+const FORMAT_HETATM           = "%5ld %-4.4s%1.1s%3.3s %1.1s%4ld%1.1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %4.4s%2.2s%2.2s"
+const FORMAT_HETNAM           = "  %2.2s %3.3s %55.55s"
+const FORMAT_HETSYN           = "  %2.2s %3.3s %55.55s"
+const FORMAT_HYDBND           = "      %4.4s%1.1s%3.3s %1.1s%5ld%1.1s %4.4s%1.1s %1.1s%5ld%1.1s %4.4s%1.1s%3.3s %1.1s%5ld%1.1s%6ld %6ld"
 const FORMAT_JRNL             = "      %58.58s"
-const FORMAT_KEYWDS           = "  %2ld%60.60s"
-const FORMAT_LINK             = "      %4.4s%c%3.3s %c%4ld%c               %4.4s%c%3.3s %c%4ld%c  %6ld %6ld"
+const FORMAT_KEYWDS           = "  %2.2s%-70.70s"
+const FORMAT_LINK             = "      %4.4s%1.1s%3.3s %1.1s%4ld%1.1s               %4.4s%1.1s%3.3s %1.1s%4ld%1.1s  %6ld %6ld"
 const FORMAT_MASTER           = "    %5d%5d%5d%5d%5d%5d%5d%5d%5d%5d%5d%5d"
 const FORMAT_MODEL            = "    %4ld"
-const FORMAT_MODRES           = " %3.3s %3.3s %c %4ld%c %3.3s  %41.41s"
+const FORMAT_MODRES           = " %3.3s %3.3s %1.1s %4ld%1.1s %3.3s  %41.41s"
 const FORMAT_MTRIX1           = " %3ld%10.6f%10.6f%10.6f     %10.5f    %1ld"
 const FORMAT_MTRIX2           = " %3ld%10.6f%10.6f%10.6f     %10.5f    %1ld"
 const FORMAT_MTRIX3           = " %3ld%10.6f%10.6f%10.6f     %10.5f    %1ld"
-const FORMAT_OBSLTE           = "  %2ld %9.9s %4.4s      %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s"
+const FORMAT_OBSLTE           = "  %2.2s %9.9s %4.4s      %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s"
 const FORMAT_ORIGX1           = "    %10f%10f%10f     %10f"
 const FORMAT_ORIGX2           = "    %10f%10f%10f     %10f"
 const FORMAT_ORIGX3           = "    %10f%10f%10f     %10f"
@@ -196,19 +221,19 @@ const FORMAT_REVDAT           = " %3ld%2ld %9.9s %5.5s   %1ld       %6.6s %6.6s 
 const FORMAT_SCALE1           = "    %10f%10f%10f     %10f"
 const FORMAT_SCALE2           = "    %10f%10f%10f     %10f"
 const FORMAT_SCALE3           = "    %10f%10f%10f     %10f"
-const FORMAT_SEQADV           = " %4.4s %4.4s %c %4ld%c %4.4s %9.9s %3.3s %5ld %21.21s"
-const FORMAT_SEQRES           = "  %2ld %c %4ld  %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s"
-const FORMAT_SHEET            = " %3ld %3.3s%2ld %3.3s %c%4ld%c %3.3s %c%4ld%c%2ld %-4.4s%3.3s %c%4ld%c %-4.4s%3.3s %c%4ld%c"
-const FORMAT_SIGATM           = "%5ld %4.4s%c%3.3s %c%4ld%c   %8f%8f%8f%6f%6f      %4.4s%2.2s%2.2s"
-const FORMAT_SIGUIJ           = "%5ld %-4.4s%c%3.3s %c%4ld%c %7ld%7ld%7ld%7ld%7ld%7ld  %4.4s%2.2s%2.2s"
-const FORMAT_SITE             = " %3ld %3.3s %2ld %3.3s %c%4ld%c %3.3s %c%4ld%c %3.3s %c%4ld%c %3.3s %c%4ld%c"
-const FORMAT_SLTBRG           = "      %4.4s%c%3.3s %c%4ld%c               %4.4s%c%3.3s %c%4ld%c  %6ld%6ld"
-const FORMAT_SOURCE           = "  %2ld%-60.60s"
-const FORMAT_SPRSDE           = "  %2ld %9.9s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s "
-const FORMAT_SSBOND           = " %3ld %3.3s %c %4ld%c   %3.3s %c %4ld%c                       %6ld %6ld"
-const FORMAT_TER              = "%5ld      %3.3s %c%4ld%c"
-const FORMAT_TITLE            = "  %2ld%60.60s"
-const FORMAT_TURN             = " %3ld %3.3s %3.3s %c%4ld%c %3.3s %c%4ld%c    %-30.30s"
+const FORMAT_SEQADV           = " %4.4s %4.4s %1.1s %4ld%1.1s %4.4s %9.9s %3.3s %5ld %21.21s"
+const FORMAT_SEQRES           = "  %2.2ld %1.1s %4ld  %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s %3.3s"
+const FORMAT_SHEET            = " %3ld %3.3s%2ld %3.3s %1.1s%4ld%1.1s %3.3s %1.1s%4ld%1.1s%2ld %-4.4s%3.3s %1.1s%4ld%1.1s %-4.4s%3.3s %1.1s%4ld%1.1s"
+const FORMAT_SIGATM           = "%5ld %4.4s%1.1s%3.3s %1.1s%4ld%1.1s   %8f%8f%8f%6f%6f      %4.4s%2.2s%2.2s"
+const FORMAT_SIGUIJ           = "%5ld %-4.4s%1.1s%3.3s %1.1s%4ld%1.1s %7ld%7ld%7ld%7ld%7ld%7ld  %4.4s%2.2s%2.2s"
+const FORMAT_SITE             = " %3ld %3.3s %2ld %3.3s %1.1s%4ld%1.1s %3.3s %1.1s%4ld%1.1s %3.3s %1.1s%4ld%1.1s %3.3s %1.1s%4ld%1.1s"
+const FORMAT_SLTBRG           = "      %4.4s%1.1s%3.3s %1.1s%4ld%1.1s               %4.4s%1.1s%3.3s %1.1s%4ld%1.1s  %6ld%6ld"
+const FORMAT_SOURCE           = "  %2.2s%-70.70s"
+const FORMAT_SPRSDE           = "  %2.2s %9.9s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s "
+const FORMAT_SSBOND           = " %3ld %3.3s %1.1s %4ld%1.1s   %3.3s %1.1s %4ld%1.1s                       %6ld %6ld %5.2f"
+const FORMAT_TER              = "%5ld      %3.3s %1.1s%4ld%1.1s"
+const FORMAT_TITLE            = "  %2.2s%-70.70s"
+const FORMAT_TURN             = " %3ld %3.3s %3.3s %1.1s%4ld%1.1s %3.3s %1.1s%4ld%1.1s    %-30.30s"
 const FORMAT_TVECT            = " %3ld%10f%10f%10f%30.30s"
 
 const RECORD_TAG_UNKNOWN = "     "
@@ -337,3 +362,12 @@ const RECORD_TYPE_FORMAT = [
 const RECORD_MAP = Dict(
     rtf.tag => rtf for rtf in RECORD_TYPE_FORMAT
 )
+
+function typeformat_by_type(record_type::PDBRecordType)
+    index = findfirst(x -> x.record_type == record_type, RECORD_TYPE_FORMAT)
+    if isnothing(index)
+        throw(ArgumentError("Invalid record type: $record_type"))
+    end
+
+    RECORD_TYPE_FORMAT[index]
+end
