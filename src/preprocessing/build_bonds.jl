@@ -124,7 +124,7 @@ function try_build_connection!(a1::Atom, con_1::DBConnection, a2::Atom, con_2::D
     # mark disulphide bridges
     flags = Flags()
     if a1.name == "SG" && a2.name == "SG"
-        push!(flags, :DISULPHIDE_BOND)
+        push!(flags, :TYPE__DISULPHIDE_BOND)
     end
 
     Bond(parent_system(a1), a1.idx, a2.idx, con_1.order; flags = flags)

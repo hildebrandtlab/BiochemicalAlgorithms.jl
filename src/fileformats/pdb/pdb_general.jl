@@ -121,7 +121,7 @@ function interpret_record(::Val{RECORD_TYPE__HEADER}, tag, classification, depos
 end
 
 function interpret_record(::Val{RECORD_TYPE__TITLE}, tag, continuation, title; sys, pdb_info, kwargs...)
-    pdb_info.title *= title
+    pdb_info.title = (strip(continuation) == "" && pdb_info.title != "") ? pdb_info.title * "\n" * title : pdb_info.title * title
 end
 
 function interpret_record(::Val{RECORD_TYPE__TER}, tag, serial_number, residue_name, chain_id,
@@ -191,6 +191,7 @@ function interpret_record(
         || residue_name != pdb_info.current_residue.name
         || residue_insertion_code != get(pdb_info.current_residue.properties, :insertion_code, ""))
 
+        # TODO: we should handle nucleotides correctly here
         pdb_info.current_residue = Fragment(
             pdb_info.current_chain,
             residue_sequence_number;
@@ -289,7 +290,8 @@ function interpret_record(
     second_partner_number,
     second_partner_insertion_code,
     symmetry_operator_0,
-    symmetry_operator_1;
+    symmetry_operator_1,
+    bond_length;
     sys,
     pdb_info,
     kwargs...)
@@ -306,7 +308,11 @@ function interpret_record(
             second_partner_chain_id,
             second_partner_number,
             second_partner_insertion_code
-        )))
+        ),
+        symmetry_operator_0,
+        symmetry_operator_1,
+        bond_length)
+    )
 end
 
 function interpret_record(
@@ -393,7 +399,7 @@ function interpret_record(
             terminal_residue_number,
             terminal_residue_insertion_code
         ),
-        sense_of_strand != 0)
+        sense_of_strand)
     )
 end
 
@@ -542,11 +548,20 @@ function postprocess_ssbonds_!(sys, pdb_info, fragment_cache)
                 b -> 
                 ((b.a1 == atoms(f1)[a1].idx) && (b.a2 == atoms(f2)[a2].idx)) ||
                 ((b.a1 == atoms(f2)[a2].idx) && (b.a2 == atoms(f1)[a1].idx)), bonds(sys))
-           
+
             if !isnothing(bond_idx)
-                set_flag!(bonds(sys)[bond_idx],(:TYPE__DISULPHIDE_BOND)) 
+                set_flag!(bonds(sys)[bond_idx],(:TYPE__DISULPHIDE_BOND))
+                set_property!(bonds(sys)[bond_idx], :SYMMETRY_OPERATOR_0, ssbond.symmetry_operator_0)
+                set_property!(bonds(sys)[bond_idx], :SYMMETRY_OPERATOR_1, ssbond.symmetry_operator_1)
+                set_property!(bonds(sys)[bond_idx], :BOND_LENGTH, ssbond.bond_length)
             else
-                Bond(sys, atoms(f1)[a1].idx, atoms(f2)[a2].idx, BondOrder.Single; flags=Flags((:TYPE__DISULPHIDE_BOND,)))
+                Bond(sys, atoms(f1)[a1].idx, atoms(f2)[a2].idx, BondOrder.Single; 
+                     flags=Flags((:TYPE__DISULPHIDE_BOND,)),
+                     properties=Properties(
+                        :SYMMETRY_OPERATOR_0 => ssbond.symmetry_operator_0,
+                        :SYMMETRY_OPERATOR_1 => ssbond.symmetry_operator_1,
+                        :BOND_LENGTH => ssbond.bond_length
+                     ))
             end
         end
     end
@@ -601,7 +616,7 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
     # do we need to put every amino acid residue into a secondary structure?
     if create_coils
         for c in chains(sys)
-            fs = fragments(c)
+            fs = residues(c, variant=FragmentVariant.Residue)
 
             if isempty(fs[fs.secondary_structure_idx .== nothing])
                 continue
@@ -624,50 +639,13 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
         end
     end
 
-    # finally, renumber the elements to be consecutive    
-    sort_secondary_structures!(sys, by=se -> (se.chain_idx, minimum(f.number for f in fragments(se))))
-    
-    for c in chains(sys)
-        secondary_structures(c).number .= collect(1:nsecondary_structures(c))
+    # finally, renumber the elements to be consecutive
+    if nsecondary_structures(sys) > 0
+        sort_secondary_structures!(sys, by=se -> (se.chain_idx, minimum(f.number for f in fragments(se))))
+        
+        for c in chains(sys)
+            secondary_structures(c).number .= collect(1:nsecondary_structures(c))
+        end
     end
 end
 
-function load_pdb(
-        filename::String, 
-        T;
-        keep_metadata=true,
-        strict_line_checking=true,
-        selected_model=-1, 
-        ignore_xplor_pseudo_atoms=true,
-        create_coils=true)
-    pdblines = readlines(filename)
-
-    sys = System{T}("")
-    mol = Molecule(sys; name="")
-
-    pdb_info = PDBInfo{T}(selected_model)
-
-    for pl in pdblines
-        handle_record(pl, sys, pdb_info; 
-            strict_line_checking=strict_line_checking,
-            ignore_xplor_pseudo_atoms=ignore_xplor_pseudo_atoms)
-    end
-
-    sys.name = strip(pdb_info.name)
-    mol.name = sys.name
-
-    fragment_cache = Dict{UniqueResidueID, Fragment{T}}()
-
-    for f in fragments(sys)
-        fragment_cache[UniqueResidueID(f.name, parent_chain(f).name, f.number, get_property(f, :insertion_code, " "))] = f
-    end
-
-    postprocess_ssbonds_!(sys, pdb_info, fragment_cache)
-    postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, create_coils)
-
-    if keep_metadata
-        set_property!(sys, :PDBInfo, pdb_info)
-    end
-
-    sys
-end
