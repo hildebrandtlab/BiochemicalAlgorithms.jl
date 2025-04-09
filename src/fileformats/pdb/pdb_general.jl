@@ -121,7 +121,7 @@ function interpret_record(::Val{RECORD_TYPE__HEADER}, tag, classification, depos
 end
 
 function interpret_record(::Val{RECORD_TYPE__TITLE}, tag, continuation, title; sys, pdb_info, kwargs...)
-    pdb_info.title *= title
+    pdb_info.title = (strip(continuation) == "" && pdb_info.title != "") ? pdb_info.title * "\n" * title : pdb_info.title * title
 end
 
 function interpret_record(::Val{RECORD_TYPE__TER}, tag, serial_number, residue_name, chain_id,
@@ -289,7 +289,8 @@ function interpret_record(
     second_partner_number,
     second_partner_insertion_code,
     symmetry_operator_0,
-    symmetry_operator_1;
+    symmetry_operator_1,
+    bond_length;
     sys,
     pdb_info,
     kwargs...)
@@ -306,7 +307,11 @@ function interpret_record(
             second_partner_chain_id,
             second_partner_number,
             second_partner_insertion_code
-        )))
+        ),
+        symmetry_operator_0,
+        symmetry_operator_1,
+        bond_length)
+    )
 end
 
 function interpret_record(
@@ -393,7 +398,7 @@ function interpret_record(
             terminal_residue_number,
             terminal_residue_insertion_code
         ),
-        sense_of_strand != 0)
+        sense_of_strand)
     )
 end
 
@@ -542,11 +547,20 @@ function postprocess_ssbonds_!(sys, pdb_info, fragment_cache)
                 b -> 
                 ((b.a1 == atoms(f1)[a1].idx) && (b.a2 == atoms(f2)[a2].idx)) ||
                 ((b.a1 == atoms(f2)[a2].idx) && (b.a2 == atoms(f1)[a1].idx)), bonds(sys))
-           
+
             if !isnothing(bond_idx)
-                set_flag!(bonds(sys)[bond_idx],(:TYPE__DISULPHIDE_BOND)) 
+                set_flag!(bonds(sys)[bond_idx],(:TYPE__DISULPHIDE_BOND))
+                set_property!(bonds(sys)[bond_idx], :SYMMETRY_OPERATOR_0, ssbond.symmetry_operator_0)
+                set_property!(bonds(sys)[bond_idx], :SYMMETRY_OPERATOR_1, ssbond.symmetry_operator_1)
+                set_property!(bonds(sys)[bond_idx], :BOND_LENGTH, ssbond.bond_length)
             else
-                Bond(sys, atoms(f1)[a1].idx, atoms(f2)[a2].idx, BondOrder.Single; flags=Flags((:TYPE__DISULPHIDE_BOND,)))
+                Bond(sys, atoms(f1)[a1].idx, atoms(f2)[a2].idx, BondOrder.Single; 
+                     flags=Flags((:TYPE__DISULPHIDE_BOND,)),
+                     properties=Properties(
+                        :SYMMETRY_OPERATOR_0 => ssbond.symmetry_operator_0,
+                        :SYMMETRY_OPERATOR_1 => ssbond.symmetry_operator_1,
+                        :BOND_LENGTH => ssbond.bond_length
+                     ))
             end
         end
     end

@@ -66,6 +66,7 @@ include("fileformats/pubchem_json.jl")
 module PDBDetails
 include("fileformats/pdb/pdb_defs.jl")
 include("fileformats/pdb/pdb_general.jl")
+include("fileformats/pdb/pdb_writer.jl")
 end
 #include("fileformats/pdb_old.jl")
 
