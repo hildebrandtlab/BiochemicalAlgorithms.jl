@@ -14,5 +14,5 @@ const MaybeInt = Union{Nothing, Int}
 const Properties = Dict{Symbol, Any}
 const Flags = Set{Symbol}
 
-@inline squared_norm(v::Vector3{T}) where T = dot(v, v)
-@inline distance(v::Vector3{T}, w::Vector3{T}) where T = norm(v - w)
+@inline squared_norm(v::AbstractVector) = dot(v, v)
+@inline distance(v::AbstractVector{T}, w::AbstractVector{T}) where T = norm(v - w)
