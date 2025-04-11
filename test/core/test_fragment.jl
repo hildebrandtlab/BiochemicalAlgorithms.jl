@@ -1419,6 +1419,7 @@ end
 end
 
 @testitem "Fragment/has_torsion" begin
+
     sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
     fdb = FragmentDB()
     build_bonds!(sys, fdb)
@@ -1471,13 +1472,15 @@ end
 
 
 @testitem "Fragment/calculate_torsion_angle" begin
-    sys = System()
-    a = Atom(sys, 1, Elements.C, r = Vector3{Float32}(0.0f0, 1.0f0, 0.0f0))
-    b = Atom(sys, 2, Elements.C, r = Vector3{Float32}(0.0f0, 1.0f0, -1.0f0))
-    c = Atom(sys, 3, Elements.N, r = Vector3{Float32}(1.0f0, 0.0f0, 0.0f0))
-    d = Atom(sys, 4, Elements.C, r = Vector3{Float32}(1.0f0, -1.0f0, -1.0f0))
+    for T in [Float32, Float64]
+        sys = System{T}()
+        a = Atom(sys, 1, Elements.C, r = Vector3{T}(0.0f0, 1.0f0, 0.0f0))
+        b = Atom(sys, 2, Elements.C, r = Vector3{T}(0.0f0, 1.0f0, -1.0f0))
+        c = Atom(sys, 3, Elements.N, r = Vector3{T}(1.0f0, 0.0f0, 0.0f0))
+        d = Atom(sys, 4, Elements.C, r = Vector3{T}(1.0f0, -1.0f0, -1.0f0))
 
-    @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)),149.999, atol=10e-3)
+        @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)),149.999, atol=10e-3)
+    end
 end
 
 @testitem "Fragment/calculate_bond_angle" begin
@@ -1495,32 +1498,35 @@ end
 end
 
 @testitem "Fragment/set_torsion_angle" begin
-    sys = System()
-    a = Atom(sys, 1, Elements.C, r = Vector3{Float32}(0.0, 1.0, 0.0))
-    b = Atom(sys, 2, Elements.C, r = Vector3{Float32}(0.00, 0.0, 0.0))
-    c = Atom(sys, 3, Elements.N, r = Vector3{Float32}(1.0, 0.0, 0.0))
-    d = Atom(sys, 4, Elements.C, r = Vector3{Float32}(1.0, -1.0, 0.0))
 
-    Bond(a, b, BondOrder.Single)
-    Bond(b, c, BondOrder.Single)
-    Bond(c, d, BondOrder.Single)
+    for T in [Float32, Float64]
+        sys = System{T}()
+        a = Atom(sys, 1, Elements.C, r = Vector3{T}(0.0, 1.0, 0.0))
+        b = Atom(sys, 2, Elements.C, r = Vector3{T}(0.00, 0.0, 0.0))
+        c = Atom(sys, 3, Elements.N, r = Vector3{T}(1.0, 0.0, 0.0))
+        d = Atom(sys, 4, Elements.C, r = Vector3{T}(1.0, -1.0, 0.0))
 
-    @test set_torsion_angle!(a, b, c, d, deg2rad(90.0))
-    @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 90.000, atol=10e-3)
+        Bond(a, b, BondOrder.Single)
+        Bond(b, c, BondOrder.Single)
+        Bond(c, d, BondOrder.Single)
 
-    @test set_torsion_angle!(a, b, c, d, deg2rad(0.0))
-    @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 0.0, atol=10e-3)
+        @test set_torsion_angle!(a, b, c, d, deg2rad(90.0))
+        @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 90.000, atol=10e-3)
 
-    set_torsion_angle!(a, b, c, d, deg2rad(149.99))
-    @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 149.999, atol=10e-3)
-    set_torsion_angle!(a, b, c, d, deg2rad(180.00))
-    @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 180.0, atol=10e-3)
-    set_torsion_angle!(a, b, c, d, deg2rad(360.00))
-    @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 0.0, atol=10e-3)
-    set_torsion_angle!(a, b, c, d, deg2rad(-180.00))
-    @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 180.0, atol=10e-3)
-    set_torsion_angle!(a, b, c, d, deg2rad(-360.00))
-    @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 0.0, atol=10e-3)
-    set_torsion_angle!(a, b, c, d, deg2rad(-149.99))
-    @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), -149.999, atol=10e-3)
+        @test set_torsion_angle!(a, b, c, d, deg2rad(0.0))
+        @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 0.0, atol=10e-3)
+
+        set_torsion_angle!(a, b, c, d, deg2rad(149.99))
+        @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 149.999, atol=10e-3)
+        set_torsion_angle!(a, b, c, d, deg2rad(180.00))
+        @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 180.0, atol=10e-3)
+        set_torsion_angle!(a, b, c, d, deg2rad(360.00))
+        @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 0.0, atol=10e-3)
+        set_torsion_angle!(a, b, c, d, deg2rad(-180.00))
+        @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 180.0, atol=10e-3)
+        set_torsion_angle!(a, b, c, d, deg2rad(-360.00))
+        @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 0.0, atol=10e-3)
+        set_torsion_angle!(a, b, c, d, deg2rad(-149.99))
+        @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), -149.999, atol=10e-3)
+    end
 end
