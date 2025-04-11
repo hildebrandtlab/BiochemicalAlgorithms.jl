@@ -709,7 +709,6 @@ Checks if the given `Fragment` object has a torsion angle phi defined.
         return false
     end
     return !has_flag(frag, :N_TERMINAL) && is_amino_acid(frag)
-
 end
 
 """
@@ -729,12 +728,11 @@ Checks if the given `Fragment` object has a torsion angle omega defined.
         return false
     end
     return !has_flag(frag, :N_TERMINAL) && is_amino_acid(frag)
-
 end
 
 
 """
-    calculate_torsion_angle(a::Atom, b::Atom, c::Atom, d::Atom) -> Float64
+    calculate_torsion_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}) -> T
 
 Calculates the torsion angle (dihedral angle) defined by four atoms `a`, `b`, `c`, and `d`.
 The torsion angle is the angle between the plane formed by atoms `a`, `b`, `c` and the
@@ -749,7 +747,7 @@ plane formed by atoms `b`, `c`, `d`.
 # Returns
 - `Float64`: The torsion angle in radians.
 """
-@inline function calculate_torsion_angle(a::Atom, b::Atom, c::Atom, d::Atom)
+function calculate_torsion_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}) where T
 
     n12 = cross(b.r-a.r, c.r-b.r)
     n34 = cross(c.r-b.r, d.r-c.r)
@@ -761,9 +759,9 @@ plane formed by atoms `b`, `c`, `d`.
     n12 /= norm(n12)
     n34 /= norm(n34)
 
-    scalar_product = clamp(dot(n12,n34), -1.0, 1.0)
+    scalar_product = clamp(dot(n12,n34), -one(T), one(T))
     #take the direction into account direction = dot(cross(n12,n34), (c.r-b.r))
-    return dot(cross(n12,n34), (c.r-b.r)) < 0.0 ? -1.0 * acos(scalar_product) : acos(scalar_product)
+    return dot(cross(n12,n34), (c.r-b.r)) < zero(T) ? -one(T) * acos(scalar_product) : acos(scalar_product)
 end
 
 """
@@ -778,15 +776,16 @@ Sets the torsion angle defined by the four atoms `a`, `b`, `c`, and `d` to the s
 - `d::Atom`: The fourth atom in the torsion angle definition.
 - `angle::Union{Float32, Float64}`: The desired torsion angle in radians.
 
-# Notes
-This function modifies the positions of the atoms to achieve the specified torsion angle. It assumes that the atoms are part of a molecular structure where such modifications are meaningful.
+!!! note
+This function modifies the positions of the atoms to achieve the specified torsion angle. It
+assumes that the atoms are part of a molecular structure where such modifications are meaningful.
 """
-@inline function set_torsion_angle!(a::Atom, b::Atom, c::Atom, d::Atom, angle::Union{Float32, Float64})
+@inline function set_torsion_angle!(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}, angle::T) where T
 
     # perform bfs to find the part of the molecule that needs to be rotated
 
-    queue = Deque{Atom}()
-    component = Set{Atom}()
+    queue = Deque{Atom{T}}()
+    component = Set{Atom{T}}()
 
     push!(component, c) # atoms that need to be rotated
 
@@ -841,7 +840,7 @@ This function modifies the positions of the atoms to achieve the specified torsi
 end
 
 """
-    calculate_bond_angle(a::Atom, b::Atom, c::Atom) -> Float64
+    calculate_bond_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}) -> T
 
 Calculates the bond angle formed by three atoms `a`, `b`, and `c`. The angle is measured at atom `b`,
 with `a` and `c` being the other two atoms forming the angle.
@@ -854,7 +853,7 @@ with `a` and `c` being the other two atoms forming the angle.
 # Returns
 - `Float64`: The bond angle in radians.
 """
-@inline function calculate_bond_angle(a::Atom, b::Atom, c::Atom)
+function calculate_bond_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}) where T
     if a.r == b.r || b.r == c.r
         @error ("Atoms can't have the same position. No Angle to calculate here.")
     end
@@ -865,7 +864,7 @@ with `a` and `c` being the other two atoms forming the angle.
     a12 /= norm(a12)
     a23 /= norm(a23)
 
-    return acos(clamp(dot(a12, a23), -1.0, 1.0))
+    return acos(clamp(dot(a12, a23), -one(T), one(T)))
 end
 
 
