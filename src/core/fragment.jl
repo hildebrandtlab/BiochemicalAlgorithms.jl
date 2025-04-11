@@ -673,6 +673,17 @@ end
     one_letter_code(frag.name)
 end
 
+"""
+    has_torsion_psi(frag::Fragment) -> Bool
+
+Checks if the given `Fragment` object has a torsion angle psi defined.
+    See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
+# Arguments
+- `frag::Fragment`: The fragment object to be checked.
+
+# Returns
+- `Bool`: `true` if the fragment has a torsion angle psi, `false` otherwise.
+"""
 @inline function has_torsion_psi(frag::Fragment)
     chain = parent_chain(frag)
     if nresidues(chain) < 2
@@ -681,6 +692,17 @@ end
     return !has_flag(frag, :C_TERMINAL) && is_amino_acid(frag)
 end
 
+"""
+    has_torsion_phi(frag::Fragment) -> Bool
+
+Checks if the given `Fragment` object has a torsion angle phi defined.
+    See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
+# Arguments
+- `frag::Fragment`: The fragment object to be checked.
+
+# Returns
+- `Bool`: `true` if the fragment has a torsion angle phi, `false` otherwise.
+"""
 @inline function has_torsion_phi(frag::Fragment)
     chain = parent_chain(frag)
     if nresidues(chain) < 2
@@ -690,6 +712,17 @@ end
 
 end
 
+"""
+    has_torsion_omega(frag::Fragment) -> Bool
+
+Checks if the given `Fragment` object has a torsion angle omega defined.
+    See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
+# Arguments
+- `frag::Fragment`: The fragment object to be checked.
+
+# Returns
+- `Bool`: `true` if the fragment has a torsion angle omega, `false` otherwise.
+"""
 @inline function has_torsion_omega(frag::Fragment)
     chain = parent_chain(frag)
     if nresidues(chain) < 2
@@ -699,6 +732,23 @@ end
 
 end
 
+
+"""
+    calculate_torsion_angle(a::Atom, b::Atom, c::Atom, d::Atom) -> Float64
+
+Calculates the torsion angle (dihedral angle) defined by four atoms `a`, `b`, `c`, and `d`.
+The torsion angle is the angle between the plane formed by atoms `a`, `b`, `c` and the
+plane formed by atoms `b`, `c`, `d`.
+
+# Arguments
+- `a::Atom`: The first atom in the sequence.
+- `b::Atom`: The second atom in the sequence.
+- `c::Atom`: The third atom in the sequence.
+- `d::Atom`: The fourth atom in the sequence.
+
+# Returns
+- `Float64`: The torsion angle in radians.
+"""
 @inline function calculate_torsion_angle(a::Atom, b::Atom, c::Atom, d::Atom)
 
     n12 = cross(b.r-a.r, c.r-b.r)
@@ -716,6 +766,21 @@ end
     return dot(cross(n12,n34), (c.r-b.r)) < 0.0 ? -1.0 * acos(scalar_product) : acos(scalar_product)
 end
 
+"""
+    set_torsion_angle!(a::Atom, b::Atom, c::Atom, d::Atom, angle::Union{Float32, Float64})
+
+Sets the torsion angle defined by the four atoms `a`, `b`, `c`, and `d` to the specified `angle`.
+
+# Arguments
+- `a::Atom`: The first atom in the torsion angle definition.
+- `b::Atom`: The second atom in the torsion angle definition.
+- `c::Atom`: The third atom in the torsion angle definition.
+- `d::Atom`: The fourth atom in the torsion angle definition.
+- `angle::Union{Float32, Float64}`: The desired torsion angle in radians.
+
+# Notes
+This function modifies the positions of the atoms to achieve the specified torsion angle. It assumes that the atoms are part of a molecular structure where such modifications are meaningful.
+"""
 @inline function set_torsion_angle!(a::Atom, b::Atom, c::Atom, d::Atom, angle::Union{Float32, Float64})
 
     # perform bfs to find the part of the molecule that needs to be rotated
@@ -771,9 +836,24 @@ end
          # Translate back
          atom.r += -translation_to_origin
      end
+
     return true
 end
 
+"""
+    calculate_bond_angle(a::Atom, b::Atom, c::Atom) -> Float64
+
+Calculates the bond angle formed by three atoms `a`, `b`, and `c`. The angle is measured at atom `b`,
+with `a` and `c` being the other two atoms forming the angle.
+
+# Arguments
+- `a::Atom`: The first atom in the bond angle.
+- `b::Atom`: The central atom where the angle is measured.
+- `c::Atom`: The third atom in the bond angle.
+
+# Returns
+- `Float64`: The bond angle in radians.
+"""
 @inline function calculate_bond_angle(a::Atom, b::Atom, c::Atom)
     if a.r == b.r || b.r == c.r
         @error ("Atoms can't have the same position. No Angle to calculate here.")
