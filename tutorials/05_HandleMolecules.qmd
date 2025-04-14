@@ -78,16 +78,16 @@ for chain in chains(sys)
     res = residues(chain)
     println("> Chain $(chain.name)")
     println("One-letter code:")
-    println(join(one_letter_code.(res.name), "")) 
+    println(join(one_letter_code.(res.name), ""))
     println("Three-letter code:")
-    println(join(three_letter_code.(res), " ")) 
+    println(join(three_letter_code.(res), " "))
 end
 ```
 
 
 ## How can I pick one single chain out of a system containing several chains?
 This is often needed when a receptor and a ligand are co-complexed and you want to treat them separately.
-```{julia} 
+```{julia}
 sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
 
 all_chains = chains(sys)
@@ -129,8 +129,8 @@ println("RMSD after mapping:\t", compute_rmsd(mol2, mol))
 sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
 mol = first(molecules(sys))
 
-v = Vector3{T}(0, 0, 0) # no translation
-m = Matrix3{T}(1, 0, 0, 0, 0, -1, 0, 1, 0) # counter clockwise rotation by 90 degree
+v = Vector3{Float32}(0, 0, 0) # no translation
+m = Matrix3{Float32}(1, 0, 0, 0, 0, -1, 0, 1, 0) # counter clockwise rotation by 90 degree
 r = RigidTransform(m, v)
 
 # perform the transformation
@@ -168,4 +168,4 @@ neighbors = neighborlist([a.r for a in atoms(sys)], 1.5)
 
 ```
 
-`neighborlist` returns a tuple consisting of indices for the neighbors and the computed distance between them. For more advanced use cases have a look at the [`CellListMap.jl` documentation](https://m3g.github.io/CellListMap.jl/stable/neighborlists/) . 
+`neighborlist` returns a tuple consisting of indices for the neighbors and the computed distance between them. For more advanced use cases have a look at the [`CellListMap.jl` documentation](https://m3g.github.io/CellListMap.jl/stable/neighborlists/) .
