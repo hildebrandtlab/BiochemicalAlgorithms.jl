@@ -6,11 +6,13 @@ DocMeta.setdocmeta!(BiochemicalAlgorithms, :DocTestSetup, :(using BiochemicalAlg
 const pages = Any[
     "Home" => "index.md",
     "Tutorials" => [
-        "How to get started" => "tutorials/getting_started.md",
-        "How to iterate" => "tutorials/iterate.md",
-        "How to read and write" => "tutorials/read_and_write.md",
-        "How to handle molecules" =>"tutorials/handle_molecules.md",
-        "How to apply force fields" => "tutorials/force_field_ops.md"
+        "How to get started" => "tutorials/01_QuickStart.md",
+        "Introduction to core components" => "tutorials/02_CoreComponents.md",
+        "How to iterate" => "tutorials/03_Iterate.md",
+        "How to apply force fields" => "tutorials/04_ForceFields.md",
+        "How to handle molecules" =>"tutorials/05_HandleMolecules.md",
+        "How to read and write" => "tutorials/06_ReadAndWrite.md",
+
     ],
     "Library" => Any[
         "Biomolecular systems" => "public/system.md",
