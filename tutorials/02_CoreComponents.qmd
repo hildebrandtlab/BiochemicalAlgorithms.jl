@@ -23,7 +23,7 @@ load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 ```
 
 
-## Atoms:
+## Atom
 
 We can access the atoms like this:
 ```{julia}
@@ -65,71 +65,13 @@ n2 = atom_by_idx(s, 17)
 for a in sys_atms
     println(a.idx, " ", a.number)
 end
-a = Atom(s, number = 7, element = Elements.N;)
 ```
 
-Next, we will have a look at the fragments.
+Next, we will have a look at `Bond`.
 
-## Fragments:
+## Bond
 
-Fragments represent molecule fragments. In context of proteins or nucleic acids, the fragment can be used to represent residues or nucleotides. See the documentation for the definition of the ```FragmentVariantType``` (https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/stable/public/system/#BiochemicalAlgorithms.FragmentVariant)
-
-```{julia}
-nfragments(s)
-
-for frag in fragments(s)
-    println(frag.name, " ", frag.idx)
-end
-n2 = atom_by_idx(s, 17)
-
-println("The N atom belongs to residue: ", n2.fragment_idx)
-
-```
-
-We can get the fragment as well directly:
-```{julia}
-fragment = parent_fragment(n2)
-println(fragment)
-res2 = fragment_by_idx(s, 3)
-```
-
-Just like atom indices, fragment indices not necessarily follow a certain order but are unique inside the same system object.
-
-
-```{julia}
-res1 = fragments(s)[1]
-res1.variant # 1 = unknown, 2 = residue, 3 = nucleotide
-```
-
-Alternatively, it is also possible to check if this is a nucleotide:
-
-```{julia}
-println(is_nucleotide(res1))
-
-println("Number of fragments before push: ", nfragments(s))
-push!(chain_by_idx(s, 2), res1)
-println("Number of fragments after push: ", nfragments(s))
-delete!(res1)
-println("Number of fragments after deletion: ", nfragments(s))
-
-for frag in fragments(s)
-    println(frag.name, " ", frag.idx)
-end
-s
-```
-
-```{julia}
-s = load_pdb(ball_data_path("../test/data/AlaAla.pdb")) # restore original data
-res1 = fragments(s)[1]
-println("is residue ", isresidue(res1))
-```
-
-There are more functionalities related to fragments. Have a look at the documentation for ```Fragment```(https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/stable/public/system/#Fragments-(all-variants)) for more details.
-
-
-## Bonds
-
-Next, we will have a look at bonds. BiochemicalAlgorithms.jl supports different BondTypes:
+BiochemicalAlgorithms.jl supports different BondTypes:
 ```{julia}
 BiochemicalAlgorithms.BondOrderType
 ```
@@ -153,7 +95,7 @@ Pkg.add("BiochemicalVisualization")
 ```{julia}
 using BiochemicalVisualization
 
-ball_and_stick(s)
+# ball_and_stick(s)  uncomment for visualization
 ```
 
 Now, let's create some bonds:
@@ -163,7 +105,7 @@ fdb = FragmentDB() # default FragmentDB
 normalize_names!(s, fdb) # in case our input PDB file uses a strange naming standard
 reconstruct_fragments!(s, fdb) # in case our input file misses some atoms
 build_bonds!(s, fdb) # create the bonds
-#ball_and_stick(s)
+# ball_and_stick(s) uncomment for visualization
 ```
 
 And finally, we do have our bonds. This example demonstrate the importance of visualizing for the understanding of structural data.
@@ -229,16 +171,107 @@ println("The bond length is ", bond_length(bond))
 
 Sometimes it is necessary to discriminate between hydrogen and nonhydrogen_bonds. Since this a common use case, there are built in functionalities:
 
-```{julia}
-non_hb = non_hydrogen_bonds(s)
-println(non_hb)
 
-hb = hydrogen_bonds(s)
-println(hb)
+## Fragment
+
+Fragments represent molecule fragments. In context of proteins or nucleic acids, the fragment can be used to represent residues or nucleotides. See the documentation for the definition of the [```FragmentVariantType```](https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/stable/public/system/#BiochemicalAlgorithms.FragmentVariant)
+
+```{julia}
+nfragments(s)
+
+for frag in fragments(s)
+    println(frag.name, " ", frag.idx)
+end
+n2 = atom_by_idx(s, 5)
+
+println("The N atom belongs to residue: ", n2.fragment_idx)
+
 ```
 
-## Molecules
-Molecules are used to distinguish between proteins and non-proteins (see ```Molecules``` (https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/stable/public/system/#Molecules))
+We can get the fragment as well directly:
+```{julia}
+fragment = parent_fragment(n2)
+println(fragment)
+res2 = fragment_by_idx(s, 3)
+```
+
+Just like atom indices, fragment indices not necessarily follow a certain order but are unique inside the same system object.
+
+
+```{julia}
+res1 = fragments(s)[1]
+res1.variant # 1 = unknown, 2 = residue, 3 = nucleotide
+```
+
+Alternatively, it is also possible to check if this is a nucleotide:
+
+```{julia}
+println(is_nucleotide(res1))
+
+println("Number of fragments before push: ", nfragments(s))
+push!(chain_by_idx(s, 2), res1)
+println("Number of fragments after push: ", nfragments(s))
+delete!(res1)
+println("Number of fragments after deletion: ", nfragments(s))
+
+for frag in fragments(s)
+    println(frag.name, " ", frag.idx)
+end
+s
+```
+
+Or a residue:
+```{julia}
+s = load_pdb(ball_data_path("../test/data/AlaAla.pdb")) # restore original data
+res1 = fragments(s)[1]
+println("is residue ", isresidue(res1))
+```
+
+There are more functionalities related to fragments. Have a look at the documentation for [```Fragment```](https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/stable/public/system/#Fragments-(all-variants)) for more details.
+
+## Residue
+
+As described in the Fragments section, `Residue` is a Fragment with `FragmentVariant.Residue` and typically describes an amino acid:
+
+```{julia}
+s = load_pdb(ball_data_path("../test/data/AlaAla.pdb")) # restore original data
+res = fragments(s)[1]
+println("is_amino_acid(): ", is_amino_acid(res))
+println("is_c_terminal(): ", is_c_terminal(res))
+println("is_n_terminal(): ", is_n_terminal(res))
+```
+
+Some functionality is only available after preprocessing through the FragmentDB:
+
+```{julia}
+fdb = FragmentDB()
+normalize_names!(s, fdb)
+reconstruct_fragments!(s, fdb)
+build_bonds!(s, fdb)
+println("is_c_terminal(): ", is_c_terminal(res))
+println("is_n_terminal(): ", is_n_terminal(res))
+res2 = fragments(s)[2]
+println("is_c_terminal(): ", is_c_terminal(res2))
+
+```
+
+## Nucleotide
+`Nucleotide` is a Fragment with `FragmentVariant.Nucleotide`:
+
+```{julia}
+s = System()
+chain = Chain(Molecule(s))
+n1 = Nucleotide(chain, 1;
+            name = "my nucleotide",
+            properties = Properties(:first => 'a', :second => "b"),
+            flags = Flags([:third])
+        )
+        n2 = Nucleotide(chain, 2)
+```
+
+
+## Molecule
+Molecules are used to distinguish between proteins and non-proteins (see [```Molecules```](https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/stable/public/system/#Molecules))
 
 
 ```{julia}
@@ -247,14 +280,65 @@ m = molecules(s)
 m
 ```
 
-Let's see if this is a protein:
+Like in the other cases before, we get a table of molecules. Which we can access similarly to atoms and bonds:
+
+```{julia}
+println(typeof(m))
+
+molecule_by_idx(s, 1)
+println("The number of molecules in the system: ", nmolecules(s))
+println("The number of proteins in the system: ", nproteins(s))
+```
+
+Molecules have a variant which is `MoleculareVariant.None` by default. Users can decide, if a molecule is to be considered as a protein. `isprotein` checks if the `MoleculeVariant.Protein` is set:
 
 ```{julia}
 println("is a protein: ", isprotein(m[1]))
-
+fdb = FragmentDB()
 normalize_names!(s, fdb)
 reconstruct_fragments!(s, fdb)
 build_bonds!(s, fdb)
 
 println("is a protein: ", isprotein(m[1]))
+
+m[1].variant = MoleculeVariant.Protein
+
+println("is a protein: ", isprotein(m[1]))
+
 ```
+
+Similar to molecules we can access proteins:
+
+```{julia}
+println("Number of proteins in the system: ", proteins(s))
+pti =protein_by_idx(s,1)
+```
+
+A very useful functionality is the access the parent molecule or protein a specific atom is belonging to in cases where we have several molecules to deal with.
+```{julia}
+atom = atom_by_idx(s,126)
+println("This atom belongs to protein: ", parent_protein(atom))
+
+```
+
+## Chains
+
+Chains can be considered as an aggregation of fragments (either residues or nucleotides).
+```{julia}
+
+s = load_pdb(ball_data_path("../test/data/4hhb.pdb"))
+
+println("Number of chains in the system: ", nchains(s))
+
+for chain in chains(s)
+    println("Chain index: ", chain.idx)
+end
+
+chain = chain_by_idx(s, 2)
+println("Chain 2 contains ", nfragments(chain), " fragments.")
+
+println("The parent molecule of chain 2 is: ", parent_molecule(chain))
+```
+
+## Congratulation
+You are now familiar with the most important core entities of BiochemicalAlgorithms.jl
