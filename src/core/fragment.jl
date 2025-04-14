@@ -770,15 +770,19 @@ end
 Sets the torsion angle defined by the four atoms `a`, `b`, `c`, and `d` to the specified `angle`.
 
 # Arguments
-- `a::Atom`: The first atom in the torsion angle definition.
-- `b::Atom`: The second atom in the torsion angle definition.
-- `c::Atom`: The third atom in the torsion angle definition.
-- `d::Atom`: The fourth atom in the torsion angle definition.
-- `angle::Union{Float32, Float64}`: The desired torsion angle in radians.
+- `a::Atom{T}`: The first atom in the torsion angle definition.
+- `b::Atom{T}`: The second atom in the torsion angle definition.
+- `c::Atom{T}`: The third atom in the torsion angle definition.
+- `d::Atom{T}`: The fourth atom in the torsion angle definition.
+- `angle::{T}`: The desired torsion angle in radians.
+
+# Returns
+- `Bool`: `true` if the torsion angle has been set successfully, `false` otherwise.
 
 !!! note
 This function modifies the positions of the atoms to achieve the specified torsion angle. It
-assumes that the atoms are part of a molecular structure where such modifications are meaningful.
+assumes that the atoms are part of a molecular structure where such modifications are meaningful. It does not
+check for steric clashes or other geometric or chemical constraints that may arise from the rotation.
 """
 @inline function set_torsion_angle!(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}, angle::T) where T
 
@@ -791,8 +795,8 @@ assumes that the atoms are part of a molecular structure where such modification
 
     # starting point
     for bond in bonds(c) # check bonds of atom c
-        if bond.a2 != b.idx # b should not be rotated
-            partner_atom = atom_by_idx(parent(c), bond.a2) # atom to be rotated
+        if get_partner(bond, c).idx != b.idx # b should not be rotated
+            partner_atom = get_partner(bond, c) # atom to be rotated
             push!(component, partner_atom)
             push!(queue, partner_atom)
         end
@@ -804,25 +808,25 @@ assumes that the atoms are part of a molecular structure where such modification
 
         for bond in bonds(atom)
             # we cannot set the torsion angle if b is in the same connected component as the partner atom
-            if bond.a2 == b.idx
+            if get_partner(bond, atom).idx == b.idx
                 return false
             end
 
             if !in(atom_by_idx(parent(atom),bond.a2), component)
-                push!(atom_by_idx(parent(atom), bond.a2), component)
-                push!(atom_by_idx(parent(atom), bond.a2), queue)
+                push!(component, atom_by_idx(parent(atom), bond.a2))
+                push!(queue, atom_by_idx(parent(atom), bond.a2))
             end
         end
     end
 
     angle -= calculate_torsion_angle(a,b,c,d)
     # setup the rotation
-    rotation_axis = c.r-b.r
-    rotation_axis /= norm(rotation_axis)
+    rotation_axis = c.r - b.r
+    # AngleAxis renormalizes the given vector
     rotation = RotMatrix(AngleAxis(angle, rotation_axis[1], rotation_axis[2], rotation_axis[3]))
 
-     # Translate b to the origin
-     translation_to_origin = -b.r
+    # Translate c to the origin
+    translation_to_origin = -c.r
 
      # Apply the transformations to the selected component
      for atom in component
@@ -832,8 +836,8 @@ assumes that the atoms are part of a molecular structure where such modification
          # Apply rotation
          atom.r = rotation * atom.r
 
-         # Translate back
-         atom.r += -translation_to_origin
+         # Translate backusin
+         atom.r -= translation_to_origin
      end
 
     return true

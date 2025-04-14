@@ -1419,55 +1419,56 @@ end
 end
 
 @testitem "Fragment/has_torsion" begin
+    for T in [Float32, Float64]
+        sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), T)
+        fdb = FragmentDB{T}()
 
-    sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
-    fdb = FragmentDB()
-    build_bonds!(sys, fdb)
-    r1 = residues(sys)[1]
-    r2 = residues(sys)[2]
+        build_bonds!(sys, fdb)
+        r1 = residues(sys)[1]
+        r2 = residues(sys)[2]
 
-    @test has_torsion_psi(r1) == true
-    @test has_torsion_psi(r2) == true
+        @test has_torsion_psi(r1) == true
+        @test has_torsion_psi(r2) == true
 
-    @test has_torsion_phi(r1) == true
-    @test has_torsion_phi(r2) == true
-    @test has_torsion_omega(r1) == true
-    @test has_torsion_omega(r2) == true
+        @test has_torsion_phi(r1) == true
+        @test has_torsion_phi(r2) == true
+        @test has_torsion_omega(r1) == true
+        @test has_torsion_omega(r2) == true
 
-    sys2 = deepcopy(sys)
-    @test nfragments(sys2) == 2
-    @test nresidues(sys2) == 2
-    delete!(residues(sys2)[2])
-    @test nresidues(sys2) == 1
+        sys2 = deepcopy(sys)
+        @test nfragments(sys2) == 2
+        @test nresidues(sys2) == 2
+        delete!(residues(sys2)[2])
+        @test nresidues(sys2) == 1
 
-    r1 = residues(sys2)[1]
-    @test has_torsion_psi(r1) == false
-    @test has_torsion_phi(r1) == false
-    @test has_torsion_omega(r1) == false
+        r1 = residues(sys2)[1]
+        @test has_torsion_psi(r1) == false
+        @test has_torsion_phi(r1) == false
+        @test has_torsion_omega(r1) == false
 
-    r1 = residues(sys)[1]
-    r2 = residues(sys)[2]
+        r1 = residues(sys)[1]
+        r2 = residues(sys)[2]
 
-    @test !has_flag(r1, :N_TERMINAL)
-    @test !has_flag(r1, :C_TERMINAL)
+        @test !has_flag(r1, :N_TERMINAL)
+        @test !has_flag(r1, :C_TERMINAL)
 
-    @test !has_flag(r2, :N_TERMINAL)
-    @test !has_flag(r2, :C_TERMINAL)
+        @test !has_flag(r2, :N_TERMINAL)
+        @test !has_flag(r2, :C_TERMINAL)
 
-    set_flag!(r1, :N_TERMINAL)
-    @test has_flag(r1, :N_TERMINAL)
+        set_flag!(r1, :N_TERMINAL)
+        @test has_flag(r1, :N_TERMINAL)
 
-    set_flag!(r2, :C_TERMINAL)
-    @test has_flag(r2, :C_TERMINAL)
+        set_flag!(r2, :C_TERMINAL)
+        @test has_flag(r2, :C_TERMINAL)
 
-    @test has_torsion_psi(r1) == true
-    @test has_torsion_psi(r2) == false
+        @test has_torsion_psi(r1) == true
+        @test has_torsion_psi(r2) == false
 
-    @test has_torsion_phi(r1) == false
-    @test has_torsion_phi(r2) == true
-    @test has_torsion_omega(r1) == false
-    @test has_torsion_omega(r2) == true
-
+        @test has_torsion_phi(r1) == false
+        @test has_torsion_phi(r2) == true
+        @test has_torsion_omega(r1) == false
+        @test has_torsion_omega(r2) == true
+    end
 end
 
 
@@ -1478,23 +1479,26 @@ end
         b = Atom(sys, 2, Elements.C, r = Vector3{T}(0.0f0, 1.0f0, -1.0f0))
         c = Atom(sys, 3, Elements.N, r = Vector3{T}(1.0f0, 0.0f0, 0.0f0))
         d = Atom(sys, 4, Elements.C, r = Vector3{T}(1.0f0, -1.0f0, -1.0f0))
-
+        @test calculate_torsion_angle(a, b, c, d) isa T
         @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)),149.999, atol=10e-3)
     end
 end
 
 @testitem "Fragment/calculate_bond_angle" begin
-    sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
-    fdb = FragmentDB()
-    build_bonds!(sys, fdb)
+    for T in [Float32, Float64]
+        sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), T)
+        fdb = FragmentDB{T}()
+        build_bonds!(sys, fdb)
 
-    a = atoms(sys)[1]
-    b = atoms(sys)[2]
-    c = atoms(sys)[3]
-    @test isapprox(rad2deg(calculate_bond_angle(a,b,c)), 109.007, atol=10e-4)
+        a = atoms(sys)[1]
+        b = atoms(sys)[2]
+        c = atoms(sys)[3]
+        @test calculate_bond_angle(a,b,c) isa T
+        @test isapprox(rad2deg(calculate_bond_angle(a,b,c)), 109.007, atol=10e-4)
 
-    a.r = b.r
-    @test_logs (:error, "Atoms can't have the same position. No Angle to calculate here.") calculate_bond_angle(a,b,c)
+        a.r = b.r
+        @test_logs (:error, "Atoms can't have the same position. No Angle to calculate here.") calculate_bond_angle(a,b,c)
+    end
 end
 
 @testitem "Fragment/set_torsion_angle" begin
@@ -1502,7 +1506,7 @@ end
     for T in [Float32, Float64]
         sys = System{T}()
         a = Atom(sys, 1, Elements.C, r = Vector3{T}(0.0, 1.0, 0.0))
-        b = Atom(sys, 2, Elements.C, r = Vector3{T}(0.00, 0.0, 0.0))
+        b = Atom(sys, 2, Elements.C, r = Vector3{T}(0.0, 0.0, 0.0))
         c = Atom(sys, 3, Elements.N, r = Vector3{T}(1.0, 0.0, 0.0))
         d = Atom(sys, 4, Elements.C, r = Vector3{T}(1.0, -1.0, 0.0))
 
@@ -1510,23 +1514,32 @@ end
         Bond(b, c, BondOrder.Single)
         Bond(c, d, BondOrder.Single)
 
-        @test set_torsion_angle!(a, b, c, d, deg2rad(90.0))
+        @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 180.0, atol=10e-3) isa T
+        @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 180.0, atol=10e-3)
+        @test set_torsion_angle!(a, b, c, d, T(deg2rad(90.0)))
         @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 90.000, atol=10e-3)
-
-        @test set_torsion_angle!(a, b, c, d, deg2rad(0.0))
+        @test set_torsion_angle!(a, b, c, d, T(deg2rad(0.0)))
         @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 0.0, atol=10e-3)
 
-        set_torsion_angle!(a, b, c, d, deg2rad(149.99))
+        @test set_torsion_angle!(a, b, c, d, T(deg2rad(149.99)))
         @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 149.999, atol=10e-3)
-        set_torsion_angle!(a, b, c, d, deg2rad(180.00))
+        @test set_torsion_angle!(a, b, c, d, T(deg2rad(180.00)))
         @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 180.0, atol=10e-3)
-        set_torsion_angle!(a, b, c, d, deg2rad(360.00))
+        @test set_torsion_angle!(a, b, c, d, T(deg2rad(360.00)))
         @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 0.0, atol=10e-3)
-        set_torsion_angle!(a, b, c, d, deg2rad(-180.00))
+        @test set_torsion_angle!(a, b, c, d, T(deg2rad(-180.00)))
         @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 180.0, atol=10e-3)
-        set_torsion_angle!(a, b, c, d, deg2rad(-360.00))
+        @test set_torsion_angle!(a, b, c, d, T(deg2rad(-360.00)))
         @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 0.0, atol=10e-3)
-        set_torsion_angle!(a, b, c, d, deg2rad(-149.99))
+        @test set_torsion_angle!(a, b, c, d, T(deg2rad(-149.99)))
         @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), -149.999, atol=10e-3)
-    end
+
+        e = Atom(sys, 5, Elements.C, r = Vector3{T}(1.0, -1.0, 1.0))
+        Bond(b, e, BondOrder.Single)
+        Bond(c, e, BondOrder.Single)
+        @test !set_torsion_angle!(a, b, c, d, T(deg2rad(90)))
+
+     end
 end
+
+
