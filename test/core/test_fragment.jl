@@ -1514,7 +1514,7 @@ end
         Bond(b, c, BondOrder.Single)
         Bond(c, d, BondOrder.Single)
 
-        @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 180.0, atol=10e-3) isa T
+
         @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 180.0, atol=10e-3)
         @test set_torsion_angle!(a, b, c, d, T(deg2rad(90.0)))
         @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)), 90.000, atol=10e-3)
