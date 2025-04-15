@@ -7,7 +7,7 @@ BiochemicalAlgorithms.jl\`s design is inspired by its predecessor [`BALL`](https
 
 UML class diagram *Note*: Only the most important functionalities are shown here.
 
-In the center of all classes resides the `System`. So let’s see it in action with a simple peptide:
+In the center of all classes resides the [`System`](@ref). So let’s see it in action with a simple peptide:
 
 ``` julia
 using BiochemicalAlgorithms
@@ -109,7 +109,7 @@ n2 = atom_by_idx(s, 17)
 
     BiochemicalAlgorithms.Atom{Float32}: (idx = 17, number = 13, element = BiochemicalAlgorithms.Elements.N, name = "N", atom_type = "", r = Float32[0.133, 0.98, 2.268], v = Float32[0.0, 0.0, 0.0], F = Float32[0.0, 0.0, 0.0], formal_charge = 0, charge = 0.0f0, radius = 0.0f0)
 
-`Atom` features the atom number as well. The atom number does NOT have to be unique inside the system!
+[`Atom`](@ref) features the atom number as well. The atom number does NOT have to be unique inside the system!
 
 ``` julia
 for a in sys_atms
@@ -334,7 +334,7 @@ Sometimes it is necessary to discriminate between hydrogen and nonhydrogen_bonds
 
 ## Fragment
 
-Fragments represent molecule fragments. In context of proteins or nucleic acids, the fragment can be used to represent residues or nucleotides. See the documentation for the definition of the [`FragmentVariantType`](https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/stable/public/system/#BiochemicalAlgorithms.FragmentVariant)
+Fragments represent molecule fragments. In context of proteins or nucleic acids, the fragment can be used to represent residues or nucleotides. See the documentation for the definition of the [`FragmentVariantType`](@ref)
 
 ``` julia
 nfragments(s)
@@ -414,11 +414,11 @@ println("is residue ", isresidue(res1))
 
     is residue true
 
-There are more functionalities related to fragments. Have a look at the documentation for [`Fragment`](https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/stable/public/system/#Fragments-(all-variants)) for more details.
+There are more functionalities related to fragments. Have a look at the documentation for [`Fragment`](@ref) for more details.
 
 ## Residue
 
-As described in the Fragments section, `Residue` is a Fragment with `FragmentVariant.Residue` and typically describes an amino acid:
+As described in the Fragments section, [`Residue`](@ref) is a Fragment with [`FragmentVariant.Residue`](@ref) and typically describes an amino acid:
 
 ``` julia
 s = load_pdb(ball_data_path("../test/data/AlaAla.pdb")) # restore original data
@@ -453,7 +453,7 @@ println("is_c_terminal(): ", is_c_terminal(res2))
 
 ## Nucleotide
 
-`Nucleotide` is a Fragment with `FragmentVariant.Nucleotide`:
+[`Nucleotide`](@ref) is a Fragment with [`FragmentVariant.Nucleotide`](@ref):
 
 ``` julia
 s = System()
@@ -470,7 +470,7 @@ n1 = Nucleotide(chain, 1;
 
 ## Molecule
 
-Molecules are used to distinguish between proteins and non-proteins (see [`Molecules`](https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/stable/public/system/#Molecules))
+Molecules are used to distinguish between proteins and non-proteins (see [`Molecules`](@ref)
 
 ``` julia
 s = load_pdb(ball_data_path("../test/data/5PTI.pdb"))
