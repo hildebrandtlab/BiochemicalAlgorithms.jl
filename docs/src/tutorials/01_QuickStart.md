@@ -60,8 +60,8 @@ build_bonds!(s, fdb)
 
 ## How to go on?
 
-For an in depth view on the components forming the core of BiochemicalAlgorithms, we highly recommend taking a look at the next section [02_CoreComponents.md](../docs/src/tutorials/02_CoreComponents.md) which forms a basis for the remaining tutorials dealing with different topics:
-- [03 Iterate](../docs/src/tutorials/03_Iterate.md): How to iterate and filter over specific entities (atoms, bonds, …)
-- [04 ForceField](../docs/src/tutorials/04_ForceFields.md): How to use a force field and minimize a structure
-- [05 Handling Molecules](../docs/src/tutorials/05_HandleMolecules.md): Mixed code snippets for common use cases
-- [06 Read And Write](../docs/src/tutorials/06_ReadAndWrite.md): Read and write different file formats
+For an in depth view on the components forming the core of BiochemicalAlgorithms, we highly recommend taking a look at the next section [02_CoreComponents.md](02_CoreComponents.md) which forms a basis for the remaining tutorials dealing with different topics:
+- [03 Iterate](03_Iterate.md): How to iterate and filter over specific entities (atoms, bonds, …)
+- [04 ForceField](04_ForceFields.md): How to use a force field and minimize a structure
+- [05 Handling Molecules](05_HandleMolecules.md): Mixed code snippets for common use cases
+- [06 Read And Write](06_ReadAndWrite.md): Read and write different file formats
