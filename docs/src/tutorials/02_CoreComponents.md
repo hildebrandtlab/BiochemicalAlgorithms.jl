@@ -16,6 +16,12 @@ s = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 s
 ```
 
+    ┌ Warning: Circular dependency detected.
+    │ Precompilation will be skipped for dependencies in this cycle:
+    │  ┌ BiochemicalAlgorithms
+    │  └─ BiochemicalVisualization
+    └ @ Base.Precompilation precompilation.jl:650
+
     System{Float32}: AlaAla.pdb
       23 atoms
        0 bonds
@@ -179,8 +185,9 @@ Pkg.add("BiochemicalVisualization")
 ```
 
        Resolving package versions...
-          Compat entries added for 
-      No Changes to `~/local/BiochemicalAlgorithms.jl/Project.toml`
+          Compat entries added for BiochemicalVisualization
+        Updating `~/local/BiochemicalAlgorithms.jl/Project.toml`
+      [00dfb448] + BiochemicalVisualization v0.3.2
       No Changes to `~/local/BiochemicalAlgorithms.jl/Manifest.toml`
     ┌ Warning: Circular dependency detected.
     │ Precompilation will be skipped for dependencies in this cycle:
@@ -193,6 +200,12 @@ using BiochemicalVisualization
 
 # ball_and_stick(s)  uncomment for visualization
 ```
+
+    ┌ Warning: Circular dependency detected.
+    │ Precompilation will be skipped for dependencies in this cycle:
+    │  ┌ BiochemicalAlgorithms
+    │  └─ BiochemicalVisualization
+    └ @ Base.Precompilation precompilation.jl:650
 
 Now, let’s create some bonds:
 
@@ -418,7 +431,7 @@ There are more functionalities related to fragments. Have a look at the document
 
 ## Residue
 
-As described in the Fragments section, [`Residue`](@ref) is a Fragment with [`FragmentVariant.Residue`](@ref) and typically describes an amino acid:
+As described in the Fragments section, [`Residue`](@ref) is a Fragment with `FragmentVariant.Residue` and typically describes an amino acid:
 
 ``` julia
 s = load_pdb(ball_data_path("../test/data/AlaAla.pdb")) # restore original data
@@ -453,7 +466,7 @@ println("is_c_terminal(): ", is_c_terminal(res2))
 
 ## Nucleotide
 
-[`Nucleotide`](@ref) is a Fragment with [`FragmentVariant.Nucleotide`](@ref):
+[`Nucleotide`](@ref) is a Fragment with `FragmentVariant.Nucleotide`:
 
 ``` julia
 s = System()
