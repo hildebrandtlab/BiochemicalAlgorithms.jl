@@ -64,5 +64,5 @@ write_sdfile("rings_test_out.sdf", sys)
 ```
 
     ┌ Warning: write_sdfile: writer only supports 2D data; projecting atoms onto xy-plane...
-    └ @ BiochemicalAlgorithms ~/git/ball.jl/src/fileformats/sdfile.jl:33
+    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/fileformats/sdfile.jl:33
     [ Info: 9 records exported.
