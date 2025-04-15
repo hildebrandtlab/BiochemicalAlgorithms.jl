@@ -191,6 +191,7 @@ function interpret_record(
         || residue_name != pdb_info.current_residue.name
         || residue_insertion_code != get(pdb_info.current_residue.properties, :insertion_code, ""))
 
+        # TODO: we should handle nucleotides correctly here
         pdb_info.current_residue = Fragment(
             pdb_info.current_chain,
             residue_sequence_number;
@@ -615,7 +616,7 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
     # do we need to put every amino acid residue into a secondary structure?
     if create_coils
         for c in chains(sys)
-            fs = fragments(c)
+            fs = residues(c, variant=FragmentVariant.Residue)
 
             if isempty(fs[fs.secondary_structure_idx .== nothing])
                 continue
@@ -638,50 +639,13 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
         end
     end
 
-    # finally, renumber the elements to be consecutive    
-    sort_secondary_structures!(sys, by=se -> (se.chain_idx, minimum(f.number for f in fragments(se))))
-    
-    for c in chains(sys)
-        secondary_structures(c).number .= collect(1:nsecondary_structures(c))
+    # finally, renumber the elements to be consecutive
+    if nsecondary_structures(sys) > 0
+        sort_secondary_structures!(sys, by=se -> (se.chain_idx, minimum(f.number for f in fragments(se))))
+        
+        for c in chains(sys)
+            secondary_structures(c).number .= collect(1:nsecondary_structures(c))
+        end
     end
 end
 
-function load_pdb(
-        filename::String, 
-        T;
-        keep_metadata=true,
-        strict_line_checking=true,
-        selected_model=-1, 
-        ignore_xplor_pseudo_atoms=true,
-        create_coils=true)
-    pdblines = readlines(filename)
-
-    sys = System{T}("")
-    mol = Molecule(sys; name="")
-
-    pdb_info = PDBInfo{T}(selected_model)
-
-    for pl in pdblines
-        handle_record(pl, sys, pdb_info; 
-            strict_line_checking=strict_line_checking,
-            ignore_xplor_pseudo_atoms=ignore_xplor_pseudo_atoms)
-    end
-
-    sys.name = strip(pdb_info.name)
-    mol.name = sys.name
-
-    fragment_cache = Dict{UniqueResidueID, Fragment{T}}()
-
-    for f in fragments(sys)
-        fragment_cache[UniqueResidueID(f.name, parent_chain(f).name, f.number, get_property(f, :insertion_code, " "))] = f
-    end
-
-    postprocess_ssbonds_!(sys, pdb_info, fragment_cache)
-    postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, create_coils)
-
-    if keep_metadata
-        set_property!(sys, :PDBInfo, pdb_info)
-    end
-
-    sys
-end

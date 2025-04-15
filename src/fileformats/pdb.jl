@@ -207,7 +207,7 @@ function load_pdb(filename::String;
         selected_model=-1,
         ignore_xplor_pseudo_atoms=true,
         create_coils=true)
-    load_pdb(filename, Float32; 
+     load_pdb(filename, Float32; 
         keep_metadata=keep_metadata,
         strict_line_checking=strict_line_checking,
         selected_model=selected_model,
@@ -223,12 +223,49 @@ Read a PDB file.
 !!! note
     Models are stored as frames, using the model number as `frame_id`.
 """
-function load_pdb(fname::AbstractString, ::Type{T} = Float32) where {T <: Real}
-    # TODO: how to handle disordered atoms properly?
 
-    # first, read the structure using BioStructures.jl
-    orig_pdb = read(fname, PDBFormat)
-    convert(System{T}, orig_pdb)
+function load_pdb(
+        filename::String, 
+        T::Type;
+        keep_metadata=true,
+        strict_line_checking=false,
+        selected_model=-1, 
+        ignore_xplor_pseudo_atoms=true,
+        create_coils=true)
+     pdblines = readlines(filename)
+
+    sys = System{T}("")
+    mol = Molecule(sys; name="")
+
+    pdb_info = PDBDetails.PDBInfo{T}(selected_model)
+
+    for pl in pdblines
+        PDBDetails.handle_record(pl, sys, pdb_info; 
+            strict_line_checking=strict_line_checking,
+            ignore_xplor_pseudo_atoms=ignore_xplor_pseudo_atoms)
+    end
+
+    sys.name = strip(pdb_info.name)
+    mol.name = sys.name
+
+    fragment_cache = Dict{PDBDetails.UniqueResidueID, Fragment{T}}()
+
+    for f in fragments(sys)
+        fragment_cache[PDBDetails.UniqueResidueID(f.name, parent_chain(f).name, f.number, get_property(f, :insertion_code, " "))] = f
+    end
+
+    PDBDetails.postprocess_ssbonds_!(sys, pdb_info, fragment_cache)
+    PDBDetails.postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, create_coils)
+
+    if keep_metadata
+        # clean up a little... (if we don't do this, comparing systems will lead to a stack overflow)
+        pdb_info.current_chain = nothing
+        pdb_info.current_residue = nothing
+
+        set_property!(sys, :PDBInfo, pdb_info)
+    end
+
+    sys
 end
 
 """
@@ -298,14 +335,33 @@ function Base.convert(::Type{MolecularStructure}, ac::AbstractAtomContainer{T}) 
     struc
 end
 
+
+function write_pdb(io::IO, ac::AbstractAtomContainer{T}) where {T <:Real}
+    # get the PDBInfo object
+    pdb_info = get_property(ac, :PDBInfo, PDBDetails.PDBInfo{T}())
+
+    pdb_info.writer_stats = PDBDetails.PDBWriterStats()
+
+    PDBDetails.write_title_section(io, pdb_info)
+    PDBDetails.write_primary_structure_section(io, pdb_info, ac)
+    PDBDetails.write_heterogen_section(io, pdb_info)
+    PDBDetails.write_secondary_structure_section(io, pdb_info, ac)
+    PDBDetails.write_connectivity_annotation_section(io, pdb_info, ac)
+    PDBDetails.write_miscellaneous_features_section(io, pdb_info)
+    PDBDetails.write_crystallographic_section(io, pdb_info)
+    PDBDetails.write_coordinate_section(io, pdb_info, ac)
+    PDBDetails.write_connectivity_section(io, pdb_info, ac)
+    PDBDetails.write_bookkeeping_section(io, pdb_info, ac)
+    PDBDetails.write_record(io, pdb_info, PDBDetails.RECORD_TAG_END)
+end
+
 """
     write_pdb(fname::AbstractString, ac::AbstractAtomContainer)
 
 Save an atom container as PDB file.
 """
 function write_pdb(fname::AbstractString, ac::AbstractAtomContainer)
-    ps = convert(MolecularStructure, ac)
-    writepdb(fname, ps)
+    open(io -> write_pdb(io, ac), fname, "w")
 end
 
 """

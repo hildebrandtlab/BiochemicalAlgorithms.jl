@@ -15,7 +15,10 @@ end
 # this really should be in the standard library
 unval(::Val{x}) where x = x
 
+# TODO: we should make this optional
 function fix_nucleotide_name(name::String)
+    return name
+    
     replace(name, 
             r"^DA$" => "A",
             r"^DC$" => "C",
@@ -495,23 +498,4 @@ function write_bookkeeping_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomCo
         writer_stats.atomic_coordinate_records, writer_stats.ter_records,
         writer_stats.conect_records, writer_stats.seqres_records
     )
-end
-
-function write_pdb(io::IO, ac::AbstractAtomContainer{T}) where {T <:Real}
-    # get the PDBInfo object
-    pdb_info = get_property(ac, :PDBInfo, PDBInfo{T}())
-
-    pdb_info.writer_stats = PDBWriterStats()
-
-    write_title_section(io, pdb_info)
-    write_primary_structure_section(io, pdb_info, ac)
-    write_heterogen_section(io, pdb_info)
-    write_secondary_structure_section(io, pdb_info, ac)
-    write_connectivity_annotation_section(io, pdb_info, ac)
-    write_miscellaneous_features_section(io, pdb_info)
-    write_crystallographic_section(io, pdb_info)
-    write_coordinate_section(io, pdb_info, ac)
-    write_connectivity_section(io, pdb_info, ac)
-    write_bookkeeping_section(io, pdb_info, ac)
-    write_record(io, pdb_info, RECORD_TAG_END)
 end
