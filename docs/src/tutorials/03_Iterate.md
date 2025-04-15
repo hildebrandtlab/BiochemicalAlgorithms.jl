@@ -171,7 +171,7 @@ end
 
 ## How can I iterate over all bonds of a system?
 
-Bonds are not explicitely stored in the PDB format but are rather inferred after reading the data into a system using the fragment database [`FragmentDB`](@ref):
+Bonds are not explicitely stored in the PDB format but are rather inferred after reading the data into a system using the fragment database `FragmentDB`:
 
 ``` julia
 sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
