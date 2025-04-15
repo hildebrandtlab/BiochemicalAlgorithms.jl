@@ -5,7 +5,7 @@ When working with molecular entities, we want to run over all atoms of a system,
 
 ## Molecular systems
 
-In `BiochemicalAlgorithms.jl` atoms and bonds are existing inside a `System`. Typically, molecular data is stored in molecular data formats such as PDB. The latter can be directly read into a system.
+In `BiochemicalAlgorithms.jl` atoms and bonds are existing inside a [`System`](@ref). Typically, molecular data is stored in molecular data formats such as PDB. The latter can be directly read into a system.
 
 ``` julia
 sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
@@ -79,7 +79,7 @@ atoms(sys).name
      "O"
      "OXT"
 
-You can also directly query the number of atoms via `natoms`:
+You can also directly query the number of atoms via [`natoms`](@ref):
 
 ``` julia
 natoms(sys)
@@ -140,7 +140,7 @@ heavy_atoms = filter(atom -> atom.element != Elements.H, atoms(sys))
 | **10** | 26 | 22 | O | O |  | Float32\[0.531, -1.358, 3.421\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
 | **11** | 27 | 23 | O | OXT |  | Float32\[0.462, -0.512, 5.473\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
 
-Instead of a system, we can use any other system component as an argument to the `atoms` function to only list the atoms of the same component. For example, the following system contains two chains:
+Instead of a system, we can use any other system component as an argument to the [`atoms`](@ref) function to only list the atoms of the same component. For example, the following system contains two chains:
 
 ``` julia
 sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
@@ -171,7 +171,7 @@ end
 
 ## How can I iterate over all bonds of a system?
 
-Bonds are not explicitely stored in the PDB format but are rather inferred after reading the data into a system using the fragment database `FragmentDB`:
+Bonds are not explicitely stored in the PDB format but are rather inferred after reading the data into a system using the fragment database [`FragmentDB`](@ref):
 
 ``` julia
 sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))

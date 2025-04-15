@@ -14,7 +14,7 @@ Base.active_module() = BiochemicalAlgorithms
 
 ## Preparation
 
-Force fields in BiochemicalAlgorithms.jl are always set up for a given molecular system. Hence, we first need to prepare a `System` object [as usual](../docs/src/tutorials/01_QuickStart.md), e.g., by loading a structure from a PDB file and applying our fragment database preprocessors:
+Force fields in BiochemicalAlgorithms.jl are always set up for a given molecular system. Hence, we first need to prepare a `System` object [as usual](01_QuickStart.md), e.g., by loading a structure from a PDB file and applying our fragment database preprocessors:
 
 ```{julia}
 sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
