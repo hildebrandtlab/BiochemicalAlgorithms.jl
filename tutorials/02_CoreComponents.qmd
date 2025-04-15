@@ -231,7 +231,7 @@ There are more functionalities related to fragments. Have a look at the document
 
 ## Residue
 
-As described in the Fragments section, [`Residue`](@ref) is a Fragment with [`FragmentVariant.Residue`](@ref) and typically describes an amino acid:
+As described in the Fragments section, [`Residue`](@ref) is a Fragment with `FragmentVariant.Residue` and typically describes an amino acid:
 
 ```{julia}
 s = load_pdb(ball_data_path("../test/data/AlaAla.pdb")) # restore original data
@@ -256,7 +256,7 @@ println("is_c_terminal(): ", is_c_terminal(res2))
 ```
 
 ## Nucleotide
-[`Nucleotide`](@ref) is a Fragment with [`FragmentVariant.Nucleotide`](@ref):
+[`Nucleotide`](@ref) is a Fragment with `FragmentVariant.Nucleotide`:
 
 ```{julia}
 s = System()
