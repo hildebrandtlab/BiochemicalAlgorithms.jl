@@ -1,4 +1,6 @@
 export
+    calculate_bond_angle,
+    calculate_torsion_angle,
     Fragment,
     FragmentTable,
     Nucleotide,
@@ -8,6 +10,9 @@ export
     get_full_name,
     get_previous,
     get_next,
+    has_torsion_omega,
+    has_torsion_phi,
+    has_torsion_psi,
     is_3_prime,
     is_5_prime,
     is_amino_acid,
@@ -25,7 +30,8 @@ export
     parent_nucleotide,
     parent_residue,
     residue_by_idx,
-    residues
+    residues,
+    set_torsion_angle!
 
 """
     Fragment{T} <: AbstractAtomContainer{T}
@@ -666,6 +672,205 @@ end
     @assert is_amino_acid(frag)
     one_letter_code(frag.name)
 end
+
+"""
+    has_torsion_psi(frag::Fragment) -> Bool
+
+Checks if the given `Fragment` object has a torsion angle psi defined.
+    See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
+# Arguments
+- `frag::Fragment`: The fragment object to be checked.
+
+# Returns
+- `Bool`: `true` if the fragment has a torsion angle psi, `false` otherwise.
+"""
+@inline function has_torsion_psi(frag::Fragment)
+    chain = parent_chain(frag)
+    if nresidues(chain) < 2
+        return false
+    end
+    return !has_flag(frag, :C_TERMINAL) && is_amino_acid(frag)
+end
+
+"""
+    has_torsion_phi(frag::Fragment) -> Bool
+
+Checks if the given `Fragment` object has a torsion angle phi defined.
+    See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
+# Arguments
+- `frag::Fragment`: The fragment object to be checked.
+
+# Returns
+- `Bool`: `true` if the fragment has a torsion angle phi, `false` otherwise.
+"""
+@inline function has_torsion_phi(frag::Fragment)
+    chain = parent_chain(frag)
+    if nresidues(chain) < 2
+        return false
+    end
+    return !has_flag(frag, :N_TERMINAL) && is_amino_acid(frag)
+end
+
+"""
+    has_torsion_omega(frag::Fragment) -> Bool
+
+Checks if the given `Fragment` object has a torsion angle omega defined.
+    See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
+# Arguments
+- `frag::Fragment`: The fragment object to be checked.
+
+# Returns
+- `Bool`: `true` if the fragment has a torsion angle omega, `false` otherwise.
+"""
+@inline function has_torsion_omega(frag::Fragment)
+    chain = parent_chain(frag)
+    if nresidues(chain) < 2
+        return false
+    end
+    return !has_flag(frag, :N_TERMINAL) && is_amino_acid(frag)
+end
+
+
+"""
+    calculate_torsion_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}) -> T
+
+Calculates the torsion angle (dihedral angle) defined by four atoms `a`, `b`, `c`, and `d`.
+The torsion angle is the angle between the plane formed by atoms `a`, `b`, `c` and the
+plane formed by atoms `b`, `c`, `d`.
+
+# Arguments
+- `a::Atom`: The first atom in the sequence.
+- `b::Atom`: The second atom in the sequence.
+- `c::Atom`: The third atom in the sequence.
+- `d::Atom`: The fourth atom in the sequence.
+
+# Returns
+- `Float64`: The torsion angle in radians.
+"""
+function calculate_torsion_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}) where T
+
+    n12 = cross(b.r-a.r, c.r-b.r)
+    n34 = cross(c.r-b.r, d.r-c.r)
+
+    if iszero(n12) || iszero(n34)
+        @warn "Illegal positions"
+    end
+
+    n12 /= norm(n12)
+    n34 /= norm(n34)
+
+    scalar_product = clamp(dot(n12,n34), -one(T), one(T))
+    #take the direction into account direction = dot(cross(n12,n34), (c.r-b.r))
+    return dot(cross(n12,n34), (c.r-b.r)) < zero(T) ? -one(T) * acos(scalar_product) : acos(scalar_product)
+end
+
+"""
+    set_torsion_angle!(a::Atom, b::Atom, c::Atom, d::Atom, angle::Union{Float32, Float64})
+
+Sets the torsion angle defined by the four atoms `a`, `b`, `c`, and `d` to the specified `angle`.
+
+# Arguments
+- `a::Atom{T}`: The first atom in the torsion angle definition.
+- `b::Atom{T}`: The second atom in the torsion angle definition.
+- `c::Atom{T}`: The third atom in the torsion angle definition.
+- `d::Atom{T}`: The fourth atom in the torsion angle definition.
+- `angle::{T}`: The desired torsion angle in radians.
+
+# Returns
+- `Bool`: `true` if the torsion angle has been set successfully, `false` otherwise.
+
+!!! note
+This function modifies the positions of the atoms to achieve the specified torsion angle. It
+assumes that the atoms are part of a molecular structure where such modifications are meaningful. It does not
+check for steric clashes or other geometric or chemical constraints that may arise from the rotation.
+"""
+@inline function set_torsion_angle!(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}, angle::T) where T
+
+    # perform bfs to find the part of the molecule that needs to be rotated
+
+    queue = Deque{Atom{T}}()
+    component = Set{Atom{T}}()
+
+    push!(component, c) # atoms that need to be rotated
+
+    # starting point
+    for bond in bonds(c) # check bonds of atom c
+        if get_partner(bond, c).idx != b.idx # b should not be rotated
+            partner_atom = get_partner(bond, c) # atom to be rotated
+            push!(component, partner_atom)
+            push!(queue, partner_atom)
+        end
+    end
+
+    # perform bfs
+    while(!isempty(queue))
+        atom = popfirst!(queue)
+
+        for bond in bonds(atom)
+            # we cannot set the torsion angle if b is in the same connected component as the partner atom
+            if get_partner(bond, atom).idx == b.idx
+                return false
+            end
+
+            if !in(atom_by_idx(parent(atom),bond.a2), component)
+                push!(component, atom_by_idx(parent(atom), bond.a2))
+                push!(queue, atom_by_idx(parent(atom), bond.a2))
+            end
+        end
+    end
+
+    angle -= calculate_torsion_angle(a,b,c,d)
+    # setup the rotation
+    rotation_axis = c.r - b.r
+    # AngleAxis renormalizes the given vector
+    rotation = RotMatrix(AngleAxis(angle, rotation_axis[1], rotation_axis[2], rotation_axis[3]))
+
+    # Translate c to the origin
+    translation_to_origin = -c.r
+
+     # Apply the transformations to the selected component
+     for atom in component
+         # Translate to origin
+         atom.r += translation_to_origin
+
+         # Apply rotation
+         atom.r = rotation * atom.r
+
+         # Translate backusin
+         atom.r -= translation_to_origin
+     end
+
+    return true
+end
+
+"""
+    calculate_bond_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}) -> T
+
+Calculates the bond angle formed by three atoms `a`, `b`, and `c`. The angle is measured at atom `b`,
+with `a` and `c` being the other two atoms forming the angle.
+
+# Arguments
+- `a::Atom`: The first atom in the bond angle.
+- `b::Atom`: The central atom where the angle is measured.
+- `c::Atom`: The third atom in the bond angle.
+
+# Returns
+- `Float64`: The bond angle in radians.
+"""
+function calculate_bond_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}) where T
+    if a.r == b.r || b.r == c.r
+        @error ("Atoms can't have the same position. No Angle to calculate here.")
+    end
+
+    a12 = a.r-b.r
+    a23 = c.r-b.r
+
+    a12 /= norm(a12)
+    a23 /= norm(a23)
+
+    return acos(clamp(dot(a12, a23), -one(T), one(T)))
+end
+
 
 # TODO adapt to variants
 @inline function is_nucleotide(frag::Fragment)
