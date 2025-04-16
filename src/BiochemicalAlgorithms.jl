@@ -66,6 +66,14 @@ include("fileformats/ball_ini_file.jl")
 include("fileformats/hinfile.jl")
 include("fileformats/pdb.jl")
 include("fileformats/pubchem_json.jl")
+
+module PDBDetails
+include("fileformats/pdb/pdb_defs.jl")
+include("fileformats/pdb/pdb_general.jl")
+include("fileformats/pdb/pdb_writer.jl")
+end
+#include("fileformats/pdb_old.jl")
+
 include("fileformats/sdfile.jl")
 
 # mappings
@@ -92,6 +100,8 @@ include("preprocessing/normalize_names.jl")
 include("preprocessing/build_bonds.jl")
 include("preprocessing/add_hydrogens.jl")
 include("preprocessing/reconstruct_fragments.jl")
+include("preprocessing/predict_hbonds.jl")
+include("preprocessing/predict_secondary_structure.jl")
 
 # optimization
 include("optimization/optimize_structure.jl")

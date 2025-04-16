@@ -6,7 +6,9 @@ export
     fragment_by_idx,
     fragments,
     get_full_name,
+    is_previous,
     get_previous,
+    is_next,
     get_next,
     is_3_prime,
     is_5_prime,
@@ -753,12 +755,29 @@ end
     end
 end
 
+@inline function is_previous(f1::Fragment{T}, f2::Fragment{T}) where {T<:Real}
+    if parent_chain(f1) == parent_chain(f2)
+    
+        fs = fragments(parent_chain(f1))
+        f1_pos = findfirst(f -> f.idx == f1.idx, fs)
+
+        if f1_pos < nfragments(parent_chain(f1))
+            return fs[f1_pos + 1].idx == f2.idx
+        end
+    end
+
+    return false
+end
+
 @inline function get_previous(frag::Fragment{T}) where {T<:Real}
     try
-        prev_candidate = fragment_by_idx(parent(frag), frag.idx - 1)
+        c = parent_chain(frag)
+        fs = fragments(c)
 
-        if parent_chain(prev_candidate) == parent_chain(frag)
-            return prev_candidate
+        f_pos = findfirst(f -> f.idx == frag.idx, fs)
+
+        if f_pos > 1
+            return fs[f_pos - 1]
         end
     catch
     end
@@ -766,12 +785,20 @@ end
     nothing
 end
 
+
+@inline function is_next(f1::Fragment{T}, f2::Fragment{T}) where {T<:Real}
+    return is_previous(f2, f1)
+end
+
 @inline function get_next(frag::Fragment{T}) where {T<:Real}
     try
-        prev_candidate = fragment_by_idx(parent(frag), frag.idx + 1)
+        c = parent_chain(frag)
+        fs = fragments(c)
 
-        if parent_chain(prev_candidate) == parent_chain(frag)
-            return prev_candidate
+        f_pos = findfirst(f -> f.idx == frag.idx, fs)
+
+        if f_pos < nfragments(c)
+            return fs[f_pos + 1]
         end
     catch
     end
@@ -802,7 +829,7 @@ function get_full_name(
             suffix = "-M"
         end
 
-        if (has_property(f, :PROPERTY__HAS_SSBOND))
+        if (has_flag(f, :PROPERTY__HAS_SSBOND))
             suffix *= "S"
         end
 
