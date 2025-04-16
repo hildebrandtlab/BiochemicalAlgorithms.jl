@@ -756,15 +756,28 @@ end
 end
 
 @inline function is_previous(f1::Fragment{T}, f2::Fragment{T}) where {T<:Real}
-    (parent_chain(f1) == parent_chain(f2)) && (f1.idx == f2.idx - 1)
+    if parent_chain(f1) == parent_chain(f2)
+    
+        fs = fragments(parent_chain(f1))
+        f1_pos = findfirst(f -> f.idx == f1.idx, fs)
+
+        if f1_pos < nfragments(parent_chain(f1))
+            return fs[f1_pos + 1].idx == f2.idx
+        end
+    end
+
+    return false
 end
 
 @inline function get_previous(frag::Fragment{T}) where {T<:Real}
     try
-        prev_candidate = fragment_by_idx(parent(frag), frag.idx - 1)
+        c = parent_chain(frag)
+        fs = fragments(c)
 
-        if parent_chain(prev_candidate) == parent_chain(frag)
-            return prev_candidate
+        f_pos = findfirst(f -> f.idx == frag.idx, fs)
+
+        if f_pos > 1
+            return fs[f_pos - 1]
         end
     catch
     end
@@ -774,15 +787,18 @@ end
 
 
 @inline function is_next(f1::Fragment{T}, f2::Fragment{T}) where {T<:Real}
-    (parent_chain(f1) == parent_chain(f2)) && (f1.idx == f2.idx + 1)
+    return is_previous(f2, f1)
 end
 
 @inline function get_next(frag::Fragment{T}) where {T<:Real}
     try
-        prev_candidate = fragment_by_idx(parent(frag), frag.idx + 1)
+        c = parent_chain(frag)
+        fs = fragments(c)
 
-        if parent_chain(prev_candidate) == parent_chain(frag)
-            return prev_candidate
+        f_pos = findfirst(f -> f.idx == frag.idx, fs)
+
+        if f_pos < nfragments(c)
+            return fs[f_pos + 1]
         end
     catch
     end
