@@ -96,6 +96,8 @@ include("preprocessing/reconstruct_fragments.jl")
 # optimization
 include("optimization/optimize_structure.jl")
 
+include("peptide_builder.jl")
+
 export
     ball_data_path
 
