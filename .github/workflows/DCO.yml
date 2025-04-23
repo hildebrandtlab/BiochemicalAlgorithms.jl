@@ -15,4 +15,4 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         pip3 install -U dco-check
-        dco-check
+        dco-check -e 'compathelper_noreply@julialang.org'
