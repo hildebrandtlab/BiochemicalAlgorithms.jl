@@ -1,7 +1,7 @@
 name = "BiochemicalAlgorithms"
 uuid = "9d651bdf-8945-47d1-9188-34e269d8f7b5"
 authors = ["Andreas Hildebrandt <andreas.hildebrandt@uni-mainz.de> and contributors"]
-version = "0.5.2"
+version = "0.5.3"
 
 [deps]
 AutoHashEquals = "15f4f7f2-30c1-5605-9d31-71845cf9641f"
