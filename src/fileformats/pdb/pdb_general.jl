@@ -572,7 +572,12 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
         initial_res  = fragment_cache[ss.initial_residue]
         terminal_res = fragment_cache[ss.terminal_residue]
 
-        if parent_chain(initial_res) != parent_chain(terminal_res)
+        parent_chain_initial = parent_chain(initial_res)
+        parent_chain_terminal = parent_chain(terminal_res)
+
+        if isnothing(parent_chain_initial)  ||
+           isnothing(parent_chain_terminal) ||
+           parent_chain_initial.idx != parent_chain_terminal.idx
             @error "Invalid Secondary Structure record: residues in different chains!"
         end
 
@@ -627,7 +632,7 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
             current_ss = nothing
             for f in fs
                 if isnothing(f.secondary_structure_idx)
-                    if isnothing(last_fragment) || parent_secondary_structure(last_fragment) != current_ss
+                    if isnothing(last_fragment) || isnothing(current_ss) || parent_secondary_structure(last_fragment).idx != current_ss.idx
                         current_ss = SecondaryStructure(c, 
                         maximum(secondary_structures(c).number, init=0) + 1, 
                         SecondaryStructureElement.Coil)
