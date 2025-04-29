@@ -677,7 +677,7 @@ end
     has_torsion_psi(frag::Fragment) -> Bool
 
 Checks if the given `Fragment` object has a torsion angle psi defined.
-    See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
+See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
 # Arguments
 - `frag::Fragment`: The fragment object to be checked.
 
@@ -696,7 +696,7 @@ end
     has_torsion_phi(frag::Fragment) -> Bool
 
 Checks if the given `Fragment` object has a torsion angle phi defined.
-    See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
+See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
 # Arguments
 - `frag::Fragment`: The fragment object to be checked.
 
@@ -715,12 +715,7 @@ end
     has_torsion_omega(frag::Fragment) -> Bool
 
 Checks if the given `Fragment` object has a torsion angle omega defined.
-    See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
-# Arguments
-- `frag::Fragment`: The fragment object to be checked.
-
-# Returns
-- `Bool`: `true` if the fragment has a torsion angle omega, `false` otherwise.
+See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
 """
 @inline function has_torsion_omega(frag::Fragment)
     chain = parent_chain(frag)
@@ -734,18 +729,10 @@ end
 """
     calculate_torsion_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}) -> T
 
-Calculates the torsion angle (dihedral angle) defined by four atoms `a`, `b`, `c`, and `d`.
+Calculates the torsion angle (dihedral angle, in radians) defined by four atoms `a`, `b`, `c`, and `d`.
 The torsion angle is the angle between the plane formed by atoms `a`, `b`, `c` and the
 plane formed by atoms `b`, `c`, `d`.
 
-# Arguments
-- `a::Atom`: The first atom in the sequence.
-- `b::Atom`: The second atom in the sequence.
-- `c::Atom`: The third atom in the sequence.
-- `d::Atom`: The fourth atom in the sequence.
-
-# Returns
-- `Float64`: The torsion angle in radians.
 """
 function calculate_torsion_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}) where T
 
@@ -767,7 +754,7 @@ end
 """
     set_torsion_angle!(a::Atom, b::Atom, c::Atom, d::Atom, angle::Union{Float32, Float64})
 
-Sets the torsion angle defined by the four atoms `a`, `b`, `c`, and `d` to the specified `angle`.
+Sets the torsion angle defined by the four atoms `a`, `b`, `c`, and `d` to the specified `angle`. Returns `true` if the torsion angle has been set successfully, `false` otherwise.
 
 # Arguments
 - `a::Atom{T}`: The first atom in the torsion angle definition.
@@ -780,9 +767,9 @@ Sets the torsion angle defined by the four atoms `a`, `b`, `c`, and `d` to the s
 - `Bool`: `true` if the torsion angle has been set successfully, `false` otherwise.
 
 !!! note
-This function modifies the positions of the atoms to achieve the specified torsion angle. It
-assumes that the atoms are part of a molecular structure where such modifications are meaningful. It does not
-check for steric clashes or other geometric or chemical constraints that may arise from the rotation.
+    This function modifies the positions of the atoms to achieve the specified torsion angle. It
+    assumes that the atoms are part of a molecular structure where such modifications are meaningful. It does not
+    check for steric clashes or other geometric or chemical constraints that may arise from the rotation.
 """
 @inline function set_torsion_angle!(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}, angle::T) where T
 
@@ -846,16 +833,9 @@ end
 """
     calculate_bond_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}) -> T
 
-Calculates the bond angle formed by three atoms `a`, `b`, and `c`. The angle is measured at atom `b`,
+Calculates the bond angle formed by three atoms `a`, `b`, and `c` and returns it (in radians). The angle is measured at atom `b`,
 with `a` and `c` being the other two atoms forming the angle.
 
-# Arguments
-- `a::Atom`: The first atom in the bond angle.
-- `b::Atom`: The central atom where the angle is measured.
-- `c::Atom`: The third atom in the bond angle.
-
-# Returns
-- `Float64`: The bond angle in radians.
 """
 function calculate_bond_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}) where T
     if a.r == b.r || b.r == c.r
