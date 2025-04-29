@@ -8,7 +8,9 @@ export
     fragment_by_idx,
     fragments,
     get_full_name,
+    is_previous,
     get_previous,
+    is_next,
     get_next,
     get_torsion_omega,
     get_torsion_phi,
@@ -1016,12 +1018,29 @@ end
     end
 end
 
-@inline function get_previous(frag::Fragment{T}) where {T<:Real}
-    try
-        prev_candidate = fragment_by_idx(parent(frag), frag.idx - 1)
+@inline function is_previous(f1::Fragment{T}, f2::Fragment{T}) where T
+    if parent_chain(f1) == parent_chain(f2)
+    
+        fs = fragments(parent_chain(f1))
+        f1_pos = findfirst(f -> f.idx == f1.idx, fs)
 
-        if parent_chain(prev_candidate) == parent_chain(frag)
-            return prev_candidate
+        if f1_pos < nfragments(parent_chain(f1))
+            return fs[f1_pos + 1].idx == f2.idx
+        end
+    end
+
+    return false
+end
+
+@inline function get_previous(frag::Fragment{T}) where T
+    try
+        c = parent_chain(frag)
+        fs = fragments(c)
+
+        f_pos = findfirst(f -> f.idx == frag.idx, fs)
+
+        if f_pos > 1
+            return fs[f_pos - 1]
         end
     catch
     end
@@ -1029,12 +1048,20 @@ end
     nothing
 end
 
-@inline function get_next(frag::Fragment{T}) where {T<:Real}
-    try
-        prev_candidate = fragment_by_idx(parent(frag), frag.idx + 1)
 
-        if parent_chain(prev_candidate) == parent_chain(frag)
-            return prev_candidate
+@inline function is_next(f1::Fragment{T}, f2::Fragment{T}) where T
+    return is_previous(f2, f1)
+end
+
+@inline function get_next(frag::Fragment{T}) where T
+    try
+        c = parent_chain(frag)
+        fs = fragments(c)
+
+        f_pos = findfirst(f -> f.idx == frag.idx, fs)
+
+        if f_pos < nfragments(c)
+            return fs[f_pos + 1]
         end
     catch
     end
@@ -1044,7 +1071,7 @@ end
 
 function get_full_name(
         f::Fragment{T},
-        type::FullNameType.T = FullNameType.ADD_VARIANT_EXTENSIONS) where {T<:Real}
+        type::FullNameType.T = FullNameType.ADD_VARIANT_EXTENSIONS) where T
     # retrieve the residue name and remove blanks
     full_name = strip(f.name)
 
