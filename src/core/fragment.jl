@@ -690,12 +690,12 @@ See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_
 end
 
 """
-    get_torsion_psi(frag::Fragment) -> T
+    get_torsion_psi(frag::Fragment{T}) -> T
 Calculates the torsion angle psi (in radians) defined by the given `frag::Fragment` object.
 Returns the calculated torsion angle, if the angle can be calculated, else zero.
 The psi angle is defined by the fragment's atoms N, CA, C, and the next fragment's N atom.
 """
-function get_torsion_psi(frag::Fragment)
+function get_torsion_psi(frag::Fragment{T}) where T
     psi = 0.0
     if has_torsion_psi(frag)
         next = get_next(frag)
@@ -719,7 +719,6 @@ function get_torsion_psi(frag::Fragment)
     return psi
 end
 
-
 """
     has_torsion_phi(frag::Fragment) -> Bool
 
@@ -735,12 +734,12 @@ See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_
 end
 
 """
-    get_torsion_phi(frag::Fragment) -> T
+    get_torsion_phi(frag::Fragment{T}) -> T
 Calculates the torsion angle phi (in radians) defined by the given `frag::Fragment` object.
 Returns the calculated torsion angle, if the angle can be calculated, else zero.
 The phi angle is defined by the fragment's atoms N, CA, C, and the previous fragment's C atom.
 """
-function get_torsion_phi(frag::Fragment) where T
+function get_torsion_phi(frag::Fragment{T}) where T
     phi = 0.0
     if has_torsion_phi(frag)
         prev = get_previous(frag)
@@ -780,12 +779,12 @@ See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_
 end
 
 """
-    get_torsion_omega(frag::Fragment) -> T
+    get_torsion_omega(frag::Fragment{T})) -> T
 Calculates the torsion angle omega (in radians) defined by the given `frag::Fragment` object.
 Returns the calculated torsion angle, if the angle can be calculated, else zero.
 The omega angle is defined by the fragment's CA and C atoms, and the next fragment's CA and N atoms.
 """
-function get_torsion_omega(frag::Fragment) where T
+function get_torsion_omega(frag::Fragment{T}) where T
     omega = 0.0
     if has_torsion_omega(frag)
         next = get_next(frag)
@@ -837,7 +836,7 @@ function calculate_torsion_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T})
 end
 
 """
-    set_torsion_angle!(a::Atom, b::Atom, c::Atom, d::Atom, angle::Union{Float32, Float64})
+    set_torsion_angle!(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}, angle::T) where T
 
 Sets the torsion angle defined by the four atoms `a`, `b`, `c`, and `d` to the specified `angle` in radians. Returns `true` if the torsion angle has been set successfully, `false` otherwise.
 

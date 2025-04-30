@@ -124,6 +124,9 @@ Base.push!(::Chain{T}, ::SecondaryStructure{T}) where T
 ```@docs
 FragmentVariant
 FragmentVariantType
+get_torsion_omega
+get_torsion_phi
+get_torsion_psi
 has_torsion_omega
 has_torsion_phi
 has_torsion_psi
