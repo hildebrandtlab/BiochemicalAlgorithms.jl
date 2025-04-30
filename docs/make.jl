@@ -17,8 +17,10 @@ const pages = Any[
         "File formats" => "public/fileformats.md",
         "Force fields" => "public/forcefields.md",
         "Mappings" => "public/mappings.md",
+        "Molecular preprocessing" => "public/preprocessing.md",
         "Internals" => Any[
-            "Biomolecular systems" => "private/system.md"
+            "File Formats" => "private/fileformats.md",
+            "Biomolecular systems" => "private/system.md",
             "Mappings" => "private/mappings.md"
         ]
     ]
