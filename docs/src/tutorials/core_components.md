@@ -16,12 +16,6 @@ s = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 s
 ```
 
-    ┌ Warning: Circular dependency detected.
-    │ Precompilation will be skipped for dependencies in this cycle:
-    │  ┌ BiochemicalAlgorithms
-    │  └─ BiochemicalVisualization
-    └ @ Base.Precompilation precompilation.jl:650
-
     System{Float32}: AlaAla.pdb
       23 atoms
        0 bonds
@@ -200,12 +194,6 @@ using BiochemicalVisualization
 
 # ball_and_stick(s)  uncomment for visualization
 ```
-
-    ┌ Warning: Circular dependency detected.
-    │ Precompilation will be skipped for dependencies in this cycle:
-    │  ┌ BiochemicalAlgorithms
-    │  └─ BiochemicalVisualization
-    └ @ Base.Precompilation precompilation.jl:650
 
 Now, let’s create some bonds:
 
