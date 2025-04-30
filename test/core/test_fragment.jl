@@ -1510,7 +1510,7 @@ end
     end
 end
 
-@testitem "Fragment/set_torsion_angle" begin
+@testitem "Fragment/apply_torsion_angle" begin
 
     for T in [Float32, Float64]
         sys = System{T}()
@@ -1525,28 +1525,28 @@ end
 
 
         @test isapprox(rad2deg(BiochemicalAlgorithms.calculate_torsion_angle(a, b, c, d)), 180.0, atol=10e-3)
-        @test set_torsion_angle!(a, b, c, d, T(deg2rad(90.0)))
+        @test apply_torsion_angle!(a, b, c, d, T(deg2rad(90.0)))
         @test isapprox(rad2deg(BiochemicalAlgorithms.calculate_torsion_angle(a, b, c, d)), 90.000, atol=10e-3)
-        @test set_torsion_angle!(a, b, c, d, T(deg2rad(0.0)))
+        @test apply_torsion_angle!(a, b, c, d, T(deg2rad(0.0)))
         @test isapprox(rad2deg(BiochemicalAlgorithms.calculate_torsion_angle(a, b, c, d)), 0.0, atol=10e-3)
 
-        @test set_torsion_angle!(a, b, c, d, T(deg2rad(149.99)))
+        @test apply_torsion_angle!(a, b, c, d, T(deg2rad(149.99)))
         @test isapprox(rad2deg(BiochemicalAlgorithms.calculate_torsion_angle(a, b, c, d)), 149.999, atol=10e-3)
-        @test set_torsion_angle!(a, b, c, d, T(deg2rad(180.00)))
+        @test apply_torsion_angle!(a, b, c, d, T(deg2rad(180.00)))
         @test isapprox(rad2deg(BiochemicalAlgorithms.calculate_torsion_angle(a, b, c, d)), 180.0, atol=10e-3)
-        @test set_torsion_angle!(a, b, c, d, T(deg2rad(360.00)))
+        @test apply_torsion_angle!(a, b, c, d, T(deg2rad(360.00)))
         @test isapprox(rad2deg(BiochemicalAlgorithms.calculate_torsion_angle(a, b, c, d)), 0.0, atol=10e-3)
-        @test set_torsion_angle!(a, b, c, d, T(deg2rad(-180.00)))
+        @test apply_torsion_angle!(a, b, c, d, T(deg2rad(-180.00)))
         @test isapprox(rad2deg(BiochemicalAlgorithms.calculate_torsion_angle(a, b, c, d)), 180.0, atol=10e-3)
-        @test set_torsion_angle!(a, b, c, d, T(deg2rad(-360.00)))
+        @test apply_torsion_angle!(a, b, c, d, T(deg2rad(-360.00)))
         @test isapprox(rad2deg(BiochemicalAlgorithms.calculate_torsion_angle(a, b, c, d)), 0.0, atol=10e-3)
-        @test set_torsion_angle!(a, b, c, d, T(deg2rad(-149.99)))
+        @test apply_torsion_angle!(a, b, c, d, T(deg2rad(-149.99)))
         @test isapprox(rad2deg(BiochemicalAlgorithms.calculate_torsion_angle(a, b, c, d)), -149.999, atol=10e-3)
 
         e = Atom(sys, 5, Elements.C, r = Vector3{T}(1.0, -1.0, 1.0))
         Bond(b, e, BondOrder.Single)
         Bond(c, e, BondOrder.Single)
-        @test !set_torsion_angle!(a, b, c, d, T(deg2rad(90)))
+        @test !apply_torsion_angle!(a, b, c, d, T(deg2rad(90)))
 
      end
 end

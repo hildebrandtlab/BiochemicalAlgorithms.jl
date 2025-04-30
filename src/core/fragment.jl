@@ -1,9 +1,10 @@
 export
-    calculate_bond_angle,
     Fragment,
     FragmentTable,
     Nucleotide,
     Residue,
+    apply_torsion_angle!,
+    calculate_bond_angle,
     fragment_by_idx,
     fragments,
     get_full_name,
@@ -32,8 +33,7 @@ export
     parent_nucleotide,
     parent_residue,
     residue_by_idx,
-    residues,
-    set_torsion_angle!
+    residues
 
 """
     Fragment{T} <: AbstractAtomContainer{T}
@@ -691,12 +691,13 @@ end
 
 """
     get_torsion_psi(frag::Fragment{T}) -> T
+
 Calculates the torsion angle psi (in radians) defined by the given `frag::Fragment` object.
 Returns the calculated torsion angle, if the angle can be calculated, else zero.
 The psi angle is defined by the fragment's atoms N, CA, C, and the next fragment's N atom.
 """
 function get_torsion_psi(frag::Fragment{T}) where T
-    psi = 0.0
+    psi = zero(T)
     if has_torsion_psi(frag)
         next = get_next(frag)
 
@@ -735,12 +736,13 @@ end
 
 """
     get_torsion_phi(frag::Fragment{T}) -> T
+
 Calculates the torsion angle phi (in radians) defined by the given `frag::Fragment` object.
 Returns the calculated torsion angle, if the angle can be calculated, else zero.
 The phi angle is defined by the fragment's atoms N, CA, C, and the previous fragment's C atom.
 """
 function get_torsion_phi(frag::Fragment{T}) where T
-    phi = 0.0
+    phi = zero(T)
     if has_torsion_phi(frag)
         prev = get_previous(frag)
 
@@ -780,12 +782,13 @@ end
 
 """
     get_torsion_omega(frag::Fragment{T})) -> T
+
 Calculates the torsion angle omega (in radians) defined by the given `frag::Fragment` object.
 Returns the calculated torsion angle, if the angle can be calculated, else zero.
 The omega angle is defined by the fragment's CA and C atoms, and the next fragment's CA and N atoms.
 """
 function get_torsion_omega(frag::Fragment{T}) where T
-    omega = 0.0
+    omega = zero(T)
     if has_torsion_omega(frag)
         next = get_next(frag)
 
@@ -836,16 +839,17 @@ function calculate_torsion_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T})
 end
 
 """
-    set_torsion_angle!(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}, angle::T) where T
+    apply_torsion_angle!(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}, angle::T)
 
-Sets the torsion angle defined by the four atoms `a`, `b`, `c`, and `d` to the specified `angle` in radians. Returns `true` if the torsion angle has been set successfully, `false` otherwise.
+Applies the torsion angle defined by the four atoms `a`, `b`, `c`, and `d` to the specified `angle` in radians.
+Returns `true` if the torsion angle has been applied successfully, `false` otherwise.
 
 !!! note
     This function modifies the positions of the atoms to achieve the specified torsion angle. It
     assumes that the atoms are part of a molecular structure where such modifications are meaningful. It does not
     check for steric clashes or other geometric or chemical constraints that may arise from the rotation.
 """
-@inline function set_torsion_angle!(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}, angle::T) where T
+@inline function apply_torsion_angle!(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}, angle::T) where T
 
     # perform bfs to find the part of the molecule that needs to be rotated
 
