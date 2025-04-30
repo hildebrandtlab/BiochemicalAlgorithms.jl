@@ -1,6 +1,5 @@
 export
     calculate_bond_angle,
-    calculate_torsion_angle,
     Fragment,
     FragmentTable,
     Nucleotide,
@@ -10,6 +9,9 @@ export
     get_full_name,
     get_previous,
     get_next,
+    get_torsion_omega,
+    get_torsion_phi,
+    get_torsion_psi,
     has_torsion_omega,
     has_torsion_phi,
     has_torsion_psi,
@@ -676,13 +678,8 @@ end
 """
     has_torsion_psi(frag::Fragment) -> Bool
 
-Checks if the given `Fragment` object has a torsion angle psi defined.
+Checks if the given `frag::Fragment` object has a torsion angle psi defined, `false` otherwise.
 See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
-# Arguments
-- `frag::Fragment`: The fragment object to be checked.
-
-# Returns
-- `Bool`: `true` if the fragment has a torsion angle psi, `false` otherwise.
 """
 @inline function has_torsion_psi(frag::Fragment)
     chain = parent_chain(frag)
@@ -693,15 +690,41 @@ See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_
 end
 
 """
+    get_torsion_psi(frag::Fragment) -> T
+Calculates the torsion angle psi (in radians) defined by the given `frag::Fragment` object.
+Returns the calculated torsion angle, if the angle can be calculated, else zero.
+The psi angle is defined by the fragment's atoms N, CA, C, and the next fragment's N atom.
+"""
+function get_torsion_psi(frag::Fragment)
+    psi = 0.0
+    if has_torsion_psi(frag)
+        next = get_next(frag)
+
+        if isnothing(next)
+            @warn "Cannot calculate psi angle, no previous or next fragment found"
+            return psi
+        end
+
+        atm_N = atom_by_name(frag, "N")
+        atm_CA = atom_by_name(frag, "CA")
+        atm_C = atom_by_name(frag, "C")
+        atm_next_N = atom_by_name(next, "N")
+
+        if isnothing(atm_N) || isnothing(atm_CA) || isnothing(atm_C) || isnothing(atm_next_N)
+            @warn "Cannot calculate psi angle, one or more atoms not found"
+            return psi
+        end
+        psi = calculate_torsion_angle(atm_N, atm_CA, atm_C, atm_next_N)
+    end
+    return psi
+end
+
+
+"""
     has_torsion_phi(frag::Fragment) -> Bool
 
-Checks if the given `Fragment` object has a torsion angle phi defined.
+Checks if the given `frag::Fragment` object has a torsion angle phi defined, `false` otherwise.
 See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
-# Arguments
-- `frag::Fragment`: The fragment object to be checked.
-
-# Returns
-- `Bool`: `true` if the fragment has a torsion angle phi, `false` otherwise.
 """
 @inline function has_torsion_phi(frag::Fragment)
     chain = parent_chain(frag)
@@ -712,9 +735,40 @@ See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_
 end
 
 """
+    get_torsion_phi(frag::Fragment) -> T
+Calculates the torsion angle phi (in radians) defined by the given `frag::Fragment` object.
+Returns the calculated torsion angle, if the angle can be calculated, else zero.
+The phi angle is defined by the fragment's atoms N, CA, C, and the previous fragment's C atom.
+"""
+function get_torsion_phi(frag::Fragment) where T
+    phi = 0.0
+    if has_torsion_phi(frag)
+        prev = get_previous(frag)
+
+        if isnothing(prev)
+            @warn "Cannot calculate phi angle, no previous or next fragment found"
+            return phi
+        end
+
+        atm_prev_C = atom_by_name(prev, "C")
+        atm_N = atom_by_name(frag, "N")
+        atm_CA = atom_by_name(frag, "CA")
+        atm_C = atom_by_name(frag, "C")
+
+
+        if isnothing(atm_N) || isnothing(atm_CA) || isnothing(atm_C) || isnothing(atm_prev_C)
+            @warn "Cannot calculate phi angle, one or more atoms not found"
+            return phi
+        end
+        phi = calculate_torsion_angle(atm_prev_C, atm_N, atm_CA, atm_C)
+    end
+    return phi
+end
+
+"""
     has_torsion_omega(frag::Fragment) -> Bool
 
-Checks if the given `Fragment` object has a torsion angle omega defined.
+Checks if the given `Fragment` object has a torsion angle omega defined, `false` otherwise.
 See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
 """
 @inline function has_torsion_omega(frag::Fragment)
@@ -725,6 +779,38 @@ See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_
     return !has_flag(frag, :N_TERMINAL) && is_amino_acid(frag)
 end
 
+"""
+    get_torsion_omega(frag::Fragment) -> T
+Calculates the torsion angle omega (in radians) defined by the given `frag::Fragment` object.
+Returns the calculated torsion angle, if the angle can be calculated, else zero.
+The omega angle is defined by the fragment's CA and C atoms, and the next fragment's CA and N atoms.
+"""
+function get_torsion_omega(frag::Fragment) where T
+    omega = 0.0
+    if has_torsion_omega(frag)
+        next = get_next(frag)
+
+        if isnothing(next)
+            @warn "Cannot calculate omega angle, no previous or next fragment found"
+            return omega
+        end
+
+
+        atm_CA = atom_by_name(frag, "CA")
+        atm_C = atom_by_name(frag, "C")
+
+        atm_next_CA = atom_by_name(next, "CA")
+        atm_next_N = atom_by_name(next, "N")
+
+
+        if isnothing(atm_CA) || isnothing(atm_C) || isnothing(atm_next_CA) || isnothing(atm_next_N)
+            @warn "Cannot calculate omega angle, one or more atoms not found"
+            return omega
+        end
+        omega = calculate_torsion_angle(atm_CA, atm_C, atm_next_N, atm_next_CA)
+    end
+    return omega
+end
 
 """
     calculate_torsion_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}) -> T
@@ -732,7 +818,6 @@ end
 Calculates the torsion angle (dihedral angle, in radians) defined by four atoms `a`, `b`, `c`, and `d`.
 The torsion angle is the angle between the plane formed by atoms `a`, `b`, `c` and the
 plane formed by atoms `b`, `c`, `d`.
-
 """
 function calculate_torsion_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}) where T
 
@@ -754,17 +839,7 @@ end
 """
     set_torsion_angle!(a::Atom, b::Atom, c::Atom, d::Atom, angle::Union{Float32, Float64})
 
-Sets the torsion angle defined by the four atoms `a`, `b`, `c`, and `d` to the specified `angle`. Returns `true` if the torsion angle has been set successfully, `false` otherwise.
-
-# Arguments
-- `a::Atom{T}`: The first atom in the torsion angle definition.
-- `b::Atom{T}`: The second atom in the torsion angle definition.
-- `c::Atom{T}`: The third atom in the torsion angle definition.
-- `d::Atom{T}`: The fourth atom in the torsion angle definition.
-- `angle::{T}`: The desired torsion angle in radians.
-
-# Returns
-- `Bool`: `true` if the torsion angle has been set successfully, `false` otherwise.
+Sets the torsion angle defined by the four atoms `a`, `b`, `c`, and `d` to the specified `angle` in radians. Returns `true` if the torsion angle has been set successfully, `false` otherwise.
 
 !!! note
     This function modifies the positions of the atoms to achieve the specified torsion angle. It

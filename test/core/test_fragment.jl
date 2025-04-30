@@ -1418,7 +1418,7 @@ end
     end
 end
 
-@testitem "Fragment/has_torsion" begin
+@testitem "Fragment/*_torsion" begin
     for T in [Float32, Float64]
         sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), T)
         fdb = FragmentDB{T}()
@@ -1434,6 +1434,15 @@ end
         @test has_torsion_phi(r2) == true
         @test has_torsion_omega(r1) == true
         @test has_torsion_omega(r2) == true
+
+        @test isapprox(rad2deg(get_torsion_psi(r1)), -57.97745f0, atol=10e-3)
+        @test isapprox(rad2deg(get_torsion_psi(r2)), -0.0, atol=10e-3)
+
+        @test isapprox(rad2deg(get_torsion_phi(r1)), 0.0, atol=10e-3)
+        @test isapprox(rad2deg(get_torsion_phi(r2)), -47.03374, atol=10e-3)
+
+        @test isapprox(rad2deg(get_torsion_omega(r1)), 179.9903002, atol=10e-3)
+        @test isapprox(rad2deg(get_torsion_omega(r2)), 0.0, atol=10e-3)
 
         sys2 = deepcopy(sys)
         @test nfragments(sys2) == 2
@@ -1479,8 +1488,8 @@ end
         b = Atom(sys, 2, Elements.C, r = Vector3{T}(0.0f0, 1.0f0, -1.0f0))
         c = Atom(sys, 3, Elements.N, r = Vector3{T}(1.0f0, 0.0f0, 0.0f0))
         d = Atom(sys, 4, Elements.C, r = Vector3{T}(1.0f0, -1.0f0, -1.0f0))
-        @test calculate_torsion_angle(a, b, c, d) isa T
-        @test isapprox(rad2deg(calculate_torsion_angle(a, b, c, d)),149.999, atol=10e-3)
+        @test BiochemicalAlgorithms.calculate_torsion_angle(a, b, c, d) isa T
+        @test isapprox(rad2deg(BiochemicalAlgorithms.calculate_torsion_angle(a, b, c, d)),149.999, atol=10e-3)
     end
 end
 
