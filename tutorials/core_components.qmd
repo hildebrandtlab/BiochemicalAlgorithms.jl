@@ -88,14 +88,18 @@ So far, the system has no bonds. We can also visualize the structure using Bioch
 If BiochemicalVisualization is not yet installed, you can add it via:
 
 ```{julia}
+#| eval: false
+
 using Pkg
 Pkg.add("BiochemicalVisualization")
 ```
 
 ```{julia}
+#| eval: false
+
 using BiochemicalVisualization
 
-# ball_and_stick(s)  uncomment for visualization
+ball_and_stick(s)
 ```
 
 Now, let's create some bonds:
