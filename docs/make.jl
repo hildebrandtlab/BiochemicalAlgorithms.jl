@@ -7,10 +7,12 @@ const pages = Any[
     "Home" => "index.md",
     "Tutorials" => [
         "How to get started" => "tutorials/getting_started.md",
+        "Introduction to core components" => "tutorials/core_components.md",
         "How to iterate" => "tutorials/iterate.md",
-        "How to read and write" => "tutorials/read_and_write.md",
+        "How to apply force fields" => "tutorials/force_field_ops.md",
         "How to handle molecules" =>"tutorials/handle_molecules.md",
-        "How to apply force fields" => "tutorials/force_field_ops.md"
+        "How to read and write" => "tutorials/read_and_write.md",
+
     ],
     "Library" => Any[
         "Biomolecular systems" => "public/system.md",
