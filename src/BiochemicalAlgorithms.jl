@@ -105,7 +105,7 @@ include("preprocessing/predict_secondary_structure.jl")
 # optimization
 include("optimization/optimize_structure.jl")
 
-include("peptide_builder.jl")
+include("structure/peptide_builder.jl")
 
 export
     ball_data_path
