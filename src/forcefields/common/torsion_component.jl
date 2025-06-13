@@ -138,7 +138,7 @@ function _setup_improper_torsions!(tc::TorsionComponent{T}) where T
 
     _parse_combi_tuple(t) = (n = t.n, div = t.div, V = t.V, phi0 = t.phi0, f = t.f)
     torsion_dict = Dict(
-        Tuple(k) => [_parse_combi_tuple(r) for r in eachrow(torsion_combinations[k])]
+        NTuple{4, String}(k) => [_parse_combi_tuple(r) for r in eachrow(torsion_combinations[k])]
         for k in keys(torsion_combinations)
     )
 
