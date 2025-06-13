@@ -45,7 +45,7 @@ function setup!(qbc::QuadraticBendComponent{T}) where T
     bend_combinations = groupby(bend_df, ["I", "J", "K"])
 
     bends_dict = Dict(
-        Tuple(k) => bend_combinations[k]
+        NTuple{3, String}(k) => bend_combinations[k]
         for k in keys(bend_combinations)
     )
 

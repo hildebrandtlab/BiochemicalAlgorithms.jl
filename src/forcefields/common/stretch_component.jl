@@ -43,7 +43,7 @@ function setup!(qsc::QuadraticStretchComponent{T}) where T
     stretch_combinations = groupby(stretch_df, ["I", "J"])
 
     stretch_dict = Dict(
-        Tuple(k) => stretch_combinations[k]
+        Tuple{String, String}(k) => stretch_combinations[k]
         for k in keys(stretch_combinations)
     )
     stretches = Vector{QuadraticBondStretch{T}}(undef, nbonds(ff.system))
