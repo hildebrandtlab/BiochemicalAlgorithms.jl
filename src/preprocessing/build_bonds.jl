@@ -3,8 +3,8 @@ using LinearAlgebra
 export build_bonds!
 
 function build_fragment_bonds!(
-        f::Fragment{T}, 
-        connections::Dict{Int, DBConnection},
+        f::Fragment{T},
+        connections::OrderedDict{Int, DBConnection},
         fdb::FragmentDB) where {T<:Real}
 
     # check whether our DB knows the fragment and, if so, retrieve the template
@@ -38,7 +38,7 @@ function build_fragment_bonds!(
         tpl_bonds = filter(b -> b.a1 == tpl_atom.name || b.a2 == tpl_atom.name, template.bonds)
 
         for tpl_bond in tpl_bonds
-            tpl_partner = 
+            tpl_partner =
                 (tpl_bond.a1 == tpl_atom.name) ? tpl_bond.a2 : ((tpl_bond.a2 == tpl_atom.name) ? tpl_bond.a1 : nothing)
 
             if isnothing(tpl_partner)
@@ -63,7 +63,7 @@ function build_fragment_bonds!(
 
                 if isnothing(bond_index)
                     push!(fbonds._idx, Bond(parent_system(f), atom.idx, partner_atom.idx, tpl_bond.order).idx)
-                
+
                     num_bonds_built += 1
                 else
                     bond = fbonds[bond_index]
@@ -132,7 +132,7 @@ end
 
 function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB) where {T<:Real}
     # while building up individual fragments, we remember inter-fragment connections
-    connections = Dict{Int, DBConnection}()
+    connections = OrderedDict{Int, DBConnection}()
 
     # is_bound_to is currently quite slow and relies on dynamic dispatch; to speed things
     # up, we precompute the bonds into a dictionary
