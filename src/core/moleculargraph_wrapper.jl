@@ -1,51 +1,55 @@
 @inline function _atom_to_molgraph(a::Atom)
-    MolecularGraph.SDFAtom(Dict{String, Any}(
-        "multiplicity" => 1,      # TODO: handle multiplicities
-        "symbol" => a.element,
-        "charge" => a.formal_charge,
-        "mass"   => nothing,      # TODO: handle masses
-        "coords" => a.r
-    ))
+    MolecularGraph.SDFAtom(
+        symbol = Symbol(a.element),
+        charge = a.formal_charge,
+        multiplicity = 1,    # TODO: handle multiplicities
+        mass = nothing,      # TODO: handle masses
+        coords = collect(a.r)
+    )
 end
 
 @inline function _bond_to_molgraph_edge(b::Bond, idx_to_molgraph_atom::Dict{Int,Int})
-    # GraphMol assumes src < dst
+    # MolecularGraph assumes src < dst (cf. MolecularGraph.u_edge)
     e1 = idx_to_molgraph_atom[b.a1]
     e2 = idx_to_molgraph_atom[b.a2]
-    e1 < e2 && return Edge(e1, e2)
-    Edge(e2, e1)
+    e1 < e2 ? Edge(e1, e2) : Edge(e2, e1)
 end
 
 @inline function _bond_to_molgraph_attr(b::Bond)
-    MolecularGraph.SDFBond(Dict{String, Any}(
-        "isordered" => has_property(b, :is_odered) ? Bool(get_property(b, :is_ordered)) : true,
-        "notation" => 0,                                                # TODO: handle notation
-        "order"    => b.order <= BondOrder.Quadruple ? Int(b.order) : 1 # TODO: handle aromatic bonds correctly
-    ))
+    MolecularGraph.SDFBond(
+        isordered = has_property(b, :is_odered) ? Bool(get_property(b, :is_ordered)) : true,
+        notation = 0,                                             # TODO: handle notation
+        order = b.order <= BondOrder.Quadruple ? Int(b.order) : 1 # TODO: handle aromatic bonds correctly
+    )
 end
 
 function Base.convert(
-        ::Type{MolecularGraph.SDFMolGraph},
-        mol::AbstractAtomContainer{T}
-    ) where T
-
-    # create an intermediate dictionary to map from our data structures
-    # to those of MolecularGraph
-
-    # NOTE: the number-field of the atoms is not guaranteed to be unique, so we re-number them in order
+    ::Type{MolecularGraph.SDFMolGraph},
+    mol::AbstractAtomContainer
+)
     at = atoms(mol)
 
-    molgraph_atoms = sort!(OrderedDict(ai => _atom_to_molgraph(a) for (ai, a) in enumerate(at)))
+    # create an intermediate dictionary to map from our data structures to those of MolecularGraph
+    # NOTE: the number field of the atoms is not guaranteed to be unique and the atom numbering
+    # is not guaranteed to be 1-based and contiguous. So, we re-number the atoms here in order.
+    molgraph_atoms = OrderedDict(ai => _atom_to_molgraph(a) for (ai, a) in enumerate(at))
     idx_to_molgraph_atom = Dict(a.idx => ai for (ai, a) in enumerate(at))
     molgraph_atom_to_idx = Dict(v => k for (k,v) in idx_to_molgraph_atom)
 
-    edges  = collect(Edge{Int}, map(b -> _bond_to_molgraph_edge(b, idx_to_molgraph_atom), bonds(mol)))
-    vprops = collect(MolecularGraph.SDFAtom,   values(molgraph_atoms))
-    eprops = collect(MolecularGraph.SDFBond,   map(_bond_to_molgraph_attr, bonds(mol)))
+    edges    = collect(Edge{Int}, map(b -> _bond_to_molgraph_edge(b, idx_to_molgraph_atom), bonds(mol)))
+    sdfatoms = collect(MolecularGraph.SDFAtom,   values(molgraph_atoms))
+    sdfbonds = collect(MolecularGraph.SDFBond,   map(_bond_to_molgraph_attr, bonds(mol)))
 
-    MolecularGraph.SDFMolGraph(edges, vprops, eprops;
-       gprop_map = merge(mol.properties, Dict(:atom_idx => molgraph_atom_to_idx))
+    mg = MolecularGraph.SDFMolGraph(edges, sdfatoms, sdfbonds;
+        on_init = MolecularGraph.sdf_on_init!,
+        on_update = MolecularGraph.sdf_on_update!
     )
+    mg["atom_idx"] = JSON3.write(molgraph_atom_to_idx)
+    mg
+end
+
+@inline function _molgraph_atom_to_idx(mg::MolecularGraph.MolGraph)
+    JSON3.read(mg["atom_idx"], Dict{Int, Int})
 end
 
 @inline function _molgraph_to_atom(mol::Molecule{T}, (i, a)::Pair{Int, MolecularGraph.SDFAtom}) where T
@@ -105,7 +109,7 @@ function Base.convert(
     mg::MolecularGraph.MolGraph;
     system = System{T}()
 ) where T
-    mol = Molecule(system; properties = Properties(mg.gprops))
+    mol = Molecule(system; properties = Properties(:metadata => mg.gprops.metadata))
     foreach(t -> _molgraph_to_atom(mol, t), sort!(OrderedDict(mg.vprops)))
     foreach(t -> _molgraph_to_bond(mol, t), sort!(OrderedDict(mg.eprops)))
     mol

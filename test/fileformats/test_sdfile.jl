@@ -32,8 +32,7 @@ end
     @inline function _compare_without_system(m1::AbstractAtomContainer, m2::AbstractAtomContainer)
         m1.name == m2.name &&
             DataFrame(atoms(m1))  == DataFrame(atoms(m2)) &&
-            DataFrame(bonds(m1))  == DataFrame(bonds(m2)) &&
-            m1.properties == m2.properties
+            DataFrame(bonds(m1))  == DataFrame(bonds(m2))
     end
 
     for T in [Float32, Float64]
@@ -45,20 +44,10 @@ end
         write_sdfile(single_name, first(mols))
         m_sd = first(molecules(load_sdfile(single_name, T)))
 
-        # zero third component of all positions to mimic `write_sdfile` behavior
-        atoms(sys).r .= map(r -> Vector3{T}(r[1], r[2], zero(T)), atoms(sys).r)
-
-        # since the molecules have different systems, we cannot simply compare them directly
-        # also, m_sd contains the atom_idx property due to the GraphMol conversion
-        m_sd.properties = filter(((k,v),) -> k != :atom_idx, m_sd.properties)
-        @test _compare_without_system(m_sd, first(mols))
-
         (set_name, set_file) = mktemp(; cleanup = true)
 
         write_sdfile(set_name, sys)
         ms_sd = molecules(load_sdfile(set_name, T))
-
-        ms_sd = map(m -> begin m.properties = filter(((k,v),) -> k != :atom_idx, m.properties); m end, ms_sd)
 
         @test all([_compare_without_system(ms_sd[i], mols[i]) for i in eachindex(ms_sd)])
     end

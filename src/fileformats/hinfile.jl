@@ -384,6 +384,7 @@ Save an atom container as HyperChem HIN file.
 function write_hinfile(fname::AbstractString, ac::AbstractAtomContainer)
     mg = convert(MolecularGraph.SDFMolGraph, ac)
     hin_molecules = connected_components(mg)
+    mgatom2idx = _molgraph_atom_to_idx(mg)
 
     open(fname, "w") do io
         write(io, "; HyperChem file created by BiochemicalAlgorithms\n")
@@ -400,7 +401,7 @@ function write_hinfile(fname::AbstractString, ac::AbstractAtomContainer)
         for (mi, m) in enumerate(hin_molecules)
             # getting the name of the molecule is not entirely simple...
             # we use the first atom of the connected component to map back to the parent molecule, as many components can arise from the same parent molecule
-            mol_name = parent_molecule(atom_by_idx(ac, mg.gprops[:atom_idx][first(m)])).name
+            mol_name = parent_molecule(atom_by_idx(ac, mgatom2idx[first(m)])).name
 
             # names cannot contain double quotes
             mol_name = replace(strip(mol_name), "\"" => "")
@@ -416,7 +417,7 @@ function write_hinfile(fname::AbstractString, ac::AbstractAtomContainer)
             last_fragment = nothing
             num_fragments = 1
             for a in m
-                orig_atom = atom_by_idx(ac, mg.gprops[:atom_idx][a])
+                orig_atom = atom_by_idx(ac, mgatom2idx[a])
 
                 current_fragment = parent_fragment(orig_atom)
 

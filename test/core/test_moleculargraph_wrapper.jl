@@ -12,7 +12,7 @@
 
         g = convert(SDFMolGraph, sys)
         @test g isa SDFMolGraph
-        aidx_dict = g.gprops[:atom_idx]
+        aidx_dict = BiochemicalAlgorithms._molgraph_atom_to_idx(g)
 
         @test length(g.vprops) == natoms(sys)
         for (i, at) in enumerate(atoms(sys))
@@ -36,7 +36,7 @@
 
         g = convert(SDFMolGraph, sys)
         @test g isa SDFMolGraph
-        aidx_dict = g.gprops[:atom_idx]
+        aidx_dict = BiochemicalAlgorithms._molgraph_atom_to_idx(g)
 
         @test length(g.vprops) == natoms(sys)
         for (i, at) in enumerate(atoms(sys))
