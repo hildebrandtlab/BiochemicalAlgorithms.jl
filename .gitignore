@@ -5,5 +5,6 @@
 /_data
 /.vscode/
 /docs/build/
-Manifest.toml
+Manifest*.toml
 .DS_Store
+
