@@ -4,7 +4,7 @@ on:
     paths:
       - 'Project.toml'
   schedule:
-    - cron: 0 0 * * *
+    - cron: 0 0 * * 1
   workflow_dispatch:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,19 +22,12 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - 'lts'
+          - '1.10'
           - '1.11'
-          - 'pre'
-          - 'nightly'
         os:
           - ubuntu-latest
         arch:
           - x64
-        include:
-          - version: 'pre'
-            experimental: true
-          - version: 'nightly'
-            experimental: true
     steps:
       - uses: actions/checkout@v5
       - uses: julia-actions/setup-julia@v2
@@ -42,10 +35,13 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/cache@v2
-      - uses: julia-actions/julia-downgrade-compat@v1
+      - uses: julia-actions/julia-downgrade-compat@v2
         with:
+          julia_version: ${{ matrix.version }}
+          mode: deps
           skip: Dates,LinearAlgebra,Printf,Statistics,Test
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
         with:
+          allow_reresolve: false
           coverage: false
