@@ -1,5 +1,8 @@
 name: CompatDowngrade
 on:
+  push:
+    paths:
+      - 'Project.toml'
   schedule:
     - cron: 0 0 * * *
   workflow_dispatch:
@@ -33,7 +36,7 @@ jobs:
           - version: 'nightly'
             experimental: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
