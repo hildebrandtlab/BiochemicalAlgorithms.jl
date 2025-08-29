@@ -52,8 +52,16 @@ build_bonds!(s, fdb)
 ```
 
     ┌ Warning: reconstruct_fragments!(): could not find reference fragment for  CA:462
-    └ @ BiochemicalAlgorithms ~/git/ball.jl/src/preprocessing/reconstruct_fragments.jl:177
+    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
     [ Info: reconstruct_fragments!(): added 2364 atoms.
     ┌ Warning: build_bonds!(): could not find reference fragment for  CA.
-    └ @ BiochemicalAlgorithms ~/git/ball.jl/src/preprocessing/build_bonds.jl:14
+    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
     [ Info: build_bonds!(): built 4498 bonds
+
+## How to go on?
+
+For an in depth view on the components forming the core of BiochemicalAlgorithms, we highly recommend taking a look at the next section [core_components.md](core_components.md) which forms a basis for the remaining tutorials dealing with different topics:
+- [iterate](iterate.md): How to iterate and filter over specific entities (atoms, bonds, …)
+- [force_field_ops](force_field_ops.md): How to use a force field and minimize a structure
+- [handling_molecules](handle_molecules.md): Mixed code snippets for common use cases
+- [read_and_write](read_and_write.md): Read and write different file formats
