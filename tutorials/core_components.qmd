@@ -40,7 +40,7 @@ for a in sys_atms
 end
 println()
 
-n1= atom_by_name(s, "N")
+n1 = atom_by_name(s, "N")
 
 println(n1.idx)
 
@@ -148,7 +148,7 @@ delete!(bond)
 
 println("Bonds in the system after deletion: ", nbonds(s))
 
-bond = Bond(s, 5,13, BondOrder.Single)
+bond = Bond(s, 5, 13, BondOrder.Single)
 
 println("Bonds in the system after deletion: ", nbonds(s))
 ```
@@ -166,7 +166,7 @@ Another helpful functionalities when it comes to bonds are the following:
 a1, a2 = get_partners(bond)
 
 # or if we have only given one atom
-atom = atom_by_idx(s,12)
+atom = atom_by_idx(s, 12)
 bond = bonds(atom)[1]
 partner_atom = get_partner(bond, atom)
 println(partner_atom.idx)
@@ -266,11 +266,11 @@ println("is_c_terminal(): ", is_c_terminal(res2))
 s = System()
 chain = Chain(Molecule(s))
 n1 = Nucleotide(chain, 1;
-            name = "my nucleotide",
-            properties = Properties(:first => 'a', :second => "b"),
-            flags = Flags([:third])
-        )
-        n2 = Nucleotide(chain, 2)
+    name="my nucleotide",
+    properties=Properties(:first => 'a', :second => "b"),
+    flags=Flags([:third])
+)
+n2 = Nucleotide(chain, 2)
 ```
 
 
@@ -315,12 +315,12 @@ Similar to molecules we can access proteins:
 
 ```{julia}
 println("Number of proteins in the system: ", proteins(s))
-pti =protein_by_idx(s,1)
+pti = protein_by_idx(s, 1)
 ```
 
 A very useful functionality is the access the parent molecule or protein a specific atom is belonging to in cases where we have several molecules to deal with.
 ```{julia}
-atom = atom_by_idx(s,126)
+atom = atom_by_idx(s, 126)
 println("This atom belongs to protein: ", parent_protein(atom))
 
 ```
@@ -343,6 +343,51 @@ println("Chain 2 contains ", nfragments(chain), " fragments.")
 
 println("The parent molecule of chain 2 is: ", parent_molecule(chain))
 ```
+
+
+## SecondaryStructures
+
+Now, that we learned about chains, we can take a look at the secondary structures. Let's create a molecule:
+
+```{julia}
+s = System()
+chain = Chain(Molecule(s))
+ss1 = SecondaryStructure(
+    chain,
+    1,
+    SecondaryStructureElement.Helix;
+    name="H1"
+)
+
+ss2 = SecondaryStructure(
+    chain,
+    2,
+    SecondaryStructureElement.Coil;
+    name="C1"
+)
+
+ss3 = SecondaryStructure(
+    chain,
+    3,
+    SecondaryStructureElement.Strand;
+    name="S1"
+)
+ss4 = SecondaryStructure(
+    chain,
+    4,
+    SecondaryStructureElement.Turn;
+    name="T1"
+)
+
+ss3.type = SecondaryStructureElement.Helix
+println("Number of secondary structures: ", nsecondary_structures(s))
+
+# get all helices of the chain
+helices = (filter(sst -> sst.type == ss1.type, secondary_structures(chain)))
+
+```
+
+Note: As too this point, the secondary structure information from pdb files is not supported. We are planning to provide the functionlity in the near future.
 
 ## Congratulation
 You are now familiar with the most important core entities of BiochemicalAlgorithms.jl
