@@ -3,7 +3,6 @@
         symbol = Symbol(a.element),
         charge = a.formal_charge,
         multiplicity = 1,    # TODO: handle multiplicities
-        mass = nothing,      # TODO: handle masses
         coords = collect(a.r)
     )
 end
@@ -58,8 +57,7 @@ end
         r = Vector3{T}(a.coords),
         formal_charge = a.charge,
         properties = Properties(
-            :multiplicity => a.multiplicity,
-            :mass         => a.mass
+            :multiplicity => a.multiplicity
         )
     )
 end
@@ -70,7 +68,6 @@ end
         formal_charge = a.charge,
         properties = Properties(
             :multiplicity => a.multiplicity,
-            :mass         => a.mass,
             :stereo       => a.stereo,
             :is_aromatic  => a.isaromatic
         )
