@@ -45,3 +45,4 @@ jobs:
         with:
           allow_reresolve: false
           coverage: false
+          force_latest_compatible_version: false
