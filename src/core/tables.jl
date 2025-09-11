@@ -25,24 +25,25 @@ abstract type AbstractColumnTable <: Tables.AbstractColumns end
 end
 
 @inline function Base.show(io::IO, ::MIME"text/html", at::AbstractColumnTable; kwargs...)
-    _show(io, at; backend = Val(:html), vcrop_mode = :middle, kwargs...)
+    _show(io, at; backend = :html, vertical_crop_mode = :middle, kwargs...)
 end
 
 @inline function Base.show(io::IO, ::MIME"text/markdown", at::AbstractColumnTable; kwargs...)
-    _show(io, at; backend = Val(:markdown), kwargs...)
+    _show(io, at; backend = :markdown, title = "", kwargs...)
 end
 
 @inline function Base.show(io::IO, ::MIME"text/plain", at::AbstractColumnTable; kwargs...)
-    _show(io, at; reserved_display_lines = 2, vcrop_mode = :middle, kwargs...)
+    _show(io, at; reserved_display_lines = 2, vertical_crop_mode = :middle, kwargs...)
 end
 
 @inline function _show(io::IO, at::AbstractColumnTable; kwargs...)
     PrettyTables.pretty_table(io, at;
         alignment = :l,
-        header = collect(Tables.columnnames(at)),
-        row_number_column_title = "#",
-        show_row_number = true,
+        column_labels = collect(Tables.columnnames(at)),
+        row_number_column_label = "#",
+        show_row_number_column = true,
         title  = "$(typeof(at)) with $(length(at)) rows:",
+        title_alignment = :l,
         kwargs...
     )
 end
