@@ -24,12 +24,12 @@ In BiochemicalAlgorithms.jl, all molecules are stored in so-called `Systems`. Wh
 s = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
 ```
 
-    System{Float32}: 2ptc.pdb
+    System{Float32}: COMPLEX (PROTEINASE/INHIBITOR)
       2241 atoms
-         0 bonds
+         9 bonds
          1 molecules
-         2 chains
-         0 secondary structures
+         4 chains
+        12 secondary structures
        439 fragments
 
 You can then run methods on this system, e.g.
@@ -38,7 +38,7 @@ You can then run methods on this system, e.g.
 println("The system $(s.name) contains $(natoms(s)) atoms.")
 ```
 
-    The system 2ptc.pdb contains 2241 atoms.
+    The system COMPLEX (PROTEINASE/INHIBITOR) contains 2241 atoms.
 
 ### Common preparation steps
 
@@ -53,10 +53,10 @@ build_bonds!(s, fdb)
 
     ┌ Warning: reconstruct_fragments!(): could not find reference fragment for  CA:462
     └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    [ Info: reconstruct_fragments!(): added 2364 atoms.
+    [ Info: reconstruct_fragments!(): added 2346 atoms.
     ┌ Warning: build_bonds!(): could not find reference fragment for  CA.
     └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    [ Info: build_bonds!(): built 4498 bonds
+    [ Info: build_bonds!(): built 4471 bonds
 
 ## How to go on?
 

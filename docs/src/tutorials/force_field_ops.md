@@ -19,12 +19,12 @@ sys
     [ Info: reconstruct_fragments!(): added 0 atoms.
     [ Info: build_bonds!(): built 22 bonds
 
-    System{Float32}: AlaAla.pdb
+    System{Float32}: AA
       23 atoms
       22 bonds
        1 molecules
        1 chains
-       0 secondary structures
+       1 secondary structures
        2 fragments
 
 ## Setting up a force field

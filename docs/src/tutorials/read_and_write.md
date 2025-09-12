@@ -13,12 +13,12 @@ Read a PDB file from the BiochemicalAlgorithms.jl repository:
 sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 ```
 
-    System{Float32}: AlaAla.pdb
+    System{Float32}: AA
       23 atoms
        0 bonds
        1 molecules
        1 chains
-       0 secondary structures
+       1 secondary structures
        2 fragments
 
 Write the same system back into a new PDB file:
@@ -63,6 +63,4 @@ Write the system into a new SD file:
 write_sdfile("rings_test_out.sdf", sys)
 ```
 
-    ┌ Warning: write_sdfile: writer only supports 2D data; projecting atoms onto xy-plane...
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/fileformats/sdfile.jl:33
     [ Info: 9 records exported.

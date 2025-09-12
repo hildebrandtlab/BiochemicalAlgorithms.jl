@@ -139,7 +139,7 @@ end
 
 Bonds can be accessed via their respective index, deleted, and be put in the system
 ```{julia}
-bond = bond_by_idx(s, 28)
+bond = bond_by_idx(s, 30)
 println("Bond index: ", bond.idx, ", between atom ", bond.a1, " and ", bond.a2, ", with order: ", bond.order)
 
 println("Bonds in the system: ", nbonds(s))
@@ -320,7 +320,7 @@ pti = protein_by_idx(s, 1)
 
 A very useful functionality is the access the parent molecule or protein a specific atom is belonging to in cases where we have several molecules to deal with.
 ```{julia}
-atom = atom_by_idx(s, 126)
+atom = atom_by_idx(s, 12)
 println("This atom belongs to protein: ", parent_protein(atom))
 
 ```
@@ -387,7 +387,17 @@ helices = (filter(sst -> sst.type == ss1.type, secondary_structures(chain)))
 
 ```
 
-Note: As too this point, the secondary structure information from pdb files is not supported. We are planning to provide the functionlity in the near future.
+In addition, we can compute the secondary structures for an input file:
+```{julia}
+s = load_pdb(ball_data_path("../test/data/4hhb.pdb"))
+println(s)
+
+normalize_names!(s, fdb)
+reconstruct_fragments!(s, fdb)
+build_bonds!(s, fdb)
+predict_hbonds!(s, :KABSCH_SANDER)
+predict_secondary_structure!(s)
+```
 
 ## Congratulation
 You are now familiar with the most important core entities of BiochemicalAlgorithms.jl
