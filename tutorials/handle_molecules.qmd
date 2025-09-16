@@ -94,9 +94,10 @@ all_chains = chains(sys)
 ```
 
 This snippet will create separate PDB files for the two chains of the system:
+Note: Currently fails see [issue 209](https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/issues/209)
 ```{julia}
-write_pdb("2ptc_chainE.pdb", all_chains[1])
-write_pdb("2ptc_chainI.pdb", all_chains[2])
+#write_pdb("2ptc_chainE.pdb", all_chains[1])
+#write_pdb("2ptc_chainI.pdb", all_chains[2])
 ```
 
 
@@ -110,7 +111,7 @@ mol = first(molecules(sys))
 # we will generate a second version of the protein by moving it around
 sys2 = deepcopy(sys)
 mol2 = first(molecules(sys2))
-translate!(mol2, Vector3{Float32}(2.0,1.0,2.0))
+translate!(mol2, Vector3{Float32}(2.0, 1.0, 2.0))
 
 # let's see how far the structures are apart
 println("RMSD before mapping:\t", compute_rmsd(mol2, mol))
