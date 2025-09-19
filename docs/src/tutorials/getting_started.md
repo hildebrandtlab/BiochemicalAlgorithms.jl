@@ -62,6 +62,6 @@ build_bonds!(s, fdb)
 
 For an in depth view on the components forming the core of BiochemicalAlgorithms, we highly recommend taking a look at the next section [core_components.md](core_components.md) which forms a basis for the remaining tutorials dealing with different topics:
 - [iterate](iterate.md): How to iterate and filter over specific entities (atoms, bonds, …)
-- [force_field_ops](force_field_ops.md): How to use a force field and minimize a structure
-- [handling_molecules](handle_molecules.md): Mixed code snippets for common use cases
-- [read_and_write](read_and_write.md): Read and write different file formats
+- [force field ops](force_field_ops.md): How to use a force field and minimize a structure
+- [handling molecules](handle_molecules.md): Mixed code snippets for common use cases
+- [read and write](read_and_write.md): Read and write different file formats

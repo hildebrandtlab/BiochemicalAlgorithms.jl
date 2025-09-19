@@ -122,20 +122,12 @@ for i in residues(s)
 end
 ```
 
-Let's take a deeper look at the bonds:
+Let's take a deeper look at the bonds. Bond are only formed inside the same system and not across systems.
 
 ```{julia}
-for bond in bonds(s)
-    println(bond)
-end
+bonds(s)
 ```
 
-Bond are only formed inside the same system and not across systems. The atoms forming the bonds can be accessed through the following:
-```{julia}
-for bond in bonds(s)
-    println("Bond between atom ", bond.a1, " and ", bond.a2, " and has an order: ", bond.order)
-end
-```
 
 Bonds can be accessed via their respective index, deleted, and be put in the system
 ```{julia}
@@ -155,7 +147,7 @@ println("Bonds in the system after deletion: ", nbonds(s))
 
 Be careful: The bond index is now different because it is a new Bond object:
 ```{julia}
-println("Bond index: ", bond.idx, ", between atom ", bond.a1, " and ", bond.a2, ", with order: ", bond.order)
+bond.idx
 
 ```
 
@@ -279,7 +271,7 @@ Molecules are used to distinguish between proteins and non-proteins (see [`Molec
 
 
 ```{julia}
-s = load_pdb(ball_data_path("../test/data/5PTI.pdb"))
+s = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
 m = molecules(s)
 m
 ```
@@ -320,7 +312,7 @@ pti = protein_by_idx(s, 1)
 
 A very useful functionality is the access the parent molecule or protein a specific atom is belonging to in cases where we have several molecules to deal with.
 ```{julia}
-atom = atom_by_idx(s, 12)
+atom = atom_by_idx(s, 5)
 println("This atom belongs to protein: ", parent_protein(atom))
 
 ```
@@ -389,7 +381,7 @@ helices = (filter(sst -> sst.type == ss1.type, secondary_structures(chain)))
 
 In addition, we can compute the secondary structures for an input file:
 ```{julia}
-s = load_pdb(ball_data_path("../test/data/4hhb.pdb"))
+s = load_pdb(ball_data_path("../test/data/bpti.pdb"))
 println(s)
 
 normalize_names!(s, fdb)

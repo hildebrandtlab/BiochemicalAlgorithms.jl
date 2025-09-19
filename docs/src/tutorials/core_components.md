@@ -211,67 +211,36 @@ end
     Set([:N_TERMINAL])
     Set([:C_TERMINAL])
 
-Let’s take a deeper look at the bonds:
+Let’s take a deeper look at the bonds. Bond are only formed inside the same system and not across systems.
 
 ``` julia
-for bond in bonds(s)
-    println(bond)
-end
+bonds(s)
 ```
 
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 29, a1 = 4, a2 = 12, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 30, a1 = 4, a2 = 5, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 31, a1 = 4, a2 = 8, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 32, a1 = 4, a2 = 10, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 33, a1 = 5, a2 = 15, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 34, a1 = 5, a2 = 6, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 35, a1 = 5, a2 = 14, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 36, a1 = 6, a2 = 7, order = BiochemicalAlgorithms.BondOrder.Double)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 37, a1 = 9, a2 = 14, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 38, a1 = 11, a2 = 14, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 39, a1 = 13, a2 = 14, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 40, a1 = 17, a2 = 20, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 41, a1 = 17, a2 = 18, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 42, a1 = 18, a2 = 25, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 43, a1 = 18, a2 = 19, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 44, a1 = 18, a2 = 24, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 45, a1 = 19, a2 = 26, order = BiochemicalAlgorithms.BondOrder.Double)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 46, a1 = 19, a2 = 27, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 47, a1 = 21, a2 = 24, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 48, a1 = 22, a2 = 24, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 49, a1 = 23, a2 = 24, order = BiochemicalAlgorithms.BondOrder.Single)
-    BiochemicalAlgorithms.Bond{Float32}: (idx = 50, a1 = 6, a2 = 17, order = BiochemicalAlgorithms.BondOrder.Single)
-
-Bond are only formed inside the same system and not across systems. The atoms forming the bonds can be accessed through the following:
-
-``` julia
-for bond in bonds(s)
-    println("Bond between atom ", bond.a1, " and ", bond.a2, " and has an order: ", bond.order)
-end
-```
-
-    Bond between atom 4 and 12 and has an order: Single
-    Bond between atom 4 and 5 and has an order: Single
-    Bond between atom 4 and 8 and has an order: Single
-    Bond between atom 4 and 10 and has an order: Single
-    Bond between atom 5 and 15 and has an order: Single
-    Bond between atom 5 and 6 and has an order: Single
-    Bond between atom 5 and 14 and has an order: Single
-    Bond between atom 6 and 7 and has an order: Double
-    Bond between atom 9 and 14 and has an order: Single
-    Bond between atom 11 and 14 and has an order: Single
-    Bond between atom 13 and 14 and has an order: Single
-    Bond between atom 17 and 20 and has an order: Single
-    Bond between atom 17 and 18 and has an order: Single
-    Bond between atom 18 and 25 and has an order: Single
-    Bond between atom 18 and 19 and has an order: Single
-    Bond between atom 18 and 24 and has an order: Single
-    Bond between atom 19 and 26 and has an order: Double
-    Bond between atom 19 and 27 and has an order: Single
-    Bond between atom 21 and 24 and has an order: Single
-    Bond between atom 22 and 24 and has an order: Single
-    Bond between atom 23 and 24 and has an order: Single
-    Bond between atom 6 and 17 and has an order: Single
+| **\#** | **idx** | **a1** | **a2** | **order** |
+|-------:|:--------|:-------|:-------|:----------|
+|      1 | 29      | 4      | 12     | Single    |
+|      2 | 30      | 4      | 5      | Single    |
+|      3 | 31      | 4      | 8      | Single    |
+|      4 | 32      | 4      | 10     | Single    |
+|      5 | 33      | 5      | 15     | Single    |
+|      6 | 34      | 5      | 6      | Single    |
+|      7 | 35      | 5      | 14     | Single    |
+|      8 | 36      | 6      | 7      | Double    |
+|      9 | 37      | 9      | 14     | Single    |
+|     10 | 38      | 11     | 14     | Single    |
+|     11 | 39      | 13     | 14     | Single    |
+|     12 | 40      | 17     | 20     | Single    |
+|     13 | 41      | 17     | 18     | Single    |
+|     14 | 42      | 18     | 25     | Single    |
+|     15 | 43      | 18     | 19     | Single    |
+|     16 | 44      | 18     | 24     | Single    |
+|     17 | 45      | 19     | 26     | Double    |
+|     18 | 46      | 19     | 27     | Single    |
+|     19 | 47      | 21     | 24     | Single    |
+|     20 | 48      | 22     | 24     | Single    |
+|     21 | 49      | 23     | 24     | Single    |
+|     22 | 50      | 6      | 17     | Single    |
 
 Bonds can be accessed via their respective index, deleted, and be put in the system
 
@@ -298,10 +267,10 @@ println("Bonds in the system after deletion: ", nbonds(s))
 Be careful: The bond index is now different because it is a new Bond object:
 
 ``` julia
-println("Bond index: ", bond.idx, ", between atom ", bond.a1, " and ", bond.a2, ", with order: ", bond.order)
+bond.idx
 ```
 
-    Bond index: 51, between atom 5 and 13, with order: Single
+    51
 
 Another helpful functionalities when it comes to bonds are the following:
 
@@ -463,14 +432,14 @@ n2 = Nucleotide(chain, 2)
 Molecules are used to distinguish between proteins and non-proteins (see [`Molecules`](@ref)
 
 ``` julia
-s = load_pdb(ball_data_path("../test/data/5PTI.pdb"))
+s = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
 m = molecules(s)
 m
 ```
 
-| **\#** | **idx** | **name**            |
-|-------:|:--------|:--------------------|
-|      1 | 1       | HYDROLASE INHIBITOR |
+| **\#** | **idx** | **name**                       |
+|-------:|:--------|:-------------------------------|
+|      1 | 1       | COMPLEX (PROTEINASE/INHIBITOR) |
 
 Like in the other cases before, we get a table of molecules. Which we can access similarly to atoms and bonds:
 
@@ -503,268 +472,12 @@ println("is a protein: ", isprotein(m[1]))
 ```
 
     is a protein: false
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for PO4:70
+    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for  CA:462
     └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for UNX:324
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:80
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:101
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:102
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:105
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:110
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:111
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:112
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:113
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:116
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:117
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:119
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:121
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:122
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:125
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:126
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:127
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:129
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:133
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:134
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:138
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:140
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:143
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:144
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:145
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:146
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:156
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:157
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:158
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:159
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:160
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:200
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:201
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:202
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:203
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:204
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:205
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:209
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:210
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:211
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:212
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:214
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:216
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:217
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:218
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:219
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:220
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:223
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:225
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:302
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:304
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:310
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:311
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:312
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:313
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:314
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:315
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:316
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:317
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:318
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:319
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:320
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:321
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for DOD:322
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    [ Info: reconstruct_fragments!(): added 103 atoms.
-    ┌ Warning: build_bonds!(): could not find reference fragment for PO4.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for UNX.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for DOD.
+    [ Info: reconstruct_fragments!(): added 2346 atoms.
+    ┌ Warning: build_bonds!(): could not find reference fragment for  CA.
     └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    [ Info: build_bonds!(): built 903 bonds
+    [ Info: build_bonds!(): built 4471 bonds
     is a protein: false
     is a protein: true
 
@@ -777,16 +490,16 @@ pti = protein_by_idx(s, 1)
 
     Number of proteins in the system: BiochemicalAlgorithms.MoleculeTable{Float32} with 1 rows
 
-    BiochemicalAlgorithms.Molecule{Float32}: (idx = 1, name = "HYDROLASE INHIBITOR")
+    BiochemicalAlgorithms.Molecule{Float32}: (idx = 1, name = "COMPLEX (PROTEINASE/INHIBITOR)")
 
 A very useful functionality is the access the parent molecule or protein a specific atom is belonging to in cases where we have several molecules to deal with.
 
 ``` julia
-atom = atom_by_idx(s, 12)
+atom = atom_by_idx(s, 5)
 println("This atom belongs to protein: ", parent_protein(atom))
 ```
 
-    This atom belongs to protein: BiochemicalAlgorithms.Molecule{Float32}: (idx = 1, name = "HYDROLASE INHIBITOR")
+    This atom belongs to protein: BiochemicalAlgorithms.Molecule{Float32}: (idx = 1, name = "COMPLEX (PROTEINASE/INHIBITOR)")
 
 ## Chains
 
@@ -875,7 +588,7 @@ helices = (filter(sst -> sst.type == ss1.type, secondary_structures(chain)))
 In addition, we can compute the secondary structures for an input file:
 
 ``` julia
-s = load_pdb(ball_data_path("../test/data/4hhb.pdb"))
+s = load_pdb(ball_data_path("../test/data/bpti.pdb"))
 println(s)
 
 normalize_names!(s, fdb)
@@ -885,44 +598,12 @@ predict_hbonds!(s, :KABSCH_SANDER)
 predict_secondary_structure!(s)
 ```
 
-    BiochemicalAlgorithms.System{Float32} with 4779 atoms and 184 bonds (OXYGEN TRANSPORT)
-    ┌ Warning: normalize_names could not find a suitable mapping for BiochemicalAlgorithms.Chain{Float32}: (idx = 4964, name = "A")!
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/normalize_names.jl:174
-    ┌ Warning: normalize_names could not find a suitable mapping for BiochemicalAlgorithms.Chain{Float32}: (idx = 5009, name = "B")!
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/normalize_names.jl:174
-    ┌ Warning: normalize_names could not find a suitable mapping for BiochemicalAlgorithms.Chain{Float32}: (idx = 5056, name = "C")!
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/normalize_names.jl:174
-    ┌ Warning: normalize_names could not find a suitable mapping for BiochemicalAlgorithms.Chain{Float32}: (idx = 5101, name = "D")!
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/normalize_names.jl:174
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for HEM:142
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for PO4:147
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for HEM:148
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for HEM:142
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for PO4:147
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for HEM:148
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
-    [ Info: reconstruct_fragments!(): added 4862 atoms.
-    ┌ Warning: build_bonds!(): could not find reference fragment for HEM.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for PO4.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for HEM.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for HEM.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for PO4.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    ┌ Warning: build_bonds!(): could not find reference fragment for HEM.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
-    [ Info: build_bonds!(): built 9361 bonds
-    [ Info: Added 461 hydrogen bonds.
+    BiochemicalAlgorithms.System{Float32} with 454 atoms and 3 bonds (PTI (from 2PTC.BRK))
+    [ Info: reconstruct_fragments!(): added 438 atoms.
+    [ Info: build_bonds!(): built 903 bonds
+    [ Info: Added 31 hydrogen bonds.
 
-    "---HHHHHHHHHHHHHHTTTHHHHHHHHHHHHHHH-GGGGGGGTT----TT-HHHHHHHHHHHHHHHHHHHTGGGHHHHTHHHHHHHHHTT---THHHHHHHHHHHHHHHHH-TTT--HHHHHHHHHHHHHHHHHHHTT------HHHHHHHHHHHTT--HHHHHHHHHHHHHHH-GGGGGG-GGG-----HHHHHH-HHHHHHHHHHHHHHHHHHGGGGGHHHHHHHHHHHHHHTT---THHHHHHHHHHHHHHHHHHGGG--HHHHHHH" ⋯ 260 bytes ⋯ "HHHHHHHHHHHHHHHGGG--HHHHHHHHHHHHHHHHHHHTT-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+    "---GGG-----------EEEEEEETTTTEEEEEEE---------B--HHHHHHHHTT-"
 
 ## Congratulation
 
