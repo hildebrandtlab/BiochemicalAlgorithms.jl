@@ -1,0 +1,395 @@
+---
+title: Getting started
+engine: julia
+---
+
+BiochemicalAlgorithms.jl`s design is inspired by its predecessor [```BALL```](https://github.com/ball-project/ball). BALL and BiochemicalAlgorithms.jl both have a set of KERNEL classes or core classes to represent molecular entities such as Molecules, Proteins, Atoms, Bonds etc. The following class diagramm shows the different classes and their relationship to each others.
+
+![UML class diagram *Note*: Only the most important functionalities are shown here.](uml.png)
+
+In the center of all classes resides the [`System`](@ref). So let's see it in action with a simple peptide:
+```{julia}
+using BiochemicalAlgorithms
+
+s = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+s
+```
+
+This will give us an overview of the objects associated with our system. It contains 23 atoms, 0 bonds, 1 molecule, 1 chain, 0 secondary structures and 2 fragments. We look at each group separately in the following sections.
+
+If we do not explicitely create a system, the data will be stored in the default system:
+```{julia}
+load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+```
+
+
+## Atom
+
+We can access the atoms like this:
+```{julia}
+sys_atms = atoms(s)
+
+natoms(sys_atms)
+```
+
+Let's play around with it:
+```{julia}
+println("Atom elements:")
+for a in sys_atms
+    print(a.element)
+end
+println()
+
+n1 = atom_by_name(s, "N")
+
+println(n1.idx)
+
+```
+
+We can access an atom by its name, which will return the first atom matching the given name. If there are more atoms with the same name and we are not interested in the first one, we can access the atom by the atom index.
+The atom index is unique inside a system but not necessarily starting by one.
+
+```{julia}
+println("Atom ids:")
+for a in sys_atms
+    println(a.idx, " ", a.element)
+end
+
+n2 = atom_by_idx(s, 17)
+
+```
+
+[`Atom`](@ref) features the atom number as well. The atom number does NOT have to be unique inside the system!
+
+```{julia}
+for a in sys_atms
+    println(a.idx, " ", a.number)
+end
+```
+
+Next, we will have a look at `Bond`.
+
+## Bond
+
+BiochemicalAlgorithms.jl supports different BondTypes:
+```{julia}
+BiochemicalAlgorithms.BondOrderType
+```
+
+Typically, bonds are not included in the PDB-FileFormat and have to be computed. This can be achieved with the FragmentDataBase, which contains known fragments (all amino acids such as alanine, all nucleotides, same ions ...). If you are interested in the fragments contained in the default FragmentDB, take a look at data/fragments of the repository. There you find all the fragments, each one stored in a separate json format.
+So let's take a look at the FragmentDB and bonds:
+```{julia}
+s = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+nbonds(s)
+```
+
+So far, the system has no bonds. We can also visualize the structure using BiochemicalVisualization.jl.
+
+If BiochemicalVisualization is not yet installed, you can add it via:
+
+```{julia}
+#| eval: false
+
+using Pkg
+Pkg.add("BiochemicalVisualization")
+```
+
+```{julia}
+#| eval: false
+
+using BiochemicalVisualization
+
+ball_and_stick(s)
+```
+
+Now, let's create some bonds:
+
+```{julia}
+fdb = FragmentDB() # default FragmentDB
+normalize_names!(s, fdb) # in case our input PDB file uses a strange naming standard
+reconstruct_fragments!(s, fdb) # in case our input file misses some atoms
+build_bonds!(s, fdb) # create the bonds
+# ball_and_stick(s) uncomment for visualization
+```
+
+And finally, we do have our bonds. This example demonstrate the importance of visualizing for the understanding of structural data.
+Note: The exclamation mark behind the function name indicates that the system will be changed through the functions. The system now contains bonds and the residues carries flags:
+
+```{julia}
+println(s)
+for i in residues(s)
+    println(i.flags)
+end
+```
+
+Let's take a deeper look at the bonds. Bond are only formed inside the same system and not across systems.
+
+```{julia}
+bonds(s)
+```
+
+
+Bonds can be accessed via their respective index, deleted, and be put in the system
+```{julia}
+bond = bond_by_idx(s, 30)
+println("Bond index: ", bond.idx, ", between atom ", bond.a1, " and ", bond.a2, ", with order: ", bond.order)
+
+println("Bonds in the system: ", nbonds(s))
+
+delete!(bond)
+
+println("Bonds in the system after deletion: ", nbonds(s))
+
+bond = Bond(s, 5, 13, BondOrder.Single)
+
+println("Bonds in the system after deletion: ", nbonds(s))
+```
+
+Be careful: The bond index is now different because it is a new Bond object:
+```{julia}
+bond.idx
+
+```
+
+Another helpful functionalities when it comes to bonds are the following:
+
+```{julia}
+# get the atoms sharing a bond
+a1, a2 = get_partners(bond)
+
+# or if we have only given one atom
+atom = atom_by_idx(s, 12)
+bond = bonds(atom)[1]
+partner_atom = get_partner(bond, atom)
+println(partner_atom.idx)
+println("The bond length is ", bond_length(bond))
+```
+
+Sometimes it is necessary to discriminate between hydrogen and nonhydrogen_bonds. Since this a common use case, there are built in functionalities:
+
+
+## Fragment
+
+Fragments represent molecule fragments. In context of proteins or nucleic acids, the fragment can be used to represent residues or nucleotides. See the documentation for the definition of the [`FragmentVariantType`](@ref)
+
+```{julia}
+nfragments(s)
+
+for frag in fragments(s)
+    println(frag.name, " ", frag.idx)
+end
+n2 = atom_by_idx(s, 5)
+
+println("The N atom belongs to residue: ", n2.fragment_idx)
+
+```
+
+We can get the fragment as well directly:
+```{julia}
+fragment = parent_fragment(n2)
+println(fragment)
+res2 = fragment_by_idx(s, 3)
+```
+
+Just like atom indices, fragment indices not necessarily follow a certain order but are unique inside the same system object.
+
+
+```{julia}
+res1 = fragments(s)[1]
+res1.variant # 1 = unknown, 2 = residue, 3 = nucleotide
+```
+
+Alternatively, it is also possible to check if this is a nucleotide:
+
+```{julia}
+println(is_nucleotide(res1))
+
+println("Number of fragments before push: ", nfragments(s))
+push!(chain_by_idx(s, 2), res1)
+println("Number of fragments after push: ", nfragments(s))
+delete!(res1)
+println("Number of fragments after deletion: ", nfragments(s))
+
+for frag in fragments(s)
+    println(frag.name, " ", frag.idx)
+end
+s
+```
+
+Or a residue:
+```{julia}
+s = load_pdb(ball_data_path("../test/data/AlaAla.pdb")) # restore original data
+res1 = fragments(s)[1]
+println("is residue ", isresidue(res1))
+```
+
+There are more functionalities related to fragments. Have a look at the documentation for [`Fragment`](@ref) for more details.
+
+## Residue
+
+As described in the Fragments section, [`Residue`](@ref) is a Fragment with `FragmentVariant.Residue` and typically describes an amino acid:
+
+```{julia}
+s = load_pdb(ball_data_path("../test/data/AlaAla.pdb")) # restore original data
+res = fragments(s)[1]
+println("is_amino_acid(): ", is_amino_acid(res))
+println("is_c_terminal(): ", is_c_terminal(res))
+println("is_n_terminal(): ", is_n_terminal(res))
+```
+
+Some functionality is only available after preprocessing through the FragmentDB:
+
+```{julia}
+fdb = FragmentDB()
+normalize_names!(s, fdb)
+reconstruct_fragments!(s, fdb)
+build_bonds!(s, fdb)
+println("is_c_terminal(): ", is_c_terminal(res))
+println("is_n_terminal(): ", is_n_terminal(res))
+res2 = fragments(s)[2]
+println("is_c_terminal(): ", is_c_terminal(res2))
+
+```
+
+## Nucleotide
+[`Nucleotide`](@ref) is a Fragment with `FragmentVariant.Nucleotide`:
+
+```{julia}
+s = System()
+chain = Chain(Molecule(s))
+n1 = Nucleotide(chain, 1;
+    name="my nucleotide",
+    properties=Properties(:first => 'a', :second => "b"),
+    flags=Flags([:third])
+)
+n2 = Nucleotide(chain, 2)
+```
+
+
+## Molecule
+Molecules are used to distinguish between proteins and non-proteins (see [`Molecules`](@ref)
+
+
+```{julia}
+s = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
+m = molecules(s)
+m
+```
+
+Like in the other cases before, we get a table of molecules. Which we can access similarly to atoms and bonds:
+
+```{julia}
+println(typeof(m))
+
+molecule_by_idx(s, 1)
+println("The number of molecules in the system: ", nmolecules(s))
+println("The number of proteins in the system: ", nproteins(s))
+```
+
+Molecules have a variant which is `MoleculareVariant.None` by default. Users can decide, if a molecule is to be considered as a protein. `isprotein` checks if the `MoleculeVariant.Protein` is set:
+
+```{julia}
+println("is a protein: ", isprotein(m[1]))
+fdb = FragmentDB()
+normalize_names!(s, fdb)
+reconstruct_fragments!(s, fdb)
+build_bonds!(s, fdb)
+
+println("is a protein: ", isprotein(m[1]))
+
+m[1].variant = MoleculeVariant.Protein
+
+println("is a protein: ", isprotein(m[1]))
+
+```
+
+Similar to molecules we can access proteins:
+
+```{julia}
+println("Number of proteins in the system: ", proteins(s))
+pti = protein_by_idx(s, 1)
+```
+
+A very useful functionality is the access the parent molecule or protein a specific atom is belonging to in cases where we have several molecules to deal with.
+```{julia}
+atom = atom_by_idx(s, 5)
+println("This atom belongs to protein: ", parent_protein(atom))
+
+```
+
+## Chains
+
+Chains can be considered as an aggregation of fragments (either residues or nucleotides).
+```{julia}
+
+s = load_pdb(ball_data_path("../test/data/4hhb.pdb"))
+
+println("Number of chains in the system: ", nchains(s))
+
+for chain in chains(s)
+    println("Chain index: ", chain.idx)
+end
+
+chain = chain_by_idx(s, 2)
+println("Chain 2 contains ", nfragments(chain), " fragments.")
+
+println("The parent molecule of chain 2 is: ", parent_molecule(chain))
+```
+
+
+## SecondaryStructures
+
+Now, that we learned about chains, we can take a look at the secondary structures. Let's create a molecule:
+
+```{julia}
+s = System()
+chain = Chain(Molecule(s))
+ss1 = SecondaryStructure(
+    chain,
+    1,
+    SecondaryStructureElement.Helix;
+    name="H1"
+)
+
+ss2 = SecondaryStructure(
+    chain,
+    2,
+    SecondaryStructureElement.Coil;
+    name="C1"
+)
+
+ss3 = SecondaryStructure(
+    chain,
+    3,
+    SecondaryStructureElement.Strand;
+    name="S1"
+)
+ss4 = SecondaryStructure(
+    chain,
+    4,
+    SecondaryStructureElement.Turn;
+    name="T1"
+)
+
+ss3.type = SecondaryStructureElement.Helix
+println("Number of secondary structures: ", nsecondary_structures(s))
+
+# get all helices of the chain
+helices = (filter(sst -> sst.type == ss1.type, secondary_structures(chain)))
+
+```
+
+In addition, we can compute the secondary structures for an input file:
+```{julia}
+s = load_pdb(ball_data_path("../test/data/bpti.pdb"))
+println(s)
+
+normalize_names!(s, fdb)
+reconstruct_fragments!(s, fdb)
+build_bonds!(s, fdb)
+predict_hbonds!(s, :KABSCH_SANDER)
+predict_secondary_structure!(s)
+```
+
+## Congratulation
+You are now familiar with the most important core entities of BiochemicalAlgorithms.jl

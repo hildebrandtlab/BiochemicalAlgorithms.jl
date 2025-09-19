@@ -70,14 +70,17 @@ end
 ```
 
 
-## How can I get the one-letter code out of a pdb file?
+## How can I get the one-letter (or three-letter) code out of a pdb file?
 ```{julia}
 sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
 for chain in chains(sys)
     # get all residues from the current chain
-    res = residues(chain).name
+    res = residues(chain)
     println("> Chain $(chain.name)")
-    println(join(one_letter_code.(res), ""))
+    println("One-letter code:")
+    println(join(one_letter_code.(res.name), ""))
+    println("Three-letter code:")
+    println(join(three_letter_code.(res), " "))
 end
 ```
 
@@ -91,9 +94,10 @@ all_chains = chains(sys)
 ```
 
 This snippet will create separate PDB files for the two chains of the system:
+Note: Currently fails see [issue 209](https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/issues/209)
 ```{julia}
-write_pdb("2ptc_chainE.pdb", all_chains[1])
-write_pdb("2ptc_chainI.pdb", all_chains[2])
+#write_pdb("2ptc_chainE.pdb", all_chains[1])
+#write_pdb("2ptc_chainI.pdb", all_chains[2])
 ```
 
 
@@ -107,7 +111,7 @@ mol = first(molecules(sys))
 # we will generate a second version of the protein by moving it around
 sys2 = deepcopy(sys)
 mol2 = first(molecules(sys2))
-translate!(mol2, Vector3{Float32}(2.0,1.0,2.0))
+translate!(mol2, Vector3{Float32}(2.0, 1.0, 2.0))
 
 # let's see how far the structures are apart
 println("RMSD before mapping:\t", compute_rmsd(mol2, mol))
@@ -117,6 +121,22 @@ map_rigid!(mol2, mol)
 
 # let's see how far the structures are apart afterwards
 println("RMSD after mapping:\t", compute_rmsd(mol2, mol))
+```
+
+
+## How can I rotate an entire molecule?
+```{julia}
+# read in the first protein
+sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
+mol = first(molecules(sys))
+
+v = Vector3{Float32}(0, 0, 0) # no translation
+m = Matrix3{Float32}(1, 0, 0, 0, 0, -1, 0, 1, 0) # counter clockwise rotation by 90 degree
+r = RigidTransform(m, v)
+
+# perform the transformation
+rigid_transform!(mol, r)
+
 ```
 
 
@@ -135,3 +155,18 @@ delete!(ft)
 
 println("Number of atoms after removing water: ", natoms(sys))
 ```
+
+
+# How can I identify atoms in a certain spatial proximity efficiently?
+
+Identifying atoms in a certain spatial proximity can be done with `CellListMap.jl` which is already a dependency of BiochemicalAlgorithms.jl. Here is an example with a cutoff distance of 1.5:
+```{julia}
+using CellListMap
+
+sys = load_pdb(ball_data_path("../test/data/1tgh.pdb"))
+
+neighbors = neighborlist([a.r for a in atoms(sys)], 1.5)
+
+```
+
+`neighborlist` returns a tuple consisting of indices for the neighbors and the computed distance between them. For more advanced use cases have a look at the [`CellListMap.jl` documentation](https://m3g.github.io/CellListMap.jl/stable/neighborlists/) .

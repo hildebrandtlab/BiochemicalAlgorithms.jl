@@ -15,7 +15,7 @@ When working with molecular entities, we want to run over all atoms of a system,
 
 
 ## Molecular systems
-In `BiochemicalAlgorithms.jl` atoms and bonds are existing inside a `System`. Typically, molecular data is stored in molecular data formats such as PDB. The latter can be directly read into a system.
+In `BiochemicalAlgorithms.jl` atoms and bonds are existing inside a [`System`](@ref). Typically, molecular data is stored in molecular data formats such as PDB. The latter can be directly read into a system.
 
 ```{julia}
 sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
@@ -31,7 +31,7 @@ Single columns can be directly accessed by their name:
 atoms(sys).name
 ```
 
-You can also directly query the number of atoms via `natoms`:
+You can also directly query the number of atoms via [`natoms`](@ref):
 ```{julia}
 natoms(sys)
 ```
@@ -67,7 +67,7 @@ And here we only want the heavy atoms:
 heavy_atoms = filter(atom -> atom.element != Elements.H, atoms(sys))
 ```
 
-Instead of a system, we can use any other system component as an argument to the `atoms` function to only list the atoms of the same component. For example, the following system contains two chains:
+Instead of a system, we can use any other system component as an argument to the [`atoms`](@ref) function to only list the atoms of the same component. For example, the following system contains two chains:
 
 ```{julia}
 sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
