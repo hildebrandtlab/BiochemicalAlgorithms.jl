@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Introduction to core components · BiochemicalAlgorithms.jl</title><meta name="title" content="Introduction to core components · BiochemicalAlgorithms.jl"/><meta property="og:title" content="Introduction to core components · BiochemicalAlgorithms.jl"/><meta property="twitter:title" content="Introduction to core components · BiochemicalAlgorithms.jl"/><meta name="description" content="Documentation for BiochemicalAlgorithms.jl."/><meta property="og:description" content="Documentation for BiochemicalAlgorithms.jl."/><meta property="twitter:description" content="Documentation for BiochemicalAlgorithms.jl."/><meta property="og:url" content="https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/tutorials/core_components/"/><meta property="twitter:url" content="https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/tutorials/core_components/"/><link rel="canonical" href="https://hildebrandtlab.github.io/BiochemicalAlgorithms.jl/tutorials/core_components/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">BiochemicalAlgorithms.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../getting_started/">How to get started</a></li><li class="is-active"><a class="tocitem" href>Introduction to core components</a><ul class="internal"><li><a class="tocitem" href="#Atom"><span>Atom</span></a></li><li><a class="tocitem" href="#Bond"><span>Bond</span></a></li><li><a class="tocitem" href="#Fragment"><span>Fragment</span></a></li><li><a class="tocitem" href="#Residue"><span>Residue</span></a></li><li><a class="tocitem" href="#Nucleotide"><span>Nucleotide</span></a></li><li><a class="tocitem" href="#Molecule"><span>Molecule</span></a></li><li><a class="tocitem" href="#Chains"><span>Chains</span></a></li><li><a class="tocitem" href="#SecondaryStructures"><span>SecondaryStructures</span></a></li><li><a class="tocitem" href="#Congratulation"><span>Congratulation</span></a></li></ul></li><li><a class="tocitem" href="../iterate/">How to iterate</a></li><li><a class="tocitem" href="../force_field_ops/">How to apply force fields</a></li><li><a class="tocitem" href="../handle_molecules/">How to handle molecules</a></li><li><a class="tocitem" href="../read_and_write/">How to read and write</a></li></ul></li><li><span class="tocitem">Library</span><ul><li><a class="tocitem" href="../../public/system/">Biomolecular systems</a></li><li><a class="tocitem" href="../../public/fileformats/">File formats</a></li><li><a class="tocitem" href="../../public/forcefields/">Force fields</a></li><li><a class="tocitem" href="../../public/mappings/">Mappings</a></li><li><a class="tocitem" href="../../public/preprocessing/">Molecular preprocessing</a></li><li><input class="collapse-toggle" id="menuitem-3-6" type="checkbox"/><label class="tocitem" for="menuitem-3-6"><span class="docs-label">Internals</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../private/fileformats/">File Formats</a></li><li><a class="tocitem" href="../../private/system/">Biomolecular systems</a></li><li><a class="tocitem" href="../../private/mappings/">Mappings</a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Introduction to core components</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Introduction to core components</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/blob/develop/docs/src/tutorials/core_components.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Getting-started"><a class="docs-heading-anchor" href="#Getting-started">Getting started</a><a id="Getting-started-1"></a><a class="docs-heading-anchor-permalink" href="#Getting-started" title="Permalink"></a></h1><p>BiochemicalAlgorithms.jl`s design is inspired by its predecessor <a href="https://github.com/ball-project/ball"><code>BALL</code></a>. BALL and BiochemicalAlgorithms.jl both have a set of KERNEL classes or core classes to represent molecular entities such as Molecules, Proteins, Atoms, Bonds etc. The following class diagramm shows the different classes and their relationship to each others.</p><p><img src="../uml.png" alt="UML class diagram *Note*: Only the most important functionalities are shown here."/></p><p>UML class diagram <em>Note</em>: Only the most important functionalities are shown here.</p><p>In the center of all classes resides the <a href="../../public/system/#BiochemicalAlgorithms.System"><code>System</code></a>. So let’s see it in action with a simple peptide:</p><pre><code class="language-julia hljs">using BiochemicalAlgorithms
+
+s = load_pdb(ball_data_path(&quot;../test/data/AlaAla.pdb&quot;))
+s</code></pre><pre><code class="nohighlight hljs">System{Float32}: AA
+  23 atoms
+   0 bonds
+   1 molecules
+   1 chains
+   1 secondary structures
+   2 fragments</code></pre><p>This will give us an overview of the objects associated with our system. It contains 23 atoms, 0 bonds, 1 molecule, 1 chain, 0 secondary structures and 2 fragments. We look at each group separately in the following sections.</p><p>If we do not explicitely create a system, the data will be stored in the default system:</p><pre><code class="language-julia hljs">load_pdb(ball_data_path(&quot;../test/data/AlaAla.pdb&quot;))</code></pre><pre><code class="nohighlight hljs">System{Float32}: AA
+  23 atoms
+   0 bonds
+   1 molecules
+   1 chains
+   1 secondary structures
+   2 fragments</code></pre><h2 id="Atom"><a class="docs-heading-anchor" href="#Atom">Atom</a><a id="Atom-1"></a><a class="docs-heading-anchor-permalink" href="#Atom" title="Permalink"></a></h2><p>We can access the atoms like this:</p><pre><code class="language-julia hljs">sys_atms = atoms(s)
+
+natoms(sys_atms)</code></pre><pre><code class="nohighlight hljs">23</code></pre><p>Let’s play around with it:</p><pre><code class="language-julia hljs">println(&quot;Atom elements:&quot;)
+for a in sys_atms
+    print(a.element)
+end
+println()
+
+n1 = atom_by_name(s, &quot;N&quot;)
+
+println(n1.idx)</code></pre><pre><code class="nohighlight hljs">Atom elements:
+NCCOHHHHHHCHNCCHHHHCHOO
+4</code></pre><p>We can access an atom by its name, which will return the first atom matching the given name. If there are more atoms with the same name and we are not interested in the first one, we can access the atom by the atom index. The atom index is unique inside a system but not necessarily starting by one.</p><pre><code class="language-julia hljs">println(&quot;Atom ids:&quot;)
+for a in sys_atms
+    println(a.idx, &quot; &quot;, a.element)
+end
+
+n2 = atom_by_idx(s, 17)</code></pre><pre><code class="nohighlight hljs">Atom ids:
+4 N
+5 C
+6 C
+7 O
+8 H
+9 H
+10 H
+11 H
+12 H
+13 H
+14 C
+15 H
+17 N
+18 C
+19 C
+20 H
+21 H
+22 H
+23 H
+24 C
+25 H
+26 O
+27 O
+
+BiochemicalAlgorithms.Atom{Float32}: (idx = 17, number = 13, element = BiochemicalAlgorithms.Elements.N, name = &quot;N&quot;, atom_type = &quot;&quot;, r = Float32[0.133, 0.98, 2.268], v = Float32[0.0, 0.0, 0.0], F = Float32[0.0, 0.0, 0.0], formal_charge = 0, charge = 0.0f0, radius = 0.0f0)</code></pre><p><a href="#Atom"><code>Atom</code></a> features the atom number as well. The atom number does NOT have to be unique inside the system!</p><pre><code class="language-julia hljs">for a in sys_atms
+    println(a.idx, &quot; &quot;, a.number)
+end</code></pre><pre><code class="nohighlight hljs">4 1
+5 2
+6 3
+7 4
+8 5
+9 6
+10 7
+11 8
+12 9
+13 10
+14 11
+15 12
+17 13
+18 14
+19 15
+20 16
+21 17
+22 18
+23 19
+24 20
+25 21
+26 22
+27 23</code></pre><p>Next, we will have a look at <code>Bond</code>.</p><h2 id="Bond"><a class="docs-heading-anchor" href="#Bond">Bond</a><a id="Bond-1"></a><a class="docs-heading-anchor-permalink" href="#Bond" title="Permalink"></a></h2><p>BiochemicalAlgorithms.jl supports different BondTypes:</p><pre><code class="language-julia hljs">BiochemicalAlgorithms.BondOrderType</code></pre><pre><code class="nohighlight hljs">Enum type BondOrder.T &lt;: Enum{Int32} with 6 instances:
+ BondOrder.Single    = 1
+ BondOrder.Double    = 2
+ BondOrder.Triple    = 3
+ BondOrder.Quadruple = 4
+ BondOrder.Aromatic  = 50
+ BondOrder.Unknown   = 100</code></pre><p>Typically, bonds are not included in the PDB-FileFormat and have to be computed. This can be achieved with the FragmentDataBase, which contains known fragments (all amino acids such as alanine, all nucleotides, same ions …). If you are interested in the fragments contained in the default FragmentDB, take a look at data/fragments of the repository. There you find all the fragments, each one stored in a separate json format. So let’s take a look at the FragmentDB and bonds:</p><pre><code class="language-julia hljs">s = load_pdb(ball_data_path(&quot;../test/data/AlaAla.pdb&quot;))
+nbonds(s)</code></pre><pre><code class="nohighlight hljs">0</code></pre><p>So far, the system has no bonds. We can also visualize the structure using BiochemicalVisualization.jl.</p><p>If BiochemicalVisualization is not yet installed, you can add it via:</p><pre><code class="language-julia hljs">using Pkg
+Pkg.add(&quot;BiochemicalVisualization&quot;)</code></pre><pre><code class="language-julia hljs">using BiochemicalVisualization
+
+ball_and_stick(s)</code></pre><p>Now, let’s create some bonds:</p><pre><code class="language-julia hljs">fdb = FragmentDB() # default FragmentDB
+normalize_names!(s, fdb) # in case our input PDB file uses a strange naming standard
+reconstruct_fragments!(s, fdb) # in case our input file misses some atoms
+build_bonds!(s, fdb) # create the bonds
+# ball_and_stick(s) uncomment for visualization</code></pre><pre><code class="nohighlight hljs">[ Info: reconstruct_fragments!(): added 0 atoms.
+[ Info: build_bonds!(): built 22 bonds</code></pre><p>And finally, we do have our bonds. This example demonstrate the importance of visualizing for the understanding of structural data. Note: The exclamation mark behind the function name indicates that the system will be changed through the functions. The system now contains bonds and the residues carries flags:</p><pre><code class="language-julia hljs">println(s)
+for i in residues(s)
+    println(i.flags)
+end</code></pre><pre><code class="nohighlight hljs">BiochemicalAlgorithms.System{Float32} with 23 atoms and 22 bonds (AA)
+Set([:N_TERMINAL])
+Set([:C_TERMINAL])</code></pre><p>Let’s take a deeper look at the bonds. Bond are only formed inside the same system and not across systems.</p><pre><code class="language-julia hljs">bonds(s)</code></pre><table><tr><th style="text-align: right"><strong>#</strong></th><th style="text-align: left"><strong>idx</strong></th><th style="text-align: left"><strong>a1</strong></th><th style="text-align: left"><strong>a2</strong></th><th style="text-align: left"><strong>order</strong></th></tr><tr><td style="text-align: right">1</td><td style="text-align: left">29</td><td style="text-align: left">4</td><td style="text-align: left">12</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">2</td><td style="text-align: left">30</td><td style="text-align: left">4</td><td style="text-align: left">5</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">3</td><td style="text-align: left">31</td><td style="text-align: left">4</td><td style="text-align: left">8</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">4</td><td style="text-align: left">32</td><td style="text-align: left">4</td><td style="text-align: left">10</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">5</td><td style="text-align: left">33</td><td style="text-align: left">5</td><td style="text-align: left">15</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">6</td><td style="text-align: left">34</td><td style="text-align: left">5</td><td style="text-align: left">6</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">7</td><td style="text-align: left">35</td><td style="text-align: left">5</td><td style="text-align: left">14</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">8</td><td style="text-align: left">36</td><td style="text-align: left">6</td><td style="text-align: left">7</td><td style="text-align: left">Double</td></tr><tr><td style="text-align: right">9</td><td style="text-align: left">37</td><td style="text-align: left">9</td><td style="text-align: left">14</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">10</td><td style="text-align: left">38</td><td style="text-align: left">11</td><td style="text-align: left">14</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">11</td><td style="text-align: left">39</td><td style="text-align: left">13</td><td style="text-align: left">14</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">12</td><td style="text-align: left">40</td><td style="text-align: left">17</td><td style="text-align: left">20</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">13</td><td style="text-align: left">41</td><td style="text-align: left">17</td><td style="text-align: left">18</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">14</td><td style="text-align: left">42</td><td style="text-align: left">18</td><td style="text-align: left">25</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">15</td><td style="text-align: left">43</td><td style="text-align: left">18</td><td style="text-align: left">19</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">16</td><td style="text-align: left">44</td><td style="text-align: left">18</td><td style="text-align: left">24</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">17</td><td style="text-align: left">45</td><td style="text-align: left">19</td><td style="text-align: left">26</td><td style="text-align: left">Double</td></tr><tr><td style="text-align: right">18</td><td style="text-align: left">46</td><td style="text-align: left">19</td><td style="text-align: left">27</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">19</td><td style="text-align: left">47</td><td style="text-align: left">21</td><td style="text-align: left">24</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">20</td><td style="text-align: left">48</td><td style="text-align: left">22</td><td style="text-align: left">24</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">21</td><td style="text-align: left">49</td><td style="text-align: left">23</td><td style="text-align: left">24</td><td style="text-align: left">Single</td></tr><tr><td style="text-align: right">22</td><td style="text-align: left">50</td><td style="text-align: left">6</td><td style="text-align: left">17</td><td style="text-align: left">Single</td></tr></table><p>Bonds can be accessed via their respective index, deleted, and be put in the system</p><pre><code class="language-julia hljs">bond = bond_by_idx(s, 30)
+println(&quot;Bond index: &quot;, bond.idx, &quot;, between atom &quot;, bond.a1, &quot; and &quot;, bond.a2, &quot;, with order: &quot;, bond.order)
+
+println(&quot;Bonds in the system: &quot;, nbonds(s))
+
+delete!(bond)
+
+println(&quot;Bonds in the system after deletion: &quot;, nbonds(s))
+
+bond = Bond(s, 5, 13, BondOrder.Single)
+
+println(&quot;Bonds in the system after deletion: &quot;, nbonds(s))</code></pre><pre><code class="nohighlight hljs">Bond index: 30, between atom 4 and 5, with order: Single
+Bonds in the system: 22
+Bonds in the system after deletion: 21
+Bonds in the system after deletion: 22</code></pre><p>Be careful: The bond index is now different because it is a new Bond object:</p><pre><code class="language-julia hljs">bond.idx</code></pre><pre><code class="nohighlight hljs">51</code></pre><p>Another helpful functionalities when it comes to bonds are the following:</p><pre><code class="language-julia hljs"># get the atoms sharing a bond
+a1, a2 = get_partners(bond)
+
+# or if we have only given one atom
+atom = atom_by_idx(s, 12)
+bond = bonds(atom)[1]
+partner_atom = get_partner(bond, atom)
+println(partner_atom.idx)
+println(&quot;The bond length is &quot;, bond_length(bond))</code></pre><pre><code class="nohighlight hljs">4
+The bond length is 1.0135294</code></pre><p>Sometimes it is necessary to discriminate between hydrogen and nonhydrogen_bonds. Since this a common use case, there are built in functionalities:</p><h2 id="Fragment"><a class="docs-heading-anchor" href="#Fragment">Fragment</a><a id="Fragment-1"></a><a class="docs-heading-anchor-permalink" href="#Fragment" title="Permalink"></a></h2><p>Fragments represent molecule fragments. In context of proteins or nucleic acids, the fragment can be used to represent residues or nucleotides. See the documentation for the definition of the <a href="../../public/system/#BiochemicalAlgorithms.FragmentVariantType"><code>FragmentVariantType</code></a></p><pre><code class="language-julia hljs">nfragments(s)
+
+for frag in fragments(s)
+    println(frag.name, &quot; &quot;, frag.idx)
+end
+n2 = atom_by_idx(s, 5)
+
+println(&quot;The N atom belongs to residue: &quot;, n2.fragment_idx)</code></pre><pre><code class="nohighlight hljs">ALA 3
+ALA 16
+The N atom belongs to residue: 3</code></pre><p>We can get the fragment as well directly:</p><pre><code class="language-julia hljs">fragment = parent_fragment(n2)
+println(fragment)
+res2 = fragment_by_idx(s, 3)</code></pre><pre><code class="nohighlight hljs">BiochemicalAlgorithms.Fragment{Float32}: (idx = 3, number = 1, name = &quot;ALA&quot;)
+
+BiochemicalAlgorithms.Fragment{Float32}: (idx = 3, number = 1, name = &quot;ALA&quot;)</code></pre><p>Just like atom indices, fragment indices not necessarily follow a certain order but are unique inside the same system object.</p><pre><code class="language-julia hljs">res1 = fragments(s)[1]
+res1.variant # 1 = unknown, 2 = residue, 3 = nucleotide</code></pre><pre><code class="nohighlight hljs">FragmentVariant.Residue = 2</code></pre><p>Alternatively, it is also possible to check if this is a nucleotide:</p><pre><code class="language-julia hljs">println(is_nucleotide(res1))
+
+println(&quot;Number of fragments before push: &quot;, nfragments(s))
+push!(chain_by_idx(s, 2), res1)
+println(&quot;Number of fragments after push: &quot;, nfragments(s))
+delete!(res1)
+println(&quot;Number of fragments after deletion: &quot;, nfragments(s))
+
+for frag in fragments(s)
+    println(frag.name, &quot; &quot;, frag.idx)
+end
+s</code></pre><pre><code class="nohighlight hljs">false
+Number of fragments before push: 2
+Number of fragments after push: 3
+Number of fragments after deletion: 2
+ALA 16
+ALA 52
+
+System{Float32}: AA
+  11 atoms
+  10 bonds
+   1 molecules
+   1 chains
+   1 secondary structures
+   2 fragments</code></pre><p>Or a residue:</p><pre><code class="language-julia hljs">s = load_pdb(ball_data_path(&quot;../test/data/AlaAla.pdb&quot;)) # restore original data
+res1 = fragments(s)[1]
+println(&quot;is residue &quot;, isresidue(res1))</code></pre><pre><code class="nohighlight hljs">is residue true</code></pre><p>There are more functionalities related to fragments. Have a look at the documentation for <a href="#Fragment"><code>Fragment</code></a> for more details.</p><h2 id="Residue"><a class="docs-heading-anchor" href="#Residue">Residue</a><a id="Residue-1"></a><a class="docs-heading-anchor-permalink" href="#Residue" title="Permalink"></a></h2><p>As described in the Fragments section, <a href="#Residue"><code>Residue</code></a> is a Fragment with <code>FragmentVariant.Residue</code> and typically describes an amino acid:</p><pre><code class="language-julia hljs">s = load_pdb(ball_data_path(&quot;../test/data/AlaAla.pdb&quot;)) # restore original data
+res = fragments(s)[1]
+println(&quot;is_amino_acid(): &quot;, is_amino_acid(res))
+println(&quot;is_c_terminal(): &quot;, is_c_terminal(res))
+println(&quot;is_n_terminal(): &quot;, is_n_terminal(res))</code></pre><pre><code class="nohighlight hljs">is_amino_acid(): true
+is_c_terminal(): false
+is_n_terminal(): false</code></pre><p>Some functionality is only available after preprocessing through the FragmentDB:</p><pre><code class="language-julia hljs">fdb = FragmentDB()
+normalize_names!(s, fdb)
+reconstruct_fragments!(s, fdb)
+build_bonds!(s, fdb)
+println(&quot;is_c_terminal(): &quot;, is_c_terminal(res))
+println(&quot;is_n_terminal(): &quot;, is_n_terminal(res))
+res2 = fragments(s)[2]
+println(&quot;is_c_terminal(): &quot;, is_c_terminal(res2))</code></pre><pre><code class="nohighlight hljs">[ Info: reconstruct_fragments!(): added 0 atoms.
+[ Info: build_bonds!(): built 22 bonds
+is_c_terminal(): false
+is_n_terminal(): true
+is_c_terminal(): true</code></pre><h2 id="Nucleotide"><a class="docs-heading-anchor" href="#Nucleotide">Nucleotide</a><a id="Nucleotide-1"></a><a class="docs-heading-anchor-permalink" href="#Nucleotide" title="Permalink"></a></h2><p><a href="#Nucleotide"><code>Nucleotide</code></a> is a Fragment with <code>FragmentVariant.Nucleotide</code>:</p><pre><code class="language-julia hljs">s = System()
+chain = Chain(Molecule(s))
+n1 = Nucleotide(chain, 1;
+    name=&quot;my nucleotide&quot;,
+    properties=Properties(:first =&gt; &#39;a&#39;, :second =&gt; &quot;b&quot;),
+    flags=Flags([:third])
+)
+n2 = Nucleotide(chain, 2)</code></pre><pre><code class="nohighlight hljs">BiochemicalAlgorithms.Fragment{Float32}: (idx = 4, number = 2, name = &quot;&quot;)</code></pre><h2 id="Molecule"><a class="docs-heading-anchor" href="#Molecule">Molecule</a><a id="Molecule-1"></a><a class="docs-heading-anchor-permalink" href="#Molecule" title="Permalink"></a></h2><p>Molecules are used to distinguish between proteins and non-proteins (see <a href="../../public/system/#Molecules"><code>Molecules</code></a></p><pre><code class="language-julia hljs">s = load_pdb(ball_data_path(&quot;../test/data/2ptc.pdb&quot;))
+m = molecules(s)
+m</code></pre><table><tr><th style="text-align: right"><strong>#</strong></th><th style="text-align: left"><strong>idx</strong></th><th style="text-align: left"><strong>name</strong></th></tr><tr><td style="text-align: right">1</td><td style="text-align: left">1</td><td style="text-align: left">COMPLEX (PROTEINASE/INHIBITOR)</td></tr></table><p>Like in the other cases before, we get a table of molecules. Which we can access similarly to atoms and bonds:</p><pre><code class="language-julia hljs">println(typeof(m))
+
+molecule_by_idx(s, 1)
+println(&quot;The number of molecules in the system: &quot;, nmolecules(s))
+println(&quot;The number of proteins in the system: &quot;, nproteins(s))</code></pre><pre><code class="nohighlight hljs">MoleculeTable{Float32}
+The number of molecules in the system: 1
+The number of proteins in the system: 0</code></pre><p>Molecules have a variant which is <code>MoleculareVariant.None</code> by default. Users can decide, if a molecule is to be considered as a protein. <code>isprotein</code> checks if the <code>MoleculeVariant.Protein</code> is set:</p><pre><code class="language-julia hljs">println(&quot;is a protein: &quot;, isprotein(m[1]))
+fdb = FragmentDB()
+normalize_names!(s, fdb)
+reconstruct_fragments!(s, fdb)
+build_bonds!(s, fdb)
+
+println(&quot;is a protein: &quot;, isprotein(m[1]))
+
+m[1].variant = MoleculeVariant.Protein
+
+println(&quot;is a protein: &quot;, isprotein(m[1]))</code></pre><pre><code class="nohighlight hljs">is a protein: false
+┌ Warning: reconstruct_fragments!(): could not find reference fragment for  CA:462
+└ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
+[ Info: reconstruct_fragments!(): added 2346 atoms.
+┌ Warning: build_bonds!(): could not find reference fragment for  CA.
+└ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
+[ Info: build_bonds!(): built 4471 bonds
+is a protein: false
+is a protein: true</code></pre><p>Similar to molecules we can access proteins:</p><pre><code class="language-julia hljs">println(&quot;Number of proteins in the system: &quot;, proteins(s))
+pti = protein_by_idx(s, 1)</code></pre><pre><code class="nohighlight hljs">Number of proteins in the system: BiochemicalAlgorithms.MoleculeTable{Float32} with 1 rows
+
+BiochemicalAlgorithms.Molecule{Float32}: (idx = 1, name = &quot;COMPLEX (PROTEINASE/INHIBITOR)&quot;)</code></pre><p>A very useful functionality is the access the parent molecule or protein a specific atom is belonging to in cases where we have several molecules to deal with.</p><pre><code class="language-julia hljs">atom = atom_by_idx(s, 5)
+println(&quot;This atom belongs to protein: &quot;, parent_protein(atom))</code></pre><pre><code class="nohighlight hljs">This atom belongs to protein: BiochemicalAlgorithms.Molecule{Float32}: (idx = 1, name = &quot;COMPLEX (PROTEINASE/INHIBITOR)&quot;)</code></pre><h2 id="Chains"><a class="docs-heading-anchor" href="#Chains">Chains</a><a id="Chains-1"></a><a class="docs-heading-anchor-permalink" href="#Chains" title="Permalink"></a></h2><p>Chains can be considered as an aggregation of fragments (either residues or nucleotides).</p><pre><code class="language-julia hljs">
+s = load_pdb(ball_data_path(&quot;../test/data/4hhb.pdb&quot;))
+
+println(&quot;Number of chains in the system: &quot;, nchains(s))
+
+for chain in chains(s)
+    println(&quot;Chain index: &quot;, chain.idx)
+end
+
+chain = chain_by_idx(s, 2)
+println(&quot;Chain 2 contains &quot;, nfragments(chain), &quot; fragments.&quot;)
+
+println(&quot;The parent molecule of chain 2 is: &quot;, parent_molecule(chain))</code></pre><pre><code class="nohighlight hljs">Number of chains in the system: 12
+Chain index: 2
+Chain index: 1213
+Chain index: 2483
+Chain index: 3694
+Chain index: 4964
+Chain index: 5009
+Chain index: 5056
+Chain index: 5101
+Chain index: 5148
+Chain index: 5261
+Chain index: 5376
+Chain index: 5495
+Chain 2 contains 141 fragments.
+The parent molecule of chain 2 is: BiochemicalAlgorithms.Molecule{Float32}: (idx = 1, name = &quot;OXYGEN TRANSPORT&quot;)</code></pre><h2 id="SecondaryStructures"><a class="docs-heading-anchor" href="#SecondaryStructures">SecondaryStructures</a><a id="SecondaryStructures-1"></a><a class="docs-heading-anchor-permalink" href="#SecondaryStructures" title="Permalink"></a></h2><p>Now, that we learned about chains, we can take a look at the secondary structures. Let’s create a molecule:</p><pre><code class="language-julia hljs">s = System()
+chain = Chain(Molecule(s))
+ss1 = SecondaryStructure(
+    chain,
+    1,
+    SecondaryStructureElement.Helix;
+    name=&quot;H1&quot;
+)
+
+ss2 = SecondaryStructure(
+    chain,
+    2,
+    SecondaryStructureElement.Coil;
+    name=&quot;C1&quot;
+)
+
+ss3 = SecondaryStructure(
+    chain,
+    3,
+    SecondaryStructureElement.Strand;
+    name=&quot;S1&quot;
+)
+ss4 = SecondaryStructure(
+    chain,
+    4,
+    SecondaryStructureElement.Turn;
+    name=&quot;T1&quot;
+)
+
+ss3.type = SecondaryStructureElement.Helix
+println(&quot;Number of secondary structures: &quot;, nsecondary_structures(s))
+
+# get all helices of the chain
+helices = (filter(sst -&gt; sst.type == ss1.type, secondary_structures(chain)))</code></pre><pre><code class="nohighlight hljs">Number of secondary structures: 4</code></pre><table><tr><th style="text-align: right"><strong>#</strong></th><th style="text-align: left"><strong>idx</strong></th><th style="text-align: left"><strong>number</strong></th><th style="text-align: left"><strong>type</strong></th><th style="text-align: left"><strong>name</strong></th></tr><tr><td style="text-align: right">1</td><td style="text-align: left">3</td><td style="text-align: left">1</td><td style="text-align: left">Helix</td><td style="text-align: left">H1</td></tr><tr><td style="text-align: right">2</td><td style="text-align: left">5</td><td style="text-align: left">3</td><td style="text-align: left">Helix</td><td style="text-align: left">S1</td></tr></table><p>In addition, we can compute the secondary structures for an input file:</p><pre><code class="language-julia hljs">s = load_pdb(ball_data_path(&quot;../test/data/bpti.pdb&quot;))
+println(s)
+
+normalize_names!(s, fdb)
+reconstruct_fragments!(s, fdb)
+build_bonds!(s, fdb)
+predict_hbonds!(s, :KABSCH_SANDER)
+predict_secondary_structure!(s)</code></pre><pre><code class="nohighlight hljs">BiochemicalAlgorithms.System{Float32} with 454 atoms and 3 bonds (PTI (from 2PTC.BRK))
+[ Info: reconstruct_fragments!(): added 438 atoms.
+[ Info: build_bonds!(): built 903 bonds
+[ Info: Added 31 hydrogen bonds.
+
+&quot;---GGG-----------EEEEEEETTTTEEEEEEE---------B--HHHHHHHHTT-&quot;</code></pre><h2 id="Congratulation"><a class="docs-heading-anchor" href="#Congratulation">Congratulation</a><a id="Congratulation-1"></a><a class="docs-heading-anchor-permalink" href="#Congratulation" title="Permalink"></a></h2><p>You are now familiar with the most important core entities of BiochemicalAlgorithms.jl</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../getting_started/">« How to get started</a><a class="docs-footer-nextpage" href="../iterate/">How to iterate »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Friday 19 September 2025 10:56">Friday 19 September 2025</span>. Using Julia version 1.11.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
