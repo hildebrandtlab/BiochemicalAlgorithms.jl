@@ -1,7 +1,7 @@
 name = "BiochemicalAlgorithms"
 uuid = "9d651bdf-8945-47d1-9188-34e269d8f7b5"
-authors = ["Andreas Hildebrandt <andreas.hildebrandt@uni-mainz.de> and contributors"]
 version = "0.5.0"
+authors = ["Andreas Hildebrandt <andreas.hildebrandt@uni-mainz.de> and contributors"]
 
 [deps]
 AutoHashEquals = "15f4f7f2-30c1-5605-9d31-71845cf9641f"
@@ -22,6 +22,7 @@ MetaGraphs = "626554b9-1ddb-594c-aa3c-2596fe9399a5"
 MolecularGraph = "6c89ec66-9cd8-5372-9f91-fabc50dd27fd"
 Observables = "510215fc-4207-5dde-b226-833fc4488ee2"
 Optimization = "7f7a1694-90dd-40f0-9382-eb1efda571ba"
+OptimizationLBFGSB = "22f7324a-a79d-40f2-bebe-3af60c77bd15"
 PhysicalConstants = "5ad8b20f-a522-5ce9-bfc9-ddf1d5bda6ab"
 PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
@@ -56,6 +57,7 @@ MetaGraphs = "0.8"
 MolecularGraph = "0.20.2, 0.21"
 Observables = "0.5.5"
 Optimization = "5.1"
+OptimizationLBFGSB = "1.1.0"
 PhysicalConstants = "0.2.3"
 PrettyTables = "3"
 Printf = "1.10"

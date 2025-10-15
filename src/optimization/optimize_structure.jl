@@ -11,9 +11,9 @@ Attempts to solve the energy optimization problem represented by the given force
 This function passes all keyword arguments to
 [Optimization.solve](https://docs.sciml.ai/Optimization/stable/API/solve/),
 with the following default values:
- - `alg = Optimization.LBFGS()`
+ - `alg = OptimizationLBFGSB.LBFGSB()`
 """
-function optimize_structure!(ff::ForceField; alg = Optimization.LBFGS(), kwargs...)
+function optimize_structure!(ff::ForceField; alg = OptimizationLBFGSB.LBFGSB(), kwargs...)
     r0 = collect(Float64, Iterators.flatten(atoms(ff.system).r))
 
     optf = Optimization.OptimizationFunction(

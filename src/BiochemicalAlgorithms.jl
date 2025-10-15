@@ -19,6 +19,7 @@ import JSON3
 import MolecularGraph
 import Observables
 import Optimization
+import OptimizationLBFGSB
 import PrettyTables
 import StaticArrays
 import Tables, TableOperations
