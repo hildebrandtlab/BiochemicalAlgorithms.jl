@@ -21,14 +21,9 @@ sys = System{Float32}() # this system will be of single precision, i.e., atom po
 h2o = Molecule(sys)
 
 # create system atoms
-o1 = Atom(h2o, 1, Elements.O)
-h1 = Atom(h2o, 2, Elements.H)
-h2 = Atom(h2o, 3, Elements.H)
-
-# set positions of the atoms
-# o1.r = [0, 0, 0]  <-- this is the default value!
-h1.r = [1, 0, 0]
-h2.r = [cos(deg2rad(105)), sin(deg2rad(105)), 0]
+o1 = Atom(h2o, 1, Elements.O) # o1.r = [0, 0, 0]  <-- this is the default value!
+h1 = Atom(h2o, 2, Elements.H, r=Vector3{Float32}(1,0,0))
+h2 = Atom(h2o, 3, Elements.H, r=Vector3{Float32}(cos(deg2rad(105)), sin(deg2rad(105)), 0)) 
 
 # add bonds
 Bond(h2o, o1.idx, h1.idx, BondOrder.Single)
@@ -36,6 +31,8 @@ Bond(h2o, o1.idx, h2.idx, BondOrder.Single)
 
 println("Number of atoms: ", natoms(h2o))
 println("Number of bonds: ", nbonds(h2o))
+
+atoms(sys)
 ```
 
 
