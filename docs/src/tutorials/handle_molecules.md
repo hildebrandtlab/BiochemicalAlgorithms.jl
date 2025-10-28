@@ -11,14 +11,9 @@ sys = System{Float32}() # this system will be of single precision, i.e., atom po
 h2o = Molecule(sys)
 
 # create system atoms
-o1 = Atom(h2o, 1, Elements.O)
-h1 = Atom(h2o, 2, Elements.H)
-h2 = Atom(h2o, 3, Elements.H)
-
-# set positions of the atoms
-# o1.r = [0, 0, 0]  <-- this is the default value!
-h1.r = [1, 0, 0]
-h2.r = [cos(deg2rad(105)), sin(deg2rad(105)), 0]
+o1 = Atom(h2o, 1, Elements.O) # o1.r = [0, 0, 0]  <-- this is the default value!
+h1 = Atom(h2o, 2, Elements.H, r=Vector3{Float32}(1,0,0))
+h2 = Atom(h2o, 3, Elements.H, r=Vector3{Float32}(cos(deg2rad(105)), sin(deg2rad(105)), 0)) 
 
 # add bonds
 Bond(h2o, o1.idx, h1.idx, BondOrder.Single)
@@ -26,10 +21,18 @@ Bond(h2o, o1.idx, h2.idx, BondOrder.Single)
 
 println("Number of atoms: ", natoms(h2o))
 println("Number of bonds: ", nbonds(h2o))
+
+atoms(sys)
 ```
 
     Number of atoms: 3
     Number of bonds: 2
+
+| **\#** | **idx** | **number** | **element** | **name** | **atom_type** | **r** | **v** | **F** | **formal_charge** | **charge** | **radius** |
+|---:|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|
+| 1 | 2 | 1 | O |  |  | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
+| 2 | 3 | 2 | H |  |  | Float32\[1.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
+| 3 | 4 | 3 | H |  |  | Float32\[-0.258819, 0.965926, 0.0\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
 
 ## How can I determine the element of an atom (C, N, …)?
 
