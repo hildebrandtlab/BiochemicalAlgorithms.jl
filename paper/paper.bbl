@@ -7,8 +7,7 @@ Ball project tutorial.
 Accessed: 2024-12-16.
 
 \bibitem{berman2000protein}
-Helen~M. Berman, John Westbrook, Zukang Feng, Gary Gilliland, T.~N. Bhat, Helge
-  Weissig, Ilya~N. Shindyalov, and Philip~E. Bourne.
+Helen~M. Berman, John Westbrook, Zukang Feng, Gary Gilliland, T.~N. Bhat, Helge Weissig, Ilya~N. Shindyalov, and Philip~E. Bourne.
 The protein data bank.
 {\em Nucleic acids research}, 28(1):235--242, 2000.
 
@@ -17,12 +16,6 @@ Milan Bouchet-Valat and Bogumił Kamiński.
 Dataframes.jl: Flexible and fast tabular data in julia.
 {\em Journal of Statistical Software}, 107(4):1--32, 2023.
 \href{http://dx.doi.org/10.18637/jss.v107.i04}{doi:10.18637/jss.v107.i04}.
-
-\bibitem{BouchetValat2018}
-Milan Bouchet-Valat and Jacob Quinn.
-Tables.jl: A table interface for everyone.
-{\em Journal of Open Source Software}, 3(25):776, 2018.
-\href{http://dx.doi.org/10.21105/joss.00776}{doi:10.21105/joss.00776}.
 
 \bibitem{BenchmarkTools.jl-2016}
 Jiahao {Chen} and Jarrett {Revels}.
@@ -33,8 +26,7 @@ Jiahao {Chen} and Jarrett {Revels}.
 \bibitem{Julia_what}
 Julia Community.
 Two language problem. what is it?
-\url{https://discourse.julialang.org/t/two-language-problem-what-is-it/82925},
-  2023.
+\url{https://discourse.julialang.org/t/two-language-problem-what-is-it/82925}, 2023.
 Accessed: December 13, 2024.
 
 \bibitem{Doerr2016HTMD}
@@ -49,22 +41,19 @@ Erich Gamma, Richard Helm, Ralph Johnson, and John Vlissides.
 Addison-Wesley Professional, Reading, Massachusetts, 1994.
 
 \bibitem{Greener2024}
-Joe~G Greener.
-Differentiable simulation to develop molecular dynamics force fields for
-  disordered proteins.
-{\em Chemical Science}, 15:4897--4909, 2024.
+Joe~G. Greener.
+Differentiable simulation to develop molecular dynamics force fields for disordered proteins††electronic supplementary information (esi) available. see doi: https://doi.org/10.1039/d3sc05230c.
+{\em Chemical Science}, 15(13):4897--4909, 2024.
+\href{http://dx.doi.org/https://doi.org/10.1039/d3sc05230c}{doi:https://doi.org/10.1039/d3sc05230c}.
 
 \bibitem{Greener2020BioStructures}
 Joe~G Greener, Joel Selvaraj, and Ben~J Ward.
-Biostructures.jl: read, write and manipulate macromolecular structures in
-  julia.
+Biostructures.jl: read, write and manipulate macromolecular structures in julia.
 {\em Bioinformatics}, 36(14):4206--4207, 2020.
 \href{http://dx.doi.org/10.1093/bioinformatics/btaa502}{doi:10.1093/bioinformatics/btaa502}.
 
 \bibitem{hildebrandt_ball_2010}
-Andreas Hildebrandt, Anna~Katharina Dehof, Alexander Rurainski, Andreas
-  Bertsch, Marcel Schumann, Nora~C. Toussaint, Andreas Moll, Daniel Stöckel,
-  Stefan Nickels, Sabine~C. Mueller, Hans-Peter Lenhof, and Oliver Kohlbacher.
+Andreas Hildebrandt, Anna~Katharina Dehof, Alexander Rurainski, Andreas Bertsch, Marcel Schumann, Nora~C. Toussaint, Andreas Moll, Daniel Stöckel, Stefan Nickels, Sabine~C. Mueller, Hans-Peter Lenhof, and Oliver Kohlbacher.
 {BALL} - biochemical algorithms library 1.3.
 {\em BMC Bioinformatics}, 11(1):531, October 2010.
 \href{http://dx.doi.org/10.1186/1471-2105-11-531}{doi:10.1186/1471-2105-11-531}.
@@ -94,17 +83,14 @@ Oliver Kohlbacher and Hans-Peter Lenhof.
 \href{http://dx.doi.org/10.1093/bioinformatics/16.9.815}{doi:10.1093/bioinformatics/16.9.815}.
 
 \bibitem{Kumar2021}
-Nitin Kumar, Abhinav Jain, Ashwani Kumar, Pankaj Kumar, Anurag Mishra,
-  Kumardeep Chaudhary, and Gajendra~P.S. Raghava.
+Nitin Kumar, Abhinav Jain, Ashwani Kumar, Pankaj Kumar, Anurag Mishra, Kumardeep Chaudhary, and Gajendra~P.S. Raghava.
 Structural bioinformatics resources for sars-cov-2.
 {\em Briefings in Bioinformatics}, 22(3):931--943, 2021.
 \href{http://dx.doi.org/10.1093/bib/bbaa261}{doi:10.1093/bib/bbaa261}.
 
 \bibitem{Morris2009AutoDock4AA}
-Garrett~M. Morris, Ruth Huey, William Lindstrom, Michel~F. Sanner, Richard~K.
-  Belew, David~S. Goodsell, and Arthur~J. Olson.
-Autodock4 and autodocktools4: Automated docking with selective receptor
-  flexibility.
+Garrett~M. Morris, Ruth Huey, William Lindstrom, Michel~F. Sanner, Richard~K. Belew, David~S. Goodsell, and Arthur~J. Olson.
+Autodock4 and autodocktools4: Automated docking with selective receptor flexibility.
 {\em Journal of Computational Chemistry}, 30(16):2785--2791, 2009.
 \href{http://dx.doi.org/10.1002/jcc.21256}{doi:10.1002/jcc.21256}.
 
@@ -124,6 +110,12 @@ Accessed: December 13, 2024.
 John~K. Ousterhout.
 Scripting: Higher-level programming for the 21st century.
 {\em Computer}, 31(3):23--30, 1998.
+\href{http://dx.doi.org/10.1109/2.660187}{doi:10.1109/2.660187}.
+
+\bibitem{BouchetValat2018}
+Jacob Quinn, Bogumił Kamiński, David Anthoff, Milan Bouchet-Valat, Tamas~K. Papp, Takafumi Arakaki, Rafael Schouten, Nick Robinson, {mathieu17g}, Okon Samuel, Jarrett Revels, {ExpandingMan}, Eric Hanson, PhD Anthony~Blaom, Alex Arslan, Jerry Ling, Jiahao Chen, Josh Day, José Bayoán~Santiago Calderón, Julia TagBot, Kristoffer Carlsson, Lilith~Orion Hafner, Miles Cranmer, Randy Zwitch, Steven~G. Johnson, Tom Gillam, Yue Yang, {spaette}, {strickek}, and Jacob Adenbaum.
+{JuliaData}/{Tables}.jl: v1.12.0, July 2024.
+\href{http://dx.doi.org/10.5281/zenodo.12753139}{doi:10.5281/zenodo.12753139}.
 
 \bibitem{ProtoSyn}
 Diogo Santos-Martins and Sérgio~F. Sousa.
@@ -149,9 +141,7 @@ What julia aims to accomplish? - the two-language problem.
 \url{https://juliadatascience.io/julia_accomplish}, 2023.
 
 \bibitem{deepmind}
-Andrew~W Senior, Richard Evans, John Jumper, James Kirkpatrick, Laurent Sifre,
-  Tim Green, Chongli Qin, Augustin {\v{Z}}{\'\i}dek, Alexander W~R Nelson, Alex
-  Bridgland, et~al.
+Andrew~W Senior, Richard Evans, John Jumper, James Kirkpatrick, Laurent Sifre, Tim Green, Chongli Qin, Augustin {\v{Z}}{\'\i}dek, Alexander W~R Nelson, Alex Bridgland, et~al.
 Improved protein structure prediction using potentials from deep learning.
 {\em Nature}, 577(7792):706--710, 2020.
 
@@ -163,21 +153,13 @@ Accessed: 2024-12-16.
 
 \bibitem{Trott2010}
 Oliver Trott and Arthur~J. Olson.
-Autodock vina: improving the speed and accuracy of docking with a new scoring
-  function, efficient optimization, and multithreading.
+Autodock vina: improving the speed and accuracy of docking with a new scoring function, efficient optimization, and multithreading.
 {\em Journal of Computational Chemistry}, 31(2):455--461, 2010.
 \href{http://dx.doi.org/10.1002/jcc.21334}{doi:10.1002/jcc.21334}.
 
 \bibitem{AlphaFoldDB2023}
-Mihaly Varadi, Samuel Anyango, Mandar Deshpande, Jeyan Nair, Felicity Natassia,
-  Gergana Yordanova, Deming Yuan, Oana Stroe, Amos Pajon, Jake McGreig, Quentin
-  Szabo, Tom Kosciolek, Daniel Lowe, Michele Magrane, Andrew~P. Harrison, M.~S.
-  Madhusudhan, Peer Bork, Bence Sipos, David Suveges, Silvio C.~E. Tosatto,
-  Christine~A. Orengo, Christoph Steinbeck, Jiannis Kourelis, Andrew~R. Leach,
-  Gerard~J. Kleywegt, Sameer Velankar, Julian Gough, Óscar Conchillo-Solé,
-  Alex Bateman, Christine~A. Orengo, Sameer Velankar, and Julian Gough.
-Alphafold protein structure database: Updates, enhancements, and future
-  directions.
+Mihaly Varadi, Samuel Anyango, Mandar Deshpande, Jeyan Nair, Felicity Natassia, Gergana Yordanova, Deming Yuan, Oana Stroe, Amos Pajon, Jake McGreig, Quentin Szabo, Tom Kosciolek, Daniel Lowe, Michele Magrane, Andrew~P. Harrison, M.~S. Madhusudhan, Peer Bork, Bence Sipos, David Suveges, Silvio C.~E. Tosatto, Christine~A. Orengo, Christoph Steinbeck, Jiannis Kourelis, Andrew~R. Leach, Gerard~J. Kleywegt, Sameer Velankar, Julian Gough, Óscar Conchillo-Solé, Alex Bateman, Christine~A. Orengo, Sameer Velankar, and Julian Gough.
+Alphafold protein structure database: Updates, enhancements, and future directions.
 {\em Nucleic Acids Research}, 51(D1):D439--D446, 2023.
 \href{http://dx.doi.org/10.1093/nar/gkac1234}{doi:10.1093/nar/gkac1234}.
 
