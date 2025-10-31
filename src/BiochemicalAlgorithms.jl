@@ -109,6 +109,12 @@ include("optimization/optimize_structure.jl")
 export
     ball_data_path
 
+"""
+    ball_data_path(parts...)
+
+Constructs an absolute path to a file or directory within the package's `data` folder.
+Accepts any number of path components as arguments and joins them appropriately.
+"""
 ball_data_path(parts...) = normpath(joinpath(@__DIR__, "..", "data", parts...))
 
 end
