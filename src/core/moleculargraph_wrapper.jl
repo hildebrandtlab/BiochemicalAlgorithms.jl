@@ -107,7 +107,7 @@ function Base.convert(
     system = System{T}()
 ) where T
     mol = Molecule(system; properties = Properties(:metadata => mg.gprops.metadata))
-    foreach(t -> _molgraph_to_atom(mol, t), sort!(OrderedDict(mg.vprops)))
-    foreach(t -> _molgraph_to_bond(mol, t), sort!(OrderedDict(mg.eprops)))
+    foreach(t -> _molgraph_to_atom(mol, t), sort!(OrderedDict(k.key => v for (k, v) in pairs(mg.vprops))))
+    foreach(t -> _molgraph_to_bond(mol, t), sort!(OrderedDict(k.key => v for (k, v) in pairs(mg.eprops))))
     mol
 end
