@@ -23,17 +23,13 @@ jobs:
       matrix:
         version:
           - 'lts'
-          - '1.11'
-          - 'pre'
-          - 'nightly'
+          - '1.12'
         os:
           - ubuntu-latest
         arch:
           - x64
         include:
-          - version: 'pre'
-            experimental: true
-          - version: 'nightly'
+          - version: '1.12'
             experimental: true
     steps:
       - uses: actions/checkout@v5
