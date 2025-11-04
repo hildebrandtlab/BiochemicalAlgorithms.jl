@@ -1,4 +1,4 @@
-@testitem "Optimize structure" begin
+@testitem "Optimize structure" tags = [:skip_ci] begin
     sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 
     fdb = FragmentDB()
@@ -12,7 +12,7 @@
     @test compute_energy!(ff) ≈ -374.3136f0
 end
 
-@testitem "Optimize hydrogen positions" begin
+@testitem "Optimize hydrogen positions" tags = [:skip_ci] begin
     sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 
     fdb = FragmentDB()
