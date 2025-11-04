@@ -23,11 +23,16 @@ jobs:
       matrix:
         version:
           - '1.10'
-          - '1.11'
+          - '1.12'
         os:
           - ubuntu-latest
         arch:
           - x64
+        include:
+          - version: '1.12'
+            experimental: true
+    env:
+      RESOLVER_PATH: "/tmp/resolver"
     steps:
       - uses: actions/checkout@v5
       - uses: julia-actions/setup-julia@v2
@@ -35,11 +40,15 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/cache@v2
-      - uses: julia-actions/julia-downgrade-compat@v2
-        with:
-          julia_version: ${{ matrix.version }}
-          mode: deps
-          skip: Dates,LinearAlgebra,Printf,Statistics,Test
+      - name: Setup Resolver.jl
+        run: |
+          if [ ! -d "${RESOLVER_PATH}" ]; then
+            git clone https://github.com/StefanKarpinski/Resolver.jl.git "${RESOLVER_PATH}"
+            julia --project="${RESOLVER_PATH}/bin" -e 'using Pkg; Pkg.instantiate()'
+          fi
+      - name: Run resolver.jl
+        run: |
+          julia --project="${RESOLVER_PATH}/bin" ${RESOLVER_PATH}/bin/resolve.jl . --min-minor=@deps --julia=${{ matrix.version }}
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
         with:
