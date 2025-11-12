@@ -29,6 +29,12 @@ Two language problem. what is it?
 \url{https://discourse.julialang.org/t/two-language-problem-what-is-it/82925}, 2023.
 Accessed: December 13, 2024.
 
+\bibitem{BioMakie}
+BioJulia contributors.
+Biomakie.jl.
+\url{https://github.com/BioJulia/BioMakie.jl}, 2024.
+Accessed: November 12, 2025.
+
 \bibitem{Doerr2016HTMD}
 Stefan Doerr, Matthew~J. Harvey, Frank Noé, and Gianni De~Fabritiis.
 Htmd: High-throughput molecular dynamics for molecular discovery.
@@ -120,7 +126,7 @@ Jacob Quinn, Bogumił Kamiński, David Anthoff, Milan Bouchet-Valat, Tamas~K. Pa
 \bibitem{ProtoSyn}
 Diogo Santos-Martins and Sérgio~F. Sousa.
 Protosyn.jl.
-https://github.com/sergio-santos-group/ProtoSyn.jl, 2023.
+\url{https://github.com/sergio-santos-group/ProtoSyn.jl}, 2023.
 Julia package.
 
 \bibitem{SchrödingerLiveDesign}

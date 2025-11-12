@@ -6,52 +6,54 @@ Database file #1: ref.bib
 Warning--entry type for "Qt5" isn't style-file defined
 --line 180 of file ref.bib
 Warning--entry type for "PkgBenchmark" isn't style-file defined
---line 232 of file ref.bib
+--line 233 of file ref.bib
 Warning--entry type for "TestItemRunner" isn't style-file defined
---line 240 of file ref.bib
+--line 241 of file ref.bib
 Warning--entry type for "BouchetValat2018" isn't style-file defined
---line 260 of file ref.bib
+--line 261 of file ref.bib
 Warning--entry type for "ProtoSyn" isn't style-file defined
---line 279 of file ref.bib
-You've used 28 entries,
+--line 280 of file ref.bib
+Warning--entry type for "BioMakie" isn't style-file defined
+--line 290 of file ref.bib
+You've used 29 entries,
             2314 wiz_defined-function locations,
-            722 strings with 10871 characters,
-and the built_in function-call counts, 11199 in all, are:
-= -- 1026
-> -- 776
+            728 strings with 10997 characters,
+and the built_in function-call counts, 11431 in all, are:
+= -- 1050
+> -- 783
 < -- 0
-+ -- 311
-- -- 282
-* -- 888
-:= -- 1947
-add.period$ -- 107
-call.type$ -- 28
-change.case$ -- 223
++ -- 314
+- -- 284
+* -- 894
+:= -- 1986
+add.period$ -- 111
+call.type$ -- 29
+change.case$ -- 227
 chr.to.int$ -- 0
-cite$ -- 28
-duplicate$ -- 295
-empty$ -- 774
-format.name$ -- 282
-if$ -- 2267
+cite$ -- 29
+duplicate$ -- 303
+empty$ -- 799
+format.name$ -- 284
+if$ -- 2320
 int.to.chr$ -- 0
-int.to.str$ -- 28
+int.to.str$ -- 29
 missing$ -- 16
-newline$ -- 166
-num.names$ -- 56
-pop$ -- 288
+newline$ -- 172
+num.names$ -- 58
+pop$ -- 297
 preamble$ -- 1
-purify$ -- 196
+purify$ -- 199
 quote$ -- 0
-skip$ -- 202
+skip$ -- 209
 stack$ -- 0
-substring$ -- 433
-swap$ -- 28
+substring$ -- 438
+swap$ -- 29
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 110
+type$ -- 114
 warning$ -- 0
-while$ -- 73
-width$ -- 30
-write$ -- 338
-(There were 5 warnings)
+while$ -- 75
+width$ -- 31
+write$ -- 350
+(There were 6 warnings)
