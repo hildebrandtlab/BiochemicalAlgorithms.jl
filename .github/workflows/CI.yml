@@ -31,17 +31,16 @@ jobs:
         version:
           - 'lts'
           - '1.12'
-          # Upstream bug https://github.com/julia-vscode/TestItemRunner.jl/issues/113
-          # - 'nightly'
+          - 'nightly'
         os:
           - ubuntu-latest
         arch:
           - x64
           # Broken by dependency, cf. https://github.com/BioJulia/IndexableBitVectors.jl/issues/9
           # - x86
-        # include:
-          # - version: 'nightly'
-            # experimental: true
+        include:
+          - version: 'nightly'
+            experimental: true
     steps:
       - uses: actions/checkout@v5
       - uses: julia-actions/setup-julia@v2
