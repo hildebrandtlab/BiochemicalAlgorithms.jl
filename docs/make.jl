@@ -20,6 +20,7 @@ const pages = Any[
         "Force fields" => "public/forcefields.md",
         "Mappings" => "public/mappings.md",
         "Molecular preprocessing" => "public/preprocessing.md",
+        "Structure analysis" => "public/structureanalysis.md",
         "Utility functions" => "public/utils.md",
         "Internals" => Any[
             "File Formats" => "private/fileformats.md",
