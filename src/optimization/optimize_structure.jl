@@ -2,6 +2,8 @@ export
     optimize_hydrogen_positions!,
     optimize_structure!
 
+using ForwardDiff
+
 """
     optimize_structure!(ff::ForceField)
 
@@ -14,24 +16,14 @@ with the following default values:
  - `alg = OptimizationLBFGSB.LBFGSB()`
 """
 function optimize_structure!(ff::ForceField; alg = OptimizationLBFGSB.LBFGSB(), kwargs...)
+    
     r0 = collect(Float64, Iterators.flatten(atoms(ff.system).r))
 
     optf = Optimization.OptimizationFunction(
-        (r, _ = nothing) -> begin
-            atoms(ff.system).r .= eachcol(reshape(r, 3, :))
-            update!(ff)
-            compute_energy!(ff)
-        end,
-        grad = (grad, r, _) -> begin
-            update!(ff)
-            compute_forces!(ff)
-            F = atoms(ff.system).F
-            F[ff.constrained_atoms] .= Ref(zeros(3))
-            grad .= -collect(Float64, Iterators.flatten(F)) ./ force_prefactor
-            nothing
-        end
+        _compute_energy_loss!,
+        grad = _compute_grad!
     )
-    prob = Optimization.OptimizationProblem(optf, r0)
+    prob = Optimization.OptimizationProblem(optf, r0, ff)
 
     Optimization.solve(prob, alg; kwargs...)
 end
@@ -66,4 +58,20 @@ for fun in [:optimize_structure!, :optimize_hydrogen_positions!]
             $(fun)(ff[]; callback=(θ, l) -> _update(), kwargs...)
         end
     end
+end
+
+
+function _compute_energy_loss!(r::Vector{Float64}, ff::ForceField) 
+    atoms(ff.system).r .= eachcol(reshape(r, 3, :))
+    update!(ff)
+    compute_energy!(ff)
+end
+
+function _compute_grad!(grad::Vector{Float64}, r::Vector{Float64}, ff::ForceField)
+    update!(ff)
+    compute_forces!(ff)
+    F = atoms(ff.system).F
+    F[ff.constrained_atoms] .= Ref(zeros(3))
+    grad .= -collect(Float64, Iterators.flatten(F)) ./ force_prefactor
+    nothing
 end
