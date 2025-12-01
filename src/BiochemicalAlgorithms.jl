@@ -103,6 +103,9 @@ include("preprocessing/reconstruct_fragments.jl")
 include("preprocessing/predict_hbonds.jl")
 include("preprocessing/predict_secondary_structure.jl")
 
+# structure analysis
+include("structureanalysis/bounding_box.jl")
+
 # optimization
 include("optimization/optimize_structure.jl")
 
