@@ -202,14 +202,113 @@ function compute_energy!(ff::ForceField{T}; verbose::Bool=false)::T where T
     total_energy
 end
 
-function compute_forces!(ff::ForceField{T}) where T
+function compute_forces!(ff::ForceField{T}, minibatching::Bool) where T
     # first, zero out the current forces
     atoms(ff.system).F .= Ref(zero(Vector3{T}))
 
+    if minibatching
+        _compute_forces_minibatching!(ff)
+    else  
     map(compute_forces!, ff.components)
 
     nothing
+    end
 end
+
+using Random
+
+function _compute_forces_minibatching!(ff::ForceField{T}) where T
+   # get all interactions from all components
+
+   
+    interaction_map = Dict{Int, Int}()
+    i = 1
+
+    # stretches
+    for idx in eachindex(ff.components[1].stretches)
+        interaction_map[i] = idx
+        i += 1
+    end
+    #bends
+    for idx in eachindex(ff.components[2].bends)
+        interaction_map[i] = idx
+        i += 1
+    end
+    # proper torsions
+    for idx in eachindex(ff.components[3].proper_torsions)
+        interaction_map[i] = idx
+        i += 1
+    end
+    #improper torsions
+    for idx in eachindex(ff.components[3].improper_torsions)
+        interaction_map[i] = idx
+        i += 1
+    end
+    #nonbonded
+
+    for idx in 1:length(ff.components[4].lj_interactions)
+        interaction_map[i] = idx
+        i += 1
+    end
+  
+    for idx in 1:length(ff.components[4].hydrogen_bonds)
+        interaction_map[i] = idx
+        i += 1
+    end
+    for idx in 1:length(ff.components[4].electrostatic_interactions)
+        interaction_map[i] = idx
+        i += 1
+    end
+
+
+
+    all_interactions = shuffle(collect(1:length(interaction_map))) #permutation of all interactions
+
+    # first batch: 
+    first_batch = sort(all_interactions[1:div(length(interaction_map), 10)])
+
+    stretches = []
+    bends = []
+    proper_torsions = []
+    improper_torsions = []
+    lj_interactions_idx= []
+    hydrogen_bonds_idx = []
+    electrostatic_interactions_idx = []
+    for i in first_batch
+        idx = interaction_map[i]
+        if i <= length(ff.components[1].stretches)
+            push!(stretches, idx)
+        elseif i <= length(ff.components[1].stretches) + length(ff.components[2].bends)
+            push!(bends, idx)
+        elseif i <= length(ff.components[1].stretches) + length(ff.components[2].bends) + length(ff.components[3].proper_torsions)
+            push!(proper_torsions, idx)
+        elseif i <= length(ff.components[1].stretches) + length(ff.components[2].bends) + length(ff.components[3].proper_torsions) + length(ff.components[3].improper_torsions)
+            push!(improper_torsions, idx)
+        elseif i <= length(ff.components[1].stretches) + length(ff.components[2].bends) + length(ff.components[3].proper_torsions) + length(ff.components[3].improper_torsions) + length(ff.components[4].lj_interactions)
+            push!(lj_interactions_idx, idx)
+        elseif i <= length(ff.components[1].stretches) + length(ff.components[2].bends) + length(ff.components[3].proper_torsions) + length(ff.components[3].improper_torsions) + length(ff.components[4].lj_interactions) + length(ff.components[4].hydrogen_bonds)
+            push!(hydrogen_bonds_idx, idx)
+        else
+            push!(electrostatic_interactions_idx, idx)
+        end
+    end
+
+
+    map(compute_forces!,ff.components[1].stretches[stretches])
+    map(compute_forces!, ff.components[2].bends[bends])
+
+
+    map(compute_forces!, ff.components[3].proper_torsions[proper_torsions])
+    map(compute_forces!, ff.components[3].improper_torsions[improper_torsions])
+
+
+    map(compute_forces!,[v for (i,v) in enumerate(ff.components[4].lj_interactions) if i in lj_interactions_idx]) 
+    map(compute_forces!, [v for (i,v) in enumerate(ff.components[4].hydrogen_bonds) if i in hydrogen_bonds_idx])
+    map(compute_forces!, [v for (i,v) in enumerate(ff.components[4].electrostatic_interactions) if i in electrostatic_interactions_idx])
+
+nothing
+end
+
 
 function _check_warnings(ff::ForceField)
     nwarnings = count_warnings(ff)
@@ -261,3 +360,4 @@ end
     "$(ff.name) for $(natoms(ff.system)) atoms with $(nbonds(ff.system)) bonds.")
 @inline Base.show(io::IO, ff::ForceField) = println(io,
     "$(ff.name) for $(natoms(ff.system)) atoms with $(nbonds(ff.system)) bonds.")
+

@@ -13,7 +13,7 @@ This function passes all keyword arguments to
 with the following default values:
  - `alg = OptimizationLBFGSB.LBFGSB()`
 """
-function optimize_structure!(ff::ForceField; alg = OptimizationLBFGSB.LBFGSB(), kwargs...)
+function optimize_structure!(ff::ForceField; alg = OptimizationLBFGSB.LBFGSB(), minibatching = false, kwargs...)
     r0 = collect(Float64, Iterators.flatten(atoms(ff.system).r))
 
     optf = Optimization.OptimizationFunction(
@@ -24,7 +24,7 @@ function optimize_structure!(ff::ForceField; alg = OptimizationLBFGSB.LBFGSB(), 
         end,
         grad = (grad, r, _) -> begin
             update!(ff)
-            compute_forces!(ff)
+            compute_forces!(ff, minibatching)
             F = atoms(ff.system).F
             F[ff.constrained_atoms] .= Ref(zeros(3))
             grad .= -collect(Float64, Iterators.flatten(F)) ./ force_prefactor
