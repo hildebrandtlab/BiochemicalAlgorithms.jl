@@ -11,7 +11,7 @@ export
     count_warnings,
     print_warnings
 
-const force_prefactor = ustrip(u"kJ/mol/angstrom"/Constants.N_A |> u"N")
+const force_prefactor = ustrip(u"kJ/mol/angstrom" / Constants.N_A |> u"N")
 
 abstract type AbstractForceFieldComponent{T<:Real} end
 
@@ -19,10 +19,10 @@ abstract type AbstractForceFieldComponent{T<:Real} end
     name::String
     system::AbstractAtomContainer{T}
     parameters::AbstractForceFieldParameters
-    options::Dict{Symbol, Any}
-    atom_type_templates::Dict{String, AtomTypeTemplate{T}}
+    options::Dict{Symbol,Any}
+    atom_type_templates::Dict{String,AtomTypeTemplate{T}}
     components::Vector{AbstractForceFieldComponent{T}}
-    energy::Dict{String, T}
+    energy::Dict{String,T}
     unassigned_atoms::Vector{Atom{T}}
     constrained_atoms::Vector{Int}
     warnings::Vector{String}
@@ -31,38 +31,38 @@ abstract type AbstractForceFieldComponent{T<:Real} end
         name::String,
         system::AbstractAtomContainer{T},
         parameters::AbstractForceFieldParameters,
-        options::Dict{Symbol, Any} = Dict{Symbol, Any}(),
-        atom_type_templates::Dict{String, AtomTypeTemplate{T}} = Dict{String, AtomTypeTemplate{T}}(),
-        components::Vector{AbstractForceFieldComponent{T}} = Vector{AbstractForceFieldComponent{T}}(),
-        energy::Dict{String, T} = Dict{String, T}(),
-        unassigned_atoms::Vector{Atom{T}} = Vector{Atom{T}}(),
-        constrained_atoms::Vector{Int} = Vector{Int}(),
-        warnings::Vector{String} = Vector{String}()
+        options::Dict{Symbol,Any}=Dict{Symbol,Any}(),
+        atom_type_templates::Dict{String,AtomTypeTemplate{T}}=Dict{String,AtomTypeTemplate{T}}(),
+        components::Vector{AbstractForceFieldComponent{T}}=Vector{AbstractForceFieldComponent{T}}(),
+        energy::Dict{String,T}=Dict{String,T}(),
+        unassigned_atoms::Vector{Atom{T}}=Vector{Atom{T}}(),
+        constrained_atoms::Vector{Int}=Vector{Int}(),
+        warnings::Vector{String}=Vector{String}()
     ) where T
-        new{T}(name, system, parameters, options, atom_type_templates, components, energy, unassigned_atoms,constrained_atoms, warnings)
+        new{T}(name, system, parameters, options, atom_type_templates, components, energy, unassigned_atoms, constrained_atoms, warnings)
     end
 end
 
-function init_atom_types(params::AbstractForceFieldParameters, ::Type{T}=Float32) where {T <: Real}
+function init_atom_types(params::AbstractForceFieldParameters, ::Type{T}=Float32) where {T<:Real}
     tpl_section = extract_section(params, "ChargesAndTypeNames")
 
-    unit_q  = get(tpl_section.properties, "unit_q", "e_au")
+    unit_q = get(tpl_section.properties, "unit_q", "e_au")
 
     # UnitfulAtomic uses e_au for e0
     if unit_q == "e0"
         unit_q = "e_au"
     end
 
-    q_factor  = ustrip((1uparse(unit_q; unit_context=UnitfulAtomic))  |> u"e_au")
+    q_factor = ustrip((1uparse(unit_q; unit_context=UnitfulAtomic)) |> u"e_au")
 
-    Dict{String, AtomTypeTemplate{T}}(
-        t.name => AtomTypeTemplate{T}(t.type, T(q_factor*t.q))
+    Dict{String,AtomTypeTemplate{T}}(
+        t.name => AtomTypeTemplate{T}(t.type, T(q_factor * t.q))
         for t in eachrow(tpl_section.data)
     )
 end
 
 function _try_assign!(
-    templates::Dict{String, AtomTypeTemplate{T}},
+    templates::Dict{String,AtomTypeTemplate{T}},
     name::AbstractString,
     atom::Atom{T};
     assign_typenames::Bool,
@@ -89,10 +89,10 @@ end
 
 function assign_typenames_and_charges!(ff::ForceField)
     assign_typenames = ff.options[:assign_typenames]
-    assign_charges   = ff.options[:assign_charges]
+    assign_charges = ff.options[:assign_charges]
 
     overwrite_typenames = ff.options[:overwrite_typenames]
-    overwrite_charges   = ff.options[:overwrite_nonzero_charges]
+    overwrite_charges = ff.options[:overwrite_nonzero_charges]
 
     if !assign_charges && !assign_typenames
         # nothing to do...
@@ -153,7 +153,9 @@ end
 
 function setup!(::AbstractForceFieldComponent) end
 function update!(::AbstractForceFieldComponent) end
-function count_warnings(::AbstractForceFieldComponent) 0 end
+function count_warnings(::AbstractForceFieldComponent)
+    0
+end
 function print_warnings(::AbstractForceFieldComponent) end
 
 function setup!(ff::ForceField)
@@ -207,108 +209,57 @@ function compute_forces!(ff::ForceField{T}, minibatching::Bool) where T
     atoms(ff.system).F .= Ref(zero(Vector3{T}))
 
     if minibatching
-        _compute_forces_minibatching!(ff)
-    else  
-    map(compute_forces!, ff.components)
+        return _compute_forces_minibatching!(ff, 10)
+    else
+        map(compute_forces!, ff.components)
 
-    nothing
+        nothing
     end
 end
 
 using Random
 
-function _compute_forces_minibatching!(ff::ForceField{T}) where T
-   # get all interactions from all components
-
-   
-    interaction_map = Dict{Int, Int}()
-    i = 1
-
-    # stretches
-    for idx in eachindex(ff.components[1].stretches)
-        interaction_map[i] = idx
-        i += 1
-    end
-    #bends
-    for idx in eachindex(ff.components[2].bends)
-        interaction_map[i] = idx
-        i += 1
-    end
-    # proper torsions
-    for idx in eachindex(ff.components[3].proper_torsions)
-        interaction_map[i] = idx
-        i += 1
-    end
-    #improper torsions
-    for idx in eachindex(ff.components[3].improper_torsions)
-        interaction_map[i] = idx
-        i += 1
-    end
-    #nonbonded
-
-    for idx in 1:length(ff.components[4].lj_interactions)
-        interaction_map[i] = idx
-        i += 1
-    end
-  
-    for idx in 1:length(ff.components[4].hydrogen_bonds)
-        interaction_map[i] = idx
-        i += 1
-    end
-    for idx in 1:length(ff.components[4].electrostatic_interactions)
-        interaction_map[i] = idx
-        i += 1
-    end
 
 
+function _compute_forces_minibatching!(ff::ForceField{T}, batchsize::Int=10) where T
 
-    all_interactions = shuffle(collect(1:length(interaction_map))) #permutation of all interactions
+    interaction_map = _setup_minibatching!(ff)
+    
 
-    # first batch: 
-    first_batch = sort(all_interactions[1:div(length(interaction_map), 10)])
-
-    stretches = []
-    bends = []
-    proper_torsions = []
-    improper_torsions = []
-    lj_interactions_idx= []
-    hydrogen_bonds_idx = []
-    electrostatic_interactions_idx = []
-    for i in first_batch
-        idx = interaction_map[i]
-        if i <= length(ff.components[1].stretches)
-            push!(stretches, idx)
-        elseif i <= length(ff.components[1].stretches) + length(ff.components[2].bends)
-            push!(bends, idx)
-        elseif i <= length(ff.components[1].stretches) + length(ff.components[2].bends) + length(ff.components[3].proper_torsions)
-            push!(proper_torsions, idx)
-        elseif i <= length(ff.components[1].stretches) + length(ff.components[2].bends) + length(ff.components[3].proper_torsions) + length(ff.components[3].improper_torsions)
-            push!(improper_torsions, idx)
-        elseif i <= length(ff.components[1].stretches) + length(ff.components[2].bends) + length(ff.components[3].proper_torsions) + length(ff.components[3].improper_torsions) + length(ff.components[4].lj_interactions)
-            push!(lj_interactions_idx, idx)
-        elseif i <= length(ff.components[1].stretches) + length(ff.components[2].bends) + length(ff.components[3].proper_torsions) + length(ff.components[3].improper_torsions) + length(ff.components[4].lj_interactions) + length(ff.components[4].hydrogen_bonds)
-            push!(hydrogen_bonds_idx, idx)
-        else
-            push!(electrostatic_interactions_idx, idx)
-        end
-    end
+    # always take the first batch 
+    batch = sort(interaction_map[1:div(length(interaction_map), batchsize)])
 
 
-    map(compute_forces!,ff.components[1].stretches[stretches])
-    map(compute_forces!, ff.components[2].bends[bends])
+    map(compute_forces!, ff.components[1].stretches[[j for (i, j) in batch if i == "stretches"]])
+    map(compute_forces!, ff.components[2].bends[[j for (i, j) in batch if i == "bends"]])
+    map(compute_forces!, ff.components[3].proper_torsions[[j for (i, j) in batch if i == "proper_torsions"]])
+    map(compute_forces!, ff.components[3].improper_torsions[[j for (i, j) in batch if i == "improper_torsions"]])
 
+    # non-bonded interactions are using deques internally
+    lj_interactions_idx = [j for (i, j) in batch if i == "LJ"]
+    hydrogen_bonds_idx = [j for (i, j) in batch if i == "hb"]
+    electrostatic_interactions_idx = [j for (i, j) in batch if i == "ei"]
+    map(compute_forces!, [v for (i, v) in enumerate(ff.components[4].lj_interactions) if i in lj_interactions_idx])
+    map(compute_forces!, [v for (i, v) in enumerate(ff.components[4].hydrogen_bonds) if i in hydrogen_bonds_idx])
+    map(compute_forces!, [v for (i, v) in enumerate(ff.components[4].electrostatic_interactions) if i in electrostatic_interactions_idx])
 
-    map(compute_forces!, ff.components[3].proper_torsions[proper_torsions])
-    map(compute_forces!, ff.components[3].improper_torsions[improper_torsions])
-
-
-    map(compute_forces!,[v for (i,v) in enumerate(ff.components[4].lj_interactions) if i in lj_interactions_idx]) 
-    map(compute_forces!, [v for (i,v) in enumerate(ff.components[4].hydrogen_bonds) if i in hydrogen_bonds_idx])
-    map(compute_forces!, [v for (i,v) in enumerate(ff.components[4].electrostatic_interactions) if i in electrostatic_interactions_idx])
-
-nothing
+    interaction_map = filter((x -> !(x in batch)), interaction_map)
 end
 
+function _setup_minibatching!(ff::ForceField{T}) where T
+    # get all interactions from all components # get all interactions from all components
+
+
+    interaction_map = [("stretches", j) for j in 1:length(ff.components[1].stretches)]
+    append!(interaction_map, ("bends", j) for j in 1:length(ff.components[2].bends))
+    append!(interaction_map, ("proper_torsions", j) for j in 1:length(ff.components[3].proper_torsions))
+    append!(interaction_map, ("improper_torsions", j) for j in 1:length(ff.components[3].improper_torsions))
+    append!(interaction_map, ("LJ", j) for j in 1:length(ff.components[4].lj_interactions))
+    append!(interaction_map, ("hb", j) for j in 1:length(ff.components[4].hydrogen_bonds))
+    append!(interaction_map, ("ei", j) for j in 1:length(ff.components[4].electrostatic_interactions))
+
+    return shuffle(interaction_map)
+end
 
 function _check_warnings(ff::ForceField)
     nwarnings = count_warnings(ff)
@@ -322,8 +273,8 @@ function _check_warnings(ff::ForceField)
             if cnt > 0
                 warning_string *= Printf.format(
                     Printf.Format(" - %-$(max_length)s: %d warnings\n"),
-                        name,
-                        cnt
+                    name,
+                    cnt
                 )
             end
         end
@@ -344,7 +295,7 @@ function count_warnings(ff::ForceField)
     length(ff.warnings) + sum(map(count_warnings, ff.components))
 end
 
-function print_warnings(ff::ForceField; include_components::Bool = true)
+function print_warnings(ff::ForceField; include_components::Bool=true)
     for warn in ff.warnings
         @warn warn
     end
