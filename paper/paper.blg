@@ -17,7 +17,7 @@ Warning--entry type for "BioMakie" isn't style-file defined
 --line 290 of file ref.bib
 You've used 29 entries,
             2314 wiz_defined-function locations,
-            728 strings with 10997 characters,
+            728 strings with 10981 characters,
 and the built_in function-call counts, 11431 in all, are:
 = -- 1050
 > -- 783
