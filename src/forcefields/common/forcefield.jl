@@ -11,8 +11,6 @@ export
     count_warnings,
     print_warnings
 
-const force_prefactor = ustrip(u"kJ/mol/angstrom"/Constants.N_A |> u"N")
-
 abstract type AbstractForceFieldComponent{T<:Real} end
 
 @auto_hash_equals struct ForceField{T<:Real}

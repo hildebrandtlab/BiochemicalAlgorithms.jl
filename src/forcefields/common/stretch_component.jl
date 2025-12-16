@@ -122,7 +122,7 @@ function compute_forces!(qbs::QuadraticBondStretch{T}) where T
         return
     end
 
-    direction *= force_prefactor * 2 * qbs.k * (distance - qbs.r0) / distance
+    direction *= 2 * qbs.k * (distance - qbs.r0) / distance
 
     #@info "$(get_full_name(qbs.a1))<->$(get_full_name(qbs.a2)) $(direction)"
 

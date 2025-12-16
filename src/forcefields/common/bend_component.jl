@@ -160,7 +160,7 @@ function compute_forces!(qab::QuadraticAngleBend{T}) where {T<:Real}
             acos(cos_θ)
         end
 
-    factor = T(2*force_prefactor) * qab.k * (θ - qab.θ₀)
+    factor = T(2) * qab.k * (θ - qab.θ₀)
 
     # calculate the cross product of v1 and v2 and normalize if possible
     crossv1v2 = normalize(cross(v1, v2))
