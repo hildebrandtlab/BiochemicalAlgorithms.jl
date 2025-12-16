@@ -310,7 +310,7 @@ function compute_forces!(ct::CosineTorsion{T}) where T
 
         # multiply with the barrier height and the factor for unit conversion
         # from kJ/(mol A) -> J/(mol m) -> N
-        ∂E∂ϕ = sum(T(force_prefactor) .* terms)
+        ∂E∂ϕ = sum(T(1) .* terms)
 
         @debug "$(get_full_name(ct.a1))-$(get_full_name(ct.a2))-" *
                "$(get_full_name(ct.a3))-$(get_full_name(ct.a4)) " *

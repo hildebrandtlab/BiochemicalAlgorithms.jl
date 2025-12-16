@@ -38,7 +38,7 @@ ff = AmberFF(sys)
     ┌ Warning: 2 warnings occurred during setup that were suppressed:
     │  - Torsion: 2 warnings
     │ Use print_warnings(ff) to display them.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/forcefields/common/forcefield.jl:233
+    └ @ BiochemicalAlgorithms ~/research/BiochemicalAlgorithms.jl/src/forcefields/common/forcefield.jl:231
 
     AmberFF for 23 atoms with 22 bonds.
 
@@ -63,26 +63,28 @@ atoms(sys).F   # or, equivalently, atoms(ff.system).F
 ```
 
     23-element SystemComponentTableCol{StaticArraysCore.SVector{3, Float32}}:
-     [-8.9053415f-10, -3.7217032f-10, 4.1395054f-10]
-     [7.8021095f-10, 5.1211528f-11, -4.522637f-11]
-     [2.127164f-9, 7.604934f-10, -1.7229925f-9]
-     [6.356721f-8, 4.1203478f-8, -1.4751436f-7]
-     [-6.499216f-11, -9.310281f-11, 5.3746518f-11]
-     [4.2136676f-11, -7.511121f-11, 1.08262455f-10]
-     [8.747193f-12, -6.845735f-11, 8.273652f-11]
-     [6.989254f-11, 1.4578987f-11, -3.0845635f-11]
-     [-1.959529f-10, -1.1358163f-10, -1.10529204f-10]
-     [7.265452f-11, 4.82974f-11, -4.450986f-11]
+     [-63.913353, -14.859964, 12.627003]
+     [45.423416, 8.423723, -5.2788324]
+     [82.277824, 115.931015, -197.63892]
+     [3812.7246, 2396.3618, -8713.229]
+     [0.41454452, 1.2887306, 0.053740263]
+     [-0.24682106, -4.6684403, 6.2538323]
+     [2.2589614, 0.26905724, 0.4852221]
+     [1.5536233, -0.3578552, 0.102772325]
+     [-14.104118, 3.8311667, -20.902191]
+     [1.2480733, 0.6318529, -2.2023916]
      ⋮
-     [2.466124f-10, -1.1778087f-9, 2.604445f-9]
-     [8.2778495f-10, -5.4249055f-10, 8.7658f-10]
-     [3.3519604f-11, -1.4663634f-10, 3.1680894f-11]
-     [4.1687834f-11, 5.73837f-12, 1.0522514f-10]
-     [7.105666f-11, -7.694347f-11, 1.360434f-10]
-     [-4.5483453f-10, 7.660909f-10, -6.81682f-10]
-     [9.818537f-12, -2.6953412f-10, 2.1820956f-10]
-     [-6.470714f-8, -4.2964025f-8, 1.4709109f-7]
-     [-2.1067495f-10, 1.2029504f-10, -2.337838f-10]
+     [-41.699554, -4.197597, 120.749504]
+     [23.966557, -25.913675, 20.226442]
+     [0.84398764, -0.20457195, -2.9093812]
+     [0.71285784, 1.493221, 0.039408203]
+     [1.5202898, -0.209776, 0.41397908]
+     [-14.851994, 14.544389, -15.180875]
+     [-0.56523114, 8.413886, -0.5651454]
+     [-3795.7595, -2608.7483, 8814.81]
+     [2.5838406, -12.319646, 4.423078]
+
+The force vectors are given in units of kJ/(mol·). In previous versions, forces were computed in Newton.
 
 ## Potential energy computation
 
@@ -92,7 +94,7 @@ Similarly, potential energies can be computed via `compute_energy!`:
 compute_energy!(ff)
 ```
 
-    1425.6064f0
+    1425.5991f0
 
 This will return the total energy of the system (in kJ/mol). Additionally, the force field object keeps track of individual contributions of force field components, which can be queried like this:
 
@@ -101,13 +103,13 @@ ff.energy
 ```
 
     Dict{String, Float32} with 7 entries:
-      "Angle Bends"      => 5.40767
-      "Hydrogen Bonds"   => 0.0
-      "Bond Stretches"   => 1.36306
-      "Van der Waals"    => 1493.18
       "Improper Torsion" => 3.99017f-6
-      "Electrostatic"    => -85.1465
+      "Hydrogen Bonds"   => 0.0
       "Proper Torsion"   => 10.7981
+      "Electrostatic"    => -85.1466
+      "Bond Stretches"   => 1.36306
+      "Angle Bends"      => 5.40767
+      "Van der Waals"    => 1493.18
 
 ## Structure optimization
 
@@ -118,7 +120,7 @@ optimize_structure!(ff)
 compute_energy!(ff)
 ```
 
-    -374.3089f0
+    -133.99623f0
 
 The opmitization function also updates the atom positions correspondingly such that the structure can be visualized in its optimized state, e.g., through [BiochemicalVisualization.jl](https://github.com/hildebrandtlab/BiochemicalVisualization.jl).
 
