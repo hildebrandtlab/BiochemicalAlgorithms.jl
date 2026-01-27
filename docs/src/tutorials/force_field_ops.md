@@ -63,28 +63,28 @@ atoms(sys).F   # or, equivalently, atoms(ff.system).F
 ```
 
     23-element SystemComponentTableCol{StaticArraysCore.SVector{3, Float32}}:
-     [-63.913353, -14.859964, 12.627003]
-     [45.423416, 8.423723, -5.2788324]
-     [82.277824, 115.931015, -197.63892]
-     [3812.7246, 2396.3618, -8713.229]
-     [0.41454452, 1.2887306, 0.053740263]
-     [-0.24682106, -4.6684403, 6.2538323]
-     [2.2589614, 0.26905724, 0.4852221]
-     [1.5536233, -0.3578552, 0.102772325]
-     [-14.104118, 3.8311667, -20.902191]
-     [1.2480733, 0.6318529, -2.2023916]
+     [-53.629234, -22.412619, 24.92868]
+     [46.985428, 3.0840528, -2.7236197]
+     [128.10083, 45.797966, -103.76105]
+     [3828.1062, 2481.3315, -8883.5205]
+     [-3.9139185, -5.606783, 3.2366903]
+     [2.5375302, -4.523301, 6.5197177]
+     [0.5267676, -4.122597, 4.9825087]
+     [4.2090273, 0.8779674, -1.8575675]
+     [-11.800565, -6.840048, -6.6562223]
+     [4.3753357, 2.9085145, -2.680413]
      ⋮
-     [-41.699554, -4.197597, 120.749504]
-     [23.966557, -25.913675, 20.226442]
-     [0.84398764, -0.20457195, -2.9093812]
-     [0.71285784, 1.493221, 0.039408203]
-     [1.5202898, -0.209776, 0.41397908]
-     [-14.851994, 14.544389, -15.180875]
-     [-0.56523114, 8.413886, -0.5651454]
-     [-3795.7595, -2608.7483, 8814.81]
-     [2.5838406, -12.319646, 4.423078]
+     [14.851362, -70.929306, 156.84334]
+     [49.850376, -32.66954, 52.78887]
+     [2.0185971, -8.830647, 1.9078681]
+     [2.5104997, 0.3455725, 6.3368053]
+     [4.2791324, -4.633644, 8.192726]
+     [-27.39077, 46.135075, -41.05185]
+     [0.59128755, -16.231728, 13.140887]
+     [-3896.7554, -2587.3545, 8858.033]
+     [-12.687142, 7.2443366, -14.078793]
 
-The force vectors are given in units of kJ/(mol·). In previous versions, forces were computed in Newton.
+The force vectors are given in units of kJ/(mol·Å). Before BiochemicalAlgorithms.jl v0.6, forces were computed in Newton.
 
 ## Potential energy computation
 
@@ -103,13 +103,13 @@ ff.energy
 ```
 
     Dict{String, Float32} with 7 entries:
-      "Improper Torsion" => 3.99017f-6
-      "Hydrogen Bonds"   => 0.0
-      "Proper Torsion"   => 10.7981
-      "Electrostatic"    => -85.1466
-      "Bond Stretches"   => 1.36306
       "Angle Bends"      => 5.40767
+      "Hydrogen Bonds"   => 0.0
+      "Bond Stretches"   => 1.36306
       "Van der Waals"    => 1493.18
+      "Improper Torsion" => 3.99017f-6
+      "Electrostatic"    => -85.1466
+      "Proper Torsion"   => 10.7981
 
 ## Structure optimization
 
@@ -120,7 +120,7 @@ optimize_structure!(ff)
 compute_energy!(ff)
 ```
 
-    -133.99623f0
+    -374.31235f0
 
 The opmitization function also updates the atom positions correspondingly such that the structure can be visualized in its optimized state, e.g., through [BiochemicalVisualization.jl](https://github.com/hildebrandtlab/BiochemicalVisualization.jl).
 
