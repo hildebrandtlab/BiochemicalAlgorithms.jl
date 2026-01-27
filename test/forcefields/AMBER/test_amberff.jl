@@ -56,7 +56,7 @@
             @test _rms_F(sys) ≈ T(228.72667607023757)
         end
 
-     # Energy test 2 (Bend) [AMBER91]
+        # Energy test 2 (Bend) [AMBER91]
         let sys = load_hinfile(ball_data_path("../test/data/AmberFF_test_2.hin"), T)
             normalize_names!(sys, fdb)
 
@@ -133,7 +133,7 @@
         end
 
         # Energy test 5 (AlaGlySer) [AMBER96]
-          let sys = load_hinfile(ball_data_path("../test/data/AlaGlySer.hin"), T)
+        let sys = load_hinfile(ball_data_path("../test/data/AlaGlySer.hin"), T)
             normalize_names!(sys, fdb)
 
             ff = AmberFF(sys, ff_amber96; assign_charges = false, assign_typenames = false)
@@ -189,8 +189,8 @@
             @test atom_by_name(sys, "H").F ≈ T[-17.228398823132288, -15.957668610188652, 1.0901517307239912] atol = 1e-5
         end
 
-      # Force test 2 (ES switching) [AMBER91/CDIEL]
-      let sys = load_hinfile(ball_data_path("../test/data/AmberFF_test_3.hin"), T)
+        # Force test 2 (ES switching) [AMBER91/CDIEL]
+        let sys = load_hinfile(ball_data_path("../test/data/AmberFF_test_3.hin"), T)
             normalize_names!(sys, fdb)
 
             ff = AmberFF(sys, ff_amber91;
@@ -223,7 +223,7 @@
             end
         end
 
-         # Force test 3 (ES switching) [AMBER91/RDIEL]
+        # Force test 3 (ES switching) [AMBER91/RDIEL]
         let sys = load_hinfile(ball_data_path("../test/data/AmberFF_test_3.hin"), T)
             normalize_names!(sys, fdb)
 
