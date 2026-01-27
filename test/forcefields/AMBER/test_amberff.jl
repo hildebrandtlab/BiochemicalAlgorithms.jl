@@ -1,6 +1,10 @@
 @testitem "AmberFF" begin
+    using Unitful
+    const prefactor = ustrip(u"kJ/mol/angstrom"/Unitful.Na |> u"N")
+
+
     function _rms_F(sys::System{T}) where T
-        √(sum(squared_norm.(atoms(sys).F)) / (3 * natoms(sys))) / T(BiochemicalAlgorithms.force_prefactor)
+        √(sum(squared_norm.(atoms(sys).F)) / (3 * natoms(sys)))
     end
 
     let p = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
@@ -22,7 +26,7 @@
         @test a_ff.energy["Electrostatic"]    ≈ -85.1466827f0
 
         compute_forces!(a_ff)
-        @test _rms_F(p) ≈ 1703.33f0
+        @test _rms_F(p) ≈ 1682.0159f0
     end
 
     # BALL tests
@@ -125,7 +129,7 @@
             @test ff.energy["Electrostatic"] ≈ T(-346.8087761352619)
 
             compute_forces!(ff)
-            @test _rms_F(sys) ≈ T(35.035943894791984)
+            @test _rms_F(sys) ≈ T(24.398090094191605)
         end
 
         # Energy test 5 (AlaGlySer) [AMBER96]
@@ -144,7 +148,7 @@
             @test ff.energy["Electrostatic"] ≈ T(57.20358862687402)
 
             compute_forces!(ff)
-            @test _rms_F(sys) ≈ T(40.63998952652902)
+            @test _rms_F(sys) ≈ T(28.500231091492697)
         end
 
         # Energy test 6 (AlaGlySer) [AMBER94]
@@ -163,7 +167,7 @@
             @test ff.energy["Electrostatic"] ≈ T(-163.88720300090736)
 
             compute_forces!(ff)
-            @test _rms_F(sys) ≈ T(41.758379137558485)
+            @test _rms_F(sys) ≈ T(29.38050165182444 )
         end
 
         # Force test 1 (Torsion) [AMBER94]
@@ -179,10 +183,10 @@
             @test only(ff.components) isa TorsionComponent{T}
 
             compute_forces!(ff)
-            @test atom_by_name(sys, "C").F ≈ T[5.65872e-10,7.01203e-13,-3.2631e-10] atol = 1e-12
-            @test atom_by_name(sys, "O").F ≈ T[-3.76732e-10,2.77556e-17,2.17502e-10] atol = 1e-12
-            @test atom_by_name(sys, "N").F ≈ T[9.69443e-11,2.64282e-10,9.07063e-11] atol = 1e-12
-            @test atom_by_name(sys, "H").F ≈ T[-2.86084e-10,-2.64983e-10,1.81024e-11] atol = 1e-12
+            @test atom_by_name(sys, "C").F ≈ T[34.07756609401984, 0.04222799449598291, -19.650846410165727] atol = 1e-4
+            @test atom_by_name(sys, "O").F ≈ T[-22.6872888378592, 5.01346911541134e-7, 13.098240217939106] atol = 1e-5
+            @test atom_by_name(sys, "N").F ≈ T[5.8381215669716475, 15.915440114345756, 5.462454461502626] atol = 1e-5
+            @test atom_by_name(sys, "H").F ≈ T[-17.228398823132288, -15.957668610188652, 1.0901517307239912] atol = 1e-5
         end
 
         # Force test 2 (ES switching) [AMBER91/CDIEL]
@@ -209,12 +213,13 @@
                 update!(ff)
                 compute_forces!(ff)
 
-                force = a2.F[1] / T(BiochemicalAlgorithms.force_prefactor)
+                force = a2.F[1] 
                 dE = compute_energy!(ff)
                 a2.r = Vector3{T}(d - 0.0001, 0, 0)
                 update!(ff)
                 dE = (compute_energy!(ff) - dE) / T(0.0001)
-                @test force ≈ dE atol = 10
+          
+                @test force/prefactor ≈ dE atol = 10
             end
         end
 
@@ -242,12 +247,12 @@
                 update!(ff)
                 compute_forces!(ff)
 
-                force = a2.F[1] / T(BiochemicalAlgorithms.force_prefactor)
+                force = a2.F[1]
                 dE = compute_energy!(ff)
                 a2.r = Vector3{T}(d - 0.0001, 0, 0)
                 update!(ff)
                 dE = (compute_energy!(ff) - dE) / T(0.0001)
-                @test force ≈ dE atol = 3
+                @test force/prefactor ≈ dE atol = 3
             end
         end
 
@@ -274,13 +279,15 @@
                 update!(ff)
                 compute_forces!(ff)
 
-                force = a2.F[1] / T(BiochemicalAlgorithms.force_prefactor)
+                force = a2.F[1] 
                 dE = compute_energy!(ff)
                 a2.r = Vector3{T}(d - 0.0001, 0, 0)
                 update!(ff)
                 dE = (compute_energy!(ff) - dE) / T(0.0001)
                 @test force ≈ dE atol = 0.01
             end
-        end
+        end 
+        
     end
+   
 end

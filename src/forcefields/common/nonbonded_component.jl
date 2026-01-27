@@ -519,7 +519,7 @@ function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where T
     sq_distance = squared_norm(direction)
 
     if (sq_distance > zero(T) && sq_distance <= lji.switching_function.sq_cutoff)
-        factor = T(force_prefactor) / sq_distance
+        factor = one(T) / sq_distance
         inv_distance_6 = sq_distance^-3
 
         factor *= inv_distance_6 * lji.scaling_factor * (12 * lji.A * inv_distance_6 - 6 * lji.B)
@@ -534,7 +534,7 @@ function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where T
             # Second, we add the product of the energy and the derivative
             # of the switching function (the total force is the derivative of
             # a product of functions)
-            energy = -T(force_prefactor) * lji.scaling_factor *
+            energy = -lji.scaling_factor *
                 inv_distance_6 * (inv_distance_6 * lji.A - lji.B)
 
             factor += switch_derivative * energy
@@ -559,7 +559,7 @@ function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where T
         inv_distance_10 = sq_distance^-5
         inv_distance_12 = sq_distance^-6
 
-        factor = T(force_prefactor) * inv_distance_2
+        factor = inv_distance_2
 
         factor *= inv_distance_12 * (12 * hb.A * inv_distance_2 - 10 * hb.B);
 
@@ -573,7 +573,7 @@ function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where T
             # Second, we add the product of the energy and the derivative
             # of the switching function (the total force is the derivative of
             # a product of functions)
-            energy = -T(force_prefactor) * hb.scaling_factor *
+            energy = -hb.scaling_factor *
                 inv_distance_10 * (hb.A * inv_distance_2 - hb.B)
 
             factor += switch_derivative * energy

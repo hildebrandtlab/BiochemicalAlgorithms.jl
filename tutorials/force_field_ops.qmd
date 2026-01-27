@@ -57,6 +57,7 @@ The force vectors computed here are directly stored in the underlying system:
 atoms(sys).F   # or, equivalently, atoms(ff.system).F
 ```
 
+The force vectors are given in units of kJ/(mol·\AA). Before BiochemicalAlgorithms.jl v0.6, forces were computed in Newton. 
 
 ## Potential energy computation
 
