@@ -64,6 +64,34 @@ end
         @test first(chains(sys2)).name == "A"
         @test nmolecules(sys2) == 1
     end
+
+
+    # test for single chain
+    for T in [Float32, Float64]
+        sys = System{T}()
+        mol = Molecule(sys)
+        chain = Chain(mol; name = "A")
+        chain2 = Chain(mol; name = "B")
+        frag = Fragment(chain, 1)
+        frag2 = Fragment(chain2, 2)
+        Atom(frag, 1, Elements.C; name = "C")
+        Atom(frag, 2, Elements.O; name = "O", r = ones(Vector3{T}))
+
+        Atom(frag2, 1, Elements.C; name = "C")
+        Atom(frag2, 2, Elements.O; name = "H", r = ones(Vector3{T}))
+        Atom(frag2, 3, Elements.O; name = "H", r = ones(Vector3{T}))
+        (fname, fh) = mktemp(; cleanup = true)
+
+        write_pdb(fname, chain2)
+        sys2 = load_pdb(fname, T)
+        @test sys2 isa System{T}
+        @test natoms(sys2) == 3
+        @test atoms(sys2).name == ["C", "H", "H"]
+        @test nfragments(sys2) == 1
+        @test nchains(sys2) == 1
+        @test first(chains(sys2)).name == "B"
+        @test nmolecules(sys2) == 1
+    end
 end
 
 @testitem "Read PDBx/mmCIF" begin

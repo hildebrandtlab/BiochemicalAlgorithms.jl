@@ -173,11 +173,10 @@ all_chains = chains(sys)
 |      4 | 2615    | I        |
 
 This snippet will create separate PDB files for the two chains of the system:
-Note: Currently fails see [issue 209](https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/issues/209)
 
 ``` julia
-#write_pdb("2ptc_chainE.pdb", all_chains[1])
-#write_pdb("2ptc_chainI.pdb", all_chains[2])
+#type
+write_pdb("2ptc_chainI.pdb", all_chains[2])
 ```
 
 ## How can I map two configurations of the same protein onto each other?
