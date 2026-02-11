@@ -27,13 +27,13 @@ const ES_Prefactor_force = ustrip(Constants.N_A * Constants.e₀^2 / (4.0 * π *
 
     function CubicSwitchingFunction{T}(cutoff::T, cuton::T) where {T<:Real}
         sq_cutoff = cutoff^2
-        sq_cuton  = cuton^2
+        sq_cuton = cuton^2
 
         inverse_distance_off_on_3 = (sq_cutoff - sq_cuton)^3
 
         if (inverse_distance_off_on_3 <= zero(T))
             @warn "NonBondedComponent(): cuton value should be smaller than cutoff -- " *
-                    "switching function disabled."
+                  "switching function disabled."
 
             inverse_distance_off_on_3 = zero(T)
         else
@@ -59,28 +59,28 @@ end
 #
 function switching_function(f::CubicSwitchingFunction{T}, sq_distance::T)::T where T
     below_off = sq_distance < f.sq_cutoff ? one(T) : zero(T)
-    below_on  = sq_distance < f.sq_cuton  ? one(T) : zero(T)
+    below_on = sq_distance < f.sq_cuton ? one(T) : zero(T)
 
     below_off * (below_on + (one(T) - below_on) * (f.sq_cutoff - sq_distance)^2
-                * (f.sq_cutoff + T(2) * sq_distance - T(3) * f.sq_cuton)
-                * f.inverse_distance_off_on_3)
+                            * (f.sq_cutoff + T(2) * sq_distance - T(3) * f.sq_cuton)
+                            * f.inverse_distance_off_on_3)
 end
 
 function switching_derivative(f::CubicSwitchingFunction{T}, sq_distance::T) where T
     primal = (f.sq_cutoff - sq_distance)^2 *
-                (f.sq_cutoff + T(2) * sq_distance - T(3) * f.sq_cuton) *
-                f.inverse_distance_off_on_3
+             (f.sq_cutoff + T(2) * sq_distance - T(3) * f.sq_cuton) *
+             f.inverse_distance_off_on_3
 
     difference_to_off = f.sq_cutoff - sq_distance
-    difference_to_on  = f.sq_cuton  - sq_distance
+    difference_to_on = f.sq_cuton - sq_distance
 
     derivative = T(12) * difference_to_off * difference_to_on *
-                    f.inverse_distance_off_on_3
+                 f.inverse_distance_off_on_3
 
     primal, derivative
 end
 
-@auto_hash_equals struct LennardJonesInteraction{T<:Real, N, M}
+@auto_hash_equals struct LennardJonesInteraction{T<:Real,N,M}
     A::T
     B::T
     distance::T
@@ -101,17 +101,17 @@ end
 end
 
 @auto_hash_equals mutable struct NonBondedComponentCache{T}
-    bond_cache::Set{Pair{Int64, Int64}}
+    bond_cache::Set{Pair{Int64,Int64}}
     es_switching_function::CubicSwitchingFunction{T}
-    geminal_cache::Set{Pair{Int64, Int64}}
-    hydrogen_bond_combinations::Dict{@NamedTuple{I::String, J::String}, @NamedTuple{A::T, B::T}}
-    lj_combinations::Dict{@NamedTuple{I::String, J::String}, @NamedTuple{A_ij::T, B_ij::T}}
+    geminal_cache::Set{Pair{Int64,Int64}}
+    hydrogen_bond_combinations::Dict{@NamedTuple{I::String, J::String},@NamedTuple{A::T, B::T}}
+    lj_combinations::Dict{@NamedTuple{I::String, J::String},@NamedTuple{A_ij::T, B_ij::T}}
     nonbonded_cutoff::T
     periodic_box::Vector{T}
     scaling_es_1_4::T
     scaling_vdw_1_4::T
     vdw_switching_function::CubicSwitchingFunction{T}
-    vicinal_cache::Set{Pair{Int64, Int64}}
+    vicinal_cache::Set{Pair{Int64,Int64}}
 
     function NonBondedComponentCache{T}() where T
         new()
@@ -122,15 +122,15 @@ end
     name::String
     ff::ForceField{T}
     cache::NonBondedComponentCache{T}
-    energy::Dict{String, T}
-    unassigned_lj_interactions::Vector{Tuple{Atom{T}, Atom{T}}}
+    energy::Dict{String,T}
+    unassigned_lj_interactions::Vector{Tuple{Atom{T},Atom{T}}}
 
-    lj_interactions::Deque{LennardJonesInteraction{T, 12, 6}}
-    hydrogen_bonds::Deque{LennardJonesInteraction{T, 12, 10}}
+    lj_interactions::Deque{LennardJonesInteraction{T,12,6}}
+    hydrogen_bonds::Deque{LennardJonesInteraction{T,12,10}}
     electrostatic_interactions::Deque{ElectrostaticInteraction{T}}
 
     function NonBondedComponent{T}(ff::ForceField{T}) where {T<:Real}
-        new("NonBonded", ff, NonBondedComponentCache{T}(), Dict{String, T}(), Tuple{Atom{T},Atom{T}}[])
+        new("NonBonded", ff, NonBondedComponentCache{T}(), Dict{String,T}(), Tuple{Atom{T},Atom{T}}[])
     end
 end
 
@@ -154,15 +154,15 @@ end
     if !ismissing(params)
         push!(
             lj_interactions,
-                LennardJonesInteraction{T, 12, 6}(
-                    params.A_ij,
-                    params.B_ij,
-                    T(distance),
-                    scaling_factor,
-                    atom_1,
-                    atom_2,
-                    switching_function
-                )
+            LennardJonesInteraction{T,12,6}(
+                params.A_ij,
+                params.B_ij,
+                T(distance),
+                scaling_factor,
+                atom_1,
+                atom_2,
+                switching_function
+            )
         )
     else
         push!(nbc.unassigned_lj_interactions, (atom_1, atom_2))
@@ -181,7 +181,7 @@ function _setup_vdw!(nbc::NonBondedComponent{T}) where T
     lj_section = extract_section(nbc.ff.parameters, "LennardJones")
     lj_df = lj_section.data
 
-    unit_R = get(lj_section.properties, "unit_R",       "angstrom")
+    unit_R = get(lj_section.properties, "unit_R", "angstrom")
     unit_ϵ = get(lj_section.properties, "unit_epsilon", "kcal/mol")
 
     # ball used to write Angstrom with a capital letter; this clashes with the convention in Unitful.jl
@@ -211,22 +211,22 @@ function _setup_vdw!(nbc::NonBondedComponent{T}) where T
     end
 
     r_6 = ((radius_averaging == "arithmetic")
-            ? (lj_combinations.R_i .+ lj_combinations.R_j)
-            : T(2) * sqrt.(lj_combinations.R_i .* lj_combinations.Rj)
-        ).^6
+           ? (lj_combinations.R_i .+ lj_combinations.R_j)
+           : T(2) * sqrt.(lj_combinations.R_i .* lj_combinations.Rj)
+    ) .^ 6
 
     ϵ = sqrt.(lj_combinations.epsilon_i .* lj_combinations.epsilon_j)
 
-    lj_combinations.A_ij = ϵ .* r_6.^2
+    lj_combinations.A_ij = ϵ .* r_6 .^ 2
     lj_combinations.B_ij = T(2) * ϵ .* r_6
 
-    lj_combinations_cache = Dict{@NamedTuple{I::String, J::String}, @NamedTuple{A_ij::T, B_ij::T}}(
+    lj_combinations_cache = Dict{@NamedTuple{I::String, J::String},@NamedTuple{A_ij::T, B_ij::T}}(
         (I=r.I, J=r.J) => (A_ij=r.A_ij, B_ij=r.B_ij)
         for r in eachrow(lj_combinations)
     )
 
     vdw_cutoff::T = nbc.ff.options[:vdw_cutoff]
-    vdw_cuton::T  = nbc.ff.options[:vdw_cuton]
+    vdw_cuton::T = nbc.ff.options[:vdw_cuton]
 
     # build the switching function as a closure
     vdw_switching_function = CubicSwitchingFunction{T}(vdw_cutoff, vdw_cuton)
@@ -266,9 +266,9 @@ function _setup_hydrogenbonds!(nbc::NonBondedComponent{T}) where T
     hydrogen_bonds_df.A .*= T(hbond_A_factor)
     hydrogen_bonds_df.B .*= T(hbond_B_factor)
 
-    hydrogen_bond_combinations_cache = Dict{@NamedTuple{I::String, J::String}, @NamedTuple{A::T, B::T}}(
+    hydrogen_bond_combinations_cache = Dict{@NamedTuple{I::String, J::String},@NamedTuple{A::T, B::T}}(
         (I=r.I, J=r.J,) => (A=r.A, B=r.B)
-            for r in eachrow(hydrogen_bonds_df)
+        for r in eachrow(hydrogen_bonds_df)
     )
 
     # remember those parts that stay constant when only the system is updated
@@ -277,9 +277,9 @@ end
 
 function _setup_electrostatic_interactions!(nbc::NonBondedComponent{T}) where T
     es_cutoff::T = nbc.ff.options[:electrostatic_cutoff]
-    es_cuton::T  = nbc.ff.options[:electrostatic_cuton]
+    es_cuton::T = nbc.ff.options[:electrostatic_cuton]
 
-    es_switching_function  = CubicSwitchingFunction{T}(es_cutoff, es_cuton)
+    es_switching_function = CubicSwitchingFunction{T}(es_cutoff, es_cuton)
 
     scaling_es_1_4::T = nbc.ff.options[:scaling_electrostatic_1_4]
     if (scaling_es_1_4 == zero(T))
@@ -325,12 +325,12 @@ function setup!(nbc::NonBondedComponent{T}) where T
 
     nh_0 = Set.(map(v -> mg.vprops[v][:name], vertices(mg)))
 
-    to_set(nh) = Set{Pair{Int64, Int64}}(
+    to_set(nh) = Set{Pair{Int64,Int64}}(
         a => b for i in eachindex(nh_0) for a in nh_0[i] for b in nh[i]
     )
 
     compute_neighborhood(level) =
-        map(v->Set(map(v->mg.vprops[v][:name], neighborhood(mg, v, level))), vertices(mg))
+        map(v -> Set(map(v -> mg.vprops[v][:name], neighborhood(mg, v, level))), vertices(mg))
 
     nh_1 = compute_neighborhood(1)
     nh_2 = compute_neighborhood(2)
@@ -338,9 +338,9 @@ function setup!(nbc::NonBondedComponent{T}) where T
 
     # remember those parts that stay constant when only the system is updated
     nbc.cache.nonbonded_cutoff = nonbonded_cutoff
-    nbc.cache.periodic_box     = periodic_box
+    nbc.cache.periodic_box = periodic_box
 
-    nbc.cache.bond_cache    = to_set(setdiff.(nh_1, nh_0))
+    nbc.cache.bond_cache = to_set(setdiff.(nh_1, nh_0))
     nbc.cache.geminal_cache = to_set(setdiff.(nh_2, nh_1))
     nbc.cache.vicinal_cache = to_set(setdiff.(nh_3, nh_2))
 end
@@ -352,41 +352,41 @@ function update!(nbc::NonBondedComponent{T}) where T
     nonbonded_cutoff = nbc.cache.nonbonded_cutoff
 
     scaling_vdw_1_4 = nbc.cache.scaling_vdw_1_4
-    scaling_es_1_4  = nbc.cache.scaling_es_1_4
+    scaling_es_1_4 = nbc.cache.scaling_es_1_4
 
     vdw_switching_function = nbc.cache.vdw_switching_function
-    es_switching_function  = nbc.cache.es_switching_function
+    es_switching_function = nbc.cache.es_switching_function
 
     lj_combinations = nbc.cache.lj_combinations
 
     hydrogen_bond_combinations = nbc.cache.hydrogen_bond_combinations
 
-    bond_cache    = nbc.cache.bond_cache
+    bond_cache = nbc.cache.bond_cache
     geminal_cache = nbc.cache.geminal_cache
     vicinal_cache = nbc.cache.vicinal_cache
 
-    check_bond(a1::Int, a2::Int)    = (a1 => a2) ∈ bond_cache
+    check_bond(a1::Int, a2::Int) = (a1 => a2) ∈ bond_cache
     check_geminal(a1::Int, a2::Int) = (a1 => a2) ∈ geminal_cache
     check_vicinal(a1::Int, a2::Int) = (a1 => a2) ∈ vicinal_cache
 
     atom_cache::AtomTable{T} = atoms(ff.system)
-    neighbors::Vector{Tuple{Int, Int, T}} = ff.options[:periodic_boundary_conditions]::Bool ?
-        neighborlist(atom_cache.r, unitcell=periodic_box, nonbonded_cutoff) :
-        neighborlist(atom_cache.r, nonbonded_cutoff)
+    neighbors::Vector{Tuple{Int,Int,T}} = ff.options[:periodic_boundary_conditions]::Bool ?
+                                          neighborlist(atom_cache.r, unitcell=periodic_box, nonbonded_cutoff) :
+                                          neighborlist(atom_cache.r, nonbonded_cutoff)
 
     distance_dependent_dielectric = ff.options[:distance_dependent_dielectric]::Bool
 
     hint = Int(round(1.2 * natoms(ff.system)))
-    lj_interactions = Deque{LennardJonesInteraction{T, 12, 6}}(hint)
-    hydrogen_bonds  = Deque{LennardJonesInteraction{T, 12, 10}}(hint)
+    lj_interactions = Deque{LennardJonesInteraction{T,12,6}}(hint)
+    hydrogen_bonds = Deque{LennardJonesInteraction{T,12,10}}(hint)
     electrostatic_interactions = Deque{ElectrostaticInteraction{T}}(hint)
     empty!(nbc.unassigned_lj_interactions)
 
-    idx_cache    = atom_cache.idx
+    idx_cache = atom_cache.idx
     charge_cache = atom_cache.charge
-    type_cache   = atom_cache.atom_type
+    type_cache = atom_cache.atom_type
 
-    for lj_candidate::Tuple{Int, Int, T} in neighbors
+    for lj_candidate::Tuple{Int,Int,T} in neighbors
         lj_1 = lj_candidate[1]
         lj_2 = lj_candidate[2]
 
@@ -406,7 +406,7 @@ function update!(nbc::NonBondedComponent{T}) where T
 
         vicinal_pair = check_vicinal(atom_1_idx, atom_2_idx)
 
-        q1q2 = charge_cache[lj_1]*charge_cache[lj_2]
+        q1q2 = charge_cache[lj_1] * charge_cache[lj_2]
 
         if q1q2 ≠ zero(T)
             es = ElectrostaticInteraction{T}(
@@ -436,7 +436,7 @@ function update!(nbc::NonBondedComponent{T}) where T
             if !ismissing(h_params)
                 push!(
                     hydrogen_bonds,
-                    LennardJonesInteraction{T, 12, 10}(
+                    LennardJonesInteraction{T,12,10}(
                         only(h_params.A),
                         only(h_params.B),
                         T(lj_candidate[3]),
@@ -477,20 +477,20 @@ function update!(nbc::NonBondedComponent{T}) where T
         end
     end
 
-    nbc.lj_interactions            = lj_interactions
-    nbc.hydrogen_bonds             = hydrogen_bonds
+    nbc.lj_interactions = lj_interactions
+    nbc.hydrogen_bonds = hydrogen_bonds
     nbc.electrostatic_interactions = electrostatic_interactions
 
     nothing
 end
 
-@inline function compute_energy(lji::LennardJonesInteraction{T, 12, 6})::T where T
+@inline function compute_energy(lji::LennardJonesInteraction{T,12,6})::T where T
     inv_dist_6::T = lji.distance^-6
 
     inv_dist_6 * (inv_dist_6 * lji.A - lji.B) * lji.scaling_factor * switching_function(lji.switching_function, lji.distance^2)
 end
 
-@inline function compute_energy(hb::LennardJonesInteraction{T, 12, 10})::T where T
+@inline function compute_energy(hb::LennardJonesInteraction{T,12,10})::T where T
     hb.distance^-12 * hb.A - hb.distance^-10 * hb.B * hb.scaling_factor * switching_function(hb.switching_function, hb.distance^2)
 end
 
@@ -502,18 +502,18 @@ end
 
 function compute_energy!(nbc::NonBondedComponent{T})::T where T
     # iterate over all interactions in the system
-    vdw_energy   = mapreduce(compute_energy, +, nbc.lj_interactions;            init=zero(T))
-    hbond_energy = mapreduce(compute_energy, +, nbc.hydrogen_bonds;             init=zero(T))
-    es_energy    = mapreduce(compute_energy, +, nbc.electrostatic_interactions; init=zero(T))
+    vdw_energy = mapreduce(compute_energy, +, nbc.lj_interactions; init=zero(T))
+    hbond_energy = mapreduce(compute_energy, +, nbc.hydrogen_bonds; init=zero(T))
+    es_energy = mapreduce(compute_energy, +, nbc.electrostatic_interactions; init=zero(T))
 
-    nbc.energy["Van der Waals"]  = vdw_energy
+    nbc.energy["Van der Waals"] = vdw_energy
     nbc.energy["Hydrogen Bonds"] = hbond_energy
-    nbc.energy["Electrostatic"]  = es_energy
+    nbc.energy["Electrostatic"] = es_energy
 
     vdw_energy + hbond_energy + es_energy
 end
 
-function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where T
+function compute_forces!(lji::LennardJonesInteraction{T,12,6}) where T
     direction = lji.a1.r .- lji.a2.r
 
     sq_distance = squared_norm(direction)
@@ -535,7 +535,7 @@ function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where T
             # of the switching function (the total force is the derivative of
             # a product of functions)
             energy = -lji.scaling_factor *
-                inv_distance_6 * (inv_distance_6 * lji.A - lji.B)
+                     inv_distance_6 * (inv_distance_6 * lji.A - lji.B)
 
             factor += switch_derivative * energy
         end
@@ -549,19 +549,19 @@ function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where T
     end
 end
 
-function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where T
+function compute_forces!(hb::LennardJonesInteraction{T,12,10}) where T
     direction = hb.a1.r .- hb.a2.r
 
     sq_distance = squared_norm(direction)
 
     if (sq_distance > zero(T) && sq_distance <= hb.switching_function.sq_cutoff)
-        inv_distance_2 =  one(T) / sq_distance
+        inv_distance_2 = one(T) / sq_distance
         inv_distance_10 = sq_distance^-5
         inv_distance_12 = sq_distance^-6
 
         factor = inv_distance_2
 
-        factor *= inv_distance_12 * (12 * hb.A * inv_distance_2 - 10 * hb.B);
+        factor *= inv_distance_12 * (12 * hb.A * inv_distance_2 - 10 * hb.B)
 
         # do we have to use the switching function (cuton <= distance <= cutoff)?
         if (sq_distance > hb.switching_function.sq_cuton)
@@ -574,7 +574,7 @@ function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where T
             # of the switching function (the total force is the derivative of
             # a product of functions)
             energy = -hb.scaling_factor *
-                inv_distance_10 * (hb.A * inv_distance_2 - hb.B)
+                     inv_distance_10 * (hb.A * inv_distance_2 - hb.B)
 
             factor += switch_derivative * energy
         end
@@ -627,10 +627,10 @@ function compute_forces!(esi::ElectrostaticInteraction{T}) where T
 
             # calculate the electrostatic energy
             dist_depend_factor = ((esi.distance_dependent_dielectric)
-                ? T(0.25) * inv_distance : one(T))
+                                  ? T(0.25) * inv_distance : one(T))
 
             energy = -T(ES_Prefactor_force) * esi.scaling_factor * dist_depend_factor *
-                inv_distance * esi.q1q2
+                     inv_distance * esi.q1q2
 
             factor += switch_derivative * energy
         end
@@ -671,9 +671,9 @@ function print_warnings(nbc::NonBondedComponent)
         type_atom_1::String = atom_1.atom_type
         type_atom_2::String = atom_2.atom_type
 
-        @warn "NonBondedComponent(): cannot find vdW parameters for "                   *
-                "atom types $(type_atom_1)-$(type_atom_2) (atoms are: "                 *
-                "$(get_full_name(atom_1, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/" *
-                "$(get_full_name(atom_2, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID)))"
+        @warn "NonBondedComponent(): cannot find vdW parameters for " *
+              "atom types $(type_atom_1)-$(type_atom_2) (atoms are: " *
+              "$(get_full_name(atom_1, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID))/" *
+              "$(get_full_name(atom_2, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID)))"
     end
 end
