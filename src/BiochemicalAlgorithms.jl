@@ -18,9 +18,11 @@ using Quaternions: quat
 
 import JSON
 import MolecularGraph
+import MLUtils
 import Observables
 import Optimization
 import OptimizationLBFGSB
+import OptimizationOptimisers
 import PrettyTables
 import StaticArrays
 import Tables, TableOperations
@@ -120,6 +122,7 @@ include("structureanalysis/bounding_box.jl")
 
 # optimization
 include("optimization/optimize_structure.jl")
+include("optimization/optimize_with_minibatching.jl")
 
 # precompilation directives
 include("precompile.jl")
