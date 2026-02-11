@@ -17,10 +17,10 @@ abstract type AbstractForceFieldComponent{T<:Real} end
     name::String
     system::AbstractAtomContainer{T}
     parameters::AbstractForceFieldParameters
-    options::Dict{Symbol, Any}
-    atom_type_templates::Dict{String, AtomTypeTemplate{T}}
+    options::Dict{Symbol,Any}
+    atom_type_templates::Dict{String,AtomTypeTemplate{T}}
     components::Vector{AbstractForceFieldComponent{T}}
-    energy::Dict{String, T}
+    energy::Dict{String,T}
     unassigned_atoms::Vector{Atom{T}}
     constrained_atoms::Vector{Int}
     warnings::Vector{String}
@@ -29,38 +29,38 @@ abstract type AbstractForceFieldComponent{T<:Real} end
         name::String,
         system::AbstractAtomContainer{T},
         parameters::AbstractForceFieldParameters,
-        options::Dict{Symbol, Any} = Dict{Symbol, Any}(),
-        atom_type_templates::Dict{String, AtomTypeTemplate{T}} = Dict{String, AtomTypeTemplate{T}}(),
-        components::Vector{AbstractForceFieldComponent{T}} = Vector{AbstractForceFieldComponent{T}}(),
-        energy::Dict{String, T} = Dict{String, T}(),
-        unassigned_atoms::Vector{Atom{T}} = Vector{Atom{T}}(),
-        constrained_atoms::Vector{Int} = Vector{Int}(),
-        warnings::Vector{String} = Vector{String}()
+        options::Dict{Symbol,Any}=Dict{Symbol,Any}(),
+        atom_type_templates::Dict{String,AtomTypeTemplate{T}}=Dict{String,AtomTypeTemplate{T}}(),
+        components::Vector{AbstractForceFieldComponent{T}}=Vector{AbstractForceFieldComponent{T}}(),
+        energy::Dict{String,T}=Dict{String,T}(),
+        unassigned_atoms::Vector{Atom{T}}=Vector{Atom{T}}(),
+        constrained_atoms::Vector{Int}=Vector{Int}(),
+        warnings::Vector{String}=Vector{String}()
     ) where T
-        new{T}(name, system, parameters, options, atom_type_templates, components, energy, unassigned_atoms,constrained_atoms, warnings)
+        new{T}(name, system, parameters, options, atom_type_templates, components, energy, unassigned_atoms, constrained_atoms, warnings)
     end
 end
 
-function init_atom_types(params::AbstractForceFieldParameters, ::Type{T}=Float32) where {T <: Real}
+function init_atom_types(params::AbstractForceFieldParameters, ::Type{T}=Float32) where {T<:Real}
     tpl_section = extract_section(params, "ChargesAndTypeNames")
 
-    unit_q  = get(tpl_section.properties, "unit_q", "e_au")
+    unit_q = get(tpl_section.properties, "unit_q", "e_au")
 
     # UnitfulAtomic uses e_au for e0
     if unit_q == "e0"
         unit_q = "e_au"
     end
 
-    q_factor  = ustrip((1uparse(unit_q; unit_context=UnitfulAtomic))  |> u"e_au")
+    q_factor = ustrip((1uparse(unit_q; unit_context=UnitfulAtomic)) |> u"e_au")
 
-    Dict{String, AtomTypeTemplate{T}}(
-        t.name => AtomTypeTemplate{T}(t.type, T(q_factor*t.q))
+    Dict{String,AtomTypeTemplate{T}}(
+        t.name => AtomTypeTemplate{T}(t.type, T(q_factor * t.q))
         for t in eachrow(tpl_section.data)
     )
 end
 
 function _try_assign!(
-    templates::Dict{String, AtomTypeTemplate{T}},
+    templates::Dict{String,AtomTypeTemplate{T}},
     name::AbstractString,
     atom::Atom{T};
     assign_typenames::Bool,
@@ -87,10 +87,10 @@ end
 
 function assign_typenames_and_charges!(ff::ForceField)
     assign_typenames = ff.options[:assign_typenames]
-    assign_charges   = ff.options[:assign_charges]
+    assign_charges = ff.options[:assign_charges]
 
     overwrite_typenames = ff.options[:overwrite_typenames]
-    overwrite_charges   = ff.options[:overwrite_nonzero_charges]
+    overwrite_charges = ff.options[:overwrite_nonzero_charges]
 
     if !assign_charges && !assign_typenames
         # nothing to do...
@@ -151,7 +151,9 @@ end
 
 function setup!(::AbstractForceFieldComponent) end
 function update!(::AbstractForceFieldComponent) end
-function count_warnings(::AbstractForceFieldComponent) 0 end
+function count_warnings(::AbstractForceFieldComponent)
+    0
+end
 function print_warnings(::AbstractForceFieldComponent) end
 
 function setup!(ff::ForceField)
@@ -200,14 +202,70 @@ function compute_energy!(ff::ForceField{T}; verbose::Bool=false)::T where T
     total_energy
 end
 
-function compute_forces!(ff::ForceField{T}) where T
+function compute_forces!(ff::ForceField{T}; minibatching) where T
     # first, zero out the current forces
     atoms(ff.system).F .= Ref(zero(Vector3{T}))
+
+    if minibatching
+        setup_minibatching(ff)
+    end
 
     map(compute_forces!, ff.components)
 
     nothing
 end
+
+#=
+struct InteractionBatches
+
+    interaction_map::Dict{Tuple{Int,Int},Vector{Tuple{Int,Int}}}
+    data::Vector{AbstractForceFieldComponent{T}}
+end =#
+
+function setup_minibatching(ff::ForceField; batch_size::Int=1000)
+    # TODO: check if components are initialized
+
+
+    interaction_map = Dict{Tuple{Int,Int},Vector{Tuple{Int,Int}}}()
+    # check stretches
+    for (i, stretch) in enumerate(ff.components[1].stretches)
+        k = stretch.a1.idx < stretch.a2.idx ? (stretch.a1.idx, stretch.a2.idx) : (stretch.a2.idx, stretch.a1.idx)
+        push!(get!(interaction_map, k, Vector{Tuple{Int,Int}}()), (1, i))
+    end
+    # check bends
+    for (i, bend) in enumerate(ff.components[2].bends)
+        k = bend.a1.idx < bend.a2.idx ? (bend.a1.idx, bend.a2.idx) : (bend.a2.idx, bend.a1.idx)
+        push!(get!(interaction_map, (bend.a1.idx, bend.a2.idx), Vector{Tuple{Int,Int}}()), (2, i))
+    end
+    # check torsions
+    for (i, torsion) in enumerate(ff.components[3].proper_torsions)
+        k = torsion.a1.idx < torsion.a2.idx ? (torsion.a1.idx, torsion.a2.idx) : (torsion.a2.idx, torsion.a1.idx)
+        push!(get!(interaction_map, (torsion.a1.idx, torsion.a2.idx), Vector{Tuple{Int,Int}}()), (3, i))
+    end
+    # check improper torsions
+    for (i, torsion) in enumerate(ff.components[3].improper_torsions)
+        k = torsion.a1.idx < torsion.a2.idx ? (torsion.a1.idx, torsion.a2.idx) : (torsion.a2.idx, torsion.a1.idx)
+        push!(get!(interaction_map, (torsion.a1.idx, torsion.a2.idx), Vector{Tuple{Int,Int}}()), (4, i))
+    end
+    #check for ljp
+    for (i, ljp) in enumerate(ff.components[4].lj_interactions)
+        k = ljp.a1.idx < ljp.a2.idx ? (ljp.a1.idx, ljp.a2.idx) : (ljp.a2.idx, ljp.a1.idx)
+        push!(get!(interaction_map, (ljp.a1.idx, ljp.a2.idx), Vector{Tuple{Int,Int}}()), (5, i))
+    end
+    #check for ljp
+    for (i, ljp) in enumerate(ff.components[4].hydrogen_bonds)
+        k = ljp.a1.idx < ljp.a2.idx ? (ljp.a1.idx, ljp.a2.idx) : (ljp.a2.idx, ljp.a1.idx)
+        push!(get!(interaction_map, (ljp.a1.idx, ljp.a2.idx), Vector{Tuple{Int,Int}}()), (6, i))
+    end
+    #check for ljp
+    for (i, ljp) in enumerate(ff.components[4].electrostatic_interactions)
+        k = ljp.a1.idx < ljp.a2.idx ? (ljp.a1.idx, ljp.a2.idx) : (ljp.a2.idx, ljp.a1.idx)
+        push!(get!(interaction_map, (ljp.a1.idx, ljp.a2.idx), Vector{Tuple{Int,Int}}()), (6, i))
+    end
+
+end
+
+
 
 function _check_warnings(ff::ForceField)
     nwarnings = count_warnings(ff)
@@ -221,8 +279,8 @@ function _check_warnings(ff::ForceField)
             if cnt > 0
                 warning_string *= Printf.format(
                     Printf.Format(" - %-$(max_length)s: %d warnings\n"),
-                        name,
-                        cnt
+                    name,
+                    cnt
                 )
             end
         end
@@ -243,7 +301,7 @@ function count_warnings(ff::ForceField)
     length(ff.warnings) + sum(map(count_warnings, ff.components))
 end
 
-function print_warnings(ff::ForceField; include_components::Bool = true)
+function print_warnings(ff::ForceField; include_components::Bool=true)
     for warn in ff.warnings
         @warn warn
     end

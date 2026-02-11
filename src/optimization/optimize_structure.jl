@@ -13,16 +13,16 @@ This function passes all keyword arguments to
 with the following default values:
  - `alg = OptimizationLBFGSB.LBFGSB()`
 """
-function optimize_structure!(ff::ForceField; alg = OptimizationLBFGSB.LBFGSB(), kwargs...)
+function optimize_structure!(ff::ForceField; alg=OptimizationLBFGSB.LBFGSB(), kwargs...)
     r0 = collect(Float64, Iterators.flatten(atoms(ff.system).r))
 
     optf = Optimization.OptimizationFunction(
-        (r, _ = nothing) -> begin
+        (r, _=nothing) -> begin
             atoms(ff.system).r .= eachcol(reshape(r, 3, :))
             update!(ff)
             compute_energy!(ff)
         end,
-        grad = (grad, r, _) -> begin
+        grad=(grad, r, _) -> begin
             update!(ff)
             compute_forces!(ff)
             F = atoms(ff.system).F
@@ -31,6 +31,44 @@ function optimize_structure!(ff::ForceField; alg = OptimizationLBFGSB.LBFGSB(), 
             nothing
         end
     )
+    prob = Optimization.OptimizationProblem(optf, r0)
+
+    Optimization.solve(prob, alg; kwargs...)
+end
+
+"""
+    optimize_structure!(ff::ForceField)
+
+Attempts to solve the energy optimization problem represented by the given force field object with a minibatching approach.
+
+# Supported keyword arguments
+This function passes all keyword arguments to
+[Optimization.solve](https://docs.sciml.ai/Optimization/stable/API/solve/),
+with the following default values:
+ - `alg = ()`
+"""
+function optimize_structure_mini!(ff::ForceField; alg=Optimisers.Adam(), kwargs...)
+    r0 = collect(Float64, Iterators.flatten(atoms(ff.system).r))
+
+    optf = Optimization.OptimizationFunction(
+        (r, _=nothing) -> begin
+            atoms(ff.system).r .= eachcol(reshape(r, 3, :))
+            update!(ff)
+            compute_energy!(ff)
+        end,
+        grad=(grad, r, _) -> begin
+            update!(ff)
+            compute_forces!(ff)
+            F = atoms(ff.system).F
+            F[ff.constrained_atoms] .= Ref(zeros(3))
+            grad .= -collect(Float64, Iterators.flatten(F))
+            nothing
+        end
+    )
+    
+    ds = InteractionDataSet(ff)
+
+    dataloader = MLUTILS.DataLoader(ds, batchsize = 2, shuffle=true)
     prob = Optimization.OptimizationProblem(optf, r0)
 
     Optimization.solve(prob, alg; kwargs...)
@@ -56,7 +94,7 @@ end
 
 for fun in [:optimize_structure!, :optimize_hydrogen_positions!]
     @eval begin
-        function $(fun)(ff::Observables.Observable{ForceField{T}}; notification_frequency::Int = 1, kwargs...) where T
+        function $(fun)(ff::Observables.Observable{ForceField{T}}; notification_frequency::Int=1, kwargs...) where T
             iterations = 0
             _update = () -> begin
                 iterations += 1
