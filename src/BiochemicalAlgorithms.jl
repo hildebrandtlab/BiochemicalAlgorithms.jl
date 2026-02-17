@@ -15,6 +15,7 @@ using Statistics: mean
 using Unitful, UnitfulAtomic
 using Quaternions: quat
 
+import JSON
 import JSON3
 import MolecularGraph
 import Observables
