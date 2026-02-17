@@ -20,7 +20,7 @@ end
 const _CT_3D = 2
 const _CT_UNITS_NANOMETERS = 11
 
-function _convert_coordinates(pb_coords_vec::JSON3.Array, ::Type{T}) where {T <: Real}
+function _convert_coordinates(pb_coords_vec::Vector, ::Type{T}) where {T <: Real}
     if isempty(pb_coords_vec)
         return []
     end
@@ -49,7 +49,7 @@ function _convert_coordinates(pb_coords_vec::JSON3.Array, ::Type{T}) where {T <:
     result
 end
 
-function _parse_atoms!(mol::Molecule, compound::JSON3.Object, ::Type{T} = Float32) where {T <: Real}
+function _parse_atoms!(mol::Molecule, compound::JSON.Object, ::Type{T} = Float32) where {T <: Real}
     if haskey(compound, :atoms) && haskey(compound, :coords)
         conformers = _convert_coordinates(compound.coords, T)
 
@@ -74,7 +74,7 @@ function _parse_atoms!(mol::Molecule, compound::JSON3.Object, ::Type{T} = Float3
     end
 end
 
-function _parse_bonds!(mol::Molecule, compound::JSON3.Object, ::Type{T} = Float32) where {T <: Real}
+function _parse_bonds!(mol::Molecule, compound::JSON.Object, ::Type{T} = Float32) where {T <: Real}
     aidx = Dict(a.number => a.idx for a in atoms(parent_system(mol)))
     if haskey(compound, :bonds)
         for i in eachindex(compound.bonds.aid1)
@@ -113,7 +113,7 @@ end
 # TODO:
 # - modelling of properties
 # - currently: urn.label as key and as value PCInfoDataValue
-function _parse_props!(mol::Molecule, compound::JSON3.Object)
+function _parse_props!(mol::Molecule, compound::JSON.Object)
     if haskey(compound, :props)
         for i in eachindex(compound.props)
             d = compound.props[i]
@@ -133,7 +133,7 @@ Read a PubChem JSON file.
 function load_pubchem_json(fname::AbstractString, ::Type{T} = Float32) where {T <: Real}
     # TODO: full conversion, adding all properties
 
-    pb = JSON3.read(read(fname, String))
+    pb = JSON.parse(read(fname, String))
     sys = System{T}()
     for compound in pb.PC_Compounds
         # for now, use the file name as the name for the molecule
