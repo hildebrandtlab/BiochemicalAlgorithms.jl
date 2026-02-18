@@ -307,14 +307,14 @@ function Base.convert(::Type{MolecularStructure}, ac::AbstractAtomContainer{T}) 
     fixlists!(struc)
     struc
 end
-function write_pdb(io::IO, ac::Fragment{T}) where T
+
+function write_pdb(io::IO, ac::Union{Chain{T}, Fragment{T}}) where T
         # get the PDBInfo object
     pdb_info = get_property(ac, :PDBInfo, PDBDetails.PDBInfo{T}())
-
     pdb_info.writer_stats = PDBDetails.PDBWriterStats()
 
-        PDBDetails.write_coordinate_section(io, pdb_info, ac, true)
-        PDBDetails.write_record(io, pdb_info, PDBDetails.RECORD_TAG_END)
+    PDBDetails.write_coordinate_section(io, pdb_info, ac; coordinate_only=true)
+    PDBDetails.write_record(io, pdb_info, PDBDetails.RECORD_TAG_END)
 end
 
 function write_pdb(io::IO, ac::AbstractAtomContainer{T}) where T
@@ -331,7 +331,7 @@ function write_pdb(io::IO, ac::AbstractAtomContainer{T}) where T
     PDBDetails.write_connectivity_annotation_section(io, pdb_info, ac)
     PDBDetails.write_miscellaneous_features_section(io, pdb_info)
     PDBDetails.write_crystallographic_section(io, pdb_info)
-    PDBDetails.write_coordinate_section(io, pdb_info, ac, false)
+    PDBDetails.write_coordinate_section(io, pdb_info, ac)
     PDBDetails.write_connectivity_section(io, pdb_info, ac)
     PDBDetails.write_bookkeeping_section(io, pdb_info, ac)
     PDBDetails.write_record(io, pdb_info, PDBDetails.RECORD_TAG_END)
