@@ -308,8 +308,17 @@ function Base.convert(::Type{MolecularStructure}, ac::AbstractAtomContainer{T}) 
     struc
 end
 
+function write_pdb(io::IO, ac::Union{Chain{T}, Fragment{T}}) where T
+        # get the PDBInfo object
+    pdb_info = get_property(ac, :PDBInfo, PDBDetails.PDBInfo{T}())
+    pdb_info.writer_stats = PDBDetails.PDBWriterStats()
+
+    PDBDetails.write_coordinate_section(io, pdb_info, ac; coordinate_only=true)
+    PDBDetails.write_record(io, pdb_info, PDBDetails.RECORD_TAG_END)
+end
 
 function write_pdb(io::IO, ac::AbstractAtomContainer{T}) where T
+
     # get the PDBInfo object
     pdb_info = get_property(ac, :PDBInfo, PDBDetails.PDBInfo{T}())
 

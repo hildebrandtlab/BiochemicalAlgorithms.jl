@@ -144,6 +144,7 @@ function write_records(io::IO, pdb_info::PDBInfo, record_type)
 end
 
 function write_seqres(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}) where {T <:Real}
+
     # iterate over all chains
     for chain in chains(ac)
         res = fragments(chain)
@@ -371,23 +372,8 @@ function write_crystallographic_section(io::IO, pdb_info::PDBInfo)
     write_records(io, pdb_info, Val(RECORD_TYPE__TVECT))
 end
 
-function write_coordinate_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}) where {T <:Real}
-    # first, figure out if we have to write multiple models...
-    models = frame_ids(ac)
-    
-    if pdb_info.selected_model != -1
-        models = collect(Iterators.filter(m -> m == pdb_info.selected_model, models))
-    end
-
-    multiple_models = length(models) > 1
-
-    for model in models
-        if multiple_models
-            # write a models record
-            write_record(io, pdb_info, RECORD_TAG_MODEL, pdb_info.selected_model)
-        end
-
-        # we iterate over all atoms and decide if we have to write an ATOM, HETATM, or TER record
+function write_atom_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}) where {T <:Real}
+ # we iterate over all atoms and decide if we have to write an ATOM, HETATM, or TER record
 
         last_atom = nothing
         atom_number = 1
@@ -429,6 +415,32 @@ function write_coordinate_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomCon
         if natoms(ac) > 0
             write_record(io, pdb_info, RECORD_TAG_TER, atom_number, atom_details(atoms(ac)[end])...)
         end
+end
+
+function write_coordinate_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}; coordinate_only::Bool=false) where {T <:Real}
+
+    if coordinate_only
+        # if the  ac::Chain or ac::Fragment, we skip all other sections and write plain atom records
+        write_atom_section(io, pdb_info, ac)
+        return
+    end
+
+    # first, figure out if we have to write multiple models...
+    models = frame_ids(ac)
+    
+    if pdb_info.selected_model != -1
+        models = collect(Iterators.filter(m -> m == pdb_info.selected_model, models))
+    end
+
+    multiple_models = length(models) > 1
+
+    for model in models
+        if multiple_models
+            # write a models record
+            write_record(io, pdb_info, RECORD_TAG_MODEL, pdb_info.selected_model)
+        end
+
+        write_atom_section(io, pdb_info, ac)
 
         if multiple_models
             # write a model record
