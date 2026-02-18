@@ -19,6 +19,7 @@ import JSON3
 import MolecularGraph
 import Observables
 import Optimization
+import OptimizationLBFGSB
 import PrettyTables
 import StaticArrays
 import Tables, TableOperations
@@ -66,6 +67,13 @@ include("fileformats/ball_ini_file.jl")
 include("fileformats/hinfile.jl")
 include("fileformats/pdb.jl")
 include("fileformats/pubchem_json.jl")
+
+module PDBDetails
+include("fileformats/pdb/pdb_defs.jl")
+include("fileformats/pdb/pdb_general.jl")
+include("fileformats/pdb/pdb_writer.jl")
+end
+
 include("fileformats/sdfile.jl")
 
 # mappings
@@ -92,6 +100,8 @@ include("preprocessing/normalize_names.jl")
 include("preprocessing/build_bonds.jl")
 include("preprocessing/add_hydrogens.jl")
 include("preprocessing/reconstruct_fragments.jl")
+include("preprocessing/predict_hbonds.jl")
+include("preprocessing/predict_secondary_structure.jl")
 
 # optimization
 include("optimization/optimize_structure.jl")
@@ -99,6 +109,12 @@ include("optimization/optimize_structure.jl")
 export
     ball_data_path
 
+"""
+    ball_data_path(parts...)
+
+Constructs an absolute path to a file or directory within the package's `data` folder.
+Accepts any number of path components as arguments and joins them appropriately.
+"""
 ball_data_path(parts...) = normpath(joinpath(@__DIR__, "..", "data", parts...))
 
 end

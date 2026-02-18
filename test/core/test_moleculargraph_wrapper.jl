@@ -12,7 +12,7 @@
 
         g = convert(SDFMolGraph, sys)
         @test g isa SDFMolGraph
-        aidx_dict = g.gprops[:atom_idx]
+        aidx_dict = BiochemicalAlgorithms._molgraph_atom_to_idx(g)
 
         @test length(g.vprops) == natoms(sys)
         for (i, at) in enumerate(atoms(sys))
@@ -23,7 +23,7 @@
 
         @test length(g.eprops) == nbonds(sys)
         bds_sys = Set((b.a1, b.a2, Int(b.order)) for b in bonds(sys))
-        bds_g   = Set((aidx_dict[e.first.src], aidx_dict[e.first.dst], e.second.order) for e in g.eprops)
+        bds_g   = Set((aidx_dict[e.first.key.src], aidx_dict[e.first.key.dst], e.second.order) for e in g.eprops)
         @test length(bds_sys ∩ bds_g) == nbonds(sys)
     end
 
@@ -36,7 +36,7 @@
 
         g = convert(SDFMolGraph, sys)
         @test g isa SDFMolGraph
-        aidx_dict = g.gprops[:atom_idx]
+        aidx_dict = BiochemicalAlgorithms._molgraph_atom_to_idx(g)
 
         @test length(g.vprops) == natoms(sys)
         for (i, at) in enumerate(atoms(sys))

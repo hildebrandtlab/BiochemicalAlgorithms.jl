@@ -1,6 +1,6 @@
 @testitem "AmberFF" begin
     function _rms_F(sys::System{T}) where T
-        √(sum(squared_norm.(atoms(sys).F)) / (3 * natoms(sys))) / T(BiochemicalAlgorithms.force_prefactor)
+        √(sum(squared_norm.(atoms(sys).F)) / (3 * natoms(sys)))
     end
 
     let p = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
@@ -179,10 +179,10 @@
             @test only(ff.components) isa TorsionComponent{T}
 
             compute_forces!(ff)
-            @test atom_by_name(sys, "C").F ≈ T[5.65872e-10,7.01203e-13,-3.2631e-10] atol = 1e-12
-            @test atom_by_name(sys, "O").F ≈ T[-3.76732e-10,2.77556e-17,2.17502e-10] atol = 1e-12
-            @test atom_by_name(sys, "N").F ≈ T[9.69443e-11,2.64282e-10,9.07063e-11] atol = 1e-12
-            @test atom_by_name(sys, "H").F ≈ T[-2.86084e-10,-2.64983e-10,1.81024e-11] atol = 1e-12
+            @test atom_by_name(sys, "C").F ≈ T[34.077576, 0.042225838, -19.650848] atol = 1e-4
+            @test atom_by_name(sys, "O").F ≈ T[-22.687292, 1.4305115f-6, 13.098242] atol = 1e-5
+            @test atom_by_name(sys, "N").F ≈ T[5.8381157, 15.915438, 5.462455] atol = 1e-5
+            @test atom_by_name(sys, "H").F ≈ T[-17.228397, -15.957666, 1.0901518] atol = 1e-5
         end
 
         # Force test 2 (ES switching) [AMBER91/CDIEL]
@@ -209,7 +209,7 @@
                 update!(ff)
                 compute_forces!(ff)
 
-                force = a2.F[1] / T(BiochemicalAlgorithms.force_prefactor)
+                force = a2.F[1]
                 dE = compute_energy!(ff)
                 a2.r = Vector3{T}(d - 0.0001, 0, 0)
                 update!(ff)
@@ -242,7 +242,7 @@
                 update!(ff)
                 compute_forces!(ff)
 
-                force = a2.F[1] / T(BiochemicalAlgorithms.force_prefactor)
+                force = a2.F[1] 
                 dE = compute_energy!(ff)
                 a2.r = Vector3{T}(d - 0.0001, 0, 0)
                 update!(ff)
@@ -274,7 +274,7 @@
                 update!(ff)
                 compute_forces!(ff)
 
-                force = a2.F[1] / T(BiochemicalAlgorithms.force_prefactor)
+                force = a2.F[1]
                 dE = compute_energy!(ff)
                 a2.r = Vector3{T}(d - 0.0001, 0, 0)
                 update!(ff)

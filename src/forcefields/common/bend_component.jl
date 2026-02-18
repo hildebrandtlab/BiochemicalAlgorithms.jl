@@ -52,21 +52,13 @@ function setup!(qbc::QuadraticBendComponent{T}) where T
     bends = Vector{QuadraticAngleBend{T}}()
 
     for atom in atoms(ff.system)
-        bs = bonds(atom)
+        bs = non_hydrogen_bonds(atom)
 
         for i in eachindex(bs)
             bond_1 = bs[i]
 
-            if has_flag(bond_1, :TYPE__HYDROGEN)
-                continue
-            end
-
             for j in i+1:length(bs)
                 bond_2 = bs[j]
-
-                if has_flag(bond_2, :TYPE__HYDROGEN)
-                    continue
-                end
 
                 a1 = get_partner(bond_1, atom)
                 a2 = atom
@@ -168,7 +160,7 @@ function compute_forces!(qab::QuadraticAngleBend{T}) where {T<:Real}
             acos(cos_θ)
         end
 
-    factor = T(2*force_prefactor) * qab.k * (θ - qab.θ₀)
+    factor = T(2) * qab.k * (θ - qab.θ₀)
 
     # calculate the cross product of v1 and v2 and normalize if possible
     crossv1v2 = normalize(cross(v1, v2))

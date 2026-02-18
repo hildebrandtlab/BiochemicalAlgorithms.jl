@@ -18,6 +18,33 @@ function _rebuild_idx_map!(at::_AbstractSystemComponentTable)
     at
 end
 
+@inline function _offset_indices!(at::_AbstractSystemComponentTable, by::Int)
+    at.idx .+= by
+    _rebuild_idx_map!(at)
+    at
+end
+
+@inline function _offset_indices!(at::_AbstractSystemComponentTable, col::Symbol, by::Int)
+    atc = Tables.getcolumn(at, col)
+    # account for MaybyInt idx columns
+    atc .= map(idx -> isnothing(idx) ? nothing : idx + by, atc)
+    at
+end
+
+@generated function _append!(at::SCT, other::SCT) where SCT <: _AbstractSystemComponentTable
+    args = [
+        :(append!(getfield(at, $(QuoteNode(nm))), getfield(other, $(QuoteNode(nm)))))
+        for nm in fieldnames(at)
+        if nm !== :_idx_map
+    ]
+    Expr(:block, args..., :(nothing))
+end
+
+function Base.append!(at::SCT, other::SCT) where SCT <: _AbstractSystemComponentTable
+    _append!(at, other)
+    _rebuild_idx_map!(at)
+end
+
 @generated function _delete!(at::_AbstractSystemComponentTable, rowno::Int)
     args = [
         :(deleteat!(getfield(at, $(QuoteNode(nm))), rowno))

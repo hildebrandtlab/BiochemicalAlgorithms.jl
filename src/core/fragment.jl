@@ -3,11 +3,21 @@ export
     FragmentTable,
     Nucleotide,
     Residue,
+    apply_torsion_angle!,
+    calculate_bond_angle,
     fragment_by_idx,
     fragments,
     get_full_name,
+    is_previous,
     get_previous,
+    is_next,
     get_next,
+    get_torsion_omega,
+    get_torsion_phi,
+    get_torsion_psi,
+    has_torsion_omega,
+    has_torsion_phi,
+    has_torsion_psi,
     is_3_prime,
     is_5_prime,
     is_amino_acid,
@@ -667,6 +677,261 @@ end
     one_letter_code(frag.name)
 end
 
+"""
+    has_torsion_psi(frag::Fragment) -> Bool
+
+Checks if the given `frag::Fragment` object has a torsion angle psi defined, `false` otherwise.
+See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
+"""
+@inline function has_torsion_psi(frag::Fragment)
+    chain = parent_chain(frag)
+    if nresidues(chain) < 2
+        return false
+    end
+    return !has_flag(frag, :C_TERMINAL) && is_amino_acid(frag)
+end
+
+"""
+    get_torsion_psi(frag::Fragment{T}) -> T
+
+Calculates the torsion angle psi (in radians) defined by the given `frag::Fragment` object.
+Returns the calculated torsion angle, if the angle can be calculated, else zero.
+The psi angle is defined by the fragment's atoms N, CA, C, and the next fragment's N atom.
+"""
+function get_torsion_psi(frag::Fragment{T}) where T
+    psi = zero(T)
+    if has_torsion_psi(frag)
+        next = get_next(frag)
+
+        if isnothing(next)
+            @warn "Cannot calculate psi angle, no previous or next fragment found"
+            return psi
+        end
+
+        atm_N = atom_by_name(frag, "N")
+        atm_CA = atom_by_name(frag, "CA")
+        atm_C = atom_by_name(frag, "C")
+        atm_next_N = atom_by_name(next, "N")
+
+        if isnothing(atm_N) || isnothing(atm_CA) || isnothing(atm_C) || isnothing(atm_next_N)
+            @warn "Cannot calculate psi angle, one or more atoms not found"
+            return psi
+        end
+        psi = calculate_torsion_angle(atm_N, atm_CA, atm_C, atm_next_N)
+    end
+    return psi
+end
+
+"""
+    has_torsion_phi(frag::Fragment) -> Bool
+
+Checks if the given `frag::Fragment` object has a torsion angle phi defined, `false` otherwise.
+See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
+"""
+@inline function has_torsion_phi(frag::Fragment)
+    chain = parent_chain(frag)
+    if nresidues(chain) < 2
+        return false
+    end
+    return !has_flag(frag, :N_TERMINAL) && is_amino_acid(frag)
+end
+
+"""
+    get_torsion_phi(frag::Fragment{T}) -> T
+
+Calculates the torsion angle phi (in radians) defined by the given `frag::Fragment` object.
+Returns the calculated torsion angle, if the angle can be calculated, else zero.
+The phi angle is defined by the fragment's atoms N, CA, C, and the previous fragment's C atom.
+"""
+function get_torsion_phi(frag::Fragment{T}) where T
+    phi = zero(T)
+    if has_torsion_phi(frag)
+        prev = get_previous(frag)
+
+        if isnothing(prev)
+            @warn "Cannot calculate phi angle, no previous or next fragment found"
+            return phi
+        end
+
+        atm_prev_C = atom_by_name(prev, "C")
+        atm_N = atom_by_name(frag, "N")
+        atm_CA = atom_by_name(frag, "CA")
+        atm_C = atom_by_name(frag, "C")
+
+
+        if isnothing(atm_N) || isnothing(atm_CA) || isnothing(atm_C) || isnothing(atm_prev_C)
+            @warn "Cannot calculate phi angle, one or more atoms not found"
+            return phi
+        end
+        phi = calculate_torsion_angle(atm_prev_C, atm_N, atm_CA, atm_C)
+    end
+    return phi
+end
+
+"""
+    has_torsion_omega(frag::Fragment) -> Bool
+
+Checks if the given `Fragment` object has a torsion angle omega defined, `false` otherwise.
+See [Wikipedia](https://en.wikipedia.org/wiki/File:Protein_backbone_PhiPsiOmega_drawing.svg) for more information.
+"""
+@inline function has_torsion_omega(frag::Fragment)
+    chain = parent_chain(frag)
+    if nresidues(chain) < 2
+        return false
+    end
+    return !has_flag(frag, :N_TERMINAL) && is_amino_acid(frag)
+end
+
+"""
+    get_torsion_omega(frag::Fragment{T})) -> T
+
+Calculates the torsion angle omega (in radians) defined by the given `frag::Fragment` object.
+Returns the calculated torsion angle, if the angle can be calculated, else zero.
+The omega angle is defined by the fragment's CA and C atoms, and the next fragment's CA and N atoms.
+"""
+function get_torsion_omega(frag::Fragment{T}) where T
+    omega = zero(T)
+    if has_torsion_omega(frag)
+        next = get_next(frag)
+
+        if isnothing(next)
+            @warn "Cannot calculate omega angle, no previous or next fragment found"
+            return omega
+        end
+
+
+        atm_CA = atom_by_name(frag, "CA")
+        atm_C = atom_by_name(frag, "C")
+
+        atm_next_CA = atom_by_name(next, "CA")
+        atm_next_N = atom_by_name(next, "N")
+
+
+        if isnothing(atm_CA) || isnothing(atm_C) || isnothing(atm_next_CA) || isnothing(atm_next_N)
+            @warn "Cannot calculate omega angle, one or more atoms not found"
+            return omega
+        end
+        omega = calculate_torsion_angle(atm_CA, atm_C, atm_next_N, atm_next_CA)
+    end
+    return omega
+end
+
+"""
+    calculate_torsion_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}) -> T
+
+Calculates the torsion angle (dihedral angle, in radians) defined by four atoms `a`, `b`, `c`, and `d`.
+The torsion angle is the angle between the plane formed by atoms `a`, `b`, `c` and the
+plane formed by atoms `b`, `c`, `d`.
+"""
+function calculate_torsion_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}) where T
+
+    n12 = cross(b.r-a.r, c.r-b.r)
+    n34 = cross(c.r-b.r, d.r-c.r)
+
+    if iszero(n12) || iszero(n34)
+        @warn "Illegal positions"
+    end
+
+    n12 /= norm(n12)
+    n34 /= norm(n34)
+
+    scalar_product = clamp(dot(n12,n34), -one(T), one(T))
+    #take the direction into account direction = dot(cross(n12,n34), (c.r-b.r))
+    return dot(cross(n12,n34), (c.r-b.r)) < zero(T) ? -one(T) * acos(scalar_product) : acos(scalar_product)
+end
+
+"""
+    apply_torsion_angle!(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}, angle::T)
+
+Applies the torsion angle defined by the four atoms `a`, `b`, `c`, and `d` to the specified `angle` in radians.
+Returns `true` if the torsion angle has been applied successfully, `false` otherwise.
+
+!!! note
+    This function modifies the positions of the atoms to achieve the specified torsion angle. It
+    assumes that the atoms are part of a molecular structure where such modifications are meaningful. It does not
+    check for steric clashes or other geometric or chemical constraints that may arise from the rotation.
+"""
+@inline function apply_torsion_angle!(a::Atom{T}, b::Atom{T}, c::Atom{T}, d::Atom{T}, angle::T) where T
+
+    # perform bfs to find the part of the molecule that needs to be rotated
+
+    queue = Deque{Atom{T}}()
+    component = Set{Atom{T}}()
+
+    push!(component, c) # atoms that need to be rotated
+
+    # starting point
+    for bond in bonds(c) # check bonds of atom c
+        if get_partner(bond, c).idx != b.idx # b should not be rotated
+            partner_atom = get_partner(bond, c) # atom to be rotated
+            push!(component, partner_atom)
+            push!(queue, partner_atom)
+        end
+    end
+
+    # perform bfs
+    while(!isempty(queue))
+        atom = popfirst!(queue)
+
+        for bond in bonds(atom)
+            # we cannot set the torsion angle if b is in the same connected component as the partner atom
+            if get_partner(bond, atom).idx == b.idx
+                return false
+            end
+
+            if !in(atom_by_idx(parent(atom),bond.a2), component)
+                push!(component, atom_by_idx(parent(atom), bond.a2))
+                push!(queue, atom_by_idx(parent(atom), bond.a2))
+            end
+        end
+    end
+
+    angle -= calculate_torsion_angle(a,b,c,d)
+    # setup the rotation
+    rotation_axis = c.r - b.r
+    # AngleAxis renormalizes the given vector
+    rotation = RotMatrix(AngleAxis(angle, rotation_axis[1], rotation_axis[2], rotation_axis[3]))
+
+    # Translate c to the origin
+    translation_to_origin = -c.r
+
+     # Apply the transformations to the selected component
+     for atom in component
+         # Translate to origin
+         atom.r += translation_to_origin
+
+         # Apply rotation
+         atom.r = rotation * atom.r
+
+         # Translate backusin
+         atom.r -= translation_to_origin
+     end
+
+    return true
+end
+
+"""
+    calculate_bond_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}) -> T
+
+Calculates the bond angle formed by three atoms `a`, `b`, and `c` and returns it (in radians). The angle is measured at atom `b`,
+with `a` and `c` being the other two atoms forming the angle.
+
+"""
+function calculate_bond_angle(a::Atom{T}, b::Atom{T}, c::Atom{T}) where T
+    if a.r == b.r || b.r == c.r
+        @error ("Atoms can't have the same position. No Angle to calculate here.")
+    end
+
+    a12 = a.r-b.r
+    a23 = c.r-b.r
+
+    a12 /= norm(a12)
+    a23 /= norm(a23)
+
+    return acos(clamp(dot(a12, a23), -one(T), one(T)))
+end
+
+
 # TODO adapt to variants
 @inline function is_nucleotide(frag::Fragment)
     is_nucleotide(frag.name)
@@ -753,12 +1018,29 @@ end
     end
 end
 
-@inline function get_previous(frag::Fragment{T}) where {T<:Real}
-    try
-        prev_candidate = fragment_by_idx(parent(frag), frag.idx - 1)
+@inline function is_previous(f1::Fragment{T}, f2::Fragment{T}) where T
+    if parent_chain(f1) == parent_chain(f2)
+    
+        fs = fragments(parent_chain(f1))
+        f1_pos = findfirst(f -> f.idx == f1.idx, fs)
 
-        if parent_chain(prev_candidate) == parent_chain(frag)
-            return prev_candidate
+        if f1_pos < nfragments(parent_chain(f1))
+            return fs[f1_pos + 1].idx == f2.idx
+        end
+    end
+
+    return false
+end
+
+@inline function get_previous(frag::Fragment{T}) where T
+    try
+        c = parent_chain(frag)
+        fs = fragments(c)
+
+        f_pos = findfirst(f -> f.idx == frag.idx, fs)
+
+        if f_pos > 1
+            return fs[f_pos - 1]
         end
     catch
     end
@@ -766,12 +1048,20 @@ end
     nothing
 end
 
-@inline function get_next(frag::Fragment{T}) where {T<:Real}
-    try
-        prev_candidate = fragment_by_idx(parent(frag), frag.idx + 1)
 
-        if parent_chain(prev_candidate) == parent_chain(frag)
-            return prev_candidate
+@inline function is_next(f1::Fragment{T}, f2::Fragment{T}) where T
+    return is_previous(f2, f1)
+end
+
+@inline function get_next(frag::Fragment{T}) where T
+    try
+        c = parent_chain(frag)
+        fs = fragments(c)
+
+        f_pos = findfirst(f -> f.idx == frag.idx, fs)
+
+        if f_pos < nfragments(c)
+            return fs[f_pos + 1]
         end
     catch
     end
@@ -781,7 +1071,7 @@ end
 
 function get_full_name(
         f::Fragment{T},
-        type::FullNameType.T = FullNameType.ADD_VARIANT_EXTENSIONS) where {T<:Real}
+        type::FullNameType.T = FullNameType.ADD_VARIANT_EXTENSIONS) where T
     # retrieve the residue name and remove blanks
     full_name = strip(f.name)
 
@@ -802,7 +1092,7 @@ function get_full_name(
             suffix = "-M"
         end
 
-        if (has_property(f, :PROPERTY__HAS_SSBOND))
+        if (has_flag(f, :PROPERTY__HAS_SSBOND))
             suffix *= "S"
         end
 
