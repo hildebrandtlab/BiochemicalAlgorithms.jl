@@ -323,7 +323,7 @@ function write_pdb(io::IO, ac::AbstractAtomContainer{T}) where T
     pdb_info = get_property(ac, :PDBInfo, PDBDetails.PDBInfo{T}())
 
     pdb_info.writer_stats = PDBDetails.PDBWriterStats()
-    
+
     PDBDetails.write_title_section(io, pdb_info)
     PDBDetails.write_primary_structure_section(io, pdb_info, ac)
     PDBDetails.write_heterogen_section(io, pdb_info)

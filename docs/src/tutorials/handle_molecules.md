@@ -175,7 +175,7 @@ all_chains = chains(sys)
 This snippet will create separate PDB files for the two chains of the system:
 
 ``` julia
-#type
+write_pdb("2ptc_chainE.pdb", all_chains[1])
 write_pdb("2ptc_chainI.pdb", all_chains[2])
 ```
 
