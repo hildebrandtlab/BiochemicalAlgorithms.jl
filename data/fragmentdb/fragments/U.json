@@ -1,0 +1,497 @@
+{
+  "names": [
+    "Uracil",
+    "U"
+  ],
+  "atoms": [
+    {
+      "name": "P",
+      "element": "P",
+      "r": [
+        38.566,
+        27.407,
+        37.821
+      ]
+    },
+    {
+      "name": "O1P",
+      "element": "O",
+      "r": [
+        38.595,
+        26.254,
+        36.889
+      ]
+    },
+    {
+      "name": "O2P",
+      "element": "O",
+      "r": [
+        39.157,
+        27.302,
+        39.179
+      ]
+    },
+    {
+      "name": "O5*",
+      "element": "O",
+      "r": [
+        37.072,
+        27.912,
+        37.957
+      ]
+    },
+    {
+      "name": "C5*",
+      "element": "C",
+      "r": [
+        36.632,
+        28.815,
+        38.965
+      ]
+    },
+    {
+      "name": "1H5*",
+      "element": "H",
+      "r": [
+        37.233,
+        29.724,
+        38.959
+      ]
+    },
+    {
+      "name": "2H5*",
+      "element": "H",
+      "r": [
+        36.702,
+        28.339,
+        39.943
+      ]
+    },
+    {
+      "name": "C4*",
+      "element": "C",
+      "r": [
+        35.191,
+        29.171,
+        38.689
+      ]
+    },
+    {
+      "name": "H4*",
+      "element": "H",
+      "r": [
+        34.765,
+        29.83,
+        39.445
+      ]
+    },
+    {
+      "name": "O4*",
+      "element": "O",
+      "r": [
+        35.114,
+        29.926,
+        37.469
+      ]
+    },
+    {
+      "name": "C3*",
+      "element": "C",
+      "r": [
+        34.331,
+        27.906,
+        38.457
+      ]
+    },
+    {
+      "name": "H3*",
+      "element": "H",
+      "r": [
+        34.825,
+        26.944,
+        38.594
+      ]
+    },
+    {
+      "name": "O3*",
+      "element": "O",
+      "r": [
+        33.163,
+        27.975,
+        39.27
+      ]
+    },
+    {
+      "name": "C2*",
+      "element": "C",
+      "r": [
+        33.92,
+        28.064,
+        36.992
+      ]
+    },
+    {
+      "name": "1H2*",
+      "element": "H",
+      "r": [
+        34.36,
+        27.26,
+        36.402
+      ]
+    },
+    {
+      "name": "2H2*",
+      "element": "H",
+      "r": [
+        32.834,
+        28.02,
+        36.912
+      ]
+    },
+    {
+      "name": "C1*",
+      "element": "C",
+      "r": [
+        33.86,
+        29.573,
+        36.906
+      ]
+    },
+    {
+      "name": "H1*",
+      "element": "H",
+      "r": [
+        33.07,
+        30.098,
+        37.443
+      ]
+    },
+    {
+      "name": "N1",
+      "element": "N",
+      "r": [
+        33.73,
+        30.096,
+        35.526
+      ]
+    },
+    {
+      "name": "C6",
+      "element": "C",
+      "r": [
+        34.405,
+        29.543,
+        34.472
+      ]
+    },
+    {
+      "name": "H6",
+      "element": "H",
+      "r": [
+        35.056,
+        28.699,
+        34.642
+      ]
+    },
+    {
+      "name": "C5",
+      "element": "C",
+      "r": [
+        34.237,
+        29.984,
+        33.219
+      ]
+    },
+    {
+      "name": "H5",
+      "element": "H",
+      "r": [
+        35.018,
+        29.323,
+        32.073
+      ]
+    },
+    {
+      "name": "C4",
+      "element": "C",
+      "r": [
+        33.326,
+        31.071,
+        32.932
+      ]
+    },
+    {
+      "name": "O4",
+      "element": "O",
+      "r": [
+        33.094,
+        31.529,
+        31.816
+      ]
+    },
+    {
+      "name": "N3",
+      "element": "N",
+      "r": [
+        32.681,
+        31.586,
+        34.053
+      ]
+    },
+    {
+      "name": "H3",
+      "element": "H",
+      "r": [
+        31.993,
+        32.416,
+        33.893
+      ]
+    },
+    {
+      "name": "C2",
+      "element": "C",
+      "r": [
+        32.839,
+        31.151,
+        35.352
+      ]
+    },
+    {
+      "name": "O2",
+      "element": "O",
+      "r": [
+        32.225,
+        31.69,
+        36.276
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 1,
+      "a1": "P",
+      "a2": "O1P",
+      "order": "Single"
+    },
+    {
+      "number": 2,
+      "a1": "P",
+      "a2": "O2P",
+      "order": "Double"
+    },
+    {
+      "number": 3,
+      "a1": "P",
+      "a2": "O5*",
+      "order": "Single"
+    },
+    {
+      "number": 4,
+      "a1": "O5*",
+      "a2": "C5*",
+      "order": "Single"
+    },
+    {
+      "number": 5,
+      "a1": "C5*",
+      "a2": "C4*",
+      "order": "Single"
+    },
+    {
+      "number": 6,
+      "a1": "C4*",
+      "a2": "O4*",
+      "order": "Single"
+    },
+    {
+      "number": 7,
+      "a1": "C4*",
+      "a2": "C3*",
+      "order": "Single"
+    },
+    {
+      "number": 8,
+      "a1": "C3*",
+      "a2": "O3*",
+      "order": "Single"
+    },
+    {
+      "number": 9,
+      "a1": "C3*",
+      "a2": "C2*",
+      "order": "Single"
+    },
+    {
+      "number": 10,
+      "a1": "C2*",
+      "a2": "C1*",
+      "order": "Single"
+    },
+    {
+      "number": 11,
+      "a1": "C1*",
+      "a2": "O4*",
+      "order": "Single"
+    },
+    {
+      "number": 12,
+      "a1": "C1*",
+      "a2": "N1",
+      "order": "Single"
+    },
+    {
+      "number": 13,
+      "a1": "N1",
+      "a2": "C6",
+      "order": "Single"
+    },
+    {
+      "number": 14,
+      "a1": "C6",
+      "a2": "C5",
+      "order": "Double"
+    },
+    {
+      "number": 15,
+      "a1": "C5",
+      "a2": "H5",
+      "order": "Single"
+    },
+    {
+      "number": 16,
+      "a1": "C5",
+      "a2": "C4",
+      "order": "Single"
+    },
+    {
+      "number": 17,
+      "a1": "C4",
+      "a2": "O4",
+      "order": "Double"
+    },
+    {
+      "number": 18,
+      "a1": "C4",
+      "a2": "N3",
+      "order": "Single"
+    },
+    {
+      "number": 19,
+      "a1": "N3",
+      "a2": "C2",
+      "order": "Single"
+    },
+    {
+      "number": 20,
+      "a1": "C2",
+      "a2": "O2",
+      "order": "Double"
+    },
+    {
+      "number": 21,
+      "a1": "C2",
+      "a2": "N1",
+      "order": "Single"
+    },
+    {
+      "number": 22,
+      "a1": "C5*",
+      "a2": "1H5*",
+      "order": "Single"
+    },
+    {
+      "number": 23,
+      "a1": "C5*",
+      "a2": "2H5*",
+      "order": "Single"
+    },
+    {
+      "number": 24,
+      "a1": "C4*",
+      "a2": "H4*",
+      "order": "Single"
+    },
+    {
+      "number": 25,
+      "a1": "C1*",
+      "a2": "H1*",
+      "order": "Single"
+    },
+    {
+      "number": 26,
+      "a1": "C3*",
+      "a2": "H3*",
+      "order": "Single"
+    },
+    {
+      "number": 27,
+      "a1": "C2*",
+      "a2": "1H2*",
+      "order": "Single"
+    },
+    {
+      "number": 28,
+      "a1": "C2*",
+      "a2": "2H2*",
+      "order": "Single"
+    },
+    {
+      "number": 29,
+      "a1": "C6",
+      "a2": "H6",
+      "order": "Single"
+    },
+    {
+      "number": 30,
+      "a1": "N3",
+      "a2": "H3",
+      "order": "Single"
+    }
+  ],
+  "connections": [
+    {
+      "name": "5-term",
+      "atom_name": "P",
+      "match_name": "3-term",
+      "order": "Single",
+      "distance": 1.62,
+      "tolerance": 0.5
+    },
+    {
+      "name": "3-term",
+      "atom_name": "O3*",
+      "match_name": "5-term",
+      "order": "Single",
+      "distance": 1.62,
+      "tolerance": 0.5
+    }
+  ],
+  "properties": {
+    "NUCLEOTIDE": true
+  },
+  "variants": [
+    {
+      "name": "U-M",
+      "properties": {
+        "5_PRIME": true,
+        "3_PRIME": true
+      }
+    },
+    {
+      "name": "Default",
+      "properties": {}
+    },
+    {
+      "name": "U-3",
+      "properties": {
+        "3_PRIME": true
+      }
+    },
+    {
+      "name": "U-5",
+      "properties": {
+        "5_PRIME": true
+      }
+    }
+  ]
+}

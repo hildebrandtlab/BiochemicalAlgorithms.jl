@@ -1,0 +1,219 @@
+{
+  "names": [
+    "Glycine",
+    "Glycin",
+    "Gly",
+    "G"
+  ],
+  "atoms": [
+    {
+      "name": "N",
+      "element": "N",
+      "r": [
+        0.09000722,
+        1.216287,
+        -0.1108443
+      ]
+    },
+    {
+      "name": "3H",
+      "element": "H",
+      "r": [
+        0.8807056,
+        1.803007,
+        0.1270226
+      ]
+    },
+    {
+      "name": "CA",
+      "element": "C",
+      "r": [
+        -0.6332095,
+        1.869306,
+        -1.215941
+      ]
+    },
+    {
+      "name": "1HA",
+      "element": "H",
+      "r": [
+        -0.02850649,
+        1.801736,
+        -2.120623
+      ]
+    },
+    {
+      "name": "2HA",
+      "element": "H",
+      "r": [
+        -1.579168,
+        1.352425,
+        -1.380715
+      ]
+    },
+    {
+      "name": "C",
+      "element": "C",
+      "r": [
+        -0.8818576,
+        3.344497,
+        -0.910938
+      ]
+    },
+    {
+      "name": "O",
+      "element": "O",
+      "r": [
+        0.06351577,
+        3.962237,
+        -0.3713815
+      ]
+    },
+    {
+      "name": "1H",
+      "element": "H",
+      "r": [
+        -0.5183882,
+        1.138782,
+        0.691625
+      ]
+    },
+    {
+      "name": "2H",
+      "element": "H",
+      "r": [
+        0.4027565,
+        0.2984461,
+        -0.3934918
+      ]
+    },
+    {
+      "name": "OXT",
+      "element": "O",
+      "r": [
+        -1.901015,
+        3.866009,
+        -1.413833
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 5,
+      "a1": "3H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 6,
+      "a1": "CA",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 10,
+      "a1": "1HA",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 11,
+      "a1": "2HA",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 12,
+      "a1": "C",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 15,
+      "a1": "O",
+      "a2": "C",
+      "order": "Double"
+    },
+    {
+      "number": 16,
+      "a1": "1H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 17,
+      "a1": "2H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 18,
+      "a1": "OXT",
+      "a2": "C",
+      "order": "Single"
+    }
+  ],
+  "connections": [
+    {
+      "name": "N-term",
+      "atom_name": "N",
+      "match_name": "C-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    },
+    {
+      "name": "C-term",
+      "atom_name": "C",
+      "match_name": "N-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    }
+  ],
+  "properties": {
+    "AMINO_ACID": true
+  },
+  "variants": [
+    {
+      "name": "Default",
+      "delete": [
+        "OXT",
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      }
+    },
+    {
+      "name": "GLY-M",
+      "properties": {
+        "C_TERMINAL": true,
+        "N_TERMINAL": true
+      }
+    },
+    {
+      "name": "GLY-C",
+      "delete": [
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      },
+      "properties": {
+        "C_TERMINAL": true
+      }
+    },
+    {
+      "name": "GLY-N",
+      "delete": [
+        "OXT"
+      ],
+      "properties": {
+        "N_TERMINAL": true
+      }
+    }
+  ]
+}

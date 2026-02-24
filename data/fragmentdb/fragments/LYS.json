@@ -1,0 +1,444 @@
+{
+  "names": [
+    "Lysine",
+    "Lysin",
+    "Lys",
+    "K"
+  ],
+  "atoms": [
+    {
+      "name": "N",
+      "element": "N",
+      "r": [
+        0.03796386,
+        1.172592,
+        -0.009692425
+      ]
+    },
+    {
+      "name": "3H",
+      "element": "H",
+      "r": [
+        1.016744,
+        1.426445,
+        0.004398665
+      ]
+    },
+    {
+      "name": "CA",
+      "element": "C",
+      "r": [
+        -0.6562778,
+        1.887361,
+        -1.097957
+      ]
+    },
+    {
+      "name": "HA",
+      "element": "H",
+      "r": [
+        -0.1455905,
+        1.623495,
+        -2.025311
+      ]
+    },
+    {
+      "name": "C",
+      "element": "C",
+      "r": [
+        -0.5601511,
+        3.406333,
+        -0.9147748
+      ]
+    },
+    {
+      "name": "O",
+      "element": "O",
+      "r": [
+        -0.5440148,
+        4.087965,
+        -1.963232
+      ]
+    },
+    {
+      "name": "CB",
+      "element": "C",
+      "r": [
+        -2.114089,
+        1.411355,
+        -1.200695
+      ]
+    },
+    {
+      "name": "1HB",
+      "element": "H",
+      "r": [
+        -2.113627,
+        0.3206328,
+        -1.233166
+      ]
+    },
+    {
+      "name": "2HB",
+      "element": "H",
+      "r": [
+        -2.662723,
+        1.730462,
+        -0.3130743
+      ]
+    },
+    {
+      "name": "CG",
+      "element": "C",
+      "r": [
+        -2.816849,
+        1.934443,
+        -2.461919
+      ]
+    },
+    {
+      "name": "1HG",
+      "element": "H",
+      "r": [
+        -2.878444,
+        3.023734,
+        -2.425601
+      ]
+    },
+    {
+      "name": "2HG",
+      "element": "H",
+      "r": [
+        -2.232982,
+        1.645706,
+        -3.338356
+      ]
+    },
+    {
+      "name": "CD",
+      "element": "C",
+      "r": [
+        -4.230651,
+        1.346997,
+        -2.563318
+      ]
+    },
+    {
+      "name": "1HD",
+      "element": "H",
+      "r": [
+        -4.153291,
+        0.2577495,
+        -2.598617
+      ]
+    },
+    {
+      "name": "2HD",
+      "element": "H",
+      "r": [
+        -4.790445,
+        1.632903,
+        -1.669734
+      ]
+    },
+    {
+      "name": "CE",
+      "element": "C",
+      "r": [
+        -4.93697,
+        1.869824,
+        -3.82334
+      ]
+    },
+    {
+      "name": "1HE",
+      "element": "H",
+      "r": [
+        -4.991973,
+        2.959915,
+        -3.77821
+      ]
+    },
+    {
+      "name": "2HE",
+      "element": "H",
+      "r": [
+        -4.353527,
+        1.590667,
+        -4.70365
+      ]
+    },
+    {
+      "name": "NZ",
+      "element": "N",
+      "r": [
+        -6.304516,
+        1.325968,
+        -3.962642
+      ]
+    },
+    {
+      "name": "1HZ",
+      "element": "H",
+      "r": [
+        -6.733165,
+        1.692468,
+        -4.802127
+      ]
+    },
+    {
+      "name": "2HZ",
+      "element": "H",
+      "r": [
+        -6.276195,
+        0.31765,
+        -4.027733
+      ]
+    },
+    {
+      "name": "3HZ",
+      "element": "H",
+      "r": [
+        -6.870414,
+        1.591293,
+        -3.16824
+      ]
+    },
+    {
+      "name": "1H",
+      "element": "H",
+      "r": [
+        -0.3857403,
+        1.416816,
+        0.8740513
+      ]
+    },
+    {
+      "name": "2H",
+      "element": "H",
+      "r": [
+        -0.04427324,
+        0.17682,
+        -0.1571643
+      ]
+    },
+    {
+      "name": "OXT",
+      "element": "O",
+      "r": [
+        -0.7869474,
+        3.85405,
+        0.2308864
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 5,
+      "a1": "3H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 6,
+      "a1": "CA",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 10,
+      "a1": "HA",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 11,
+      "a1": "C",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 14,
+      "a1": "O",
+      "a2": "C",
+      "order": "Double"
+    },
+    {
+      "number": 15,
+      "a1": "CB",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 19,
+      "a1": "1HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 20,
+      "a1": "2HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 21,
+      "a1": "CG",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 25,
+      "a1": "1HG",
+      "a2": "CG",
+      "order": "Single"
+    },
+    {
+      "number": 26,
+      "a1": "2HG",
+      "a2": "CG",
+      "order": "Single"
+    },
+    {
+      "number": 27,
+      "a1": "CD",
+      "a2": "CG",
+      "order": "Single"
+    },
+    {
+      "number": 31,
+      "a1": "1HD",
+      "a2": "CD",
+      "order": "Single"
+    },
+    {
+      "number": 32,
+      "a1": "2HD",
+      "a2": "CD",
+      "order": "Single"
+    },
+    {
+      "number": 33,
+      "a1": "CE",
+      "a2": "CD",
+      "order": "Single"
+    },
+    {
+      "number": 37,
+      "a1": "1HE",
+      "a2": "CE",
+      "order": "Single"
+    },
+    {
+      "number": 38,
+      "a1": "2HE",
+      "a2": "CE",
+      "order": "Single"
+    },
+    {
+      "number": 39,
+      "a1": "NZ",
+      "a2": "CE",
+      "order": "Single"
+    },
+    {
+      "number": 43,
+      "a1": "1HZ",
+      "a2": "NZ",
+      "order": "Single"
+    },
+    {
+      "number": 44,
+      "a1": "2HZ",
+      "a2": "NZ",
+      "order": "Single"
+    },
+    {
+      "number": 45,
+      "a1": "3HZ",
+      "a2": "NZ",
+      "order": "Single"
+    },
+    {
+      "number": 46,
+      "a1": "1H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 47,
+      "a1": "2H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 48,
+      "a1": "OXT",
+      "a2": "C",
+      "order": "Single"
+    }
+  ],
+  "connections": [
+    {
+      "name": "N-term",
+      "atom_name": "N",
+      "match_name": "C-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    },
+    {
+      "name": "C-term",
+      "atom_name": "C",
+      "match_name": "N-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    }
+  ],
+  "properties": {
+    "AMINO_ACID": true
+  },
+  "variants": [
+    {
+      "name": "Default",
+      "delete": [
+        "OXT",
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      }
+    },
+    {
+      "name": "LYS-M",
+      "properties": {
+        "C_TERMINAL": true,
+        "N_TERMINAL": true
+      }
+    },
+    {
+      "name": "LYS-C",
+      "delete": [
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      },
+      "properties": {
+        "C_TERMINAL": true
+      }
+    },
+    {
+      "name": "LYS-N",
+      "delete": [
+        "OXT"
+      ],
+      "properties": {
+        "N_TERMINAL": true
+      }
+    }
+  ]
+}

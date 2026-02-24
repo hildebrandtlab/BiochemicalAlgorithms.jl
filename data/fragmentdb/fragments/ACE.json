@@ -1,0 +1,138 @@
+{
+  "names": [
+    "ACE",
+    "acetic acid"
+  ],
+  "atoms": [
+    {
+      "name": "C",
+      "element": "C",
+      "r": [
+        -0.710977,
+        -1.12008,
+        0.000774821
+      ]
+    },
+    {
+      "name": "CH3",
+      "element": "C",
+      "r": [
+        0.0997794,
+        -2.40762,
+        0.00202052
+      ]
+    },
+    {
+      "name": "O",
+      "element": "O",
+      "r": [
+        -1.92224,
+        -1.17518,
+        0.00112378
+      ]
+    },
+    {
+      "name": "1HH3",
+      "element": "H",
+      "r": [
+        -0.167239,
+        -2.98461,
+        0.880642
+      ]
+    },
+    {
+      "name": "2HH3",
+      "element": "H",
+      "r": [
+        1.1711,
+        -2.24422,
+        -0.00400307
+      ]
+    },
+    {
+      "name": "3HH3",
+      "element": "H",
+      "r": [
+        -0.176322,
+        -2.99236,
+        -0.868617
+      ]
+    },
+    {
+      "name": "OXT",
+      "element": "O",
+      "r": [
+        -0.0809243,
+        0.0851695,
+        -0.000720861
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 1,
+      "a1": "C",
+      "a2": "CH3",
+      "order": "Single"
+    },
+    {
+      "number": 2,
+      "a1": "C",
+      "a2": "O",
+      "order": "Double"
+    },
+    {
+      "number": 3,
+      "a1": "C",
+      "a2": "OXT",
+      "order": "Single"
+    },
+    {
+      "number": 4,
+      "a1": "CH3",
+      "a2": "1HH3",
+      "order": "Single"
+    },
+    {
+      "number": 5,
+      "a1": "CH3",
+      "a2": "2HH3",
+      "order": "Single"
+    },
+    {
+      "number": 6,
+      "a1": "CH3",
+      "a2": "3HH3",
+      "order": "Single"
+    }
+  ],
+  "connections": [
+    {
+      "name": "C-term",
+      "atom_name": "C",
+      "match_name": "N-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    }
+  ],
+  "properties": {},
+  "variants": [
+    {
+      "name": "ACE-N",
+      "delete": [
+        "OXT"
+      ],
+      "properties": {
+        "N_TERMINAL": true
+      }
+    },
+    {
+      "name": "ACE-M",
+      "properties": {
+        "C_TERMINAL": true,
+        "N_TERMINAL": true
+      }
+    }
+  ]
+}

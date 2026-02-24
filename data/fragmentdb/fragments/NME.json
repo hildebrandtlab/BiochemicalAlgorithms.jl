@@ -1,0 +1,140 @@
+{
+  "names": [
+    "Methylamine"
+  ],
+  "atoms": [
+    {
+      "name": "N",
+      "element": "N",
+      "r": [
+        0.724,
+        0.0,
+        -0.079
+      ]
+    },
+    {
+      "name": "CH3",
+      "element": "C",
+      "r": [
+        -0.742,
+        0.0,
+        0.011
+      ]
+    },
+    {
+      "name": "1H",
+      "element": "H",
+      "r": [
+        1.046,
+        0.81,
+        0.431
+      ]
+    },
+    {
+      "name": "2H",
+      "element": "H",
+      "r": [
+        1.046,
+        -0.81,
+        0.431
+      ]
+    },
+    {
+      "name": "1HH3",
+      "element": "H",
+      "r": [
+        -1.139,
+        -0.861,
+        -0.527
+      ]
+    },
+    {
+      "name": "2HH3",
+      "element": "H",
+      "r": [
+        -1.042,
+        -0.056,
+        1.057
+      ]
+    },
+    {
+      "name": "3HH3",
+      "element": "H",
+      "r": [
+        -1.133,
+        0.917,
+        -0.431
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 1,
+      "a1": "N",
+      "a2": "CH3",
+      "order": "Single"
+    },
+    {
+      "number": 2,
+      "a1": "N",
+      "a2": "1H",
+      "order": "Single"
+    },
+    {
+      "number": 3,
+      "a1": "N",
+      "a2": "2H",
+      "order": "Single"
+    },
+    {
+      "number": 4,
+      "a1": "CH3",
+      "a2": "1HH3",
+      "order": "Single"
+    },
+    {
+      "number": 5,
+      "a1": "CH3",
+      "a2": "2HH3",
+      "order": "Single"
+    },
+    {
+      "number": 6,
+      "a1": "CH3",
+      "a2": "3HH3",
+      "order": "Single"
+    }
+  ],
+  "connections": [
+    {
+      "name": "N-term",
+      "atom_name": "N",
+      "match_name": "C-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    }
+  ],
+  "properties": {},
+  "variants": [
+    {
+      "name": "NME-C",
+      "delete": [
+        "2H"
+      ],
+      "rename": {
+        "1H": "H"
+      },
+      "properties": {
+        "C_TERMINAL": true
+      }
+    },
+    {
+      "name": "NME-M",
+      "properties": {
+        "C_TERMINAL": true,
+        "N_TERMINAL": true
+      }
+    }
+  ]
+}

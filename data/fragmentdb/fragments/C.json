@@ -1,0 +1,513 @@
+{
+  "names": [
+    "Cytosine",
+    "Cytosin",
+    "C"
+  ],
+  "atoms": [
+    {
+      "name": "P",
+      "element": "P",
+      "r": [
+        15.644,
+        29.327,
+        35.222
+      ]
+    },
+    {
+      "name": "O1P",
+      "element": "O",
+      "r": [
+        15.393,
+        28.44,
+        36.382
+      ]
+    },
+    {
+      "name": "O2P",
+      "element": "O",
+      "r": [
+        14.638,
+        30.335,
+        34.831
+      ]
+    },
+    {
+      "name": "O5*",
+      "element": "O",
+      "r": [
+        15.947,
+        28.383,
+        33.968
+      ]
+    },
+    {
+      "name": "C5*",
+      "element": "C",
+      "r": [
+        16.069,
+        28.915,
+        32.657
+      ]
+    },
+    {
+      "name": "1H5*",
+      "element": "H",
+      "r": [
+        16.821,
+        29.704,
+        32.69
+      ]
+    },
+    {
+      "name": "2H5*",
+      "element": "H",
+      "r": [
+        15.119,
+        29.333,
+        32.322
+      ]
+    },
+    {
+      "name": "C4*",
+      "element": "C",
+      "r": [
+        16.513,
+        27.844,
+        31.682
+      ]
+    },
+    {
+      "name": "H4*",
+      "element": "H",
+      "r": [
+        16.609,
+        28.228,
+        30.666
+      ]
+    },
+    {
+      "name": "O4*",
+      "element": "O",
+      "r": [
+        17.83,
+        27.37,
+        32.014
+      ]
+    },
+    {
+      "name": "C3*",
+      "element": "C",
+      "r": [
+        15.542,
+        26.637,
+        31.746
+      ]
+    },
+    {
+      "name": "H3*",
+      "element": "H",
+      "r": [
+        14.654,
+        26.736,
+        32.37
+      ]
+    },
+    {
+      "name": "O3*",
+      "element": "O",
+      "r": [
+        15.186,
+        26.233,
+        30.429
+      ]
+    },
+    {
+      "name": "C2*",
+      "element": "C",
+      "r": [
+        16.448,
+        25.569,
+        32.322
+      ]
+    },
+    {
+      "name": "1H2*",
+      "element": "H",
+      "r": [
+        16.102,
+        25.297,
+        33.319
+      ]
+    },
+    {
+      "name": "2H2*",
+      "element": "H",
+      "r": [
+        16.428,
+        24.689,
+        31.678
+      ]
+    },
+    {
+      "name": "C1*",
+      "element": "C",
+      "r": [
+        17.781,
+        25.967,
+        31.722
+      ]
+    },
+    {
+      "name": "H1*",
+      "element": "H",
+      "r": [
+        17.935,
+        25.853,
+        30.649
+      ]
+    },
+    {
+      "name": "N1",
+      "element": "N",
+      "r": [
+        18.94,
+        25.252,
+        32.322
+      ]
+    },
+    {
+      "name": "C6",
+      "element": "C",
+      "r": [
+        18.97,
+        24.882,
+        33.637
+      ]
+    },
+    {
+      "name": "H6",
+      "element": "H",
+      "r": [
+        18.141,
+        25.127,
+        34.285
+      ]
+    },
+    {
+      "name": "C5",
+      "element": "C",
+      "r": [
+        20.022,
+        24.211,
+        34.147
+      ]
+    },
+    {
+      "name": "H5",
+      "element": "H",
+      "r": [
+        20.029,
+        23.926,
+        35.199
+      ]
+    },
+    {
+      "name": "C4",
+      "element": "C",
+      "r": [
+        21.1,
+        23.907,
+        33.243
+      ]
+    },
+    {
+      "name": "N4",
+      "element": "N",
+      "r": [
+        22.167,
+        23.241,
+        33.694
+      ]
+    },
+    {
+      "name": "1H4",
+      "element": "H",
+      "r": [
+        22.908,
+        23.042,
+        33.037
+      ]
+    },
+    {
+      "name": "2H4",
+      "element": "H",
+      "r": [
+        22.216,
+        22.954,
+        34.661
+      ]
+    },
+    {
+      "name": "N3",
+      "element": "N",
+      "r": [
+        21.059,
+        24.28,
+        31.953
+      ]
+    },
+    {
+      "name": "C2",
+      "element": "C",
+      "r": [
+        19.992,
+        24.955,
+        31.461
+      ]
+    },
+    {
+      "name": "O2",
+      "element": "O",
+      "r": [
+        19.963,
+        25.291,
+        30.279
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 1,
+      "a1": "P",
+      "a2": "O1P",
+      "order": "Single"
+    },
+    {
+      "number": 2,
+      "a1": "P",
+      "a2": "O2P",
+      "order": "Double"
+    },
+    {
+      "number": 3,
+      "a1": "P",
+      "a2": "O5*",
+      "order": "Single"
+    },
+    {
+      "number": 4,
+      "a1": "O5*",
+      "a2": "C5*",
+      "order": "Single"
+    },
+    {
+      "number": 5,
+      "a1": "C5*",
+      "a2": "C4*",
+      "order": "Single"
+    },
+    {
+      "number": 6,
+      "a1": "C4*",
+      "a2": "O4*",
+      "order": "Single"
+    },
+    {
+      "number": 7,
+      "a1": "C4*",
+      "a2": "C3*",
+      "order": "Single"
+    },
+    {
+      "number": 8,
+      "a1": "C3*",
+      "a2": "O3*",
+      "order": "Single"
+    },
+    {
+      "number": 9,
+      "a1": "C3*",
+      "a2": "C2*",
+      "order": "Single"
+    },
+    {
+      "number": 10,
+      "a1": "C2*",
+      "a2": "C1*",
+      "order": "Single"
+    },
+    {
+      "number": 11,
+      "a1": "C1*",
+      "a2": "O4*",
+      "order": "Single"
+    },
+    {
+      "number": 12,
+      "a1": "C1*",
+      "a2": "N1",
+      "order": "Single"
+    },
+    {
+      "number": 13,
+      "a1": "N1",
+      "a2": "C6",
+      "order": "Single"
+    },
+    {
+      "number": 14,
+      "a1": "C6",
+      "a2": "C5",
+      "order": "Double"
+    },
+    {
+      "number": 15,
+      "a1": "C5",
+      "a2": "C4",
+      "order": "Single"
+    },
+    {
+      "number": 16,
+      "a1": "C4",
+      "a2": "N4",
+      "order": "Single"
+    },
+    {
+      "number": 17,
+      "a1": "C4",
+      "a2": "N3",
+      "order": "Double"
+    },
+    {
+      "number": 18,
+      "a1": "N3",
+      "a2": "C2",
+      "order": "Single"
+    },
+    {
+      "number": 19,
+      "a1": "C2",
+      "a2": "O2",
+      "order": "Double"
+    },
+    {
+      "number": 20,
+      "a1": "C2",
+      "a2": "N1",
+      "order": "Single"
+    },
+    {
+      "number": 21,
+      "a1": "C5*",
+      "a2": "1H5*",
+      "order": "Single"
+    },
+    {
+      "number": 22,
+      "a1": "C5*",
+      "a2": "2H5*",
+      "order": "Single"
+    },
+    {
+      "number": 23,
+      "a1": "C4*",
+      "a2": "H4*",
+      "order": "Single"
+    },
+    {
+      "number": 24,
+      "a1": "C1*",
+      "a2": "H1*",
+      "order": "Single"
+    },
+    {
+      "number": 25,
+      "a1": "C3*",
+      "a2": "H3*",
+      "order": "Single"
+    },
+    {
+      "number": 26,
+      "a1": "C2*",
+      "a2": "1H2*",
+      "order": "Single"
+    },
+    {
+      "number": 27,
+      "a1": "C2*",
+      "a2": "2H2*",
+      "order": "Single"
+    },
+    {
+      "number": 28,
+      "a1": "C6",
+      "a2": "H6",
+      "order": "Single"
+    },
+    {
+      "number": 29,
+      "a1": "C5",
+      "a2": "H5",
+      "order": "Single"
+    },
+    {
+      "number": 30,
+      "a1": "N4",
+      "a2": "1H4",
+      "order": "Single"
+    },
+    {
+      "number": 31,
+      "a1": "N4",
+      "a2": "2H4",
+      "order": "Single"
+    }
+  ],
+  "connections": [
+    {
+      "name": "5-term",
+      "atom_name": "P",
+      "match_name": "3-term",
+      "order": "Single",
+      "distance": 1.62,
+      "tolerance": 0.5
+    },
+    {
+      "name": "3-term",
+      "atom_name": "O3*",
+      "match_name": "5-term",
+      "order": "Single",
+      "distance": 1.62,
+      "tolerance": 0.5
+    }
+  ],
+  "properties": {
+    "NUCLEOTIDE": true
+  },
+  "variants": [
+    {
+      "name": "C-M",
+      "properties": {
+        "5_PRIME": true,
+        "3_PRIME": true
+      }
+    },
+    {
+      "name": "Default",
+      "properties": {}
+    },
+    {
+      "name": "C-3",
+      "properties": {
+        "3_PRIME": true
+      }
+    },
+    {
+      "name": "C-5",
+      "properties": {
+        "5_PRIME": true
+      }
+    }
+  ]
+}

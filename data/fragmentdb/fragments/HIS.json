@@ -1,0 +1,390 @@
+{
+  "names": [
+    "Histidine",
+    "Histidin",
+    "His",
+    "H"
+  ],
+  "atoms": [
+    {
+      "name": "N",
+      "element": "N",
+      "r": [
+        0.2528806,
+        1.616447,
+        -0.2212145
+      ]
+    },
+    {
+      "name": "3H",
+      "element": "H",
+      "r": [
+        0.7991534,
+        2.328624,
+        0.245802
+      ]
+    },
+    {
+      "name": "CA",
+      "element": "C",
+      "r": [
+        -0.9251888,
+        2.215651,
+        -0.8776516
+      ]
+    },
+    {
+      "name": "HA",
+      "element": "H",
+      "r": [
+        -0.5465931,
+        2.966134,
+        -1.573552
+      ]
+    },
+    {
+      "name": "C",
+      "element": "C",
+      "r": [
+        -1.833067,
+        2.919479,
+        0.1419996
+      ]
+    },
+    {
+      "name": "O",
+      "element": "O",
+      "r": [
+        -2.654072,
+        3.735267,
+        -0.3389743
+      ]
+    },
+    {
+      "name": "CB",
+      "element": "C",
+      "r": [
+        -1.677425,
+        1.144471,
+        -1.688265
+      ]
+    },
+    {
+      "name": "1HB",
+      "element": "H",
+      "r": [
+        -0.9314069,
+        0.53022,
+        -2.195623
+      ]
+    },
+    {
+      "name": "2HB",
+      "element": "H",
+      "r": [
+        -2.228334,
+        0.4977131,
+        -1.00345
+      ]
+    },
+    {
+      "name": "CG",
+      "element": "C",
+      "r": [
+        -2.625881,
+        1.668474,
+        -2.74672
+      ]
+    },
+    {
+      "name": "ND1",
+      "element": "N",
+      "r": [
+        -3.385668,
+        2.821612,
+        -2.671887
+      ]
+    },
+    {
+      "name": "HD1",
+      "element": "H",
+      "r": [
+        -3.38348,
+        3.467654,
+        -1.88095
+      ]
+    },
+    {
+      "name": "CD2",
+      "element": "C",
+      "r": [
+        -2.893428,
+        1.068907,
+        -3.947961
+      ]
+    },
+    {
+      "name": "HD2",
+      "element": "H",
+      "r": [
+        -2.46763,
+        0.1453506,
+        -4.317409
+      ]
+    },
+    {
+      "name": "CE1",
+      "element": "C",
+      "r": [
+        -4.09971,
+        2.924621,
+        -3.807559
+      ]
+    },
+    {
+      "name": "HE1",
+      "element": "H",
+      "r": [
+        -4.788648,
+        3.724259,
+        -4.045286
+      ]
+    },
+    {
+      "name": "NE2",
+      "element": "N",
+      "r": [
+        -3.815619,
+        1.869323,
+        -4.597533
+      ]
+    },
+    {
+      "name": "HE2",
+      "element": "H",
+      "r": [
+        -4.210977,
+        1.69118,
+        -5.511979
+      ]
+    },
+    {
+      "name": "1H",
+      "element": "H",
+      "r": [
+        -0.05550323,
+        0.9331897,
+        0.4557269
+      ]
+    },
+    {
+      "name": "2H",
+      "element": "H",
+      "r": [
+        0.827899,
+        1.162407,
+        -0.9164186
+      ]
+    },
+    {
+      "name": "OXT",
+      "element": "O",
+      "r": [
+        -1.921441,
+        2.400639,
+        1.276749
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 5,
+      "a1": "3H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 6,
+      "a1": "CA",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 10,
+      "a1": "HA",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 11,
+      "a1": "C",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 14,
+      "a1": "O",
+      "a2": "C",
+      "order": "Double"
+    },
+    {
+      "number": 15,
+      "a1": "CB",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 19,
+      "a1": "1HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 20,
+      "a1": "2HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 21,
+      "a1": "CG",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 24,
+      "a1": "ND1",
+      "a2": "CG",
+      "order": "Aromatic"
+    },
+    {
+      "number": 27,
+      "a1": "HD1",
+      "a2": "ND1",
+      "order": "Single"
+    },
+    {
+      "number": 28,
+      "a1": "CD2",
+      "a2": "CG",
+      "order": "Aromatic"
+    },
+    {
+      "number": 31,
+      "a1": "HD2",
+      "a2": "CD2",
+      "order": "Single"
+    },
+    {
+      "number": 32,
+      "a1": "CE1",
+      "a2": "ND1",
+      "order": "Aromatic"
+    },
+    {
+      "number": 35,
+      "a1": "HE1",
+      "a2": "CE1",
+      "order": "Single"
+    },
+    {
+      "number": 36,
+      "a1": "NE2",
+      "a2": "CE1",
+      "order": "Aromatic"
+    },
+    {
+      "number": 37,
+      "a1": "NE2",
+      "a2": "CD2",
+      "order": "Aromatic"
+    },
+    {
+      "number": 39,
+      "a1": "HE2",
+      "a2": "NE2",
+      "order": "Single"
+    },
+    {
+      "number": 40,
+      "a1": "1H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 41,
+      "a1": "2H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 42,
+      "a1": "OXT",
+      "a2": "C",
+      "order": "Single"
+    }
+  ],
+  "connections": [
+    {
+      "name": "N-term",
+      "atom_name": "N",
+      "match_name": "C-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    },
+    {
+      "name": "C-term",
+      "atom_name": "C",
+      "match_name": "N-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    }
+  ],
+  "properties": {
+    "AMINO_ACID": true
+  },
+  "variants": [
+    {
+      "name": "Default",
+      "delete": [
+        "OXT",
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      }
+    },
+    {
+      "name": "HIS-M",
+      "properties": {
+        "C_TERMINAL": true,
+        "N_TERMINAL": true
+      }
+    },
+    {
+      "name": "HIS-C",
+      "delete": [
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      },
+      "properties": {
+        "C_TERMINAL": true
+      }
+    },
+    {
+      "name": "HIS-N",
+      "delete": [
+        "OXT"
+      ],
+      "properties": {
+        "N_TERMINAL": true
+      }
+    }
+  ]
+}

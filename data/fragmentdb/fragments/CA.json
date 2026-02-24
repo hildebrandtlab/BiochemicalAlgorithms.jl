@@ -1,0 +1,25 @@
+{
+  "names": [
+    "Calcium ion",
+    "Ca2+"
+  ],
+  "atoms": [
+    {
+      "name": "CA",
+      "element": "Ca",
+      "r": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "bonds": [],
+  "connections": [],
+  "properties": {},
+  "variants": [
+    {
+      "name": "Default"
+    }
+  ]
+}

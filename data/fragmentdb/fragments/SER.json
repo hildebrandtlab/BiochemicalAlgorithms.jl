@@ -1,0 +1,279 @@
+{
+  "names": [
+    "Serine",
+    "Serin",
+    "Ser",
+    "S"
+  ],
+  "atoms": [
+    {
+      "name": "N",
+      "element": "N",
+      "r": [
+        0.1130663,
+        1.226434,
+        -0.1468897
+      ]
+    },
+    {
+      "name": "3H",
+      "element": "H",
+      "r": [
+        0.8968111,
+        1.837972,
+        0.05464922
+      ]
+    },
+    {
+      "name": "CA",
+      "element": "C",
+      "r": [
+        -0.7048293,
+        1.905604,
+        -1.168307
+      ]
+    },
+    {
+      "name": "HA",
+      "element": "H",
+      "r": [
+        -0.2017423,
+        1.780946,
+        -2.128185
+      ]
+    },
+    {
+      "name": "C",
+      "element": "C",
+      "r": [
+        -0.7701361,
+        3.410257,
+        -0.8778276
+      ]
+    },
+    {
+      "name": "O",
+      "element": "O",
+      "r": [
+        0.1488766,
+        3.858471,
+        -0.1539113
+      ]
+    },
+    {
+      "name": "CB",
+      "element": "C",
+      "r": [
+        -2.088618,
+        1.24965,
+        -1.250489
+      ]
+    },
+    {
+      "name": "1HB",
+      "element": "H",
+      "r": [
+        -1.956628,
+        0.1725609,
+        -1.368818
+      ]
+    },
+    {
+      "name": "2HB",
+      "element": "H",
+      "r": [
+        -2.637483,
+        1.435655,
+        -0.3253672
+      ]
+    },
+    {
+      "name": "OG",
+      "element": "O",
+      "r": [
+        -2.817839,
+        1.744102,
+        -2.356831
+      ]
+    },
+    {
+      "name": "HG",
+      "element": "H",
+      "r": [
+        -3.648096,
+        1.264079,
+        -2.429246
+      ]
+    },
+    {
+      "name": "OXT",
+      "element": "O",
+      "r": [
+        -1.487331,
+        4.10633,
+        -1.629405
+      ]
+    },
+    {
+      "name": "1H",
+      "element": "H",
+      "r": [
+        -0.4311985,
+        1.10388,
+        0.6950446
+      ]
+    },
+    {
+      "name": "2H",
+      "element": "H",
+      "r": [
+        0.4303224,
+        0.3296314,
+        -0.4862972
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 5,
+      "a1": "3H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 6,
+      "a1": "CA",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 10,
+      "a1": "HA",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 11,
+      "a1": "C",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 14,
+      "a1": "O",
+      "a2": "C",
+      "order": "Double"
+    },
+    {
+      "number": 15,
+      "a1": "CB",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 19,
+      "a1": "1HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 20,
+      "a1": "2HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 21,
+      "a1": "OG",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 23,
+      "a1": "HG",
+      "a2": "OG",
+      "order": "Single"
+    },
+    {
+      "number": 24,
+      "a1": "OXT",
+      "a2": "C",
+      "order": "Single"
+    },
+    {
+      "number": 25,
+      "a1": "1H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 26,
+      "a1": "2H",
+      "a2": "N",
+      "order": "Single"
+    }
+  ],
+  "connections": [
+    {
+      "name": "N-term",
+      "atom_name": "N",
+      "match_name": "C-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    },
+    {
+      "name": "C-term",
+      "atom_name": "C",
+      "match_name": "N-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    }
+  ],
+  "properties": {
+    "AMINO_ACID": true
+  },
+  "variants": [
+    {
+      "name": "Default",
+      "delete": [
+        "OXT",
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      }
+    },
+    {
+      "name": "SER-M",
+      "properties": {
+        "N_TERMINAL": true,
+        "C_TERMINAL": true
+      }
+    },
+    {
+      "name": "SER-N",
+      "delete": [
+        "OXT"
+      ],
+      "properties": {
+        "N_TERMINAL": true
+      }
+    },
+    {
+      "name": "SER-C",
+      "delete": [
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      },
+      "properties": {
+        "C_TERMINAL": true
+      }
+    }
+  ]
+}

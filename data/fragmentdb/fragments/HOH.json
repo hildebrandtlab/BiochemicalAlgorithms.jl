@@ -1,0 +1,55 @@
+{
+  "names": [
+    "Water"
+  ],
+  "atoms": [
+    {
+      "name": "O",
+      "element": "O",
+      "r": [
+        15.118,
+        9.944,
+        8.582
+      ]
+    },
+    {
+      "name": "1H",
+      "element": "H",
+      "r": [
+        15.211,
+        9.386,
+        7.809
+      ]
+    },
+    {
+      "name": "2H",
+      "element": "H",
+      "r": [
+        14.173,
+        9.992,
+        8.73
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 1,
+      "a1": "1H",
+      "a2": "O",
+      "order": "Single"
+    },
+    {
+      "number": 2,
+      "a1": "2H",
+      "a2": "O",
+      "order": "Single"
+    }
+  ],
+  "connections": [],
+  "properties": {},
+  "variants": [
+    {
+      "name": "Default"
+    }
+  ]
+}

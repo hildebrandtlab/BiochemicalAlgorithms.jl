@@ -1,0 +1,399 @@
+{
+  "names": [
+    "Isoleucine",
+    "Isoleucin",
+    "Ile",
+    "I"
+  ],
+  "atoms": [
+    {
+      "name": "N",
+      "element": "N",
+      "r": [
+        0.1219419,
+        1.159209,
+        -0.1919851
+      ]
+    },
+    {
+      "name": "3H",
+      "element": "H",
+      "r": [
+        0.9740559,
+        1.689959,
+        -0.04711162
+      ]
+    },
+    {
+      "name": "CA",
+      "element": "C",
+      "r": [
+        -0.7030041,
+        1.935257,
+        -1.138673
+      ]
+    },
+    {
+      "name": "HA",
+      "element": "H",
+      "r": [
+        -0.2842833,
+        1.745549,
+        -2.127681
+      ]
+    },
+    {
+      "name": "C",
+      "element": "C",
+      "r": [
+        -0.5392811,
+        3.43721,
+        -0.8683466
+      ]
+    },
+    {
+      "name": "O",
+      "element": "O",
+      "r": [
+        0.4636989,
+        3.750649,
+        -0.1867381
+      ]
+    },
+    {
+      "name": "CB",
+      "element": "C",
+      "r": [
+        -2.165631,
+        1.439687,
+        -1.121375
+      ]
+    },
+    {
+      "name": "HB",
+      "element": "H",
+      "r": [
+        -2.124804,
+        0.349284,
+        -1.14618
+      ]
+    },
+    {
+      "name": "CG1",
+      "element": "C",
+      "r": [
+        -2.945574,
+        1.890833,
+        -2.370761
+      ]
+    },
+    {
+      "name": "1HG1",
+      "element": "H",
+      "r": [
+        -3.189406,
+        2.951118,
+        -2.312008
+      ]
+    },
+    {
+      "name": "2HG1",
+      "element": "H",
+      "r": [
+        -2.330654,
+        1.72068,
+        -3.255403
+      ]
+    },
+    {
+      "name": "CG2",
+      "element": "C",
+      "r": [
+        -2.890608,
+        1.852801,
+        0.1693949
+      ]
+    },
+    {
+      "name": "1HG2",
+      "element": "H",
+      "r": [
+        -3.851115,
+        1.343782,
+        0.2388784
+      ]
+    },
+    {
+      "name": "2HG2",
+      "element": "H",
+      "r": [
+        -2.299751,
+        1.573039,
+        1.041283
+      ]
+    },
+    {
+      "name": "3HG2",
+      "element": "H",
+      "r": [
+        -3.060911,
+        2.929328,
+        0.1868919
+      ]
+    },
+    {
+      "name": "CD1",
+      "element": "C",
+      "r": [
+        -4.249351,
+        1.108805,
+        -2.558935
+      ]
+    },
+    {
+      "name": "1HD1",
+      "element": "H",
+      "r": [
+        -4.709754,
+        1.403511,
+        -3.502415
+      ]
+    },
+    {
+      "name": "2HD1",
+      "element": "H",
+      "r": [
+        -4.043807,
+        0.03831363,
+        -2.586494
+      ]
+    },
+    {
+      "name": "3HD1",
+      "element": "H",
+      "r": [
+        -4.947758,
+        1.324118,
+        -1.751006
+      ]
+    },
+    {
+      "name": "1H",
+      "element": "H",
+      "r": [
+        -0.3580201,
+        1.071109,
+        0.6916124
+      ]
+    },
+    {
+      "name": "2H",
+      "element": "H",
+      "r": [
+        0.3236403,
+        0.2433889,
+        -0.5670705
+      ]
+    },
+    {
+      "name": "OXT",
+      "element": "O",
+      "r": [
+        -1.135264,
+        4.21782,
+        -1.641576
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 5,
+      "a1": "3H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 6,
+      "a1": "CA",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 10,
+      "a1": "HA",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 11,
+      "a1": "C",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 14,
+      "a1": "O",
+      "a2": "C",
+      "order": "Double"
+    },
+    {
+      "number": 15,
+      "a1": "CB",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 19,
+      "a1": "HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 20,
+      "a1": "CG1",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 24,
+      "a1": "1HG1",
+      "a2": "CG1",
+      "order": "Single"
+    },
+    {
+      "number": 25,
+      "a1": "2HG1",
+      "a2": "CG1",
+      "order": "Single"
+    },
+    {
+      "number": 26,
+      "a1": "CG2",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 30,
+      "a1": "1HG2",
+      "a2": "CG2",
+      "order": "Single"
+    },
+    {
+      "number": 31,
+      "a1": "2HG2",
+      "a2": "CG2",
+      "order": "Single"
+    },
+    {
+      "number": 32,
+      "a1": "3HG2",
+      "a2": "CG2",
+      "order": "Single"
+    },
+    {
+      "number": 33,
+      "a1": "CD1",
+      "a2": "CG1",
+      "order": "Single"
+    },
+    {
+      "number": 37,
+      "a1": "1HD1",
+      "a2": "CD1",
+      "order": "Single"
+    },
+    {
+      "number": 38,
+      "a1": "2HD1",
+      "a2": "CD1",
+      "order": "Single"
+    },
+    {
+      "number": 39,
+      "a1": "3HD1",
+      "a2": "CD1",
+      "order": "Single"
+    },
+    {
+      "number": 40,
+      "a1": "1H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 41,
+      "a1": "2H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 42,
+      "a1": "OXT",
+      "a2": "C",
+      "order": "Single"
+    }
+  ],
+  "connections": [
+    {
+      "name": "N-term",
+      "atom_name": "N",
+      "match_name": "C-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    },
+    {
+      "name": "C-term",
+      "atom_name": "C",
+      "match_name": "N-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    }
+  ],
+  "properties": {
+    "AMINO_ACID": true
+  },
+  "variants": [
+    {
+      "name": "Default",
+      "delete": [
+        "OXT",
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      }
+    },
+    {
+      "name": "ILE-M",
+      "properties": {
+        "C_TERMINAL": true,
+        "N_TERMINAL": true
+      }
+    },
+    {
+      "name": "ILE-C",
+      "delete": [
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      },
+      "properties": {
+        "C_TERMINAL": true
+      }
+    },
+    {
+      "name": "ILE-N",
+      "delete": [
+        "OXT"
+      ],
+      "properties": {
+        "N_TERMINAL": true
+      }
+    }
+  ]
+}

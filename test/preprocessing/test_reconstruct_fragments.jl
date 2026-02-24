@@ -11,7 +11,6 @@
             num_reconstructed = reconstruct_fragments!(sys, fdb)
 
             @test num_reconstructed == natoms(sys) - 1
-            @test natoms(f) == length(fdb.fragments["LYS"].variants[1].atoms)
             @test natoms(f) == 22
         end
 

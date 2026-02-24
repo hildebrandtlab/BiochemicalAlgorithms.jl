@@ -1,0 +1,294 @@
+{
+  "names": [
+    "Aspartate",
+    "Aspartat",
+    "Asp",
+    "D"
+  ],
+  "atoms": [
+    {
+      "name": "N",
+      "element": "N",
+      "r": [
+        0.1006113,
+        1.231053,
+        -0.1065504
+      ]
+    },
+    {
+      "name": "3H",
+      "element": "H",
+      "r": [
+        0.7826706,
+        1.919109,
+        0.1901606
+      ]
+    },
+    {
+      "name": "CA",
+      "element": "C",
+      "r": [
+        -0.6776782,
+        1.854581,
+        -1.196471
+      ]
+    },
+    {
+      "name": "HA",
+      "element": "H",
+      "r": [
+        -0.140641,
+        1.67647,
+        -2.129506
+      ]
+    },
+    {
+      "name": "C",
+      "element": "C",
+      "r": [
+        -0.7684437,
+        3.377808,
+        -1.00658
+      ]
+    },
+    {
+      "name": "O",
+      "element": "O",
+      "r": [
+        -0.1755398,
+        3.814352,
+        0.008837678
+      ]
+    },
+    {
+      "name": "CB",
+      "element": "C",
+      "r": [
+        -2.059715,
+        1.201639,
+        -1.304611
+      ]
+    },
+    {
+      "name": "1HB",
+      "element": "H",
+      "r": [
+        -1.947421,
+        0.1437317,
+        -1.541582
+      ]
+    },
+    {
+      "name": "2HB",
+      "element": "H",
+      "r": [
+        -2.583309,
+        1.296861,
+        -0.3531539
+      ]
+    },
+    {
+      "name": "CG",
+      "element": "C",
+      "r": [
+        -2.895658,
+        1.868856,
+        -2.384729
+      ]
+    },
+    {
+      "name": "OD1",
+      "element": "O",
+      "r": [
+        -2.861295,
+        1.365629,
+        -3.526181
+      ]
+    },
+    {
+      "name": "OD2",
+      "element": "O",
+      "r": [
+        -3.508188,
+        2.905267,
+        -2.052321
+      ]
+    },
+    {
+      "name": "OXT",
+      "element": "O",
+      "r": [
+        -0.9198192,
+        4.048685,
+        -2.051676
+      ]
+    },
+    {
+      "name": "1H",
+      "element": "H",
+      "r": [
+        -0.5109496,
+        1.02733,
+        0.6709606
+      ]
+    },
+    {
+      "name": "2H",
+      "element": "H",
+      "r": [
+        0.5472904,
+        0.3836241,
+        -0.4264945
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 5,
+      "a1": "3H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 6,
+      "a1": "CA",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 10,
+      "a1": "HA",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 11,
+      "a1": "C",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 14,
+      "a1": "O",
+      "a2": "C",
+      "order": "Double"
+    },
+    {
+      "number": 15,
+      "a1": "CB",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 19,
+      "a1": "1HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 20,
+      "a1": "2HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 21,
+      "a1": "CG",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 24,
+      "a1": "OD1",
+      "a2": "CG",
+      "order": "Aromatic"
+    },
+    {
+      "number": 25,
+      "a1": "OD2",
+      "a2": "CG",
+      "order": "Aromatic"
+    },
+    {
+      "number": 26,
+      "a1": "OXT",
+      "a2": "C",
+      "order": "Single"
+    },
+    {
+      "number": 27,
+      "a1": "1H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 28,
+      "a1": "2H",
+      "a2": "N",
+      "order": "Single"
+    }
+  ],
+  "connections": [
+    {
+      "name": "N-term",
+      "atom_name": "N",
+      "match_name": "C-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    },
+    {
+      "name": "C-term",
+      "atom_name": "C",
+      "match_name": "N-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    }
+  ],
+  "properties": {
+    "AMINO_ACID": true
+  },
+  "variants": [
+    {
+      "name": "Default",
+      "delete": [
+        "OXT",
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      }
+    },
+    {
+      "name": "ASP-M",
+      "properties": {
+        "N_TERMINAL": true,
+        "C_TERMINAL": true
+      }
+    },
+    {
+      "name": "ASP-N",
+      "delete": [
+        "OXT"
+      ],
+      "properties": {
+        "N_TERMINAL": true
+      }
+    },
+    {
+      "name": "ASP-C",
+      "delete": [
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      },
+      "properties": {
+        "C_TERMINAL": true
+      }
+    }
+  ]
+}

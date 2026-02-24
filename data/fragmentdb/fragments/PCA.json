@@ -1,0 +1,261 @@
+{
+  "names": [
+    "Pyroglutamate",
+    "Pyroglutamat",
+    "PCA"
+  ],
+  "atoms": [
+    {
+      "name": "N",
+      "element": "N",
+      "r": [
+        0.633233,
+        -0.73852,
+        0.75395
+      ]
+    },
+    {
+      "name": "H",
+      "element": "H",
+      "r": [
+        0.354342,
+        -1.687937,
+        0.623119
+      ]
+    },
+    {
+      "name": "CA",
+      "element": "C",
+      "r": [
+        -0.48048,
+        0.254947,
+        0.69608
+      ]
+    },
+    {
+      "name": "C",
+      "element": "C",
+      "r": [
+        -1.757691,
+        -0.270758,
+        -0.06079
+      ]
+    },
+    {
+      "name": "O",
+      "element": "O",
+      "r": [
+        -1.739275,
+        -1.432777,
+        -0.530185
+      ]
+    },
+    {
+      "name": "CB",
+      "element": "C",
+      "r": [
+        0.102054,
+        1.514384,
+        0.035819
+      ]
+    },
+    {
+      "name": "CG",
+      "element": "C",
+      "r": [
+        1.51134,
+        1.164025,
+        -0.440294
+      ]
+    },
+    {
+      "name": "CD",
+      "element": "C",
+      "r": [
+        1.725147,
+        -0.277577,
+        -0.025832
+      ]
+    },
+    {
+      "name": "OE",
+      "element": "O",
+      "r": [
+        2.716615,
+        -0.966582,
+        -0.238284
+      ]
+    },
+    {
+      "name": "HA",
+      "element": "H",
+      "r": [
+        -0.765277,
+        0.458788,
+        1.753344
+      ]
+    },
+    {
+      "name": "1HB",
+      "element": "H",
+      "r": [
+        -0.540287,
+        1.847529,
+        -0.801287
+      ]
+    },
+    {
+      "name": "2HB",
+      "element": "H",
+      "r": [
+        0.122684,
+        2.361261,
+        0.74609
+      ]
+    },
+    {
+      "name": "1HG",
+      "element": "H",
+      "r": [
+        1.61655,
+        1.265144,
+        -1.535904
+      ]
+    },
+    {
+      "name": "2HG",
+      "element": "H",
+      "r": [
+        2.282434,
+        1.821242,
+        0.00086
+      ]
+    },
+    {
+      "name": "OXT",
+      "element": "O",
+      "r": [
+        -2.740502,
+        0.498543,
+        -0.143251
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 4,
+      "a1": "H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 5,
+      "a1": "C",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 8,
+      "a1": "O",
+      "a2": "C",
+      "order": "Double"
+    },
+    {
+      "number": 11,
+      "a1": "CB",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 13,
+      "a1": "CG",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 17,
+      "a1": "CD",
+      "a2": "CG",
+      "order": "Single"
+    },
+    {
+      "number": 19,
+      "a1": "CD",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 20,
+      "a1": "OE",
+      "a2": "CD",
+      "order": "Double"
+    },
+    {
+      "number": 21,
+      "a1": "HA",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 22,
+      "a1": "1HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 23,
+      "a1": "2HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 24,
+      "a1": "1HG",
+      "a2": "CG",
+      "order": "Single"
+    },
+    {
+      "number": 25,
+      "a1": "2HG",
+      "a2": "CG",
+      "order": "Single"
+    },
+    {
+      "number": 26,
+      "a1": "OXT",
+      "a2": "C",
+      "order": "Single"
+    },
+    {
+      "number": 27,
+      "a1": "N",
+      "a2": "CA",
+      "order": "Single"
+    }
+  ],
+  "connections": [
+    {
+      "name": "C-term",
+      "atom_name": "C",
+      "match_name": "N-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    }
+  ],
+  "properties": {},
+  "variants": [
+    {
+      "name": "Default"
+    },
+    {
+      "name": "PCA-N",
+      "delete": [
+        "OXT"
+      ],
+      "properties": {
+        "N_TERMINAL": true
+      }
+    }
+  ]
+}

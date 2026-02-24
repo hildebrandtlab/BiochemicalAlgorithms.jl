@@ -1,0 +1,420 @@
+{
+  "names": [
+    "Phenylalanine",
+    "Phenylalanin",
+    "Phe",
+    "F"
+  ],
+  "atoms": [
+    {
+      "name": "N",
+      "element": "N",
+      "r": [
+        0.1341407,
+        1.351202,
+        -0.07911759
+      ]
+    },
+    {
+      "name": "3H",
+      "element": "H",
+      "r": [
+        0.803193,
+        2.035005,
+        0.2534044
+      ]
+    },
+    {
+      "name": "CA",
+      "element": "C",
+      "r": [
+        -0.7211604,
+        2.001838,
+        -1.087341
+      ]
+    },
+    {
+      "name": "HA",
+      "element": "H",
+      "r": [
+        -0.07892336,
+        2.270821,
+        -1.926756
+      ]
+    },
+    {
+      "name": "C",
+      "element": "C",
+      "r": [
+        -1.300131,
+        3.307535,
+        -0.5325462
+      ]
+    },
+    {
+      "name": "O",
+      "element": "O",
+      "r": [
+        -0.4477309,
+        4.171679,
+        -0.229457
+      ]
+    },
+    {
+      "name": "CB",
+      "element": "C",
+      "r": [
+        -1.791856,
+        1.027805,
+        -1.599674
+      ]
+    },
+    {
+      "name": "1HB",
+      "element": "H",
+      "r": [
+        -1.28636,
+        0.160502,
+        -2.026756
+      ]
+    },
+    {
+      "name": "2HB",
+      "element": "H",
+      "r": [
+        -2.380364,
+        0.6727667,
+        -0.7525354
+      ]
+    },
+    {
+      "name": "CG",
+      "element": "C",
+      "r": [
+        -2.70873,
+        1.607533,
+        -2.661208
+      ]
+    },
+    {
+      "name": "CD1",
+      "element": "C",
+      "r": [
+        -4.074711,
+        1.815559,
+        -2.387768
+      ]
+    },
+    {
+      "name": "HD1",
+      "element": "H",
+      "r": [
+        -4.496757,
+        1.527902,
+        -1.435336
+      ]
+    },
+    {
+      "name": "CD2",
+      "element": "C",
+      "r": [
+        -2.185439,
+        1.971959,
+        -3.916095
+      ]
+    },
+    {
+      "name": "HD2",
+      "element": "H",
+      "r": [
+        -1.142983,
+        1.801105,
+        -4.144545
+      ]
+    },
+    {
+      "name": "CE1",
+      "element": "C",
+      "r": [
+        -4.90709,
+        2.399215,
+        -3.358655
+      ]
+    },
+    {
+      "name": "HE1",
+      "element": "H",
+      "r": [
+        -5.955226,
+        2.557371,
+        -3.147432
+      ]
+    },
+    {
+      "name": "CE2",
+      "element": "C",
+      "r": [
+        -3.019025,
+        2.554821,
+        -4.88633
+      ]
+    },
+    {
+      "name": "HE2",
+      "element": "H",
+      "r": [
+        -2.61471,
+        2.832835,
+        -5.84938
+      ]
+    },
+    {
+      "name": "CZ",
+      "element": "C",
+      "r": [
+        -4.379117,
+        2.771946,
+        -4.606688
+      ]
+    },
+    {
+      "name": "HZ",
+      "element": "H",
+      "r": [
+        -5.020426,
+        3.217529,
+        -5.354036
+      ]
+    },
+    {
+      "name": "1H",
+      "element": "H",
+      "r": [
+        -0.4341985,
+        1.034029,
+        0.6931909
+      ]
+    },
+    {
+      "name": "2H",
+      "element": "H",
+      "r": [
+        0.6169096,
+        0.5661594,
+        -0.4922875
+      ]
+    },
+    {
+      "name": "OXT",
+      "element": "O",
+      "r": [
+        -2.460581,
+        3.26509,
+        -0.06804343
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 5,
+      "a1": "3H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 6,
+      "a1": "CA",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 10,
+      "a1": "HA",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 11,
+      "a1": "C",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 14,
+      "a1": "O",
+      "a2": "C",
+      "order": "Double"
+    },
+    {
+      "number": 15,
+      "a1": "CB",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 19,
+      "a1": "1HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 20,
+      "a1": "2HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 21,
+      "a1": "CG",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 24,
+      "a1": "CD1",
+      "a2": "CG",
+      "order": "Aromatic"
+    },
+    {
+      "number": 27,
+      "a1": "HD1",
+      "a2": "CD1",
+      "order": "Single"
+    },
+    {
+      "number": 28,
+      "a1": "CD2",
+      "a2": "CG",
+      "order": "Aromatic"
+    },
+    {
+      "number": 31,
+      "a1": "HD2",
+      "a2": "CD2",
+      "order": "Single"
+    },
+    {
+      "number": 32,
+      "a1": "CE1",
+      "a2": "CD1",
+      "order": "Aromatic"
+    },
+    {
+      "number": 35,
+      "a1": "HE1",
+      "a2": "CE1",
+      "order": "Single"
+    },
+    {
+      "number": 36,
+      "a1": "CE2",
+      "a2": "CD2",
+      "order": "Aromatic"
+    },
+    {
+      "number": 39,
+      "a1": "HE2",
+      "a2": "CE2",
+      "order": "Single"
+    },
+    {
+      "number": 40,
+      "a1": "CZ",
+      "a2": "CE1",
+      "order": "Aromatic"
+    },
+    {
+      "number": 41,
+      "a1": "CZ",
+      "a2": "CE2",
+      "order": "Aromatic"
+    },
+    {
+      "number": 43,
+      "a1": "HZ",
+      "a2": "CZ",
+      "order": "Single"
+    },
+    {
+      "number": 44,
+      "a1": "1H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 45,
+      "a1": "2H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 46,
+      "a1": "OXT",
+      "a2": "C",
+      "order": "Single"
+    }
+  ],
+  "connections": [
+    {
+      "name": "N-term",
+      "atom_name": "N",
+      "match_name": "C-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    },
+    {
+      "name": "C-term",
+      "atom_name": "C",
+      "match_name": "N-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    }
+  ],
+  "properties": {
+    "AMINO_ACID": true
+  },
+  "variants": [
+    {
+      "name": "Default",
+      "delete": [
+        "OXT",
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      }
+    },
+    {
+      "name": "PHE-M",
+      "properties": {
+        "C_TERMINAL": true,
+        "N_TERMINAL": true
+      }
+    },
+    {
+      "name": "PHE-C",
+      "delete": [
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      },
+      "properties": {
+        "C_TERMINAL": true
+      }
+    },
+    {
+      "name": "PHE-N",
+      "delete": [
+        "OXT"
+      ],
+      "properties": {
+        "N_TERMINAL": true
+      }
+    }
+  ]
+}

@@ -4,9 +4,9 @@ export reconstruct_fragments!
 
 # Identify two reference atoms.
 # Performs a breadth-first search for two additional heavy atoms
-# starting from the center atom. These atoms are used as 
+# starting from the center atom. These atoms are used as
 # anchor points for attaching the next atom.
-function _get_two_reference_atoms(ref_center_atom::DBAtom{T}, allowed::Set{DBAtom{T}}, ref::DBVariant{T}) where {T<:Real}
+function _get_two_reference_atoms(ref_center_atom::DBAtom{T}, allowed::Set{DBAtom{T}}, ref::DBFragmentVariant{T}) where T
     # a hash set to remember all those atoms we have already visited
     atom_list = OrderedSet{DBAtom{T}}()
     push!(atom_list, ref_center_atom)
@@ -26,7 +26,7 @@ function _get_two_reference_atoms(ref_center_atom::DBAtom{T}, allowed::Set{DBAto
                 end
             end
         end
-        
+
         # try the bonds of the next atom in the list
         isempty(atom_list_rest) && break
         (current, atom_list_rest) = Iterators.peel(atom_list_rest)
@@ -35,13 +35,13 @@ function _get_two_reference_atoms(ref_center_atom::DBAtom{T}, allowed::Set{DBAto
     atom_list = collect(atom_list)
 
     (
-        length(atom_list) == 3, 
-        length(atom_list) > 1 ? atom_list[2] : nothing, 
+        length(atom_list) == 3,
+        length(atom_list) > 1 ? atom_list[2] : nothing,
         length(atom_list) > 2 ? atom_list[3] : nothing
     )
 end
 
-function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:Real}
+function reconstruct_fragment_!(f::Fragment{T}, template::DBFragmentVariant{T}) where T
     num_inserted_atoms = 0
 
     # Get a copy of the atom names occurring in the current fragment....
@@ -68,7 +68,7 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
                 maximum(atoms(parent_system(f)).number)+1, # does this make sense?
                 tpl_atom.element;
                 name = tpl_atom.name,
-                r = tpl_atom.r
+                r = Vector3{T}(tpl_atom.r)
             )
 
             tpl_to_frag[tpl_atom] = new_atom
@@ -78,12 +78,12 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
         end
     end
 
-    # We've now made sure that all atoms of the tplate exist in the 
+    # We've now made sure that all atoms of the tplate exist in the
     # reconstructed residue as well (careful, not the other way round!)
     # we can now start to adjust the atom coordinates.
 
     # If no atoms were in common, there's not much we can do...
-    # Trivial solution: no atoms are actually matched to each 
+    # Trivial solution: no atoms are actually matched to each
     # other, so we just leave the coordinates the way they
     # are (copy of the tpl coordinates) and return.
     if (!isempty(transformed))
@@ -101,10 +101,10 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
             @debug "Center is $(current.name) visited = " *
                 "$(current ∈ visited) transformed = $(current ∈ transformed)" *
                 " @ $(current.r)"
-                
+
             @debug "Residue atom is @ $(tpl_to_frag[current].r) (dist = " *
                 "$(norm(tpl_to_frag[current].r - current.r)))"
-        
+
 
             for bond in bonds(current, template)
                 next = get_partner(bond, current, template)
@@ -131,17 +131,17 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
 
                         @debug "from: $(current.r)/$(a1.r)/$(a2.r)"
                         @debug "to:   $(tpl_to_frag[current].r)/$(tpl_to_frag[a1].r)/$(tpl_to_frag[a2].r)"
-                        
+
                         translation, rotation = if hit
                             # we can map all three atoms, great!
                             translation, rotation = match_points(
                                 current.r, a1.r, a2.r,
                                 tpl_to_frag[current].r, tpl_to_frag[a1].r, tpl_to_frag[a2].r
                             )
-                        
+
                             translation, rotation
                         else
-                            # We could map the two center atoms only, which corresponds to 
+                            # We could map the two center atoms only, which corresponds to
                             # a simple translation by the difference of the two atom positions.
                             tpl_to_frag[current].r - current.r, T(1)I(3)
                         end
@@ -169,7 +169,7 @@ function reconstruct_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB) w
 
     # iterate over all fragments
     for f in fragments(ac)
-            
+
         # check whether our DB knows the fragment and, if so, retrieve the template
         template = get_reference_fragment(f, fdb)
 
@@ -183,6 +183,6 @@ function reconstruct_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB) w
     end
 
     @info "reconstruct_fragments!(): added $(num_inserted_atoms) atoms."
-    
+
     num_inserted_atoms
 end

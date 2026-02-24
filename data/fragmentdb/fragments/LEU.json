@@ -1,0 +1,399 @@
+{
+  "names": [
+    "Leucine",
+    "Leucin",
+    "Leu",
+    "L"
+  ],
+  "atoms": [
+    {
+      "name": "N",
+      "element": "N",
+      "r": [
+        -0.003476313,
+        1.235853,
+        0.02699674
+      ]
+    },
+    {
+      "name": "3H",
+      "element": "H",
+      "r": [
+        0.7720473,
+        1.82942,
+        0.3005252
+      ]
+    },
+    {
+      "name": "CA",
+      "element": "C",
+      "r": [
+        -0.6514053,
+        1.883178,
+        -1.129898
+      ]
+    },
+    {
+      "name": "HA",
+      "element": "H",
+      "r": [
+        -0.07017973,
+        1.598957,
+        -2.006831
+      ]
+    },
+    {
+      "name": "C",
+      "element": "C",
+      "r": [
+        -0.5708863,
+        3.410168,
+        -0.9936234
+      ]
+    },
+    {
+      "name": "O",
+      "element": "O",
+      "r": [
+        0.1419036,
+        3.827524,
+        -0.05211589
+      ]
+    },
+    {
+      "name": "CB",
+      "element": "C",
+      "r": [
+        -2.091007,
+        1.359104,
+        -1.274005
+      ]
+    },
+    {
+      "name": "1HB",
+      "element": "H",
+      "r": [
+        -2.046227,
+        0.2694775,
+        -1.310338
+      ]
+    },
+    {
+      "name": "2HB",
+      "element": "H",
+      "r": [
+        -2.646399,
+        1.642544,
+        -0.3785246
+      ]
+    },
+    {
+      "name": "CG",
+      "element": "C",
+      "r": [
+        -2.872831,
+        1.847369,
+        -2.507179
+      ]
+    },
+    {
+      "name": "HG",
+      "element": "H",
+      "r": [
+        -3.019899,
+        2.926006,
+        -2.455012
+      ]
+    },
+    {
+      "name": "CD1",
+      "element": "C",
+      "r": [
+        -2.162796,
+        1.498542,
+        -3.821336
+      ]
+    },
+    {
+      "name": "1HD1",
+      "element": "H",
+      "r": [
+        -2.800384,
+        1.766798,
+        -4.664294
+      ]
+    },
+    {
+      "name": "2HD1",
+      "element": "H",
+      "r": [
+        -1.228827,
+        2.051352,
+        -3.913459
+      ]
+    },
+    {
+      "name": "3HD1",
+      "element": "H",
+      "r": [
+        -1.954294,
+        0.4288859,
+        -3.861405
+      ]
+    },
+    {
+      "name": "CD2",
+      "element": "C",
+      "r": [
+        -4.261661,
+        1.198464,
+        -2.502073
+      ]
+    },
+    {
+      "name": "1HD2",
+      "element": "H",
+      "r": [
+        -4.845348,
+        1.564912,
+        -3.347144
+      ]
+    },
+    {
+      "name": "2HD2",
+      "element": "H",
+      "r": [
+        -4.171115,
+        0.1141629,
+        -2.575422
+      ]
+    },
+    {
+      "name": "3HD2",
+      "element": "H",
+      "r": [
+        -4.785489,
+        1.451318,
+        -1.579679
+      ]
+    },
+    {
+      "name": "OXT",
+      "element": "O",
+      "r": [
+        -0.8228753,
+        4.072413,
+        -2.02374
+      ]
+    },
+    {
+      "name": "1H",
+      "element": "H",
+      "r": [
+        -0.6580312,
+        1.186075,
+        0.7945588
+      ]
+    },
+    {
+      "name": "2H",
+      "element": "H",
+      "r": [
+        0.3136166,
+        0.3082535,
+        -0.2161924
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 5,
+      "a1": "3H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 6,
+      "a1": "CA",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 10,
+      "a1": "HA",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 11,
+      "a1": "C",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 14,
+      "a1": "O",
+      "a2": "C",
+      "order": "Double"
+    },
+    {
+      "number": 15,
+      "a1": "CB",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 19,
+      "a1": "1HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 20,
+      "a1": "2HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 21,
+      "a1": "CG",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 25,
+      "a1": "HG",
+      "a2": "CG",
+      "order": "Single"
+    },
+    {
+      "number": 26,
+      "a1": "CD1",
+      "a2": "CG",
+      "order": "Single"
+    },
+    {
+      "number": 30,
+      "a1": "1HD1",
+      "a2": "CD1",
+      "order": "Single"
+    },
+    {
+      "number": 31,
+      "a1": "2HD1",
+      "a2": "CD1",
+      "order": "Single"
+    },
+    {
+      "number": 32,
+      "a1": "3HD1",
+      "a2": "CD1",
+      "order": "Single"
+    },
+    {
+      "number": 33,
+      "a1": "CD2",
+      "a2": "CG",
+      "order": "Single"
+    },
+    {
+      "number": 37,
+      "a1": "1HD2",
+      "a2": "CD2",
+      "order": "Single"
+    },
+    {
+      "number": 38,
+      "a1": "2HD2",
+      "a2": "CD2",
+      "order": "Single"
+    },
+    {
+      "number": 39,
+      "a1": "3HD2",
+      "a2": "CD2",
+      "order": "Single"
+    },
+    {
+      "number": 40,
+      "a1": "OXT",
+      "a2": "C",
+      "order": "Single"
+    },
+    {
+      "number": 41,
+      "a1": "1H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 42,
+      "a1": "2H",
+      "a2": "N",
+      "order": "Single"
+    }
+  ],
+  "connections": [
+    {
+      "name": "N-term",
+      "atom_name": "N",
+      "match_name": "C-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    },
+    {
+      "name": "C-term",
+      "atom_name": "C",
+      "match_name": "N-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    }
+  ],
+  "properties": {
+    "AMINO_ACID": true
+  },
+  "variants": [
+    {
+      "name": "Default",
+      "delete": [
+        "OXT",
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      }
+    },
+    {
+      "name": "LEU-M",
+      "properties": {
+        "C_TERMINAL": true,
+        "N_TERMINAL": true
+      }
+    },
+    {
+      "name": "LEU-C",
+      "delete": [
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      },
+      "properties": {
+        "C_TERMINAL": true
+      }
+    },
+    {
+      "name": "LEU-N",
+      "delete": [
+        "OXT"
+      ],
+      "properties": {
+        "N_TERMINAL": true
+      }
+    }
+  ]
+}

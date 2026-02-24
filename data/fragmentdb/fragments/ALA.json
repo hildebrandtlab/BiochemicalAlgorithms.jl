@@ -1,0 +1,264 @@
+{
+  "names": [
+    "Alanine",
+    "Alanin",
+    "Ala",
+    "A"
+  ],
+  "atoms": [
+    {
+      "name": "N",
+      "element": "N",
+      "r": [
+        0.09952427,
+        1.425946,
+        -0.01392276
+      ]
+    },
+    {
+      "name": "3H",
+      "element": "H",
+      "r": [
+        0.9122966,
+        2.021833,
+        0.09543685
+      ]
+    },
+    {
+      "name": "CA",
+      "element": "C",
+      "r": [
+        -0.6343572,
+        1.904422,
+        -1.199327
+      ]
+    },
+    {
+      "name": "HA",
+      "element": "H",
+      "r": [
+        -0.06613517,
+        1.608824,
+        -2.082189
+      ]
+    },
+    {
+      "name": "C",
+      "element": "C",
+      "r": [
+        -0.7061328,
+        3.434369,
+        -1.195026
+      ]
+    },
+    {
+      "name": "O",
+      "element": "O",
+      "r": [
+        0.2770563,
+        4.020259,
+        -0.6877273
+      ]
+    },
+    {
+      "name": "CB",
+      "element": "C",
+      "r": [
+        -2.018631,
+        1.250585,
+        -1.273356
+      ]
+    },
+    {
+      "name": "1HB",
+      "element": "H",
+      "r": [
+        -2.525042,
+        1.535779,
+        -2.196084
+      ]
+    },
+    {
+      "name": "2HB",
+      "element": "H",
+      "r": [
+        -1.909473,
+        0.1656088,
+        -1.256012
+      ]
+    },
+    {
+      "name": "3HB",
+      "element": "H",
+      "r": [
+        -2.621985,
+        1.560564,
+        -0.4192078
+      ]
+    },
+    {
+      "name": "OXT",
+      "element": "O",
+      "r": [
+        -1.554726,
+        3.968913,
+        -1.942107
+      ]
+    },
+    {
+      "name": "1H",
+      "element": "H",
+      "r": [
+        -0.4859746,
+        1.514033,
+        0.8043322
+      ]
+    },
+    {
+      "name": "2H",
+      "element": "H",
+      "r": [
+        0.3756785,
+        0.4622824,
+        -0.137128
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 5,
+      "a1": "3H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 6,
+      "a1": "CA",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 10,
+      "a1": "HA",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 11,
+      "a1": "C",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 14,
+      "a1": "O",
+      "a2": "C",
+      "order": "Double"
+    },
+    {
+      "number": 15,
+      "a1": "CB",
+      "a2": "CA",
+      "order": "Single"
+    },
+    {
+      "number": 19,
+      "a1": "1HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 20,
+      "a1": "2HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 21,
+      "a1": "3HB",
+      "a2": "CB",
+      "order": "Single"
+    },
+    {
+      "number": 22,
+      "a1": "OXT",
+      "a2": "C",
+      "order": "Single"
+    },
+    {
+      "number": 23,
+      "a1": "1H",
+      "a2": "N",
+      "order": "Single"
+    },
+    {
+      "number": 24,
+      "a1": "2H",
+      "a2": "N",
+      "order": "Single"
+    }
+  ],
+  "connections": [
+    {
+      "name": "N-term",
+      "atom_name": "N",
+      "match_name": "C-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    },
+    {
+      "name": "C-term",
+      "atom_name": "C",
+      "match_name": "N-term",
+      "order": "Single",
+      "distance": 1.33,
+      "tolerance": 0.5
+    }
+  ],
+  "properties": {
+    "AMINO_ACID": true
+  },
+  "variants": [
+    {
+      "name": "Default",
+      "delete": [
+        "OXT",
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      }
+    },
+    {
+      "name": "ALA-M",
+      "properties": {
+        "C_TERMINAL": true,
+        "N_TERMINAL": true
+      }
+    },
+    {
+      "name": "ALA-C",
+      "delete": [
+        "1H",
+        "2H"
+      ],
+      "rename": {
+        "3H": "H"
+      },
+      "properties": {
+        "C_TERMINAL": true
+      }
+    },
+    {
+      "name": "ALA-N",
+      "delete": [
+        "OXT"
+      ],
+      "properties": {
+        "N_TERMINAL": true
+      }
+    }
+  ]
+}
