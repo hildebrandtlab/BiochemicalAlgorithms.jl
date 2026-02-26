@@ -379,36 +379,30 @@ function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB) where {T<:Real}
     # the number of properties that matched
     # the fragment with the largest number of matched
     # properties is returned
-    number_of_properties = -1
-    property_difference = -1
-    best_number_of_properties = -1
-    best_property_difference = 10000
-
+    best_score = -1
     best_variant = nothing
 
-    # DBFragments don't know anything about flags, they only know properties
-    # so we mix them together here
-    f_props = merge(f.properties, Dict{Symbol, Any}(flag => true for flag in f.flags))
-    is_true(x) = typeof(x) === Bool && x
+    # DBFragments don't know anything about flags, so we convert them to a common representation
+    # TODO The FragmentDB format technically supports negative properties (!prop), although this
+    #      is not currently used in the files provided by BiochemicalAlgorithms.jl Negative
+    #      flags cannot be matched with (system) fragment flags as they are always positive.
+    f_props = Dict{Symbol, Bool}(flag => true for flag in f.flags)
 
     # iterate over all variants of the fragment and compare the properties
     for var in db_fragment.variants
-        var_props = Dict(Symbol(p.name) => p.value for p in var.properties)
+        var_props = Dict{Symbol, Bool}(Symbol(p.name) => p.value for p in var.properties)
 
-        # count the difference in the number of set properties
-        property_difference = abs(length(findall(is_true, f_props)) - length(findall(is_true, var_props)))
+        # count the properties fragment and variant have in common
+        score = length(f_props ∩ var_props)
 
-        # and count the properties fragment and variant have in common
-        number_of_properties = length(f_props ∩ var_props)
+        # subtract the number of variant props that the fragment doesn't have
+        score -= length(setdiff(var_props, f_props))
 
-        @debug "Considering variant $(var.name). # properties: $(number_of_properties)"
+        @debug "Considering variant $(var.name). # score: $score"
 
-        if ((number_of_properties > best_number_of_properties)
-            || (   (number_of_properties == best_number_of_properties)
-                && (property_difference < best_property_difference)))
+        if (score > best_score)
             best_variant = var
-            best_number_of_properties = number_of_properties
-            best_property_difference  = property_difference
+            best_score = score
         end
     end
 
