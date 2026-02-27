@@ -985,10 +985,10 @@ end
         has_flag(frag, Symbol("3_PRIME"))
     else
         if is_nucleotide(frag)
-            # find the first nucleotide in the chain of this fragment
+            # find the last nucleotide in the chain of this fragment (3' end)
             c = parent_chain(frag)
 
-            for f in fragments(c)
+            for f in Iterators.reverse(fragments(c))
                 if is_nucleotide(f)
                     return f == frag
                 end
@@ -1004,10 +1004,10 @@ end
         has_flag(frag, Symbol("5_PRIME"))
     else
         if is_nucleotide(frag)
-            # find the last amino acid in the chain of this fragment
+            # find the first nucleotide in the chain of this fragment (5' end)
             c = parent_chain(frag)
 
-            for f in reverse(fragments(c))
+            for f in fragments(c)
                 if is_nucleotide(f)
                     return f == frag
                 end
