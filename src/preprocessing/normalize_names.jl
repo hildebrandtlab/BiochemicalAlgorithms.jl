@@ -92,7 +92,7 @@ end
 
 function count_hits_(scheme::DBNameMapping, frags::FragmentTable{T}) where {T<:Real}
     if length(frags) == 0
-        return
+        return 0
     end
 
     hits = 0
