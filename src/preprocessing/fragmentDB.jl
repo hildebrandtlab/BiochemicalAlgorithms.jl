@@ -345,12 +345,12 @@ function label_terminal_fragments!(ac::AbstractAtomContainer{T}) where {T<:Real}
                 set_flag!(last(amino_acids),  :C_TERMINAL)
             end
 
-            # then, the 3-, and 5-primes
+            # then, the 5'- and 3'-primes (nucleic acid chains run 5' → 3')
             nucleotides = filter(is_nucleotide, fragments(chain))
 
             if length(nucleotides) > 0
-                set_flag!(first(nucleotides), Symbol("3_PRIME"))
-                set_flag!(last(nucleotides),  Symbol("5_PRIME"))
+                set_flag!(first(nucleotides), Symbol("5_PRIME"))
+                set_flag!(last(nucleotides),  Symbol("3_PRIME"))
             end
 
         end
