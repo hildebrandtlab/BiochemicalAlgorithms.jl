@@ -1,4 +1,4 @@
-@testitem "FragmentDB" begin
+@testitem "add_hydrogens!" begin
     for T in [Float32, Float64]
         sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), T)
         fdb = FragmentDB{T}()
