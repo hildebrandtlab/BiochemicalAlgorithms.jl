@@ -66,12 +66,8 @@ function predict_hbonds_kabsch_sander!(ac::AbstractAtomContainer{T}, h_bond_from
     n_added_hbonds = 0
 
     # computing the hydrogen position requires looking at the predecessor in the chain; to speed things up,
-    # we precompute that information
+    # we cache that information lazily below
     NH_positions = Dict{Fragment{T}, Vector3}()
-
-    for a in amino_acids
-        
-    end
 
     # now, for each filtered candidate pair, approximate the hydrogen bond energy
     for (c1, c2) in filtered_candidates
@@ -150,8 +146,8 @@ function backbone_hydrogen_bonds(ac::AbstractAtomContainer)
             (
                 (parent_fragment(a1) != parent_fragment(a2)) &&
                     (
-                        (a1.name ∈ ["N", "H"]) && (a2.name == "O") ||
-                        (a2.name ∈ ["N", "H"]) && (a1.name == "O")
+                        ((a1.name ∈ ["N", "H"]) && (a2.name == "O")) ||
+                        ((a2.name ∈ ["N", "H"]) && (a1.name == "O"))
                     )
             )
         end,
