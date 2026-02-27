@@ -16,7 +16,7 @@ end
 
 @inline function _bond_to_molgraph_attr(b::Bond)
     MolecularGraph.SDFBond(
-        isordered = has_property(b, :is_odered) ? Bool(get_property(b, :is_ordered)) : true,
+        isordered = has_property(b, :is_ordered) ? Bool(get_property(b, :is_ordered)) : true,
         notation = 0,                                             # TODO: handle notation
         order = b.order <= BondOrder.Quadruple ? Int(b.order) : 1 # TODO: handle aromatic bonds correctly
     )
