@@ -17,5 +17,17 @@
             build_bonds!(sys, fdb)
             @test nbonds(sys) == 906
         end
+
+        let sys = load_pdb(ball_data_path("../test/data/ACE_test_A.pdb"), T)
+            normalize_names!(sys, fdb)
+            build_bonds!(sys, fdb)
+            @test nbonds(sys) == 1666
+        end
+
+        let sys = load_pdb(ball_data_path("../test/data/ACE_test_B.pdb"), T)
+            normalize_names!(sys, fdb)
+            build_bonds!(sys, fdb)
+            @test nbonds(sys) == 468
+        end
     end
 end
