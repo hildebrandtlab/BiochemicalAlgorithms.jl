@@ -256,3 +256,35 @@ end
         @test compute_rmsd(at4, at3) <= 1e-6
     end
 end
+
+@testitem "match_points" begin
+    using LinearAlgebra
+
+    for T in [Float32, Float64]
+        atol = T == Float32 ? T(1e-4) : T(1e-8)
+
+        # identity mapping: same points → zero translation, identity rotation
+        t, r = BiochemicalAlgorithms.match_points(
+            Vector3{T}(0, 0, 0), Vector3{T}(1, 0, 0), Vector3{T}(0, 1, 0),
+            Vector3{T}(0, 0, 0), Vector3{T}(1, 0, 0), Vector3{T}(0, 1, 0)
+        )
+        @test norm(t) < atol
+        @test isapprox(r, I(3); atol)
+
+        # pure translation
+        t2, r2 = BiochemicalAlgorithms.match_points(
+            Vector3{T}(0, 0, 0), Vector3{T}(1, 0, 0), Vector3{T}(0, 1, 0),
+            Vector3{T}(1, 0, 0), Vector3{T}(2, 0, 0), Vector3{T}(1, 1, 0)
+        )
+        @test isapprox(t2, Vector3{T}(1, 0, 0); atol)
+        @test isapprox(r2, I(3); atol)
+
+        # 90° rotation around z-axis: (1,0,0)→(0,1,0), (2,0,0)→(0,2,0), (1,1,0)→(-1,1,0)
+        w1, w2, w3 = Vector3{T}(1, 0, 0), Vector3{T}(2, 0, 0), Vector3{T}(1, 1, 0)
+        v1, v2, v3 = Vector3{T}(0, 1, 0), Vector3{T}(0, 2, 0), Vector3{T}(-1, 1, 0)
+        t3, r3 = BiochemicalAlgorithms.match_points(w1, w2, w3, v1, v2, v3)
+
+        # verify r*w + t ≈ v for the first point
+        @test isapprox(r3 * w1 + t3, v1; atol)
+    end
+end
