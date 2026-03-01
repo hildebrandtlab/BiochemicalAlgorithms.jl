@@ -517,3 +517,16 @@
         @test nfragments(sys) == 220
     end
 end
+
+@testitem "System/frames" begin
+    for T in [Float32, Float64]
+        sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), T)
+        @test nframes(sys) == 1
+        @test frame_ids(sys) == [1]
+
+        # empty system
+        sys2 = System{T}()
+        @test nframes(sys2) == 0
+        @test isempty(frame_ids(sys2))
+    end
+end
