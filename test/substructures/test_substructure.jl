@@ -34,4 +34,9 @@
     )
 
     @test s2 == s
+
+    # empty substructure (filter matches nothing)
+    s_empty = filter_atoms(a -> false, mol; name="empty", adjacent_bonds=false)
+    @test natoms(s_empty) == 0
+    @test nbonds(s_empty) == 0
 end
