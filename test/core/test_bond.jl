@@ -273,3 +273,26 @@ end
         @test_throws KeyError bond.idx
     end
 end
+
+@testitem "Bond/get_partner" begin
+    for T in [Float32, Float64]
+        sys = System{T}()
+        f = Fragment(Chain(Molecule(sys)), 1)
+        a1 = Atom(f, 1, Elements.C; name="C")
+        a2 = Atom(f, 2, Elements.O; name="O")
+        a3 = Atom(f, 3, Elements.N; name="N")
+        b = Bond(a1, a2, BondOrder.Single)
+
+        # get_partner returns the other atom of the bond
+        @test get_partner(b, a1) == a2
+        @test get_partner(b, a2) == a1
+
+        # atom not in bond returns nothing
+        @test isnothing(get_partner(b, a3))
+
+        # get_partners returns both atoms
+        p1, p2 = get_partners(b)
+        @test p1 == a1
+        @test p2 == a2
+    end
+end
