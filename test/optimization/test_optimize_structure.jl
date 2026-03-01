@@ -10,6 +10,26 @@
     @test compute_energy!(ff) ≈ 1425.5979f0
     @test Int(optimize_structure!(ff).retcode) == 1
     @test compute_energy!(ff) ≈ -374.3136f0
+
+    # pre-minimized structure: re-optimizing should barely change energy
+    e_before = compute_energy!(ff)
+    @test Int(optimize_structure!(ff).retcode) == 1
+    e_after = compute_energy!(ff)
+    @test isapprox(e_before, e_after; atol=0.01)
+end
+
+@testitem "Optimize structure/Float64" begin
+    sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), Float64)
+
+    fdb = FragmentDB{Float64}()
+    normalize_names!(sys, fdb)
+    reconstruct_fragments!(sys, fdb)
+    build_bonds!(sys, fdb)
+
+    ff = AmberFF(sys)
+    @test compute_energy!(ff) isa Float64
+    @test Int(optimize_structure!(ff).retcode) == 1
+    @test compute_energy!(ff) < -370.0
 end
 
 @testitem "Optimize hydrogen positions" begin
