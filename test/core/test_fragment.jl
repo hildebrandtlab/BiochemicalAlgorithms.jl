@@ -1551,4 +1551,66 @@ end
      end
 end
 
+@testitem "Fragment/navigation" begin
+    for T in [Float32, Float64]
+        fdb = FragmentDB{T}()
+        sys = load_hinfile(ball_data_path("../test/data/AlaGlySer.hin"), T)
+        normalize_names!(sys, fdb)
 
+        frags = collect(fragments(sys))
+        @test length(frags) == 3
+
+        # get_previous / get_next
+        @test isnothing(get_previous(frags[1]))
+        @test get_previous(frags[2]) == frags[1]
+        @test get_previous(frags[3]) == frags[2]
+
+        @test get_next(frags[1]) == frags[2]
+        @test get_next(frags[2]) == frags[3]
+        @test isnothing(get_next(frags[3]))
+
+        # is_previous / is_next
+        @test is_previous(frags[1], frags[2])
+        @test !is_previous(frags[2], frags[1])
+        @test !is_previous(frags[1], frags[3])
+
+        @test is_next(frags[2], frags[1])
+        @test !is_next(frags[1], frags[2])
+
+        # is_n_terminal / is_c_terminal (precomputed)
+        @test is_n_terminal(frags[1])
+        @test !is_c_terminal(frags[1])
+        @test !is_n_terminal(frags[2])
+        @test !is_c_terminal(frags[2])
+        @test !is_n_terminal(frags[3])
+        @test is_c_terminal(frags[3])
+
+        # is_n_terminal / is_c_terminal (non-precomputed)
+        @test is_n_terminal(frags[1]; precomputed=false)
+        @test !is_c_terminal(frags[1]; precomputed=false)
+        @test !is_n_terminal(frags[2]; precomputed=false)
+        @test !is_c_terminal(frags[2]; precomputed=false)
+        @test !is_n_terminal(frags[3]; precomputed=false)
+        @test is_c_terminal(frags[3]; precomputed=false)
+
+        # get_full_name with FullNameType variants
+        FNT = BiochemicalAlgorithms.FullNameType
+
+        # N-terminal fragment (ALA)
+        @test get_full_name(frags[1], FNT.NO_VARIANT_EXTENSIONS) == "ALA"
+        @test get_full_name(frags[1], FNT.ADD_VARIANT_EXTENSIONS) == "ALA-N"
+        @test get_full_name(frags[1], FNT.ADD_RESIDUE_ID) == "ALA1"
+        @test get_full_name(frags[1], FNT.ADD_VARIANT_EXTENSIONS_AND_ID) == "ALA-N1"
+        @test get_full_name(frags[1]) == "ALA-N"  # default is ADD_VARIANT_EXTENSIONS
+
+        # middle fragment (GLY) — no terminal extension
+        @test get_full_name(frags[2], FNT.NO_VARIANT_EXTENSIONS) == "GLY"
+        @test get_full_name(frags[2], FNT.ADD_VARIANT_EXTENSIONS) == "GLY"
+
+        # C-terminal fragment (SER)
+        @test get_full_name(frags[3], FNT.NO_VARIANT_EXTENSIONS) == "SER"
+        @test get_full_name(frags[3], FNT.ADD_VARIANT_EXTENSIONS) == "SER-C"
+        @test get_full_name(frags[3], FNT.ADD_RESIDUE_ID) == "SER3"
+        @test get_full_name(frags[3], FNT.ADD_VARIANT_EXTENSIONS_AND_ID) == "SER-C3"
+    end
+end
