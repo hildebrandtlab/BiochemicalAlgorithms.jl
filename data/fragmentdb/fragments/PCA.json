@@ -5,6 +5,7 @@
     "Pyroglutamat",
     "PCA"
   ],
+  "type": "None",
   "atoms": [
     {
       "name": "N",
@@ -244,7 +245,6 @@
       "tolerance": 0.5
     }
   ],
-  "flags": [],
   "variants": [
     {
       "name": "PCA-Default"

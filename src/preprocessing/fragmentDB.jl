@@ -34,15 +34,16 @@ end
 @auto_hash_equals struct DBFragment{T <: Real}
     name::String
     names::Vector{String}
+    type::FragmentVariantType
     atoms::Vector{DBAtom{T}}
     bonds::Vector{DBBond}
     connections::Union{Nothing, Vector{DBConnection{T}}}
-    flags::Union{Nothing, Flags}
     variants::Union{Nothing, Vector{DBVariant}}
 end
 
 @auto_hash_equals struct DBFragmentVariant{T <: Real}
     name::String
+    type::FragmentVariantType
     atoms::Vector{DBAtom{T}}
     bonds::Vector{DBBond}
     flags::Union{Nothing, Flags}
@@ -61,7 +62,7 @@ end
             bonds = map(b -> DBBond(b.number, get(var.rename, b.a1, b.a1), get(var.rename, b.a2, b.a2), b.order), bonds)
         end
 
-        new{T}(var.name, atoms, bonds, var.flags)
+        new{T}(var.name, frag.type, atoms, bonds, var.flags)
     end
 end
 

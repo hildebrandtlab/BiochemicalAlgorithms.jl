@@ -4,6 +4,7 @@
     "Zinc ion",
     "Zn2+"
   ],
+  "type": "None",
   "atoms": [
     {
       "name": "ZN",
@@ -17,7 +18,6 @@
   ],
   "bonds": [],
   "connections": [],
-  "flags": [],
   "variants": [
     {
       "name": "ZN-Default"

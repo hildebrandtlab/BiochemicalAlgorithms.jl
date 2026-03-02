@@ -6,6 +6,7 @@
     "Trp",
     "W"
   ],
+  "type": "Residue",
   "atoms": [
     {
       "name": "N",
@@ -438,9 +439,6 @@
       "distance": 1.33,
       "tolerance": 0.5
     }
-  ],
-  "flags": [
-    "AMINO_ACID"
   ],
   "variants": [
     {

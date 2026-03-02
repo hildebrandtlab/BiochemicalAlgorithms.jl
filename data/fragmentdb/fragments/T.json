@@ -5,6 +5,7 @@
     "Thymin",
     "T"
   ],
+  "type": "Nucleotide",
   "atoms": [
     {
       "name": "P",
@@ -512,9 +513,6 @@
       "distance": 1.62,
       "tolerance": 0.5
     }
-  ],
-  "flags": [
-    "NUCLEOTIDE"
   ],
   "variants": [
     {

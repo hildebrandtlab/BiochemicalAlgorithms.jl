@@ -4,6 +4,7 @@
     "ACE",
     "acetic acid"
   ],
+  "type": "None",
   "atoms": [
     {
       "name": "C",
@@ -117,7 +118,6 @@
       "tolerance": 0.5
     }
   ],
-  "flags": [],
   "variants": [
     {
       "name": "ACE-N",

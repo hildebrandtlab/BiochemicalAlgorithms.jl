@@ -4,6 +4,7 @@
     "Calcium ion",
     "Ca2+"
   ],
+  "type": "None",
   "atoms": [
     {
       "name": "CA",
@@ -17,7 +18,6 @@
   ],
   "bonds": [],
   "connections": [],
-  "flags": [],
   "variants": [
     {
       "name": "CA-Default"

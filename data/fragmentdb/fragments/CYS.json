@@ -6,6 +6,7 @@
     "Cys",
     "C"
   ],
+  "type": "Residue",
   "atoms": [
     {
       "name": "N",
@@ -239,9 +240,6 @@
       "distance": 2.05,
       "tolerance": 0.5
     }
-  ],
-  "flags": [
-    "AMINO_ACID"
   ],
   "variants": [
     {
