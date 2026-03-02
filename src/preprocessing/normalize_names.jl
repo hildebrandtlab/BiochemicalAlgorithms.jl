@@ -1,7 +1,7 @@
 export
     normalize_names!
 
-function match_name_(residue_name::AbstractString, atom_name::AbstractString, mapping::Dict{String, String})
+function _match_name(residue_name::AbstractString, atom_name::AbstractString, mapping::Dict{String, String})
     # start with the residue name
     residue_name = strip(residue_name)
 
@@ -23,65 +23,26 @@ function match_name_(residue_name::AbstractString, atom_name::AbstractString, ma
         atom_name    = mapped_name[2]
 
         hit = true
-    else
-        # second, try wildcard match for residue names
-        if haskey(mapping, "*:$(atom_name)")
-            mapped_name = split(mapping["*:$(atom_name)"], ":")
 
-            residue_name = "*"
-            atom_name    = mapped_name[2]
+    # second, try wildcard match for residue names
+    elseif haskey(mapping, "*:$(atom_name)")
+        mapped_name = split(mapping["*:$(atom_name)"], ":")
 
-            hit = true
-        end
+        residue_name = "*"
+        atom_name    = mapped_name[2]
+
+        hit = true
     end
 
     return hit, residue_name, atom_name
 end
 
-function do_match_(residue_name::AbstractString, residue_suffix::AbstractString, atom_name::AbstractString, mapping::Dict{String, String})
-    # first, try to match exactly
-    if residue_suffix != ""
-        full_residue_name = residue_name * residue_suffix
-
-        # try to match with the full residue name
-        hit, res_name, atom_name = match_name_(full_residue_name, atom_name, mapping)
-
-        if hit
-            return hit, res_name, atom_name
-        end
-    end
-
-    # this did not work; try to match with non-terminal residue names
-    hit, res_name, atom_name = match_name_(residue_name, atom_name, mapping)
-
-    if hit
-        return hit, res_name, atom_name
-    end
-
-    # ok; let's try with a wildcard for the residue name instead
-    return match_name_("*$(residue_suffix)", atom_name, mapping)
-end
-
-function get_suffix_(frag::Fragment)
-    #if is_c_terminal(frag)
-    if has_flag(frag, :C_TERMINAL)
-        return "-C"
-    #elseif is_n_terminal(frag)
-    elseif has_flag(frag, :N_TERMINAL)
-        return "-N"
-    end
-
-    ""
-end
-
-function count_hits_(scheme::DBNameMapping, frag::Fragment{T}) where {T<:Real}
+function _count_hits(scheme::DBNameMapping, frag::Fragment)
     res_name = frag.name
 
     hits = 0
-    res_name_suffix = get_suffix_(frag)
-
     for atom in atoms(frag)
-        hit, res_name, _ = do_match_(res_name, res_name_suffix, atom.name, scheme.mappings)
+        hit, res_name, _ = _match_name(res_name, atom.name, scheme.mappings)
         if hit
             hits += 1
         end
@@ -90,27 +51,16 @@ function count_hits_(scheme::DBNameMapping, frag::Fragment{T}) where {T<:Real}
     hits
 end
 
-function count_hits_(scheme::DBNameMapping, frags::FragmentTable{T}) where {T<:Real}
-    if length(frags) == 0
-        return 0
-    end
-
-    hits = 0
-
-    for frag in frags
-        hits += count_hits_(scheme, frag)
-    end
-
-    hits
+@inline function _count_hits(scheme::DBNameMapping, frags::FragmentTable)
+    sum(_count_hits(scheme, frag) for frag in frags; init = 0)
 end
 
-function normalize_fragments_!(frags::FragmentTable{T}, mapping::Dict{String, String}) where {T<:Real}
+function _normalize_fragments!(frags::FragmentTable{T}, mapping::Dict{String, String}) where {T<:Real}
     for frag in frags
         res_name = frag.name
-        res_name_suffix = get_suffix_(frag)
 
         for atom in atoms(frag)
-            hit, new_res_name, atom_name = do_match_(res_name, res_name_suffix, atom.name, mapping)
+            hit, new_res_name, atom_name = _match_name(res_name, atom.name, mapping)
 
             if hit
                 atom.name = atom_name
@@ -124,9 +74,10 @@ function normalize_fragments_!(frags::FragmentTable{T}, mapping::Dict{String, St
 end
 
 function normalize_names!(
-        m::AbstractAtomContainer{T},
-        fdb::FragmentDB;
-        naming_standard = "") where {T<:Real}
+    m::AbstractAtomContainer{T},
+    fdb::FragmentDB{T};
+    naming_standard::AbstractString = ""
+) where T
 
     # start by labelling all terminal fragments to speed up terminal lookups later on
     label_terminal_fragments!(m)
@@ -161,7 +112,7 @@ function normalize_names!(
         frags = fragments(chain)
 
         for scheme in keys(mapping_candidates)
-            mapping_candidates[scheme] = count_hits_(fdb.name_mappings[scheme], frags)
+            mapping_candidates[scheme] = _count_hits(fdb.name_mappings[scheme], frags)
         end
 
         # find the mapping with greatest number of hits
@@ -169,7 +120,7 @@ function normalize_names!(
 
         # and apply it
         if hits > 0
-            normalize_fragments_!(frags, fdb.name_mappings[mapping].mappings)
+            _normalize_fragments!(frags, fdb.name_mappings[mapping].mappings)
         else
             @warn "normalize_names could not find a suitable mapping for $(chain)!"
         end
