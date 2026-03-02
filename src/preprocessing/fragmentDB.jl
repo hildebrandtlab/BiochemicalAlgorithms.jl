@@ -32,6 +32,7 @@ end
 end
 
 @auto_hash_equals struct DBFragment{T <: Real}
+    name::String
     names::Vector{String}
     atoms::Vector{DBAtom{T}}
     bonds::Vector{DBBond}
