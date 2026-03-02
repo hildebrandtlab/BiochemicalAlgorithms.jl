@@ -41,6 +41,7 @@ end
 end
 
 @auto_hash_equals struct DBFragmentVariant{T <: Real}
+    name::String
     atoms::Vector{DBAtom{T}}
     bonds::Vector{DBBond}
     properties::Union{Nothing, Dict{String, Bool}}
@@ -59,7 +60,7 @@ end
             bonds = map(b -> DBBond(b.number, get(var.rename, b.a1, b.a1), get(var.rename, b.a2, b.a2), b.order), bonds)
         end
 
-        new{T}(atoms, bonds, var.properties)
+        new{T}(var.name, atoms, bonds, var.properties)
     end
 end
 
