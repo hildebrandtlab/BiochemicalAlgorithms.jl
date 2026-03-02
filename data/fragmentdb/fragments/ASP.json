@@ -246,9 +246,9 @@
       "tolerance": 0.5
     }
   ],
-  "properties": {
-    "AMINO_ACID": true
-  },
+  "flags": [
+    "AMINO_ACID"
+  ],
   "variants": [
     {
       "name": "ASP-Default",
@@ -263,19 +263,19 @@
     },
     {
       "name": "ASP-M",
-      "properties": {
-        "N_TERMINAL": true,
-        "C_TERMINAL": true
-      }
+      "flags": [
+        "N_TERMINAL",
+        "C_TERMINAL"
+      ]
     },
     {
       "name": "ASP-N",
       "delete": [
         "OXT"
       ],
-      "properties": {
-        "N_TERMINAL": true
-      }
+      "flags": [
+        "N_TERMINAL"
+      ]
     },
     {
       "name": "ASP-C",
@@ -286,9 +286,9 @@
       "rename": {
         "3H": "H"
       },
-      "properties": {
-        "C_TERMINAL": true
-      }
+      "flags": [
+        "C_TERMINAL"
+      ]
     }
   ]
 }

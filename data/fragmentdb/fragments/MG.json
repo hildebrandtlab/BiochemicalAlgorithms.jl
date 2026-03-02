@@ -16,7 +16,7 @@
   ],
   "bonds": [],
   "connections": [],
-  "properties": {},
+  "flags": [],
   "variants": [
     {
       "name": "MG-Default"

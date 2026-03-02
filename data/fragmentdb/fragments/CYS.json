@@ -239,9 +239,9 @@
       "tolerance": 0.5
     }
   ],
-  "properties": {
-    "AMINO_ACID": true
-  },
+  "flags": [
+    "AMINO_ACID"
+  ],
   "variants": [
     {
       "name": "CYS-Default",
@@ -256,19 +256,19 @@
     },
     {
       "name": "CYS-M",
-      "properties": {
-        "C_TERMINAL": true,
-        "N_TERMINAL": true
-      }
+      "flags": [
+        "C_TERMINAL",
+        "N_TERMINAL"
+      ]
     },
     {
       "name": "CYS-N",
       "delete": [
         "OXT"
       ],
-      "properties": {
-        "N_TERMINAL": true
-      }
+      "flags": [
+        "N_TERMINAL"
+      ]
     },
     {
       "name": "CYS-S",
@@ -281,9 +281,9 @@
       "rename": {
         "3H": "H"
       },
-      "properties": {
-        "HAS_SSBOND": true
-      }
+      "flags": [
+        "HAS_SSBOND"
+      ]
     },
     {
       "name": "CYS-CS",
@@ -295,10 +295,10 @@
       "rename": {
         "3H": "H"
       },
-      "properties": {
-        "C_TERMINAL": true,
-        "HAS_SSBOND": true
-      }
+      "flags": [
+        "C_TERMINAL",
+        "HAS_SSBOND"
+      ]
     },
     {
       "name": "CYS-NS",
@@ -306,10 +306,10 @@
         "OXT",
         "HG"
       ],
-      "properties": {
-        "N_TERMINAL": true,
-        "HAS_SSBOND": true
-      }
+      "flags": [
+        "N_TERMINAL",
+        "HAS_SSBOND"
+      ]
     },
     {
       "name": "CYS-C",
@@ -320,9 +320,9 @@
       "rename": {
         "3H": "H"
       },
-      "properties": {
-        "C_TERMINAL": true
-      }
+      "flags": [
+        "C_TERMINAL"
+      ]
     }
   ]
 }

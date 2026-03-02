@@ -426,9 +426,9 @@
       "tolerance": 0.5
     }
   ],
-  "properties": {
-    "AMINO_ACID": true
-  },
+  "flags": [
+    "AMINO_ACID"
+  ],
   "variants": [
     {
       "name": "ARG-Default",
@@ -443,10 +443,10 @@
     },
     {
       "name": "ARG-M",
-      "properties": {
-        "C_TERMINAL": true,
-        "N_TERMINAL": true
-      }
+      "flags": [
+        "C_TERMINAL",
+        "N_TERMINAL"
+      ]
     },
     {
       "name": "ARG-C",
@@ -457,18 +457,18 @@
       "rename": {
         "3H": "H"
       },
-      "properties": {
-        "C_TERMINAL": true
-      }
+      "flags": [
+        "C_TERMINAL"
+      ]
     },
     {
       "name": "ARG-N",
       "delete": [
         "OXT"
       ],
-      "properties": {
-        "N_TERMINAL": true
-      }
+      "flags": [
+        "N_TERMINAL"
+      ]
     }
   ]
 }

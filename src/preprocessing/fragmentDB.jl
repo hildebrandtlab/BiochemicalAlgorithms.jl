@@ -28,7 +28,7 @@ end
     name::String
     delete::Union{Nothing, Set{String}}
     rename::Union{Nothing, Dict{String, String}}
-    properties::Union{Nothing, Dict{String, Bool}}
+    flags::Union{Nothing, Flags}
 end
 
 @auto_hash_equals struct DBFragment{T <: Real}
@@ -36,7 +36,7 @@ end
     atoms::Vector{DBAtom{T}}
     bonds::Vector{DBBond}
     connections::Union{Nothing, Vector{DBConnection{T}}}
-    properties::Union{Nothing, Dict{String, Bool}}
+    flags::Union{Nothing, Flags}
     variants::Union{Nothing, Vector{DBVariant}}
 end
 
@@ -44,7 +44,7 @@ end
     name::String
     atoms::Vector{DBAtom{T}}
     bonds::Vector{DBBond}
-    properties::Union{Nothing, Dict{String, Bool}}
+    flags::Union{Nothing, Flags}
 
     function DBFragmentVariant{T}(frag::DBFragment{T}, var::DBVariant) where T
         atoms = frag.atoms
@@ -60,7 +60,7 @@ end
             bonds = map(b -> DBBond(b.number, get(var.rename, b.a1, b.a1), get(var.rename, b.a2, b.a2), b.order), bonds)
         end
 
-        new{T}(var.name, atoms, bonds, var.properties)
+        new{T}(var.name, atoms, bonds, var.flags)
     end
 end
 
@@ -142,33 +142,20 @@ function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB{T}) where T
 
     # now, find the variant that best matches the fragment
     # This returns N/C terminal variants for fragments that
-    # have the corresponding properties set or cystein variants
-    # without thiol hydrogen if the disulphide bond property
-    # is set
-
-    # the number of properties that matched
-    # the fragment with the largest number of matched
-    # properties is returned
+    # have the corresponding flags set or cysteine variants
+    # without thiol hydrogen if the `HAS_SSBOND` flag is set
     best_score = -1
     best_variant = nothing
 
-    # DBFragments don't know anything about flags, so we convert them to a common representation
-    # TODO The FragmentDB format technically supports negative properties (!prop), although this
-    #      is not currently used in the files provided by BiochemicalAlgorithms.jl Negative
-    #      flags cannot be matched with (system) fragment flags as they are always positive.
-    f_props = Dict{Symbol, Bool}(flag => true for flag in f.flags)
-
-    # iterate over all variants of the fragment and compare the properties
+    # iterate over all variants of the fragment and compare the flags
     for var in db_fragment.variants
-        var_props = isnothing(var.properties) ?
-            Properties() :
-            Dict(Symbol(p.first) => p.second for p in var.properties)
+        vflags = isnothing(var.flags) ? Flags() : var.flags
 
-        # count the properties fragment and variant have in common
-        score = length(f_props ∩ var_props)
+        # count the flags fragment and variant have in common
+        score = length(f.flags ∩ vflags)
 
         # subtract the number of variant props that the fragment doesn't have
-        score -= length(setdiff(var_props, f_props))
+        score -= length(setdiff(vflags, f.flags))
 
         @debug "Considering variant $(var.name). # score: $score"
 

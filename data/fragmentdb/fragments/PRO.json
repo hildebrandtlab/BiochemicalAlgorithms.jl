@@ -282,9 +282,9 @@
       "tolerance": 0.5
     }
   ],
-  "properties": {
-    "AMINO_ACID": true
-  },
+  "flags": [
+    "AMINO_ACID"
+  ],
   "variants": [
     {
       "name": "PRO-Default",
@@ -296,10 +296,10 @@
     },
     {
       "name": "PRO-M",
-      "properties": {
-        "C_TERMINAL": true,
-        "N_TERMINAL": true
-      }
+      "flags": [
+        "C_TERMINAL",
+        "N_TERMINAL"
+      ]
     },
     {
       "name": "PRO-C",
@@ -307,18 +307,18 @@
         "1H",
         "2H"
       ],
-      "properties": {
-        "C_TERMINAL": true
-      }
+      "flags": [
+        "C_TERMINAL"
+      ]
     },
     {
       "name": "PRO-N",
       "delete": [
         "OXT"
       ],
-      "properties": {
-        "N_TERMINAL": true
-      }
+      "flags": [
+        "N_TERMINAL"
+      ]
     }
   ]
 }

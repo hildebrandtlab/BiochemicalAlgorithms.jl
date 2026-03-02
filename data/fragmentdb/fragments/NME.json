@@ -115,7 +115,7 @@
       "tolerance": 0.5
     }
   ],
-  "properties": {},
+  "flags": [],
   "variants": [
     {
       "name": "NME-C",
@@ -125,16 +125,16 @@
       "rename": {
         "1H": "H"
       },
-      "properties": {
-        "C_TERMINAL": true
-      }
+      "flags": [
+        "C_TERMINAL"
+      ]
     },
     {
       "name": "NME-M",
-      "properties": {
-        "C_TERMINAL": true,
-        "N_TERMINAL": true
-      }
+      "flags": [
+        "C_TERMINAL",
+        "N_TERMINAL"
+      ]
     }
   ]
 }

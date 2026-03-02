@@ -466,32 +466,32 @@
       "tolerance": 0.5
     }
   ],
-  "properties": {
-    "NUCLEOTIDE": true
-  },
+  "flags": [
+    "NUCLEOTIDE"
+  ],
   "variants": [
     {
       "name": "U-M",
-      "properties": {
-        "5_PRIME": true,
-        "3_PRIME": true
-      }
+      "flags": [
+        "5_PRIME",
+        "3_PRIME"
+      ]
     },
     {
       "name": "U-Default",
-      "properties": {}
+      "flags": []
     },
     {
       "name": "U-3",
-      "properties": {
-        "3_PRIME": true
-      }
+      "flags": [
+        "3_PRIME"
+      ]
     },
     {
       "name": "U-5",
-      "properties": {
-        "5_PRIME": true
-      }
+      "flags": [
+        "5_PRIME"
+      ]
     }
   ]
 }

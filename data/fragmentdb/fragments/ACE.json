@@ -116,23 +116,23 @@
       "tolerance": 0.5
     }
   ],
-  "properties": {},
+  "flags": [],
   "variants": [
     {
       "name": "ACE-N",
       "delete": [
         "OXT"
       ],
-      "properties": {
-        "N_TERMINAL": true
-      }
+      "flags": [
+        "N_TERMINAL"
+      ]
     },
     {
       "name": "ACE-M",
-      "properties": {
-        "C_TERMINAL": true,
-        "N_TERMINAL": true
-      }
+      "flags": [
+        "C_TERMINAL",
+        "N_TERMINAL"
+      ]
     }
   ]
 }

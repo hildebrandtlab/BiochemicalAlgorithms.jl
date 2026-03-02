@@ -46,7 +46,7 @@
     }
   ],
   "connections": [],
-  "properties": {},
+  "flags": [],
   "variants": [
     {
       "name": "HOH-Default"
