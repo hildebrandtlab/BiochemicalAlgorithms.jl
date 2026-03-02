@@ -296,7 +296,7 @@
   },
   "variants": [
     {
-      "name": "Default",
+      "name": "GLU-Default",
       "delete": [
         "OXT",
         "1H",

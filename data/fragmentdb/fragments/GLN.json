@@ -326,7 +326,7 @@
   },
   "variants": [
     {
-      "name": "Default",
+      "name": "GLN-Default",
       "delete": [
         "OXT",
         "1H",

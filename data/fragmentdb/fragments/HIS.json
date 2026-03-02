@@ -347,7 +347,7 @@
   },
   "variants": [
     {
-      "name": "Default",
+      "name": "HIS-Default",
       "delete": [
         "OXT",
         "1H",

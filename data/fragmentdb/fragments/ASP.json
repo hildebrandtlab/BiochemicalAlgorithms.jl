@@ -251,7 +251,7 @@
   },
   "variants": [
     {
-      "name": "Default",
+      "name": "ASP-Default",
       "delete": [
         "OXT",
         "1H",

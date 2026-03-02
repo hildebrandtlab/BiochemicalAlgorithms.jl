@@ -401,7 +401,7 @@
   },
   "variants": [
     {
-      "name": "Default",
+      "name": "LYS-Default",
       "delete": [
         "OXT",
         "1H",

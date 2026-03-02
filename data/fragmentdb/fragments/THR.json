@@ -281,7 +281,7 @@
   },
   "variants": [
     {
-      "name": "Default",
+      "name": "THR-Default",
       "delete": [
         "OXT",
         "1H",

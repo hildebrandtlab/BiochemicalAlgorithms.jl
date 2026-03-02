@@ -326,7 +326,7 @@
   },
   "variants": [
     {
-      "name": "Default",
+      "name": "MET-Default",
       "delete": [
         "OXT",
         "1H",

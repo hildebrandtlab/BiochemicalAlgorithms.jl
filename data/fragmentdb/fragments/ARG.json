@@ -431,7 +431,7 @@
   },
   "variants": [
     {
-      "name": "Default",
+      "name": "ARG-Default",
       "delete": [
         "OXT",
         "1H",

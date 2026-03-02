@@ -281,7 +281,7 @@
   },
   "variants": [
     {
-      "name": "Default",
+      "name": "ASN-Default",
       "delete": [
         "OXT",
         "1H",

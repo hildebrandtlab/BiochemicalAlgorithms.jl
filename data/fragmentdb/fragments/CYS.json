@@ -244,7 +244,7 @@
   },
   "variants": [
     {
-      "name": "Default",
+      "name": "CYS-Default",
       "delete": [
         "OXT",
         "1H",
