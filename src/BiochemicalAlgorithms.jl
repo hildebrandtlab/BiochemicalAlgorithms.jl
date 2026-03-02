@@ -8,9 +8,10 @@ using DataStructures
 using DocStringExtensions
 using EnumX
 using Graphs
-using LinearAlgebra: Hermitian, eigen
+using LinearAlgebra
+using Mendeleev
 using MetaGraphs
-using Rotations: RotMatrix3
+using Rotations
 using Statistics: mean
 using Unitful, UnitfulAtomic
 using Quaternions: quat

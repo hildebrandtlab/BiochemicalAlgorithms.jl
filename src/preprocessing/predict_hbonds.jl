@@ -1,7 +1,6 @@
-using CellListMap
-using LinearAlgebra
-
-export predict_hbonds!, backbone_hydrogen_bonds
+export
+    backbone_hydrogen_bonds,
+    predict_hbonds!
 
 """
     $(TYPEDSIGNATURES)
@@ -9,16 +8,16 @@ export predict_hbonds!, backbone_hydrogen_bonds
 Predict hydrogen bonds for a given AtomContainer.
 
 The `method` parameter selects one of the implemented strategies for H-bond prediction. Bonds can be created between
-the donor and acceptor atoms (e.g., `N` and `O`), which is the default, or between the hydrogen and the acceptor (e.g., `H` and `O`). 
+the donor and acceptor atoms (e.g., `N` and `O`), which is the default, or between the hydrogen and the acceptor (e.g., `H` and `O`).
 This behaviour is controlled by the `h_bond_from_donor`-switch.
 
 # Available methods
  - `:KABSCH_SANDER`: only predicts *protein backbone* hydrogen bonds as required for secondary
-   structure prediction with the Kabsch-Sander algorithm `DSSP` (Kabsch W & Sander C (1983). Dictionary of protein secondary 
+   structure prediction with the Kabsch-Sander algorithm `DSSP` (Kabsch W & Sander C (1983). Dictionary of protein secondary
    structure: pattern recognition of hydrogen-bonded and geometrical features. Biopolymers, 22, 2577-2637".)
 
  - `:WISHART_ET_AL`: predicts hydrogen bonds between amid and α-hydrogens (`H`/`HA`) and carbonyl oxygens in the backbone (`O`)
-   or sidechain oxygens (`OD`, `OE`, `OG`, `OH`). This method follows the criterion given in (Neal, S., Nip, A. M., Zhang, H., 
+   or sidechain oxygens (`OD`, `OE`, `OG`, `OH`). This method follows the criterion given in (Neal, S., Nip, A. M., Zhang, H.,
    and Wishart, D. S. (2003). Rapid and accurate calculation of protein 1H, 13C and 15N chemical shifts. J Biomol NMR, 26(3):215-240.
 
 # Example
@@ -53,7 +52,7 @@ function predict_hbonds_kabsch_sander!(ac::AbstractAtomContainer{T}, h_bond_from
     candidates = neighborlist(N_rs, O_rs, MAX_HBOND_LENGTH)
 
     candidate_fragments = map(c -> (amino_acids[c[1]], amino_acids[c[2]], c[3]), candidates)
-    
+
     # filter out residues that are adjacent in the chain, and interactions inside the same residue
     # TODO: we should really check for a peptide bond here, as the numbering might be misleading
     filtered_candidates = filter(c -> (

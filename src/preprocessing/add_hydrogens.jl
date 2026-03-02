@@ -1,8 +1,5 @@
-using LinearAlgebra
-using Mendeleev
-using Rotations
-
-export add_hydrogens!
+export
+    add_hydrogens!
 
 function place_peptide_bond_h_!(frag::Fragment{T}) where T
     BOND_LENGTH_N_H::T = 1.020
@@ -49,7 +46,7 @@ function place_peptide_bond_h_!(frag::Fragment{T}) where T
     return false
 end
 
-function _get_connectivity(atom)
+function _get_connectivity(atom::Atom)
     try
        element = atom.element
 
@@ -76,7 +73,7 @@ function _get_connectivity(atom)
     end
 end
 
-function _count_bond_orders(a::Atom{T}) where {T<:Real}
+function _count_bond_orders(a::Atom{T}) where T
     nr = zero(T)
 
     for b in bonds(a)
@@ -92,7 +89,7 @@ end
 
 # Calculate the reference bond length value using a modified Shoemaker-Stevenson rule
 # (taken from MMFF94 force field)
-function _get_bond_length(element::ElementType, mmff_params::MMFF94Parameters{T}) where {T<:Real}
+function _get_bond_length(element::ElementType, mmff_params::MMFF94Parameters{T}) where T
     # currently only supports atoms up to Xenon
     if (element >= Elements.Xe)
         return one(T)
@@ -113,18 +110,18 @@ function _get_bond_length(element::ElementType, mmff_params::MMFF94Parameters{T}
     c = T(0.05)
 
     # POWER
-	n = T(1.4)
+    n = T(1.4)
 
     diff_e = abs(
         mmff_params.electronegativities[Int(Elements.H)] -
         mmff_params.electronegativities[Int(element)])
 
     # FORMULA
-	radius + radius_h - c * diff_e^n
+    radius + radius_h - c * diff_e^n
 end
 
 
-function _add_hydrogen!(atom::Atom{T}, r::Vector3{T}, atom_nr::Int) where {T<:Real}
+function _add_hydrogen!(atom::Atom{T}, r::Vector3{T}, atom_nr::Int) where T
     # add the new hydrogen
     h_atom = Atom(
         parent_fragment(atom),
@@ -151,7 +148,7 @@ function _get_normal(v::Vector3{T}) where {T<:Real}
     n
 end
 
-function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_atom::Bool, atom_nr::Int) where {T<:Real}
+function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_atom::Bool, atom_nr::Int) where T
     # prevent adding hydrogens to, e.g., aromatic Carboxy group
     if nbonds(atom) == 1 && first(bonds(atom)).order == BondOrder.Aromatic
         return 0, atom_nr
@@ -297,8 +294,8 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
                         return 1, atom_nr+1
                     end
 
-					# planar and 1 atom to add:
-					if nbonds(atom) == 2
+                    # planar and 1 atom to add:
+                    if nbonds(atom) == 2
                         _add_hydrogen!(atom, atom.r + v3, atom_nr)
 
                         return 1, atom_nr+1
@@ -309,7 +306,7 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
                             v3 = Vector3{T}(0, 0, 1)
                         end
 
-						v3 *= bond_length
+                        v3 *= bond_length
 
                         _add_hydrogen!(atom, atom.position + v3, atom_nr)
                         return 1, atom_nr+1
@@ -322,9 +319,9 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
         if any(map(b -> b.order > BondOrder.Single, bonds(a)))
             bv = normalize(get_partner(first(bonds(atom)), atom).r - atom.r)
 
-			# e.g. (C[-H][-H]=O) or (H-N=O)
-			if ((con == 4 && h_to_add == 2) ||
-					(con == 3 && h_to_add == 1))
+            # e.g. (C[-H][-H]=O) or (H-N=O)
+            if ((con == 4 && h_to_add == 2) ||
+                (con == 3 && h_to_add == 1))
 
                 if isnan(bv[1])
                     bv = Vector3{T}(-1, 0, 0)
@@ -334,8 +331,8 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
 
                 rotation = AngleAxis{T}(deg2rad(120), axis...)
 
-				bv = rotation * b
-				bv *= bond_length
+                bv = rotation * b
+                bv *= bond_length
 
                 _add_hydrogen!(atom, atom.r + bv, atom_nr)
 
@@ -350,7 +347,7 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
             end
 
             # e.g. (C[-H][-H]=O)
-			if (con == 4 && h_to_add == 1)
+            if (con == 4 && h_to_add == 1)
                 bs = bonds(atom)
 
                 p1 = normalize(get_partner(bs[1], atom).r - atom.r)
@@ -370,7 +367,7 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
                     v = Vector3{T}(1, 0, 0)
                 end
 
-				v *= bond_length
+                v *= bond_length
 
                 _add_hydrogen!(atom, atom.r - v, atom_nr)
 
@@ -379,9 +376,9 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
         end
 
         # three partner atoms and a 106 degree angle: (NH3)
-		if (con == 3)
-			if (h_to_add == 3)
-				# add first bond
+        if (con == 3)
+            if (h_to_add == 3)
+                # add first bond
                 p = atom.r - Vector3{T}(bond_length, 0, 0)
 
                 _add_hydrogen!(atom, p, atom_nr)
@@ -393,8 +390,8 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
                 return 1+added_h, atom_nr
             end
 
-			if (h_to_add == 2)
-				# add second bond
+            if (h_to_add == 2)
+                # add second bond
                 bv = normalize(get_partner(first(bonds(atom)), atom).r - atom.r)
 
                 if isnan(bv[1])
@@ -404,7 +401,7 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
                 axis = _get_normal(bv)
 
                 rotation = AngleAxis{T}(deg2rad(112.754181), axis...)
-				axis = rotation * bv
+                axis = rotation * bv
 
                 rotation = AngleAxis{T}(deg2rad(120), axis...)
                 new_pos = rotation * bv
@@ -415,16 +412,16 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
                 return 2, atom_nr+2
             end
 
-			if (h_to_add == 1)
-				#TODO: This can be improved further. However the approximation
-				#      should provide a good placement.
+            if (h_to_add == 1)
+                #TODO: This can be improved further. However the approximation
+                #      should provide a good placement.
                 bs = bonds(atom)
 
                 p1 = normalize(get_partner(bs[1], atom).r)
                 p2 = normalize(get_partner(bs[2], atom).r)
 
                 # connection line between the two partner atoms:
-				d = p2 - p1
+                d = p2 - p1
 
                 if norm(d) ≤ eps(T)
                     _add_hydrogen!(atom, atom.r - Vector3{T}(0, 1, 0), atom_nr)
@@ -432,8 +429,8 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
                     return 1, atom_nr+1
                 end
 
-				# Point between two partner aoms:
-				p = p1 + d / T(2.0)
+                # Point between two partner aoms:
+                p = p1 + d / T(2.0)
                 d2 = p - atom.r
 
                 rotation = AngleAxis{T}(deg2rad(117.3), d...)
@@ -452,12 +449,12 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
         end
 
         # Carbon without double bonds and not in ring:
-		# tetrahedral: e.g. CH4
-		if (con == 4)
+        # tetrahedral: e.g. CH4
+        if (con == 4)
             bs = bonds(atom)
 
-			if (h_to_add == 4)
-				# add first hydrogen randomly
+            if (h_to_add == 4)
+                # add first hydrogen randomly
                 _add_hydrogen!(atom, atom.r + Vector3{T}(bond_length, 0, 0), atom_nr)
 
                 # continue with the next case:
@@ -472,20 +469,20 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
                 v = Vector3{T}(0, 1, 0)
             end
 
-			if (h_to_add == 3)
-				# Rotate the partner atom around the target atom
-				# in order to obtain the first hydrogen
-				axis = _get_normal(v)
+            if (h_to_add == 3)
+                # Rotate the partner atom around the target atom
+                # in order to obtain the first hydrogen
+                axis = _get_normal(v)
 
                 rotation = AngleAxis{T}(deg2rad(109.471221), axis...)
                 new_pos = (rotation * v) * bond_length
 
                 _add_hydrogen!(atom, atom.r + new_pos, atom_nr)
 
-				# Create two copies of the first hydrogen by rotating
-				# for 120 degrees.
+                # Create two copies of the first hydrogen by rotating
+                # for 120 degrees.
                 rotation = AngleAxis(deg2rad(120), v...)
-				new_pos = rotation * new_pos
+                new_pos = rotation * new_pos
 
                 _add_hydrogen!(atom, atom.r + new_pos, atom_nr+1)
 
@@ -502,8 +499,8 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
                 v2 = Vector3{T}(0, 0, 1)
             end
 
-			if (h_to_add == 2)
-				# Create a normal to the plane defined by the atom and its two partners
+            if (h_to_add == 2)
+                # Create a normal to the plane defined by the atom and its two partners
                 v12 = normalize(get_partner(bs[2], atom).r - get_partner(bs[1], atom).r)
 
                 if isnan(v12[1])
@@ -512,8 +509,8 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
 
                 normal = cross(v, v2)
 
-				# The new hydrogen atoms are obtained by rotating the normal around the
-				# connection between the two partner atoms
+                # The new hydrogen atoms are obtained by rotating the normal around the
+                # connection between the two partner atoms
                 rotation = AngleAxis{T}(deg2rad(-(180 - 109.471221)/2.0), v12...)
                 new_pos = (rotation * normal) * bond_length
 
@@ -527,7 +524,7 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
                 return 2, atom_nr+2
             end
 
-			if (h_to_add == 1)
+            if (h_to_add == 1)
                 v3 = normalize(get_partner(bs[3], atom).r - atom.r)
 
                 if isnan(v3[1])
@@ -540,19 +537,19 @@ function _handle_atom!(atom::Atom{T}, mmff_params::MMFF94Parameters{T}, is_ring_
                     v4 = Vector3{T}(1, 0, 0)
                 end
 
-				v4 *= bond_length
+                v4 *= bond_length
 
                 _add_hydrogen!(atom, atom.r - v4, atom_nr)
 
                 return 1, atom_nr+1
-			end
-		end
+            end
+        end
     end
 
     return 0, atom_nr
 end
 
-function add_hydrogens!(ac::AbstractAtomContainer{T}) where {T<:Real}
+function add_hydrogens!(ac::AbstractAtomContainer{T}) where T
     # we will need those parameters later, and it makes sense to only parse the files once
     mmff_params = MMFF94Parameters{T}()
 

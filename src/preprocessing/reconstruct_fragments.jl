@@ -55,14 +55,14 @@ function _reconstruct_fragment!(f::Fragment{T}, template::DBFragmentVariant{T}) 
     for tpl_atom in template.atoms
         if haskey(name_to_atom, tpl_atom.name)
             # remember that the coordinates of this one are correct
-			res_atom = name_to_atom[tpl_atom.name]
+            res_atom = name_to_atom[tpl_atom.name]
             push!(transformed, tpl_atom)
             tpl_to_frag[tpl_atom] = res_atom
         else
             # We create a copy of the existing atom and insert it into
             # the residue. Coordinates are bogus, but we'll correct that
             # later on.
-			new_atom = Atom(
+            new_atom = Atom(
                 f,
                 maximum(atoms(parent_system(f)).number)+1, # does this make sense?
                 tpl_atom.element;

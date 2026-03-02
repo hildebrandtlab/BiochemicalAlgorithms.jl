@@ -1,11 +1,11 @@
-using LinearAlgebra
-
-export build_bonds!
+export
+    build_bonds!
 
 function build_fragment_bonds!(
-        f::Fragment{T},
-        connections::OrderedDict{Int, DBConnection},
-        fdb::FragmentDB) where {T<:Real}
+    f::Fragment{T},
+    connections::OrderedDict{Int, DBConnection},
+    fdb::FragmentDB{T}
+) where T
 
     # check whether our DB knows the fragment and, if so, retrieve the template
     template = get_reference_fragment(f, fdb)
@@ -103,21 +103,21 @@ function build_fragment_bonds!(
     num_bonds_built
 end
 
-function try_build_connection!(a1::Atom, con_1::DBConnection, a2::Atom, con_2::DBConnection)
+function try_build_connection!(a1::Atom{T}, con1::DBConnection{T}, a2::Atom{T}, con2::DBConnection{T}) where T
     # are the connection types compatible?
-    if con_1.name != con_2.match_name || con_2.name != con_1.match_name
+    if con1.name != con2.match_name || con2.name != con1.match_name
         return false
     end
 
     # are the distances compatible?
-    distance = norm(a1.r - a2.r)
+    distance = norm(a1.r .- a2.r)
 
-    if abs(con_1.distance - distance) > con_1.tolerance ||
-       abs(con_2.distance - distance) > con_2.tolerance
+    if abs(con1.distance - distance) > con1.tolerance ||
+       abs(con2.distance - distance) > con2.tolerance
         return false
     end
 
-    if con_1.order != con_2.order
+    if con1.order != con2.order
         @warn "build_bonds!(): inconsistent bond orders"
     end
 
@@ -127,12 +127,12 @@ function try_build_connection!(a1::Atom, con_1::DBConnection, a2::Atom, con_2::D
         push!(flags, :TYPE__DISULPHIDE_BOND)
     end
 
-    Bond(parent_system(a1), a1.idx, a2.idx, con_1.order; flags = flags)
+    Bond(parent_system(a1), a1.idx, a2.idx, con1.order; flags = flags)
 
     return true
 end
 
-function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB) where {T<:Real}
+function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     # while building up individual fragments, we remember inter-fragment connections
     connections = OrderedDict{Int, DBConnection}()
 
