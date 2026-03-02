@@ -79,9 +79,6 @@ function normalize_names!(
     naming_standard::AbstractString = ""
 ) where T
 
-    # start by labelling all terminal fragments to speed up terminal lookups later on
-    label_terminal_fragments!(m)
-
     if naming_standard == ""
         naming_standard = fdb.defaults["Naming"]
     end
@@ -125,4 +122,8 @@ function normalize_names!(
             @warn "normalize_names could not find a suitable mapping for $(chain)!"
         end
     end
+
+    # label all terminal fragments to speed up terminal lookups later on
+    # TODO this really doesn't belong here...
+    label_terminal_fragments!(m, fdb)
 end

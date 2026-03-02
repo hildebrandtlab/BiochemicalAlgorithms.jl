@@ -103,28 +103,34 @@ end
     end
 end
 
-function label_terminal_fragments!(ac::AbstractAtomContainer{T}) where {T<:Real}
+function label_terminal_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     # iterate over all chains and label their terminals
     for chain in chains(ac)
-        if nfragments(chain) > 0
-            # first, the n- and c-terminals
-            amino_acids = filter(is_amino_acid, fragments(chain))
+        ft = fragments(chain)
+        length(ft) == 0 && continue
 
-            if length(amino_acids) > 0
-                set_flag!(first(amino_acids), :N_TERMINAL)
-                set_flag!(last(amino_acids),  :C_TERMINAL)
-            end
+        # fragment variants are possibly not assigned yet, so we rely
+        # on the FragmentDB
+        is_amino_acid = f -> haskey(fdb.fragments, f.name) &&
+            fdb.fragments[f.name].type == FragmentVariant.Residue
+        is_nucleotide = f -> haskey(fdb.fragments, f.name) &&
+            fdb.fragments[f.name].type == FragmentVariant.Nucleotide
 
-            # then, the 5'- and 3'-primes (nucleic acid chains run 5' → 3')
-            nucleotides = filter(is_nucleotide, fragments(chain))
+        # first, the n- and c-terminals
+        amino_acids = filter(is_amino_acid, ft)
+        if length(amino_acids) > 0
+            set_flag!(first(amino_acids), :N_TERMINAL)
+            set_flag!(last(amino_acids),  :C_TERMINAL)
+        end
 
-            if length(nucleotides) > 0
-                set_flag!(first(nucleotides), Symbol("5_PRIME"))
-                set_flag!(last(nucleotides),  Symbol("3_PRIME"))
-            end
-
+        # then, the 5'- and 3'-primes (nucleic acid chains run 5' → 3')
+        nucleotides = filter(is_nucleotide, ft)
+        if length(nucleotides) > 0
+            set_flag!(first(nucleotides), Symbol("5_PRIME"))
+            set_flag!(last(nucleotides),  Symbol("3_PRIME"))
         end
     end
+    nothing
 end
 
 function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB{T}) where T
