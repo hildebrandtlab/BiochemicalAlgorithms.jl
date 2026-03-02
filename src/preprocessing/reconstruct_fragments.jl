@@ -1,6 +1,5 @@
-using DataStructures: Stack, OrderedSet
-
-export reconstruct_fragments!
+export
+    reconstruct_fragments!
 
 # Identify two reference atoms.
 # Performs a breadth-first search for two additional heavy atoms
@@ -41,7 +40,7 @@ function _get_two_reference_atoms(ref_center_atom::DBAtom{T}, allowed::Set{DBAto
     )
 end
 
-function reconstruct_fragment_!(f::Fragment{T}, template::DBFragmentVariant{T}) where T
+function _reconstruct_fragment!(f::Fragment{T}, template::DBFragmentVariant{T}) where T
     num_inserted_atoms = 0
 
     # Get a copy of the atom names occurring in the current fragment....
@@ -175,11 +174,16 @@ function reconstruct_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB) w
 
         if isnothing(template)
             @warn "reconstruct_fragments!(): could not find reference fragment for $(f.name):$(f.number)"
-
             continue
         end
 
-        num_inserted_atoms += reconstruct_fragment_!(f, template)
+        # set fragment variant type according to template
+        if f.variant != FragmentVariant.None && f.variant != template.type
+            @warn "reconstruct_fragments!(): replacing conflicting fragment variant type in $(f.name):$(f.number): $(template.type) (was $(f.variant))"
+        end
+        f.variant = template.type
+
+        num_inserted_atoms += _reconstruct_fragment!(f, template)
     end
 
     @info "reconstruct_fragments!(): added $(num_inserted_atoms) atoms."

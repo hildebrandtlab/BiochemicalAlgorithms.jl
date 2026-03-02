@@ -14,8 +14,8 @@
         ct = chains(testsys)
         @test nfragments.(ct) == [12, 12, 180, 5, 1, 12]
         @test nfragments.(ct; variant = FragmentVariant.None) == [0, 0, 0, 5, 1, 12]
-        @test nnucleotides.(ct) == [0, 0, 0, 0, 0, 0]
-        @test nresidues.(ct) == [12, 12, 180, 0, 0, 0]
+        @test nnucleotides.(ct) == [12, 12, 0, 0, 0, 0]
+        @test nresidues.(ct) == [0, 0, 180, 0, 0, 0]
 
         # empty!
         sys = deepcopy(testsys)
