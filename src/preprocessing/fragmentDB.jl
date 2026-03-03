@@ -64,6 +64,10 @@ end
 
         new{T}(var.name, frag.type, atoms, bonds, var.flags)
     end
+
+    @inline function DBFragmentVariant{T}(frag::DBFragment{T}) where T
+        new{T}(frag.name, frag.type, frag.atoms, frag.bonds, nothing)
+    end
 end
 
 @auto_hash_equals struct DBNameMapping
@@ -141,7 +145,10 @@ function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB{T}) where T
 
     db_fragment = fdb.fragments[f.name]
 
-    # FIXME fragments w/o declared variants, e.g., skeletons
+    # fragments w/o declared variants, e.g., skeletons
+    if isnothing(db_fragment.variants)
+        return DBFragmentVariant{T}(db_fragment)
+    end
 
     # does the fragment have variants?
     if length(db_fragment.variants) == 1
