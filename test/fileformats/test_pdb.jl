@@ -121,6 +121,49 @@ end
     end
 end
 
+@testitem "Read PDB/4hhb" begin
+    for T in [Float32, Float64]
+        # 4hhb: multi-chain hemoglobin (4 protein chains + waters/heteroatoms)
+        sys = load_pdb(ball_data_path("../test/data/4hhb.pdb"), T)
+        @test sys isa System{T}
+        @test natoms(sys) == 4779
+        @test nchains(sys) == 12
+        @test nfragments(sys) == 801
+
+        # HETATM records flagged
+        hetero_count = count(
+            a -> has_property(a, :is_hetero_atom) && Bool(get_property(a, :is_hetero_atom)),
+            atoms(sys))
+        @test hetero_count == 395
+    end
+end
+
+@testitem "PDB round-trip coordinates" begin
+    for T in [Float32, Float64]
+        sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), T)
+        tmpfile = tempname() * ".pdb"
+
+        try
+            write_pdb(tmpfile, sys)
+            sys2 = load_pdb(tmpfile, T)
+
+            @test natoms(sys2) == natoms(sys)
+            @test nfragments(sys2) == nfragments(sys)
+
+            # verify coordinate round-trip (PDB has 3 decimal places)
+            for (a1, a2) in zip(atoms(sys), atoms(sys2))
+                @test isapprox(a1.r, a2.r; atol=T(0.001))
+            end
+        finally
+            rm(tmpfile; force=true)
+        end
+    end
+end
+
+@testitem "Read PDB/nonexistent" begin
+    @test_throws SystemError load_pdb("nonexistent_file.pdb")
+end
+
 @testitem "Read PDBx/mmCIF" begin
     for T in [Float32, Float64]
         sys = load_mmcif(ball_data_path("../test/data/5pti.cif"), T)

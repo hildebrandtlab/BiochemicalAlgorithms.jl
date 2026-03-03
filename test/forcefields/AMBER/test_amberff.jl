@@ -23,6 +23,9 @@
 
         compute_forces!(a_ff)
         @test _rms_F(p) ≈ 1703.33f0
+
+        # count_warnings: AlaAla produces 2 torsion warnings
+        @test count_warnings(a_ff) == 2
     end
 
     # BALL tests
