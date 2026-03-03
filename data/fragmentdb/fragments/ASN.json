@@ -280,7 +280,7 @@
   ],
   "variants": [
     {
-      "name": "ASN-Default",
+      "name": "ASN",
       "delete": [
         "OXT",
         "1H",

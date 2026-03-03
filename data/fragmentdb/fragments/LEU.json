@@ -355,7 +355,7 @@
   ],
   "variants": [
     {
-      "name": "LEU-Default",
+      "name": "LEU",
       "delete": [
         "OXT",
         "1H",

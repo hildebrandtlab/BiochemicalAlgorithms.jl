@@ -175,7 +175,7 @@
   ],
   "variants": [
     {
-      "name": "GLY-Default",
+      "name": "GLY",
       "delete": [
         "OXT",
         "1H",

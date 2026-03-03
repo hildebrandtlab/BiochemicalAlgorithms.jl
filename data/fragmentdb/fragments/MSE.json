@@ -324,7 +324,7 @@
   ],
   "variants": [
     {
-      "name": "MSE-Default",
+      "name": "MSE",
       "delete": [
         "OXT",
         "1H",

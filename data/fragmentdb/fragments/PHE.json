@@ -376,7 +376,7 @@
   ],
   "variants": [
     {
-      "name": "PHE-Default",
+      "name": "PHE",
       "delete": [
         "OXT",
         "1H",

@@ -286,7 +286,7 @@
   ],
   "variants": [
     {
-      "name": "PRO-Default",
+      "name": "PRO",
       "delete": [
         "OXT",
         "1H",

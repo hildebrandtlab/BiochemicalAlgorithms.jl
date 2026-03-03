@@ -38,7 +38,7 @@
             f = Fragment(Chain(Molecule(sys)), 1; name="GLY")
             ref = get_reference_fragment(f, fdb)
             @test !isnothing(ref)
-            @test_broken ref.name == "Default"
+            @test ref.name == "GLY"
             @test length(ref.atoms) == 7
             @test length(ref.bonds) == 6
         end

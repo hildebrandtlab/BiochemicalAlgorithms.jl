@@ -247,7 +247,7 @@
   ],
   "variants": [
     {
-      "name": "PCA-Default"
+      "name": "PCA"
     },
     {
       "name": "PCA-N",

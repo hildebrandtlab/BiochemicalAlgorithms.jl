@@ -220,7 +220,7 @@
   ],
   "variants": [
     {
-      "name": "ALA-Default",
+      "name": "ALA",
       "delete": [
         "OXT",
         "1H",

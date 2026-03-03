@@ -235,7 +235,7 @@
   ],
   "variants": [
     {
-      "name": "SER-Default",
+      "name": "SER",
       "delete": [
         "OXT",
         "1H",

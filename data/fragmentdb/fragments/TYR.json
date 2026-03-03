@@ -391,7 +391,7 @@
   ],
   "variants": [
     {
-      "name": "TYR-Default",
+      "name": "TYR",
       "delete": [
         "OXT",
         "1H",

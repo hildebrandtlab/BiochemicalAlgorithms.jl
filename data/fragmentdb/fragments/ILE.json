@@ -355,7 +355,7 @@
   ],
   "variants": [
     {
-      "name": "ILE-Default",
+      "name": "ILE",
       "delete": [
         "OXT",
         "1H",

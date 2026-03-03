@@ -310,7 +310,7 @@
   ],
   "variants": [
     {
-      "name": "VAL-Default",
+      "name": "VAL",
       "delete": [
         "OXT",
         "1H",

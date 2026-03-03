@@ -442,7 +442,7 @@
   ],
   "variants": [
     {
-      "name": "TRP-Default",
+      "name": "TRP",
       "delete": [
         "OXT",
         "1H",

@@ -295,7 +295,7 @@
   ],
   "variants": [
     {
-      "name": "GLU-Default",
+      "name": "GLU",
       "delete": [
         "OXT",
         "1H",

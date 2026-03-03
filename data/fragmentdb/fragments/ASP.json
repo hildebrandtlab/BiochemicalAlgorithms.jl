@@ -250,7 +250,7 @@
   ],
   "variants": [
     {
-      "name": "ASP-Default",
+      "name": "ASP",
       "delete": [
         "OXT",
         "1H",
