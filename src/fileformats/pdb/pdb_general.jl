@@ -12,7 +12,7 @@ function parse_element_string(es, atom_name)
         result = Elements.Unknown
     else
         result = tryparse(ElementType, es)
-        
+
         # if the element symbol is present and valid, it has precedence,
 		# otherwise, we try to extract it from the atom name
         # NOTE: this is dangerous if non-PDB names are present; names such
@@ -24,7 +24,7 @@ function parse_element_string(es, atom_name)
                         ""
                     else
                         atom_name[2:2]
-                    end 
+                    end
                 else
                     atom_name[1:2]
                 end
@@ -57,13 +57,13 @@ function handle_record(line, sys, pdb_info; strict_line_checking, kwargs...)
 
     if tag ∉ keys(RECORD_MAP)
         # handle unknown record type
-        @warn "Record of PDB not identified: $tag. Record will be skipped." 
+        @warn "Record of PDB not identified: $tag. Record will be skipped."
     else
         parse_record(
-            line, 
-            RECORD_MAP[tag]; 
-            sys=sys, 
-            pdb_info=pdb_info, 
+            line,
+            RECORD_MAP[tag];
+            sys=sys,
+            pdb_info=pdb_info,
             kwargs...)
     end
 end
@@ -79,7 +79,7 @@ function ftype(s, T=Float32)
         elseif s == "c"
             String
         else
-            Nothing 
+            Nothing
         end
     return result
 end
@@ -186,6 +186,7 @@ function interpret_record(
     end
 
     # is this a new residue?
+    residue_name = strip(residue_name)
     if (isnothing(pdb_info.current_residue)
         || residue_sequence_number != pdb_info.current_residue.number
         || residue_name != pdb_info.current_residue.name
@@ -319,11 +320,11 @@ function interpret_record(
     ::Val{RECORD_TYPE__HELIX},
     tag,
     serial_number,
-    helix_id, 
+    helix_id,
     initial_residue_name,
     initial_residue_chain_id,
     initial_residue_number,
-    initial_residue_insertion_code, 
+    initial_residue_insertion_code,
     terminal_residue_name,
     terminal_residue_chain_id,
     terminal_residue_number,
@@ -467,9 +468,9 @@ function interpret_record(
     bond_atom3,
     bond_atom4,
     hbond_atom1,
-    hbond_atom2, 
-    salt_bridge_atom1, 
-    hbond_atom3, 
+    hbond_atom2,
+    salt_bridge_atom1,
+    hbond_atom3,
     hbond_atom4,
     salt_bridge_atom2;
     sys,
@@ -480,11 +481,11 @@ function interpret_record(
     nonmetals = [
         Elements.Sb, Elements.As, Elements.At, Elements.Fm, Elements.Ge,
         Elements.H, Elements.Ne, Elements.O, Elements.P, Elements.Po,
-        Elements.Rn, Elements.Si, Elements.Te, Elements.Ar, Elements.B, 
-        Elements.Br, Elements.C, Elements.Cl, Elements.F, Elements.He, 
+        Elements.Rn, Elements.Si, Elements.Te, Elements.Ar, Elements.B,
+        Elements.Br, Elements.C, Elements.Cl, Elements.F, Elements.He,
         Elements.I, Elements.Kr, Elements.N, Elements.S, Elements.Xe]
 
- 
+
     a = _atom_by_number(sys, serial_number)
     bond_atoms = [bond_atom1, bond_atom2, bond_atom3]
     hbond_atoms = [hbond_atom1, hbond_atom2, hbond_atom3, hbond_atom4]
@@ -540,12 +541,12 @@ function postprocess_ssbonds_!(sys, pdb_info, fragment_cache)
         # build the bond
         a1 = findfirst(a -> a.element == Elements.S, atoms(f1))
         a2 = findfirst(a -> a.element == Elements.S, atoms(f2))
-     
+
         if !isnothing(a1) && !isnothing(a2)
             # if the information about disulfid bonds were in connections, the bond already exists
-            # we will only add the corresponding flag 
+            # we will only add the corresponding flag
             bond_idx = findfirst(
-                b -> 
+                b ->
                 ((b.a1 == atoms(f1)[a1].idx) && (b.a2 == atoms(f2)[a2].idx)) ||
                 ((b.a1 == atoms(f2)[a2].idx) && (b.a2 == atoms(f1)[a1].idx)), bonds(sys))
 
@@ -555,7 +556,7 @@ function postprocess_ssbonds_!(sys, pdb_info, fragment_cache)
                 set_property!(bonds(sys)[bond_idx], :SYMMETRY_OPERATOR_1, ssbond.symmetry_operator_1)
                 set_property!(bonds(sys)[bond_idx], :BOND_LENGTH, ssbond.bond_length)
             else
-                Bond(sys, atoms(f1)[a1].idx, atoms(f2)[a2].idx, BondOrder.Single; 
+                Bond(sys, atoms(f1)[a1].idx, atoms(f2)[a2].idx, BondOrder.Single;
                      flags=Flags((:TYPE__DISULPHIDE_BOND,)),
                      properties=Properties(
                         :SYMMETRY_OPERATOR_0 => ssbond.symmetry_operator_0,
@@ -583,8 +584,8 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
 
         new_ss = if typeof(ss) == HelixRecord
             new_ss = SecondaryStructure(
-                parent_chain(initial_res), 
-                ss.number, 
+                parent_chain(initial_res),
+                ss.number,
                 SecondaryStructureElement.Helix;
                 name=ss.name)
             set_property!(new_ss, :HELIX_CLASS, ss.helix_class)
@@ -593,8 +594,8 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
             new_ss
         elseif typeof(ss) == SheetRecord
             new_ss = SecondaryStructure(
-                parent_chain(initial_res), 
-                ss.number, 
+                parent_chain(initial_res),
+                ss.number,
                 SecondaryStructureElement.Strand;
                 name="$(ss.name):$(ss.number)")
             set_property!(new_ss, :STRAND_SENSE, ss.sense_of_strand)
@@ -602,8 +603,8 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
             new_ss
         else
             new_ss = SecondaryStructure(
-                parent_chain(initial_res), 
-                ss.number, 
+                parent_chain(initial_res),
+                ss.number,
                 SecondaryStructureElement.Turn;
                 name=ss.name)
             set_property!(new_ss, :COMMENT, ss.comment)
@@ -633,8 +634,8 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
             for f in fs
                 if isnothing(f.secondary_structure_idx)
                     if isnothing(last_fragment) || isnothing(current_ss) || parent_secondary_structure(last_fragment).idx != current_ss.idx
-                        current_ss = SecondaryStructure(c, 
-                        maximum(secondary_structures(c).number, init=0) + 1, 
+                        current_ss = SecondaryStructure(c,
+                        maximum(secondary_structures(c).number, init=0) + 1,
                         SecondaryStructureElement.Coil)
                     end
                     f.secondary_structure_idx = current_ss.idx
@@ -647,7 +648,7 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
     # finally, renumber the elements to be consecutive
     if nsecondary_structures(sys) > 0
         sort_secondary_structures!(sys, by=se -> (se.chain_idx, minimum(f.number for f in fragments(se))))
-        
+
         for c in chains(sys)
             secondary_structures(c).number .= collect(1:nsecondary_structures(c))
         end
