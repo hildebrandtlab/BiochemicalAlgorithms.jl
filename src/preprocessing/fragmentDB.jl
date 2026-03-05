@@ -1,6 +1,5 @@
 export
-    FragmentDB,
-    get_reference_fragment
+    FragmentDB
 
 @auto_hash_equals struct DBAtom{T <: Real}
     name::String
