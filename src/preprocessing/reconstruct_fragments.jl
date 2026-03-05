@@ -163,7 +163,7 @@ function _reconstruct_fragment!(f::Fragment{T}, template::DBFragmentVariant{T}) 
     num_inserted_atoms
 end
 
-function reconstruct_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB) where {T<:Real}
+function reconstruct_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     num_inserted_atoms = 0
 
     # iterate over all fragments
@@ -189,4 +189,8 @@ function reconstruct_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB) w
     @info "reconstruct_fragments!(): added $(num_inserted_atoms) atoms."
 
     num_inserted_atoms
+end
+
+@inline function reconstruct_fragments!(ac::AbstractAtomContainer{Float32})
+    reconstruct_fragments!(ac, default_fragmentdb())
 end

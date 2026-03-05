@@ -179,3 +179,7 @@ function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
 
     @info "build_bonds!(): built $(num_bonds_built) bonds"
 end
+
+@inline function build_bonds!(m::AbstractAtomContainer{Float32})
+    build_bonds!(m, default_fragmentdb())
+end

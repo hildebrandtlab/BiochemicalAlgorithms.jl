@@ -127,3 +127,7 @@ function normalize_names!(
     # TODO this really doesn't belong here...
     label_terminal_fragments!(m, fdb)
 end
+
+@inline function normalize_names!(m::AbstractAtomContainer{Float32})
+    normalize_names!(m, default_fragmentdb())
+end

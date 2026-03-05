@@ -176,6 +176,10 @@ function label_terminal_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB
     nothing
 end
 
+@inline function label_terminal_fragments!(ac::AbstractAtomContainer{Float32})
+    label_terminal_fragments!(ac, default_fragmentdb())
+end
+
 function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB{T}) where T
     # first, try to find the fragment in the database
     if f.name ∉ keys(fdb.fragments)
@@ -224,6 +228,10 @@ function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB{T}) where T
     end
 
     DBFragmentVariant{T}(db_fragment, best_variant)
+end
+
+@inline function get_reference_fragment(f::Fragment{Float32})
+    get_reference_fragment(f, default_fragmentdb())
 end
 
 Base.show(io::IO, fdb::FragmentDB) =
