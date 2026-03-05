@@ -163,6 +163,14 @@ function _reconstruct_fragment!(f::Fragment{T}, template::DBFragmentVariant{T}) 
     num_inserted_atoms
 end
 
+"""
+    reconstruct_fragments!(::AbstractAtomContainer{Float32})
+    reconstruct_fragments!(::AbstractAtomContainer{T}, ::FragmentDB{T})
+
+Attempts to reconstruct all fragments in the given container according to the
+default/given fragment database and returns the number of inserted atoms. This
+preprocessor expects fragment and atom names to be normalized.
+"""
 function reconstruct_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     num_inserted_atoms = 0
 
