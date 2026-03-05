@@ -7,6 +7,12 @@ CurrentModule = BiochemicalAlgorithms
 Pages = ["preprocessing.md"]
 ```
 
+## Fragment database
+```@docs
+FragmentDB
+default_fragmentdb
+```
+
 ## Hydrogen bond prediction
 ```@docs
 predict_hbonds!

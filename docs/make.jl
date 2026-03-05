@@ -23,9 +23,10 @@ const pages = Any[
         "Structure analysis" => "public/structureanalysis.md",
         "Utility functions" => "public/utils.md",
         "Internals" => Any[
-            "File Formats" => "private/fileformats.md",
             "Biomolecular systems" => "private/system.md",
-            "Mappings" => "private/mappings.md"
+            "File Formats" => "private/fileformats.md",
+            "Mappings" => "private/mappings.md",
+            "Molecular preprocessing" => "private/preprocessing.md"
         ]
     ]
 ]

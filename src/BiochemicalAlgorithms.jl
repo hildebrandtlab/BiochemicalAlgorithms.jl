@@ -25,6 +25,17 @@ import PrettyTables
 import StaticArrays
 import Tables, TableOperations
 
+export
+    ball_data_path
+
+"""
+    ball_data_path(parts...)
+
+Constructs an absolute path to a file or directory within the package's `data` folder.
+Accepts any number of path components as arguments and joins them appropriately.
+"""
+ball_data_path(parts...) = normpath(joinpath(@__DIR__, "..", "data", parts...))
+
 # core definitions
 include("core/exceptions.jl")
 include("core/constants.jl")
@@ -109,17 +120,6 @@ include("structureanalysis/bounding_box.jl")
 
 # optimization
 include("optimization/optimize_structure.jl")
-
-export
-    ball_data_path
-
-"""
-    ball_data_path(parts...)
-
-Constructs an absolute path to a file or directory within the package's `data` folder.
-Accepts any number of path components as arguments and joins them appropriately.
-"""
-ball_data_path(parts...) = normpath(joinpath(@__DIR__, "..", "data", parts...))
 
 # precompilation directives
 include("precompile.jl")

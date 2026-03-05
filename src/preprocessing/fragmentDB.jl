@@ -1,5 +1,6 @@
 export
-    FragmentDB
+    FragmentDB,
+    default_fragmentdb
 
 @auto_hash_equals struct DBAtom{T <: Real}
     name::String
@@ -75,6 +76,21 @@ end
     mappings::Dict{String, String}
 end
 
+"""
+    $(TYPEDEF)
+
+Fragment database. Contains information about common biomolecule fragments such as amino acids
+and nucleotides that can be used to reconstruct incomplete systems.
+
+# Constructors
+    FragmentDB(path::AbstractString = ball_data_path("fragmentdb/FragmentDB.json"))
+
+Creates a new `FragmentDB{Float32}` from the given configuration file.
+
+    FragmentDB{T}(path::AbstractString = ball_data_path("fragmentdb/FragmentDB.json"))
+
+Creates a new `FragmentDB{T}` from the given configuration file.
+"""
 @auto_hash_equals struct FragmentDB{T <: Real}
     fragments::OrderedDict{String, DBFragment{T}}
     name_mappings::OrderedDict{String, DBNameMapping}
@@ -83,14 +99,38 @@ end
     function FragmentDB{T}(path::AbstractString = ball_data_path("fragmentdb/FragmentDB.json")) where T
         dir = dirname(path)
         fdb = JSON.parse(read(path, String))
-        fragments = OrderedDict(e.first => JSON.parse(read(joinpath(dir, e.second), String), DBFragment{T}) for e in fdb.fragments)
-        name_mappings = OrderedDict(e.first => JSON.parse(read(joinpath(dir, e.second), String), DBNameMapping) for e in fdb.names)
+        fragments = OrderedDict(
+            e.first => JSON.parse(read(joinpath(dir, e.second), String), DBFragment{T})
+            for e in fdb.fragments
+        )
+        name_mappings = OrderedDict(
+            e.first => JSON.parse(read(joinpath(dir, e.second), String), DBNameMapping)
+            for e in fdb.names
+        )
         defaults = OrderedDict(e.first => e.second for e in fdb.defaults)
-        new(fragments, name_mappings, defaults)
+        new{T}(fragments, name_mappings, defaults)
     end
 end
 
-FragmentDB(path::AbstractString = ball_data_path("fragmentdb/FragmentDB.json")) = FragmentDB{Float32}(path)
+@inline function FragmentDB(path::AbstractString = ball_data_path("fragmentdb/FragmentDB.json"))
+    FragmentDB{Float32}(path)
+end
+
+"""
+    const _default_fragmentdb
+
+Global default fragment database.
+"""
+const _default_fragmentdb = FragmentDB()
+
+"""
+    $(TYPEDSIGNATURES)
+
+Returns the global default fragment database.
+"""
+@inline function default_fragmentdb()
+    _default_fragmentdb
+end
 
 @inline function bonds(a::DBAtom{T}, var::DBFragmentVariant{T}) where T
     filter(b -> a.name ∈ [b.a1, b.a2], var.bonds)
