@@ -117,4 +117,7 @@ Accepts any number of path components as arguments and joins them appropriately.
 """
 ball_data_path(parts...) = normpath(joinpath(@__DIR__, "..", "data", parts...))
 
+# precompilation directives
+include("precompile.jl")
+
 end
