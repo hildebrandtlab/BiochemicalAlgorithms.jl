@@ -11,6 +11,22 @@ Pages = ["preprocessing.md"]
 ```@docs
 FragmentDB
 default_fragmentdb
+infer_topology!
+```
+
+## Name normalization
+```@docs
+normalize_names!
+```
+
+## Fragment reconstruction
+```@docs
+reconstruct_fragments!
+```
+
+## Bond construction
+```@docs
+build_bonds!
 ```
 
 ## Hydrogen bond prediction

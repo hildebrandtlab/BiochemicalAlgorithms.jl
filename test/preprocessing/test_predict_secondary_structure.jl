@@ -1,14 +1,10 @@
-
-
 @testitem "predict secondary structure" begin
     for T in [Float32, Float64]
 
         function test_secondary_structure(ac::AbstractAtomContainer{T}) where T
             fdb = FragmentDB{T}()
 
-            normalize_names!(ac, fdb)
-            reconstruct_fragments!(ac, fdb)
-            build_bonds!(ac, fdb)
+            infer_topology!(ac, fdb)
             predict_hbonds!(ac, :KABSCH_SANDER)
             predict_secondary_structure!(ac)
         end

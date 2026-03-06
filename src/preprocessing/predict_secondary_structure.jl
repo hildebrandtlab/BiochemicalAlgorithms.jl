@@ -113,20 +113,14 @@ the `KABSCH_SANDER` variant of the `predict_hbonds!` method
 
 # Example
 ```julia
-fdb = FragmentDB()
-normalize_names!(sys, fdb)
-reconstruct_fragments!(sys, fdb)
-build_bonds!(sys, fdb)
+infer_topology!(sys)
 predict_hbonds!(sys, :KABSCH_SANDER)
 predict_secondary_structure!(sys)
 ```
 """
 function predict_secondary_structure!(ac::AbstractAtomContainer)
     # the following should happen outside
-    # fdb = FragmentDB()
-    # normalize_names!(ac, fdb)
-    # reconstruct_fragments!(ac, fdb)
-    # build_bonds!(ac, fdb)
+    # infer_topology!(ac)
     # predict_hbonds!(sys, :KABSCH_SANDER)
 
     # get the backbone h_bond pattern according to KABSCH_SANDER

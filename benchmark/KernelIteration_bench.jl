@@ -1,15 +1,7 @@
 function generate_example(prepared=true)
-    
     sys = load_pdb(ball_data_path("../benchmark/data/AmberFF_bench.pdb"))
-
-    if prepared
-        fdb = FragmentDB()
-        normalize_names!(sys, fdb)
-        reconstruct_fragments!(sys, fdb)
-        build_bonds!(sys, fdb)
-    end
+    prepared && infer_topology!(sys)
     sys
-
 end
 
 kernel_iteration = SUITE["Kernel"]["Iteration"]

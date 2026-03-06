@@ -73,6 +73,18 @@ function _normalize_fragments!(frags::FragmentTable{T}, mapping::Dict{String, St
     end
 end
 
+"""
+    normalize_names!(::AbstractAtomContainer{Float32})
+    normalize_names!(::AbstractAtomContainer{T}, ::FragmentDB{T})
+
+Attempts to normalize fragment and atom names according to the default/given
+fragment database.
+
+# Supported keyword arguments
+ - `naming_standard::AbstractString = ""`
+   The naming standard to be used for normalization. If empty, the default
+   naming standard of the fragment database is used.
+"""
 function normalize_names!(
     m::AbstractAtomContainer{T},
     fdb::FragmentDB{T};
@@ -126,6 +138,8 @@ function normalize_names!(
     # label all terminal fragments to speed up terminal lookups later on
     # TODO this really doesn't belong here...
     label_terminal_fragments!(m, fdb)
+
+    nothing
 end
 
 @inline function normalize_names!(m::AbstractAtomContainer{Float32})

@@ -187,10 +187,7 @@ ball_and_stick(s)
 Now, let’s create some bonds:
 
 ``` julia
-fdb = FragmentDB() # default FragmentDB
-normalize_names!(s, fdb) # in case our input PDB file uses a strange naming standard
-reconstruct_fragments!(s, fdb) # in case our input file misses some atoms
-build_bonds!(s, fdb) # create the bonds
+infer_topology!(s)
 # ball_and_stick(s) uncomment for visualization
 ```
 
@@ -394,10 +391,7 @@ println("is_n_terminal(): ", is_n_terminal(res))
 Some functionality is only available after preprocessing through the FragmentDB:
 
 ``` julia
-fdb = FragmentDB()
-normalize_names!(s, fdb)
-reconstruct_fragments!(s, fdb)
-build_bonds!(s, fdb)
+infer_topology!(s)
 println("is_c_terminal(): ", is_c_terminal(res))
 println("is_n_terminal(): ", is_n_terminal(res))
 res2 = fragments(s)[2]
@@ -459,10 +453,7 @@ Molecules have a variant which is `MoleculareVariant.None` by default. Users can
 
 ``` julia
 println("is a protein: ", isprotein(m[1]))
-fdb = FragmentDB()
-normalize_names!(s, fdb)
-reconstruct_fragments!(s, fdb)
-build_bonds!(s, fdb)
+infer_topology!(s)
 
 println("is a protein: ", isprotein(m[1]))
 
@@ -472,11 +463,7 @@ println("is a protein: ", isprotein(m[1]))
 ```
 
     is a protein: false
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for  CA:462
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
     [ Info: reconstruct_fragments!(): added 2346 atoms.
-    ┌ Warning: build_bonds!(): could not find reference fragment for  CA.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
     [ Info: build_bonds!(): built 4471 bonds
     is a protein: false
     is a protein: true
@@ -591,9 +578,7 @@ In addition, we can compute the secondary structures for an input file:
 s = load_pdb(ball_data_path("../test/data/bpti.pdb"))
 println(s)
 
-normalize_names!(s, fdb)
-reconstruct_fragments!(s, fdb)
-build_bonds!(s, fdb)
+infer_topology!(s)
 predict_hbonds!(s, :KABSCH_SANDER)
 predict_secondary_structure!(s)
 ```

@@ -1,6 +1,7 @@
 export
     FragmentDB,
-    default_fragmentdb
+    default_fragmentdb,
+    infer_topology!
 
 @auto_hash_equals struct DBAtom{T <: Real}
     name::String
@@ -132,6 +133,15 @@ Returns the global default fragment database.
     _default_fragmentdb
 end
 
+@inline function Base.show(io::IO, fdb::FragmentDB)
+    print(io,
+        "FragmentDB with ",
+        length(fdb.fragments), " fragments, ",
+        length(fdb.name_mappings), " mappings, ",
+        length(fdb.defaults), " defaults."
+    )
+end
+
 @inline function bonds(a::DBAtom{T}, var::DBFragmentVariant{T}) where T
     filter(b -> a.name ∈ [b.a1, b.a2], var.bonds)
 end
@@ -234,7 +244,37 @@ end
     get_reference_fragment(f, default_fragmentdb())
 end
 
-Base.show(io::IO, fdb::FragmentDB) =
-    print(io,
-        "FragmentDB with $(length(fdb.fragments)) fragments, " *
-        "$(length(fdb.name_mappings)) mappings, $(length(fdb.defaults)) defaults.")
+"""
+    infer_topology!(::AbstractAtomContainer{Float32})
+    infer_topology!(::AbstractAtomContainer{T}, ::FragmentDB{T})
+
+Apply standard preprocessing functions to the given atom container, using the default/given
+fragment database. By default, this calls (in order): [`normalize_names!`](@ref),
+[`reconstruct_fragments!`](@ref), and [`build_bonds!`](@ref).
+
+# Supported keyword arguments
+ - `normalize_names::Bool = true`
+ - `reconstruct_fragments::Bool = true`
+ - `build_bonds::Bool = true`
+All keyword arguments enable or disable the corresponding preprocessors.
+
+!!! warning
+    Caution is advised when partly enabling/disabling preprocessors, as they might depend on
+    each other. Please refer to the corresponding documentation.
+"""
+@inline function infer_topology!(
+    ac::AbstractAtomContainer{T},
+    fdb::FragmentDB{T};
+    normalize_names::Bool = true,
+    reconstruct_fragments::Bool = true,
+    build_bonds::Bool = true
+) where T
+    normalize_names       && normalize_names!(ac, fdb)
+    reconstruct_fragments && reconstruct_fragments!(ac, fdb)
+    build_bonds           && build_bonds!(ac, fdb)
+    nothing
+end
+
+@inline function infer_topology!(ac::AbstractAtomContainer{Float32})
+    infer_topology!(ac, default_fragmentdb())
+end

@@ -1,10 +1,6 @@
 @testitem "Optimize structure" begin
     sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
-
-    fdb = FragmentDB()
-    normalize_names!(sys, fdb)
-    reconstruct_fragments!(sys, fdb)
-    build_bonds!(sys, fdb)
+    infer_topology!(sys)
 
     ff = AmberFF(sys)
     @test compute_energy!(ff) ≈ 1425.5979f0
@@ -20,11 +16,7 @@ end
 
 @testitem "Optimize structure/Float64" begin
     sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), Float64)
-
-    fdb = FragmentDB{Float64}()
-    normalize_names!(sys, fdb)
-    reconstruct_fragments!(sys, fdb)
-    build_bonds!(sys, fdb)
+    infer_topology!(sys, FragmentDB{Float64}())
 
     ff = AmberFF(sys)
     @test compute_energy!(ff) isa Float64
@@ -34,11 +26,7 @@ end
 
 @testitem "Optimize hydrogen positions" begin
     sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
-
-    fdb = FragmentDB()
-    normalize_names!(sys, fdb)
-    reconstruct_fragments!(sys, fdb)
-    build_bonds!(sys, fdb)
+    infer_topology!(sys)
 
     ff = AmberFF(sys)
     @test compute_energy!(ff) ≈ 1425.5979f0

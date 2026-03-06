@@ -1,6 +1,4 @@
 function prepare_mol(fname)
-    fdb = FragmentDB()
-
     m = load_pdb(ball_data_path("../benchmark/data/$(fname)"))
 
     function atom_filter(a_idx)
@@ -10,10 +8,7 @@ function prepare_mol(fname)
     end
 
     m_filtered = copy(filter_atoms(atom_filter, m))
-
-    normalize_names!(m_filtered, fdb)
-    reconstruct_fragments!(m_filtered, fdb)
-    build_bonds!(m_filtered, fdb)
+    infer_topology!(m_filtered)
 
     m_filtered
 end

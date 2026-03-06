@@ -132,6 +132,14 @@ function try_build_connection!(a1::Atom{T}, con1::DBConnection{T}, a2::Atom{T}, 
     return true
 end
 
+"""
+    build_bonds!(::AbstractAtomContainer{Float32})
+    build_bonds!(::AbstractAtomContainer{T}, ::FragmentDB{T})
+
+Attempts to construct missing bonds in the given container, according to the
+default/given fragment database, and returns the number of built bonds. This
+preprocessor expects fragment and atom names to be normalized.
+"""
 function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     # while building up individual fragments, we remember inter-fragment connections
     connections = OrderedDict{Int, DBConnection}()
@@ -178,6 +186,8 @@ function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     end
 
     @info "build_bonds!(): built $(num_bonds_built) bonds"
+
+    num_bonds_built
 end
 
 @inline function build_bonds!(m::AbstractAtomContainer{Float32})
