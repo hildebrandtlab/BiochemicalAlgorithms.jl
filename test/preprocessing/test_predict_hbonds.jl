@@ -4,9 +4,7 @@
 
         # KABSCH_SANDER on 2ptc (h_bond_from_donor=true, default)
         let sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"), T)
-            normalize_names!(sys, fdb)
-            reconstruct_fragments!(sys, fdb)
-            build_bonds!(sys, fdb)
+            infer_topology!(sys, fdb)
 
             predict_hbonds!(sys, :KABSCH_SANDER)
             hbonds = hydrogen_bonds(sys)
@@ -24,9 +22,7 @@
 
         # KABSCH_SANDER with h_bond_from_donor=false
         let sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"), T)
-            normalize_names!(sys, fdb)
-            reconstruct_fragments!(sys, fdb)
-            build_bonds!(sys, fdb)
+            infer_topology!(sys, fdb)
 
             predict_hbonds!(sys, :KABSCH_SANDER, false)
             @test length(hydrogen_bonds(sys)) == 175
@@ -34,9 +30,7 @@
 
         # KABSCH_SANDER on bpti
         let sys = load_pdb(ball_data_path("../test/data/bpti.pdb"), T)
-            normalize_names!(sys, fdb)
-            reconstruct_fragments!(sys, fdb)
-            build_bonds!(sys, fdb)
+            infer_topology!(sys, fdb)
 
             predict_hbonds!(sys, :KABSCH_SANDER)
             @test length(hydrogen_bonds(sys)) == 31
@@ -50,9 +44,7 @@
 
         # idempotency: predicting twice should not duplicate bonds
         let sys = load_pdb(ball_data_path("../test/data/bpti.pdb"), T)
-            normalize_names!(sys, fdb)
-            reconstruct_fragments!(sys, fdb)
-            build_bonds!(sys, fdb)
+            infer_topology!(sys, fdb)
 
             predict_hbonds!(sys, :KABSCH_SANDER)
             n = length(hydrogen_bonds(sys))

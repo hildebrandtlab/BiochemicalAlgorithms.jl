@@ -4,9 +4,7 @@
 
         # AlaAla dipeptide: adds terminal OXT hydrogen
         let sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), T)
-            normalize_names!(sys, fdb)
-            reconstruct_fragments!(sys, fdb)
-            build_bonds!(sys, fdb)
+            infer_topology!(sys, fdb)
 
             before = natoms(sys)
             @test add_hydrogens!(sys) == 1
@@ -20,9 +18,7 @@
 
         # AlaGlySer tripeptide: adds terminal OXT hydrogen
         let sys = load_hinfile(ball_data_path("../test/data/AlaGlySer.hin"), T)
-            normalize_names!(sys, fdb)
-            reconstruct_fragments!(sys, fdb)
-            build_bonds!(sys, fdb)
+            infer_topology!(sys, fdb)
 
             @test add_hydrogens!(sys) == 1
             @test last(atoms(sys)).name == "HOXT"
@@ -30,9 +26,7 @@
 
         # bpti: adds terminal OXT hydrogen
         let sys = load_pdb(ball_data_path("../test/data/bpti.pdb"), T)
-            normalize_names!(sys, fdb)
-            reconstruct_fragments!(sys, fdb)
-            build_bonds!(sys, fdb)
+            infer_topology!(sys, fdb)
 
             @test add_hydrogens!(sys) == 1
             @test last(atoms(sys)).name == "HOXT"
@@ -40,9 +34,7 @@
 
         # already-saturated system: second pass adds 0
         let sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), T)
-            normalize_names!(sys, fdb)
-            reconstruct_fragments!(sys, fdb)
-            build_bonds!(sys, fdb)
+            infer_topology!(sys, fdb)
 
             add_hydrogens!(sys)
             n = natoms(sys)

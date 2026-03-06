@@ -103,12 +103,7 @@ nbonds(sys)
 
 ```{julia}
 # use the fragment database for normalizing naming schemas between molecular file formats, reconstruction of missing parts of the structure and building the bonds
-fdb = FragmentDB()
-
-normalize_names!(sys, fdb)
-reconstruct_fragments!(sys, fdb)
-build_bonds!(sys, fdb)
-
+infer_topology!(sys)
 nbonds(sys)
 ```
 

@@ -19,10 +19,7 @@ Force fields in BiochemicalAlgorithms.jl are always set up for a given molecular
 ```{julia}
 sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 
-fdb = FragmentDB()
-normalize_names!(sys, fdb)
-reconstruct_fragments!(sys, fdb)
-build_bonds!(sys, fdb)
+infer_topology!(sys)
 
 sys
 ```
