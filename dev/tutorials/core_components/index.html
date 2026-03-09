@@ -90,10 +90,7 @@ end</code></pre><pre><code class="nohighlight hljs">4 1
 nbonds(s)</code></pre><pre><code class="nohighlight hljs">0</code></pre><p>So far, the system has no bonds. We can also visualize the structure using BiochemicalVisualization.jl.</p><p>If BiochemicalVisualization is not yet installed, you can add it via:</p><pre><code class="language-julia hljs">using Pkg
 Pkg.add(&quot;BiochemicalVisualization&quot;)</code></pre><pre><code class="language-julia hljs">using BiochemicalVisualization
 
-ball_and_stick(s)</code></pre><p>Now, let’s create some bonds:</p><pre><code class="language-julia hljs">fdb = FragmentDB() # default FragmentDB
-normalize_names!(s, fdb) # in case our input PDB file uses a strange naming standard
-reconstruct_fragments!(s, fdb) # in case our input file misses some atoms
-build_bonds!(s, fdb) # create the bonds
+ball_and_stick(s)</code></pre><p>Now, let’s create some bonds:</p><pre><code class="language-julia hljs">infer_topology!(s)
 # ball_and_stick(s) uncomment for visualization</code></pre><pre><code class="nohighlight hljs">[ Info: reconstruct_fragments!(): added 0 atoms.
 [ Info: build_bonds!(): built 22 bonds</code></pre><p>And finally, we do have our bonds. This example demonstrate the importance of visualizing for the understanding of structural data. Note: The exclamation mark behind the function name indicates that the system will be changed through the functions. The system now contains bonds and the residues carries flags:</p><pre><code class="language-julia hljs">println(s)
 for i in residues(s)
@@ -169,10 +166,7 @@ println(&quot;is_amino_acid(): &quot;, is_amino_acid(res))
 println(&quot;is_c_terminal(): &quot;, is_c_terminal(res))
 println(&quot;is_n_terminal(): &quot;, is_n_terminal(res))</code></pre><pre><code class="nohighlight hljs">is_amino_acid(): true
 is_c_terminal(): false
-is_n_terminal(): false</code></pre><p>Some functionality is only available after preprocessing through the FragmentDB:</p><pre><code class="language-julia hljs">fdb = FragmentDB()
-normalize_names!(s, fdb)
-reconstruct_fragments!(s, fdb)
-build_bonds!(s, fdb)
+is_n_terminal(): false</code></pre><p>Some functionality is only available after preprocessing through the FragmentDB:</p><pre><code class="language-julia hljs">infer_topology!(s)
 println(&quot;is_c_terminal(): &quot;, is_c_terminal(res))
 println(&quot;is_n_terminal(): &quot;, is_n_terminal(res))
 res2 = fragments(s)[2]
@@ -196,21 +190,14 @@ println(&quot;The number of molecules in the system: &quot;, nmolecules(s))
 println(&quot;The number of proteins in the system: &quot;, nproteins(s))</code></pre><pre><code class="nohighlight hljs">MoleculeTable{Float32}
 The number of molecules in the system: 1
 The number of proteins in the system: 0</code></pre><p>Molecules have a variant which is <code>MoleculareVariant.None</code> by default. Users can decide, if a molecule is to be considered as a protein. <code>isprotein</code> checks if the <code>MoleculeVariant.Protein</code> is set:</p><pre><code class="language-julia hljs">println(&quot;is a protein: &quot;, isprotein(m[1]))
-fdb = FragmentDB()
-normalize_names!(s, fdb)
-reconstruct_fragments!(s, fdb)
-build_bonds!(s, fdb)
+infer_topology!(s)
 
 println(&quot;is a protein: &quot;, isprotein(m[1]))
 
 m[1].variant = MoleculeVariant.Protein
 
 println(&quot;is a protein: &quot;, isprotein(m[1]))</code></pre><pre><code class="nohighlight hljs">is a protein: false
-┌ Warning: reconstruct_fragments!(): could not find reference fragment for  CA:462
-└ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
 [ Info: reconstruct_fragments!(): added 2346 atoms.
-┌ Warning: build_bonds!(): could not find reference fragment for  CA.
-└ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
 [ Info: build_bonds!(): built 4471 bonds
 is a protein: false
 is a protein: true</code></pre><p>Similar to molecules we can access proteins:</p><pre><code class="language-julia hljs">println(&quot;Number of proteins in the system: &quot;, proteins(s))
@@ -279,13 +266,11 @@ println(&quot;Number of secondary structures: &quot;, nsecondary_structures(s))
 helices = (filter(sst -&gt; sst.type == ss1.type, secondary_structures(chain)))</code></pre><pre><code class="nohighlight hljs">Number of secondary structures: 4</code></pre><table><tr><th style="text-align: right"><strong>#</strong></th><th style="text-align: left"><strong>idx</strong></th><th style="text-align: left"><strong>number</strong></th><th style="text-align: left"><strong>type</strong></th><th style="text-align: left"><strong>name</strong></th></tr><tr><td style="text-align: right">1</td><td style="text-align: left">3</td><td style="text-align: left">1</td><td style="text-align: left">Helix</td><td style="text-align: left">H1</td></tr><tr><td style="text-align: right">2</td><td style="text-align: left">5</td><td style="text-align: left">3</td><td style="text-align: left">Helix</td><td style="text-align: left">S1</td></tr></table><p>In addition, we can compute the secondary structures for an input file:</p><pre><code class="language-julia hljs">s = load_pdb(ball_data_path(&quot;../test/data/bpti.pdb&quot;))
 println(s)
 
-normalize_names!(s, fdb)
-reconstruct_fragments!(s, fdb)
-build_bonds!(s, fdb)
+infer_topology!(s)
 predict_hbonds!(s, :KABSCH_SANDER)
 predict_secondary_structure!(s)</code></pre><pre><code class="nohighlight hljs">BiochemicalAlgorithms.System{Float32} with 454 atoms and 3 bonds (PTI (from 2PTC.BRK))
 [ Info: reconstruct_fragments!(): added 438 atoms.
 [ Info: build_bonds!(): built 903 bonds
 [ Info: Added 31 hydrogen bonds.
 
-&quot;---GGG-----------EEEEEEETTTTEEEEEEE---------B--HHHHHHHHTT-&quot;</code></pre><h2 id="Congratulation"><a class="docs-heading-anchor" href="#Congratulation">Congratulation</a><a id="Congratulation-1"></a><a class="docs-heading-anchor-permalink" href="#Congratulation" title="Permalink"></a></h2><p>You are now familiar with the most important core entities of BiochemicalAlgorithms.jl</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../getting_started/">« How to get started</a><a class="docs-footer-nextpage" href="../iterate/">How to iterate »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 8 March 2026 01:32">Sunday 8 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+&quot;---GGG-----------EEEEEEETTTTEEEEEEE---------B--HHHHHHHHTT-&quot;</code></pre><h2 id="Congratulation"><a class="docs-heading-anchor" href="#Congratulation">Congratulation</a><a id="Congratulation-1"></a><a class="docs-heading-anchor-permalink" href="#Congratulation" title="Permalink"></a></h2><p>You are now familiar with the most important core entities of BiochemicalAlgorithms.jl</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../getting_started/">« How to get started</a><a class="docs-footer-nextpage" href="../iterate/">How to iterate »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Monday 9 March 2026 08:46">Monday 9 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
