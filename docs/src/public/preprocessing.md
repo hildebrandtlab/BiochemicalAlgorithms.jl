@@ -19,6 +19,11 @@ infer_topology!
 normalize_names!
 ```
 
+## Fragment terminal labeling
+```@docs
+label_terminal_fragments!
+```
+
 ## Fragment reconstruction
 ```@docs
 reconstruct_fragments!

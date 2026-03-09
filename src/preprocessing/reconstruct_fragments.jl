@@ -168,8 +168,12 @@ end
     reconstruct_fragments!(::AbstractAtomContainer{T}, ::FragmentDB{T})
 
 Attempts to reconstruct all fragments in the given container according to the
-default/given fragment database and returns the number of inserted atoms. This
-preprocessor expects fragment and atom names to be normalized.
+default/given fragment database and returns the number of inserted atoms.
+
+!!! note
+    This preprocessor expects fragment and atom names to be normalized and
+    fragment terminals to be labeled (cf. [`normalize_names!`](@ref) and
+    [`label_terminal_fragments!`](@ref)).
 """
 function reconstruct_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     num_inserted_atoms = 0

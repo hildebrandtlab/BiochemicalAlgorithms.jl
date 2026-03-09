@@ -137,8 +137,12 @@ end
     build_bonds!(::AbstractAtomContainer{T}, ::FragmentDB{T})
 
 Attempts to construct missing bonds in the given container, according to the
-default/given fragment database, and returns the number of built bonds. This
-preprocessor expects fragment and atom names to be normalized.
+default/given fragment database, and returns the number of built bonds.
+
+!!! note
+    This preprocessor expects fragment and atom names to be normalized and
+    fragment terminals to be labeled (cf. [`normalize_names!`](@ref) and
+    [`label_terminal_fragments!`](@ref)).
 """
 function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     # while building up individual fragments, we remember inter-fragment connections

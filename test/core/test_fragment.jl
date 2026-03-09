@@ -1556,6 +1556,7 @@ end
         fdb = FragmentDB{T}()
         sys = load_hinfile(ball_data_path("../test/data/AlaGlySer.hin"), T)
         normalize_names!(sys, fdb)
+        label_terminal_fragments!(sys, fdb)
 
         frags = collect(fragments(sys))
         @test length(frags) == 3

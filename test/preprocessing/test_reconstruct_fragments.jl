@@ -16,6 +16,7 @@
 
         let sys = load_hinfile(ball_data_path("../test/data/ReconstructFragmentProcessor_test1.hin"), T)
             normalize_names!(sys, fdb)
+            label_terminal_fragments!(sys, fdb)
 
             @test reconstruct_fragments!(sys, fdb) == 4
             @test natoms(sys) == 31
@@ -41,6 +42,7 @@
         # multi-fragment system: already complete → 0 reconstructed
         let sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), T)
             normalize_names!(sys, fdb)
+            label_terminal_fragments!(sys, fdb)
             before = natoms(sys)
             @test reconstruct_fragments!(sys, fdb) == 0
             @test natoms(sys) == before

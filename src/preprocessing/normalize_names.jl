@@ -135,10 +135,6 @@ function normalize_names!(
         end
     end
 
-    # label all terminal fragments to speed up terminal lookups later on
-    # TODO this really doesn't belong here...
-    label_terminal_fragments!(m, fdb)
-
     nothing
 end
 

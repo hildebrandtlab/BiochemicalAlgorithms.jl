@@ -1,7 +1,8 @@
 export
     FragmentDB,
     default_fragmentdb,
-    infer_topology!
+    infer_topology!,
+    label_terminal_fragments!
 
 @auto_hash_equals struct DBAtom{T <: Real}
     name::String
@@ -156,6 +157,18 @@ end
     end
 end
 
+"""
+    label_terminal_fragments!(::AbstractAtomContainer{Float32})
+    label_terminal_fragments!(::AbstractAtomContainer{T}, ::FragmentDB{T})
+
+Attempt to label terminal fragments, i.e., assign the `N_TERMINAL`/`C_TERMINAL` flag
+to the first/last fragment of all residue chains and the `5_PRIME`/`3_PRIME` flag to
+the first/last fragment of all nucleotide chains, respectively.
+
+!!! note
+    This preprocessor expects fragment and atom names to be normalized (cf.
+    [`normalize_names!`](@ref)).
+"""
 function label_terminal_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     # iterate over all chains and label their terminals
     for chain in chains(ac)
@@ -250,10 +263,11 @@ end
 
 Apply standard preprocessing functions to the given atom container, using the default/given
 fragment database. By default, this calls (in order): [`normalize_names!`](@ref),
-[`reconstruct_fragments!`](@ref), and [`build_bonds!`](@ref).
+[`label_terminal_fragments!`](@ref), [`reconstruct_fragments!`](@ref), and [`build_bonds!`](@ref).
 
 # Supported keyword arguments
  - `normalize_names::Bool = true`
+ - `label_terminal_fragments::Bool = true`
  - `reconstruct_fragments::Bool = true`
  - `build_bonds::Bool = true`
 All keyword arguments enable or disable the corresponding preprocessors.
@@ -266,12 +280,14 @@ All keyword arguments enable or disable the corresponding preprocessors.
     ac::AbstractAtomContainer{T},
     fdb::FragmentDB{T};
     normalize_names::Bool = true,
+    label_terminal_fragments::Bool = true,
     reconstruct_fragments::Bool = true,
     build_bonds::Bool = true
 ) where T
-    normalize_names       && normalize_names!(ac, fdb)
-    reconstruct_fragments && reconstruct_fragments!(ac, fdb)
-    build_bonds           && build_bonds!(ac, fdb)
+    normalize_names          && normalize_names!(ac, fdb)
+    label_terminal_fragments && label_terminal_fragments!(ac, fdb)
+    reconstruct_fragments    && reconstruct_fragments!(ac, fdb)
+    build_bonds              && build_bonds!(ac, fdb)
     nothing
 end
 

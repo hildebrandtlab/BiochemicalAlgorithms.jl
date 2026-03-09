@@ -4,10 +4,7 @@
     end
 
     let p = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
-        fdb = FragmentDB()
-        normalize_names!(p, fdb)
-        reconstruct_fragments!(p, fdb)
-        build_bonds!(p, fdb)
+        infer_topology!(p)
 
         a_ff = AmberFF(p)
 
@@ -39,6 +36,7 @@
         # Energy test 1 (single stretch) [AMBER91]
         let sys = load_hinfile(ball_data_path("../test/data/AmberFF_test_1.hin"), T)
             normalize_names!(sys, fdb)
+            label_terminal_fragments!(sys, fdb)
 
             ff = AmberFF(sys, ff_amber91; assign_charges = false, assign_typenames = false)
 
@@ -58,6 +56,7 @@
         # Energy test 2 (Bend) [AMBER91]
         let sys = load_hinfile(ball_data_path("../test/data/AmberFF_test_2.hin"), T)
             normalize_names!(sys, fdb)
+            label_terminal_fragments!(sys, fdb)
 
             ff = AmberFF(sys, ff_amber91; assign_charges = false, assign_typenames = false)
 
@@ -77,6 +76,7 @@
         # Energy test 3 (VdW) [AMBER91]
         let sys = load_hinfile(ball_data_path("../test/data/AmberFF_test_3.hin"), T)
             normalize_names!(sys, fdb)
+            label_terminal_fragments!(sys, fdb)
 
             ff = AmberFF(sys, ff_amber91; assign_charges = false, assign_typenames = false)
 
@@ -96,6 +96,7 @@
         # Energy test 4 (Torsion) [AMBER91]
         let sys = load_hinfile(ball_data_path("../test/data/AmberFF_test_4.hin"), T)
             normalize_names!(sys, fdb)
+            label_terminal_fragments!(sys, fdb)
 
             ff = AmberFF(sys, ff_amber91; assign_charges = false, assign_typenames = false)
 
@@ -115,6 +116,7 @@
         # Energy test 5 (AlaGlySer) [AMBER91]
         let sys = load_hinfile(ball_data_path("../test/data/AlaGlySer.hin"), T)
             normalize_names!(sys, fdb)
+            label_terminal_fragments!(sys, fdb)
 
             ff = AmberFF(sys, ff_amber91; assign_charges = false, assign_typenames = false)
 
@@ -134,6 +136,7 @@
         # Energy test 5 (AlaGlySer) [AMBER96]
         let sys = load_hinfile(ball_data_path("../test/data/AlaGlySer.hin"), T)
             normalize_names!(sys, fdb)
+            label_terminal_fragments!(sys, fdb)
 
             ff = AmberFF(sys, ff_amber96; assign_charges = false, assign_typenames = false)
 
@@ -153,6 +156,7 @@
         # Energy test 6 (AlaGlySer) [AMBER94]
         let sys = load_hinfile(ball_data_path("../test/data/AlaGlySer2.hin"), T)
             normalize_names!(sys, fdb)
+            label_terminal_fragments!(sys, fdb)
 
             ff = AmberFF(sys, ff_amber94; overwrite_typenames = true)
 
@@ -172,6 +176,7 @@
         # Force test 1 (Torsion) [AMBER94]
         let sys = load_hinfile(ball_data_path("../test/data/AMBER_test_1.hin"), T)
             normalize_names!(sys, fdb)
+            label_terminal_fragments!(sys, fdb)
 
             ff = AmberFF(sys, ff_amber94; overwrite_typenames = true)
 
@@ -191,6 +196,7 @@
         # Force test 2 (ES switching) [AMBER91/CDIEL]
         let sys = load_hinfile(ball_data_path("../test/data/AmberFF_test_3.hin"), T)
             normalize_names!(sys, fdb)
+            label_terminal_fragments!(sys, fdb)
 
             ff = AmberFF(sys, ff_amber91;
                 assign_charges = false,
@@ -224,6 +230,7 @@
         # Force test 3 (ES switching) [AMBER91/RDIEL]
         let sys = load_hinfile(ball_data_path("../test/data/AmberFF_test_3.hin"), T)
             normalize_names!(sys, fdb)
+            label_terminal_fragments!(sys, fdb)
 
             ff = AmberFF(sys, ff_amber91;
                 assign_charges = false,
@@ -245,7 +252,7 @@
                 update!(ff)
                 compute_forces!(ff)
 
-                force = a2.F[1] 
+                force = a2.F[1]
                 dE = compute_energy!(ff)
                 a2.r = Vector3{T}(d - 0.0001, 0, 0)
                 update!(ff)
@@ -257,6 +264,7 @@
         # Force test 4 (VdW switching) [AMBER91]
         let sys = load_hinfile(ball_data_path("../test/data/AmberFF_test_3.hin"), T)
             normalize_names!(sys, fdb)
+            label_terminal_fragments!(sys, fdb)
 
             ff = AmberFF(sys, ff_amber91;
                 assign_charges = false,
