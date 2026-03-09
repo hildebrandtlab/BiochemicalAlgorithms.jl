@@ -39,7 +39,7 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
       - name: Setup Resolver.jl
         run: |
           if [ ! -d "${RESOLVER_PATH}" ]; then
