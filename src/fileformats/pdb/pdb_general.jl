@@ -587,7 +587,7 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
                 parent_chain(initial_res),
                 ss.number,
                 SecondaryStructureElement.Helix;
-                name=ss.name)
+                name=strip(ss.name))
             set_property!(new_ss, :HELIX_CLASS, ss.helix_class)
             set_property!(new_ss, :COMMENT, ss.comment)
 
@@ -597,7 +597,7 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
                 parent_chain(initial_res),
                 ss.number,
                 SecondaryStructureElement.Strand;
-                name="$(ss.name):$(ss.number)")
+                name=strip("$(ss.name):$(ss.number)"))
             set_property!(new_ss, :STRAND_SENSE, ss.sense_of_strand)
 
             new_ss
@@ -606,7 +606,7 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
                 parent_chain(initial_res),
                 ss.number,
                 SecondaryStructureElement.Turn;
-                name=ss.name)
+                name=strip(ss.name))
             set_property!(new_ss, :COMMENT, ss.comment)
 
             new_ss
