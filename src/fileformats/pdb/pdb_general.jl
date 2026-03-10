@@ -587,7 +587,7 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
                 parent_chain(initial_res),
                 ss.number,
                 SecondaryStructureElement.Helix;
-                name=ss.name)
+                name=strip(ss.name))
             set_property!(new_ss, :HELIX_CLASS, ss.helix_class)
             set_property!(new_ss, :COMMENT, ss.comment)
 
@@ -597,7 +597,7 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
                 parent_chain(initial_res),
                 ss.number,
                 SecondaryStructureElement.Strand;
-                name="$(ss.name):$(ss.number)")
+                name=strip("$(ss.name):$(ss.number)"))
             set_property!(new_ss, :STRAND_SENSE, ss.sense_of_strand)
 
             new_ss
@@ -606,7 +606,7 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
                 parent_chain(initial_res),
                 ss.number,
                 SecondaryStructureElement.Turn;
-                name=ss.name)
+                name=strip(ss.name))
             set_property!(new_ss, :COMMENT, ss.comment)
 
             new_ss
@@ -614,6 +614,9 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
 
         for f in fragments(parent_chain(initial_res))
             if f.number >= initial_res.number && f.number <= terminal_res.number
+                if !isnothing(f.secondary_structure_idx)
+                    @warn "load_pdb: reassigning secondary structure of fragment $(f.idx): $(new_ss.idx) (was: $(f.secondary_structure_idx))"
+                end
                 f.secondary_structure_idx = new_ss.idx
             end
         end
@@ -647,7 +650,7 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
 
     # finally, renumber the elements to be consecutive
     if nsecondary_structures(sys) > 0
-        sort_secondary_structures!(sys, by=se -> (se.chain_idx, minimum(f.number for f in fragments(se))))
+        sort_secondary_structures!(sys, by=se -> (se.chain_idx, minimum(f.number for f in fragments(se); init=0)))
 
         for c in chains(sys)
             secondary_structures(c).number .= collect(1:nsecondary_structures(c))
