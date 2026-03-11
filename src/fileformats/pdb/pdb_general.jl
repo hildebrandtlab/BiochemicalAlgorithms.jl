@@ -170,6 +170,17 @@ function interpret_record(
         return
     end
 
+    residue_name = strip(residue_name)
+
+    # right now, we only read the first alternate location indicator
+    if (strip(alternate_location_identifier) != ""
+        &&
+        (alternate_location_identifier != pdb_info.alternate_location_identifier))
+        @debug "load_pdb: ignoring ATOM $residue_name:$(strip(atom_name)) at alternate location $alternate_location_identifier"
+        pdb_info.alternate_location_warning = true
+        return
+    end
+
     # is this a new chain?
     if (isnothing(pdb_info.current_chain)
         ||
@@ -178,15 +189,7 @@ function interpret_record(
         pdb_info.current_residue = nothing
     end
 
-    # right now, we only read the first alternate location indicator
-    if (strip(alternate_location_identifier) != ""
-        &&
-        (alternate_location_identifier != pdb_info.alternate_location_identifier))
-        return
-    end
-
     # is this a new residue?
-    residue_name = strip(residue_name)
     if (isnothing(pdb_info.current_residue)
         || residue_sequence_number != pdb_info.current_residue.number
         || residue_name != pdb_info.current_residue.name
@@ -254,6 +257,15 @@ function interpret_record(
 
     # should we skip this model?
     if ((pdb_info.selected_model != -1) && (pdb_info.selected_model != pdb_info.current_model))
+        return
+    end
+
+    # right now, we only read the first alternate location indicator
+    if (strip(alternate_location_identifier) != ""
+        &&
+        (alternate_location_identifier != pdb_info.alternate_location_identifier))
+        @debug "load_pdb: ignoring HETATM $residue_name:$(strip(atom_name)) at alternate location $alternate_location_identifier"
+        pdb_info.alternate_location_warning = true
         return
     end
 
@@ -487,6 +499,10 @@ function interpret_record(
 
 
     a = _atom_by_number(sys, serial_number)
+    if isnothing(a)
+        return
+    end
+
     bond_atoms = [bond_atom1, bond_atom2, bond_atom3]
     hbond_atoms = [hbond_atom1, hbond_atom2, hbond_atom3, hbond_atom4]
     salt_bridge_atoms = [salt_bridge_atom1, salt_bridge_atom2]
@@ -657,4 +673,3 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
         end
     end
 end
-

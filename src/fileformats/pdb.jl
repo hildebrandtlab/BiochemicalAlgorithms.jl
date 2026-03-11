@@ -197,11 +197,11 @@ Read a PDB file.
     Models are stored as frames, using the model number as `frame_id`.
 """
 function load_pdb(
-        filename::AbstractString, 
+        filename::AbstractString,
         ::Type{T} = Float32;
         keep_metadata::Bool=true,
         strict_line_checking::Bool=false,
-        selected_model::Int=-1, 
+        selected_model::Int=-1,
         ignore_xplor_pseudo_atoms::Bool=true,
         create_coils::Bool=true) where {T <: Real}
 
@@ -213,7 +213,7 @@ function load_pdb(
     pdb_info = PDBDetails.PDBInfo{T}(selected_model)
 
     for pl in pdblines
-        PDBDetails.handle_record(pl, sys, pdb_info; 
+        PDBDetails.handle_record(pl, sys, pdb_info;
             strict_line_checking=strict_line_checking,
             ignore_xplor_pseudo_atoms=ignore_xplor_pseudo_atoms)
     end
@@ -236,6 +236,10 @@ function load_pdb(
         pdb_info.current_residue = nothing
 
         set_property!(sys, :PDBInfo, pdb_info)
+    end
+
+    if pdb_info.alternate_location_warning
+        @warn "load_pdb: alternate locations other than A are currently not supported. Affected records have been ignored!"
     end
 
     sys
