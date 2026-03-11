@@ -1,7 +1,7 @@
 using AutoHashEquals
 using DataStructures
 
-using BiochemicalAlgorithms: 
+using BiochemicalAlgorithms:
     Molecule,
     Chain,
     Fragment
@@ -68,7 +68,7 @@ export PDBInfo
     RECORD_TYPE__TITLE,
     RECORD_TYPE__TURN,
     RECORD_TYPE__TVECT,
-        
+
     NUMBER_OF_REGISTERED_RECORD_TYPES,
 
     ALL_RECORD_TYPES
@@ -164,13 +164,14 @@ end
     current_residue::Union{Fragment{T}, Nothing}
 
     alternate_location_identifier::String
+    alternate_location_warning::Bool
 
     writer_stats::PDBWriterStats
 
     function PDBInfo{T}(selected_model=-1) where {T}
-        new("", "", "", "", Deque{PDBRecord}(), Deque{SSBondRecord}(), 
-            Deque{Union{HelixRecord, SheetRecord, TurnRecord}}(), selected_model, 
-            1, nothing, nothing, "A", PDBWriterStats())
+        new("", "", "", "", Deque{PDBRecord}(), Deque{SSBondRecord}(),
+            Deque{Union{HelixRecord, SheetRecord, TurnRecord}}(), selected_model,
+            1, nothing, nothing, "A", false, PDBWriterStats())
     end
 end
 
