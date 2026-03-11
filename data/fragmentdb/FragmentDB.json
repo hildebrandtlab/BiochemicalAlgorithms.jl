@@ -26,6 +26,7 @@
     "NME": "fragments/NME.json",
     "CA": "fragments/CA.json",
     "MG": "fragments/MG.json",
+    "PO4": "fragments/PO4.json",
     "ZN": "fragments/ZN.json",
     "HOH": "fragments/HOH.json",
     "DOD": "fragments/DOD.json",
