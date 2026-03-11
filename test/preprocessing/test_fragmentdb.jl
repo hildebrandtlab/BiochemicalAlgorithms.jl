@@ -2,7 +2,7 @@
     using BiochemicalAlgorithms: get_reference_fragment
 
     for fdb in (default_fragmentdb(), FragmentDB(), FragmentDB{Float32}(), FragmentDB{Float64}())
-        @test length(fdb.fragments) == 33
+        @test length(fdb.fragments) == 34
         @test length(fdb.name_mappings) == 6
         @test length(fdb.defaults) == 1
         @test fdb.defaults["Naming"] == "PDB"
@@ -52,7 +52,7 @@
         end
 
         # show method
-        @test contains(repr(fdb), "33 fragments")
+        @test contains(repr(fdb), "34 fragments")
     end
 end
 
