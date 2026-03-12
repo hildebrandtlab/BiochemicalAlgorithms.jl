@@ -586,8 +586,14 @@ end
 
 function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, create_coils)
     for ss in pdb_info.secondary_structures
-        initial_res  = fragment_cache[ss.initial_residue]
-        terminal_res = fragment_cache[ss.terminal_residue]
+        initial_res  = get(fragment_cache, ss.initial_residue, nothing)
+        terminal_res = get(fragment_cache, ss.terminal_residue, nothing)
+
+        if isnothing(initial_res) || isnothing(terminal_res)
+            @debug "load_pdb: ignoring secondary structure record " *
+                   "$(typeof(ss)) ($(ss.initial_residue) -> $(ss.terminal_residue))"
+            continue
+        end
 
         parent_chain_initial = parent_chain(initial_res)
         parent_chain_terminal = parent_chain(terminal_res)
