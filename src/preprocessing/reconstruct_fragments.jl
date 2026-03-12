@@ -123,16 +123,17 @@ function _reconstruct_fragment!(f::Fragment{T}, template::DBFragmentVariant{T}) 
                         @debug """Reference atoms:  $(isnothing(a1) ? "-" : a1.name)""" *
                                """ / $(isnothing(a2) ? "-" : a2.name)"""
 
-                        @debug "mapping atoms: $(get_full_name(f)):$(current.name)/" *
-                               "$(get_full_name(f)):$(a1.name)/$(get_full_name(f)):$(a2.name)"
-                        @debug "onto:          $(get_full_name(tpl_to_frag[current]))/" *
-                               "$(get_full_name(tpl_to_frag[a1]))/$(get_full_name(tpl_to_frag[a2]))"
-
-                        @debug "from: $(current.r)/$(a1.r)/$(a2.r)"
-                        @debug "to:   $(tpl_to_frag[current].r)/$(tpl_to_frag[a1].r)/$(tpl_to_frag[a2].r)"
-
                         translation, rotation = if hit
                             # we can map all three atoms, great!
+
+                            @debug "mapping atoms: $(get_full_name(f)):$(current.name)/" *
+                                "$(get_full_name(f)):$(a1.name)/$(get_full_name(f)):$(a2.name)"
+                            @debug "onto:          $(get_full_name(tpl_to_frag[current]))/" *
+                                "$(get_full_name(tpl_to_frag[a1]))/$(get_full_name(tpl_to_frag[a2]))"
+
+                            @debug "from: $(current.r)/$(a1.r)/$(a2.r)"
+                            @debug "to:   $(tpl_to_frag[current].r)/$(tpl_to_frag[a1].r)/$(tpl_to_frag[a2].r)"
+
                             translation, rotation = match_points(
                                 current.r, a1.r, a2.r,
                                 tpl_to_frag[current].r, tpl_to_frag[a1].r, tpl_to_frag[a2].r
