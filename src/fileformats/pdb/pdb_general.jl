@@ -595,7 +595,9 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
         if isnothing(parent_chain_initial)  ||
            isnothing(parent_chain_terminal) ||
            parent_chain_initial.idx != parent_chain_terminal.idx
-            @error "Invalid Secondary Structure record: residues in different chains!"
+            @error "load_pdb: ignoring invalid secondary structure record, residues in different chains: " *
+                   "$(typeof(ss)) ($(ss.initial_residue) -> $(ss.terminal_residue))"
+            continue
         end
 
         new_ss = if typeof(ss) == HelixRecord
