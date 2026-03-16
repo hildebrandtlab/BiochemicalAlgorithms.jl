@@ -273,7 +273,7 @@ function _to_atom_record(a::Atom)
         f.name,
         parent_chain(a).name,
         f.number,
-        get_property(a, :insertion_code, ' '),
+        only(get_property(a, :insertion_code, ' ')),
         Vector{Float64}(a.r),
         get_property(a, :occupancy, 1.0),
         get_property(a, :tempfactor, 0.0),
