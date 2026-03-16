@@ -7,7 +7,7 @@
 
         mol = molecules(sys)[1]
         @test mol isa Molecule{T}
-        @test mol.name == "aspirin_pug.json_2244"
+        @test mol.name == "CID 2244"
         @test length(mol.properties) == 3
 
         @test natoms(mol) == 21
