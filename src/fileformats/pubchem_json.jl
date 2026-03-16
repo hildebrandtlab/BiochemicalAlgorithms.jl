@@ -123,17 +123,18 @@ function _parse_props!(mol::Molecule, compound::JSON.Object)
 end
 
 """
-    load_pubchem_json(fname::AbstractString, ::Type{T} = Float32) -> System{T}
+    load_pubchem_json(io::IO, ::Type{T} = Float32) -> System{T}
+    load_pubchem_json(filename::AbstractString, ::Type{T} = Float32) -> System{T}
 
 Read a PubChem JSON file.
 
 !!! note
     Conformers are stored as frames.
 """
-function load_pubchem_json(fname::AbstractString, ::Type{T} = Float32) where {T <: Real}
+function load_pubchem_json(fname_io::Union{AbstractString, IO}, ::Type{T} = Float32) where {T <: Real}
     # TODO: full conversion, adding all properties
 
-    pb = JSON.parse(read(fname, String))
+    pb = JSON.parse(read(fname_io, String))
     sys = System{T}()
     for compound in pb.PC_Compounds
         # for now, use the file name as the name for the molecule

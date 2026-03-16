@@ -18,6 +18,9 @@
         @test nnucleotides(sys) == 0
         @test nresidues(sys) == 58
 
+        sys2 = open(io -> load_pdb(io, T), ball_data_path("../test/data/bpti.pdb"))
+        @test sys == sys2
+
         sys = load_pdb(ball_data_path("../test/data/5PTI.pdb"), T)
         @test sys isa System{T}
         @test sys.name == "HYDROLASE INHIBITOR"
@@ -55,6 +58,16 @@ end
         (fname, fh) = mktemp(; cleanup = true)
 
         write_pdb(fname, sys)
+        sys2 = load_pdb(fname, T)
+        @test sys2 isa System{T}
+        @test natoms(sys2) == 2
+        @test atoms(sys2).name == ["C", "O"]
+        @test nfragments(sys2) == 1
+        @test nchains(sys2) == 1
+        @test first(chains(sys2)).name == "A"
+        @test nmolecules(sys2) == 1
+
+        open(io -> write_pdb(io, sys), fname, "w")
         sys2 = load_pdb(fname, T)
         @test sys2 isa System{T}
         @test natoms(sys2) == 2
@@ -176,6 +189,17 @@ end
         @test nfragments(sys) == 123
         @test nnucleotides(sys) == 0
         @test nresidues(sys) == 58
+
+        sys = open(io -> load_mmcif(io, T), ball_data_path("../test/data/5pti.cif"))
+        @test sys isa System{T}
+        @test_broken sys.name == "5pti.cif" # BioStructures does not set a name here...
+        @test natoms(sys) == 1087
+        @test nbonds(sys) == 0
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 1
+        @test nfragments(sys) == 123
+        @test nnucleotides(sys) == 0
+        @test nresidues(sys) == 58
     end
 end
 
@@ -191,6 +215,16 @@ end
         (fname, fh) = mktemp(; cleanup = true)
 
         write_mmcif(fname, sys)
+        sys2 = load_mmcif(fname, T)
+        @test sys2 isa System{T}
+        @test natoms(sys2) == 2
+        @test atoms(sys2).name == ["C", "O"]
+        @test nfragments(sys2) == 1
+        @test nchains(sys2) == 1
+        @test first(chains(sys2)).name == "A"
+        @test nmolecules(sys2) == 1
+
+        open(io -> write_mmcif(io, sys), fname, "w")
         sys2 = load_mmcif(fname, T)
         @test sys2 isa System{T}
         @test natoms(sys2) == 2

@@ -189,7 +189,8 @@ end
 
 
 """
-    load_pdb(fname::AbstractString, ::Type{T} = Float32) -> System{T}
+    load_pdb(io::IO, ::Type{T} = Float32) -> System{T}
+    load_pdb(filename::AbstractString, ::Type{T} = Float32) -> System{T}
 
 Read a PDB file.
 
@@ -197,7 +198,7 @@ Read a PDB file.
     Models are stored as frames, using the model number as `frame_id`.
 """
 function load_pdb(
-        filename::AbstractString,
+        fname_io::Union{AbstractString, IO},
         ::Type{T} = Float32;
         keep_metadata::Bool=true,
         strict_line_checking::Bool=false,
@@ -205,7 +206,7 @@ function load_pdb(
         ignore_xplor_pseudo_atoms::Bool=true,
         create_coils::Bool=true) where {T <: Real}
 
-    pdblines = readlines(filename)
+    pdblines = readlines(fname_io)
 
     sys = System{T}()
     mol = Molecule(sys)
@@ -246,18 +247,19 @@ function load_pdb(
 end
 
 """
-    load_mmcif(fname::AbstractString, ::Type{T} = Float32) -> System{T}
+    load_mmcif(io::IO, ::Type{T} = Float32) -> System{T}
+    load_mmcif(filename::AbstractString, ::Type{T} = Float32) -> System{T}
 
 Read a PDBx/mmCIF file.
 
 !!! note
     Models are stored as frames, using the model number as `frame_id`.
 """
-function load_mmcif(fname::AbstractString, ::Type{T} = Float32) where {T <: Real}
+function load_mmcif(fname_io::Union{AbstractString, IO}, ::Type{T} = Float32) where {T <: Real}
     # TODO: how to handle disordered atoms properly?
 
     # first, read the structure using BioStructures.jl
-    orig_mmcif = read(fname, MMCIFFormat)
+    orig_mmcif = read(fname_io, MMCIFFormat)
     convert(System{T}, orig_mmcif)
 end
 
@@ -342,7 +344,8 @@ function write_pdb(io::IO, ac::AbstractAtomContainer{T}) where T
 end
 
 """
-    write_pdb(fname::AbstractString, ac::AbstractAtomContainer)
+    write_pdb(io::IO, ac::AbstractAtomContainer)
+    write_pdb(filename::AbstractString, ac::AbstractAtomContainer)
 
 Save an atom container as PDB file.
 """
@@ -351,11 +354,12 @@ function write_pdb(fname::AbstractString, ac::AbstractAtomContainer)
 end
 
 """
-    write_mmcif(fname::AbstractString, ac::AbstractAtomContainer)
+    write_mmcif(io::IO, ac::AbstractAtomContainer)
+    write_mmcif(filename::AbstractString, ac::AbstractAtomContainer)
 
 Save an atom container as PDBx/mmCIF file.
 """
-function write_mmcif(fname::AbstractString, ac::AbstractAtomContainer)
+function write_mmcif(fname_io::Union{AbstractString, IO}, ac::AbstractAtomContainer)
     ps = convert(MolecularStructure, ac)
-    writemmcif(fname, ps)
+    writemmcif(fname_io, ps)
 end
