@@ -8,7 +8,7 @@ export
 Read an SDFile.
 """
 function load_sdfile(fname::AbstractString, ::Type{T} = Float32) where {T <: Real}
-    sys = System{T}(basename(fname))
+    sys = System{T}()
     for mg_mol in MolecularGraph.sdfilereader(fname)
         convert(Molecule{T}, mg_mol; system=sys)
     end
