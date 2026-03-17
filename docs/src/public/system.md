@@ -114,10 +114,8 @@ SecondaryStructureTable
 secondary_structure_by_idx
 secondary_structures
 nsecondary_structures
-parent_secondary_structure
 sort_secondary_structures!
 Base.delete!(::SecondaryStructure)
-Base.push!(::Chain{T}, ::SecondaryStructure{T}) where T
 ```
 
 ## Fragments
@@ -145,7 +143,6 @@ nfragments
 parent_fragment
 sort_fragments!
 Base.delete!(::Fragment)
-Base.push!(::SecondaryStructure{T}, ::Fragment{T}) where T
 Base.push!(::Chain{T}, ::Fragment{T}) where T
 ```
 

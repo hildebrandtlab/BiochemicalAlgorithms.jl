@@ -3,8 +3,7 @@ export
     SecondaryStructureTable,
     secondary_structure_by_idx,
     secondary_structures,
-    nsecondary_structures,
-    parent_secondary_structure
+    nsecondary_structures
 
 """
     SecondaryStructure{T} <: AbstractAtomContainer{T}
@@ -22,11 +21,14 @@ Mutable representation of an individual secondary structure element in a Chain.
  - `flags::Flags`
  - `molecule_idx::Int`
  - `chain_idx::Int`
+ - `first_fragment_idx::Int`
+ - `last_fragment_idx::Int`
 
 # Constructors
 ```julia
 SecondaryStructure(
-    chain::Chain{T};
+    first_fragment::Fragment{T},
+    last_fragment::Fragment{T};
     number::Int,
     type::SecondaryStructureType;
     # keyword arguments
@@ -40,15 +42,18 @@ Creates a new `SecondaryStructure{T}` in the given chain.
 const SecondaryStructure{T} = AtomContainer{T, :SecondaryStructure}
 
 @inline function SecondaryStructure(
-    chain::Chain,
+    first_fragment::Fragment{T},
+    last_fragment::Fragment{T},
     number::Int,
     type::SecondaryStructureType;
     name::AbstractString="",
     kwargs...
-)
-    sys = parent(chain)
+) where T
+    @assert first_fragment.chain_idx == last_fragment.chain_idx "Invalid secondary structure: fragments on different chains!"
+    sys = parent(first_fragment)
+    chain = parent_chain(first_fragment)
     idx = _next_idx!(sys)
-    push!(sys._secondary_structures, idx, number, type, chain.molecule_idx, chain.idx; name=name, kwargs...)
+    push!(sys._secondary_structures, idx, number, type, chain.molecule_idx, chain.idx, first_fragment.idx, last_fragment.idx; name=name, kwargs...)
     secondary_structure_by_idx(sys, idx)
 end
 
@@ -69,6 +74,8 @@ generated using [`secondary_structures`](@ref) or filtered from other secondary 
  - `flags::AbstractVector{Flags}`
  - `molecule_idx::AbstractVector{Int}`
  - `chain_idx::AbstractVector{Int}`
+ - `first_fragment_idx::AbstractVector{Int}`
+ - `last_fragment_idx::AbstractVector{Int}`
 """
 const SecondaryStructureTable{T} = SystemComponentTable{T, SecondaryStructure{T}}
 
@@ -89,15 +96,6 @@ end
 @inline parent_molecule(secondary_structure::SecondaryStructure) = molecule_by_idx(parent(secondary_structure), secondary_structure.molecule_idx)
 @inline parent_chain(secondary_structure::SecondaryStructure) = chain_by_idx(parent(secondary_structure), secondary_structure.chain_idx)
 
-@doc raw"""
-    parent_secondary_structure(::Atom)
-    parent_secondary_structure(::Fragment)
-    parent_secondary_structure(::Nucleotide)
-    parent_secondary_structure(::Residue)
-
-Returns the `SecondaryStructure{T}` containing the given object. Returns `nothing` if no such secondary structure exists.
-""" parent_secondary_structure
-
 """
     $(TYPEDSIGNATURES)
 
@@ -115,6 +113,7 @@ end
 
 
 """
+    secondary_structures(::Fragment)
     secondary_structures(::Molecule)
     secondary_structures(::Chain)
     secondary_structures(::System; kwargs...)
@@ -139,6 +138,7 @@ All keyword arguments limit the results to secondary structures matching the giv
 end
 
 """
+    nsecondary_structures(::Fragment)
     nsecondary_structures(::Chain)
     nsecondary_structures(::Molecule)
     nsecondary_structures(::System; kwargs...)
@@ -159,6 +159,7 @@ end
 @inline nsecondary_structures(mol::Molecule; kwargs...) = nsecondary_structures(parent(mol); molecule_idx = mol.idx, kwargs...)
 
 """
+    secondary_structures(::FragmentTable)
     secondary_structures(::ChainTable)
     secondary_structures(::MoleculeTable)
 
@@ -174,6 +175,7 @@ See [`secondary_structures`](@ref secondary_structures)
 end
 
 """
+    nsecondary_structures(::FragmentTable)
     nsecondary_structures(::ChainTable)
     nsecondary_structures(::SecondaryStructureTable)
     nsecondary_structures(::MoleculeTable)
@@ -204,6 +206,22 @@ end
 
 @inline nsecondary_structures(ct::ChainTable; kwargs...) = length(secondary_structures(ct; kwargs...))
 
+#=
+    Fragment secondary structures
+=#
+@inline function secondary_structures(frag::Fragment; kwargs...)
+    filter(ss -> frag.idx in fragments(ss).idx, secondary_structures(parent(frag); kwargs...))
+end
+
+@inline function secondary_structures(ft::FragmentTable; kwargs...)
+    idx = Set(ft.idx)
+    filter(ss -> !isempty(idx ∩ fragments(ss).idx), secondary_structures(ft._sys; kwargs...))
+end
+
+@inline function nsecondary_structures(frag::Union{Fragment, FragmentTable}; kwargs...)
+    length(secondary_structures(frag; kwargs...))
+end
+
 """
     delete!(::SecondaryStructure; keep_fragments::Bool = false)
     delete!(::SecondaryStructureTable; keep_fragments::Bool = false)
@@ -217,9 +235,7 @@ Removes the given secondary_structure(s) from the associated system.
    fragments are deleted as well.
 """
 function Base.delete!(ss::SecondaryStructure; keep_fragments::Bool = false)
-    if keep_fragments
-        fragments(ss).secondary_structure_idx .= Ref(nothing)
-    else
+    if !keep_fragments
         delete!(fragments(ss); keep_atoms = false)
     end
 
@@ -228,9 +244,7 @@ function Base.delete!(ss::SecondaryStructure; keep_fragments::Bool = false)
 end
 
 function Base.delete!(st::SecondaryStructureTable; keep_fragments::Bool = false)
-    if keep_fragments
-        fragments(st).secondary_structure_idx .= Ref(nothing)
-    else
+    if !keep_fragments
         delete!(fragments(st); keep_atoms = false)
     end
 
@@ -244,21 +258,6 @@ function Base.delete!(st::SecondaryStructureTable, idx::Int; kwargs...)
     delete!(secondary_structure_by_idx(st._sys, idx); kwargs...)
     deleteat!(st._idx, findall(i -> i == idx, st._idx))
     st
-end
-
-"""
-    push!(::Chain{T}, ::SecondaryStructure{T})
-
-Creates a copy of the given secondary structure in the given chain. The new secondary structure is automatically assigned a
-new `idx`.
-"""
-@inline function Base.push!(chain::Chain{T}, ss::SecondaryStructure{T}) where T
-    SecondaryStructure(chain, ss.number, ss.type;
-        name = ss.name,
-        properties = ss.properties,
-        flags = ss.flags
-    )
-    chain
 end
 
 #=
@@ -278,3 +277,44 @@ end
 
 @inline bonds(st::SecondaryStructureTable; kwargs...) = bonds(fragments(st); kwargs...)
 @inline nbonds(st::SecondaryStructureTable; kwargs...) = nbonds(fragments(st); kwargs...)
+
+#=
+    SecondaryStructure fragments
+=#
+
+@inline function fragments(ss::SecondaryStructure; kwargs...)
+    sys = parent(ss)
+    first_frag = fragment_by_idx(sys, ss.first_fragment_idx)
+    last_frag = fragment_by_idx(sys, ss.last_fragment_idx)
+    number_range = first_frag.number:last_frag.number
+    filter(frag -> frag.number in number_range, fragments(parent_chain(ss); kwargs...))
+end
+
+@inline function nfragments(ss::SecondaryStructure; kwargs...)
+    length(fragments(ss; kwargs...))
+end
+
+@inline function fragments(st::SecondaryStructureTable; kwargs...)
+    idx = Set(Iterators.flatten(getproperty.(fragments.(secondary_structures(st._sys); kwargs...), :idx)))
+    _filter_fragments(frag -> frag.idx in idx, st._sys)
+end
+
+@inline function nfragments(st::SecondaryStructureTable; kwargs...)
+    length(fragments(st; kwargs...))
+end
+
+@inline function nucleotides(ac::Union{SecondaryStructure, SecondaryStructureTable}; kwargs...)
+    fragments(ac; variant = FragmentVariant.Nucleotide, kwargs...)
+end
+
+@inline function nnucleotides(ac::Union{SecondaryStructure, SecondaryStructureTable}; kwargs...)
+    nfragments(ac; variant = FragmentVariant.Nucleotide, kwargs...)
+end
+
+@inline function residues(ac::Union{SecondaryStructure, SecondaryStructureTable}; kwargs...)
+    fragments(ac; variant = FragmentVariant.Residue, kwargs...)
+end
+
+@inline function nresidues(ac::Union{SecondaryStructure, SecondaryStructureTable}; kwargs...)
+    nfragments(ac; variant = FragmentVariant.Residue, kwargs...)
+end

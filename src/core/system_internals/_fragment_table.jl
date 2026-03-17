@@ -1,5 +1,5 @@
 const _fragment_table_cols_main = (:idx, :number, :name)
-const _fragment_table_cols_extra = (:variant, :properties, :flags, :molecule_idx, :chain_idx, :secondary_structure_idx)
+const _fragment_table_cols_extra = (:variant, :properties, :flags, :molecule_idx, :chain_idx)
 const _fragment_table_cols = (_fragment_table_cols_main..., _fragment_table_cols_extra...)
 const _fragment_table_cols_set = Set(_fragment_table_cols)
 const _fragment_table_schema = Tables.Schema(
@@ -19,7 +19,6 @@ const _fragment_table_schema = Tables.Schema(
     flags::Vector{Flags}
     molecule_idx::Vector{Int}
     chain_idx::Vector{Int}
-    secondary_structure_idx::Vector{MaybeInt}
 
     # internals
     _idx_map::_IdxMap
@@ -34,7 +33,6 @@ const _fragment_table_schema = Tables.Schema(
             Flags[],
             Int[],
             Int[],
-            MaybeInt[],
             _IdxMap()
         )
     end
@@ -62,7 +60,6 @@ function Base.push!(
     number::Int,
     molecule_idx::Int,
     chain_idx::Int;
-    secondary_structure_idx::MaybeInt = nothing,
     name::AbstractString = "",
     variant::FragmentVariantType = FragmentVariant.None,
     properties::Properties = Properties(),
@@ -77,7 +74,6 @@ function Base.push!(
     push!(ft.flags, flags)
     push!(ft.molecule_idx, molecule_idx)
     push!(ft.chain_idx, chain_idx)
-    push!(ft.secondary_structure_idx, secondary_structure_idx)
     ft
 end
 
@@ -85,7 +81,6 @@ function _fragment_table(itr)
     ft = _FragmentTable()
     for f in itr
         push!(ft, f.idx, f.number, f.molecule_idx, f.chain_idx;
-            secondary_structure_idx = f.secondary_structure_idx,
             name = f.name,
             variant = f.variant,
             properties = f.properties,
