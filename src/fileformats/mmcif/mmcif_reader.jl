@@ -102,6 +102,34 @@ end
     get(cols, tag, nothing)
 end
 
+"""Get a required column index, trying `primary` first then `fallback`. Returns nothing if neither exists."""
+@inline function _reqcol(cols::Dict{String, Int}, primary::String, fallback::String)
+    c = get(cols, primary, nothing)
+    isnothing(c) ? get(cols, fallback, nothing) : c
+end
+
+"""Parse mmCIF formal charge string. Handles plain integers ("1", "-1") and sign-suffixed ("1+", "2-")."""
+function _parse_formal_charge(s::Union{Nothing, String})
+    isnothing(s) && return Int(0)
+    s = strip(s)
+    isempty(s) && return Int(0)
+    # Try plain integer first
+    v = tryparse(Int, s)
+    !isnothing(v) && return v
+    # Try sign-suffixed format: "1+", "2-", etc.
+    if length(s) >= 2
+        sign_char = s[end]
+        num_part = s[1:end-1]
+        if sign_char == '+' || sign_char == '-'
+            n = tryparse(Int, num_part)
+            if !isnothing(n)
+                return sign_char == '-' ? -n : n
+            end
+        end
+    end
+    return Int(0)
+end
+
 # ─── Atom Site Parsing ────────────────────────────────────────────────
 
 function _build_atoms!(sys::System{T}, mol::Molecule{T}, loop::CIFLoop, ::Type{T}) where {T <: Real}
@@ -207,7 +235,7 @@ function _build_atoms!(sys::System{T}, mol::Molecule{T}, loop::CIFLoop, ::Type{T
         tempfactor = isnothing(c_bfactor) ? T(0.0) : T(parse(Float64, _get(row, c_bfactor, "0.0")))
 
         charge_str = isnothing(c_charge) ? nothing : _get(row, c_charge)
-        formal_charge = isnothing(charge_str) ? Int(0) : (tryparse(Int, charge_str) === nothing ? 0 : parse(Int, charge_str))
+        formal_charge = _parse_formal_charge(charge_str)
 
         model_num = isnothing(c_model) ? 1 : parse(Int, _get(row, c_model, "1"))
 
@@ -243,15 +271,22 @@ function _parse_ssbonds(block::CIFDataBlock)
 
     cols = _col_map(loop)
 
-    c_type = cols["_struct_conn.conn_type_id"]
+    c_type = get(cols, "_struct_conn.conn_type_id", nothing)
+    isnothing(c_type) && return ssbonds
 
-    # Use auth fields for residue identification
-    c_p1_asym = get(cols, "_struct_conn.ptnr1_auth_asym_id", get(cols, "_struct_conn.ptnr1_label_asym_id", 0))
-    c_p1_comp = get(cols, "_struct_conn.ptnr1_auth_comp_id", get(cols, "_struct_conn.ptnr1_label_comp_id", 0))
-    c_p1_seq  = get(cols, "_struct_conn.ptnr1_auth_seq_id", get(cols, "_struct_conn.ptnr1_label_seq_id", 0))
-    c_p2_asym = get(cols, "_struct_conn.ptnr2_auth_asym_id", get(cols, "_struct_conn.ptnr2_label_asym_id", 0))
-    c_p2_comp = get(cols, "_struct_conn.ptnr2_auth_comp_id", get(cols, "_struct_conn.ptnr2_label_comp_id", 0))
-    c_p2_seq  = get(cols, "_struct_conn.ptnr2_auth_seq_id", get(cols, "_struct_conn.ptnr2_label_seq_id", 0))
+    # Use auth fields for residue identification, fall back to label
+    c_p1_asym = _reqcol(cols, "_struct_conn.ptnr1_auth_asym_id", "_struct_conn.ptnr1_label_asym_id")
+    c_p1_comp = _reqcol(cols, "_struct_conn.ptnr1_auth_comp_id", "_struct_conn.ptnr1_label_comp_id")
+    c_p1_seq  = _reqcol(cols, "_struct_conn.ptnr1_auth_seq_id", "_struct_conn.ptnr1_label_seq_id")
+    c_p2_asym = _reqcol(cols, "_struct_conn.ptnr2_auth_asym_id", "_struct_conn.ptnr2_label_asym_id")
+    c_p2_comp = _reqcol(cols, "_struct_conn.ptnr2_auth_comp_id", "_struct_conn.ptnr2_label_comp_id")
+    c_p2_seq  = _reqcol(cols, "_struct_conn.ptnr2_auth_seq_id", "_struct_conn.ptnr2_label_seq_id")
+
+    # All partner columns are required for SSBond parsing
+    if any(isnothing, (c_p1_asym, c_p1_comp, c_p1_seq, c_p2_asym, c_p2_comp, c_p2_seq))
+        @warn "mmCIF _struct_conn loop is missing required partner columns; skipping SSBond parsing"
+        return ssbonds
+    end
 
     c_p1_ins  = _optcol(cols, "_struct_conn.pdbx_ptnr1_PDB_ins_code")
     c_p2_ins  = _optcol(cols, "_struct_conn.pdbx_ptnr2_PDB_ins_code")
@@ -316,15 +351,22 @@ function _parse_helices!(records, block::CIFDataBlock)
 
     cols = _col_map(loop)
 
-    c_id = cols["_struct_conf.id"]
+    c_id = get(cols, "_struct_conf.id", nothing)
+    isnothing(c_id) && return
 
-    # Use auth fields when available
-    c_beg_comp = get(cols, "_struct_conf.beg_auth_comp_id", get(cols, "_struct_conf.beg_label_comp_id", 0))
-    c_beg_asym = get(cols, "_struct_conf.beg_auth_asym_id", get(cols, "_struct_conf.beg_label_asym_id", 0))
-    c_beg_seq  = get(cols, "_struct_conf.beg_auth_seq_id", get(cols, "_struct_conf.beg_label_seq_id", 0))
-    c_end_comp = get(cols, "_struct_conf.end_auth_comp_id", get(cols, "_struct_conf.end_label_comp_id", 0))
-    c_end_asym = get(cols, "_struct_conf.end_auth_asym_id", get(cols, "_struct_conf.end_label_asym_id", 0))
-    c_end_seq  = get(cols, "_struct_conf.end_auth_seq_id", get(cols, "_struct_conf.end_label_seq_id", 0))
+    # Use auth fields when available, fall back to label
+    c_beg_comp = _reqcol(cols, "_struct_conf.beg_auth_comp_id", "_struct_conf.beg_label_comp_id")
+    c_beg_asym = _reqcol(cols, "_struct_conf.beg_auth_asym_id", "_struct_conf.beg_label_asym_id")
+    c_beg_seq  = _reqcol(cols, "_struct_conf.beg_auth_seq_id", "_struct_conf.beg_label_seq_id")
+    c_end_comp = _reqcol(cols, "_struct_conf.end_auth_comp_id", "_struct_conf.end_label_comp_id")
+    c_end_asym = _reqcol(cols, "_struct_conf.end_auth_asym_id", "_struct_conf.end_label_asym_id")
+    c_end_seq  = _reqcol(cols, "_struct_conf.end_auth_seq_id", "_struct_conf.end_label_seq_id")
+
+    # All residue columns are required
+    if any(isnothing, (c_beg_comp, c_beg_asym, c_beg_seq, c_end_comp, c_end_asym, c_end_seq))
+        @warn "mmCIF _struct_conf loop is missing required residue columns; skipping helix parsing"
+        return
+    end
 
     c_helix_id    = _optcol(cols, "_struct_conf.pdbx_PDB_helix_id")
     c_helix_class = _optcol(cols, "_struct_conf.pdbx_PDB_helix_class")
@@ -366,16 +408,26 @@ function _parse_sheets!(records, block::CIFDataBlock)
 
     cols = _col_map(loop)
 
-    c_sheet_id = cols["_struct_sheet_range.sheet_id"]
-    c_range_id = cols["_struct_sheet_range.id"]
+    c_sheet_id = get(cols, "_struct_sheet_range.sheet_id", nothing)
+    c_range_id = get(cols, "_struct_sheet_range.id", nothing)
+    if isnothing(c_sheet_id) || isnothing(c_range_id)
+        @warn "mmCIF _struct_sheet_range loop is missing sheet_id or id columns; skipping sheet parsing"
+        return
+    end
 
-    # Use auth fields when available
-    c_beg_comp = get(cols, "_struct_sheet_range.beg_auth_comp_id", get(cols, "_struct_sheet_range.beg_label_comp_id", 0))
-    c_beg_asym = get(cols, "_struct_sheet_range.beg_auth_asym_id", get(cols, "_struct_sheet_range.beg_label_asym_id", 0))
-    c_beg_seq  = get(cols, "_struct_sheet_range.beg_auth_seq_id", get(cols, "_struct_sheet_range.beg_label_seq_id", 0))
-    c_end_comp = get(cols, "_struct_sheet_range.end_auth_comp_id", get(cols, "_struct_sheet_range.end_label_comp_id", 0))
-    c_end_asym = get(cols, "_struct_sheet_range.end_auth_asym_id", get(cols, "_struct_sheet_range.end_label_asym_id", 0))
-    c_end_seq  = get(cols, "_struct_sheet_range.end_auth_seq_id", get(cols, "_struct_sheet_range.end_label_seq_id", 0))
+    # Use auth fields when available, fall back to label
+    c_beg_comp = _reqcol(cols, "_struct_sheet_range.beg_auth_comp_id", "_struct_sheet_range.beg_label_comp_id")
+    c_beg_asym = _reqcol(cols, "_struct_sheet_range.beg_auth_asym_id", "_struct_sheet_range.beg_label_asym_id")
+    c_beg_seq  = _reqcol(cols, "_struct_sheet_range.beg_auth_seq_id", "_struct_sheet_range.beg_label_seq_id")
+    c_end_comp = _reqcol(cols, "_struct_sheet_range.end_auth_comp_id", "_struct_sheet_range.end_label_comp_id")
+    c_end_asym = _reqcol(cols, "_struct_sheet_range.end_auth_asym_id", "_struct_sheet_range.end_label_asym_id")
+    c_end_seq  = _reqcol(cols, "_struct_sheet_range.end_auth_seq_id", "_struct_sheet_range.end_label_seq_id")
+
+    # All residue columns are required
+    if any(isnothing, (c_beg_comp, c_beg_asym, c_beg_seq, c_end_comp, c_end_asym, c_end_seq))
+        @warn "mmCIF _struct_sheet_range loop is missing required residue columns; skipping sheet parsing"
+        return
+    end
 
     # If any required begin/end columns are missing, skip sheet parsing to avoid
     # out-of-bounds access on row[...] (since 0 is not a valid index in Julia).

@@ -23,8 +23,13 @@ end
 # ─── CIF value quoting ───────────────────────────────────────────────
 
 """Quote a string value for CIF output."""
-function _cif_quote(s::String)
+function _cif_quote(s::AbstractString)
+    s = string(s)
     isempty(s) && return "."
+    # Multiline values must use semicolon text blocks
+    if occursin('\n', s) || occursin('\r', s)
+        return ";\n$s\n;"
+    end
     # No quoting needed for simple values
     if !any(c -> isspace(c), s) && !startswith(s, '_') && !startswith(s, '#') &&
        !startswith(s, '\'') && !startswith(s, '"') && s != "." && s != "?"
@@ -103,7 +108,13 @@ function _write_atom_site(io::IO, ac::AbstractAtomContainer{T}) where T
         occ = @sprintf("%.2f", get_property(a, :occupancy, 1.0))
         bfac = @sprintf("%.2f", get_property(a, :tempfactor, 0.0))
 
-        charge = a.formal_charge == 0 ? "?" : string(a.formal_charge)
+        charge = if a.formal_charge == 0
+            "?"
+        elseif a.formal_charge > 0
+            "$(a.formal_charge)+"
+        else
+            "$(-a.formal_charge)-"
+        end
 
         model_num = a.frame_id
 

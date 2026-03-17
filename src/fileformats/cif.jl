@@ -228,14 +228,14 @@ function finalize_loop!(parser::CIFParser)
         nvals = length(parser.loop_data)
 
         if nvals % ntags != 0
-            @warn "CIF loop has $(nvals) values for $(ntags) tags — not evenly divisible"
+            @warn "CIF loop has $(nvals) values for $(ntags) tags — not evenly divisible; dropping trailing partial row"
         end
 
-        # Reshape flat values into rows of ntags columns
+        # Reshape flat values into rows of ntags columns (drop incomplete trailing row)
+        nrows = nvals ÷ ntags
         rows = Vector{Vector{String}}()
-        for i in 1:ntags:nvals
-            last_idx = min(i + ntags - 1, nvals)
-            push!(rows, parser.loop_data[i:last_idx])
+        for r in 0:(nrows - 1)
+            push!(rows, parser.loop_data[r*ntags+1:(r+1)*ntags])
         end
 
         push!(parser.current_block.loops, CIFLoop(copy(parser.loop_tags), rows))
