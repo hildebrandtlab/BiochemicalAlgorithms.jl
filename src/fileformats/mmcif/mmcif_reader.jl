@@ -377,6 +377,13 @@ function _parse_sheets!(records, block::CIFDataBlock)
     c_end_asym = get(cols, "_struct_sheet_range.end_auth_asym_id", get(cols, "_struct_sheet_range.end_label_asym_id", 0))
     c_end_seq  = get(cols, "_struct_sheet_range.end_auth_seq_id", get(cols, "_struct_sheet_range.end_label_seq_id", 0))
 
+    # If any required begin/end columns are missing, skip sheet parsing to avoid
+    # out-of-bounds access on row[...] (since 0 is not a valid index in Julia).
+    if c_beg_comp == 0 || c_beg_asym == 0 || c_beg_seq == 0 ||
+       c_end_comp == 0 || c_end_asym == 0 || c_end_seq == 0
+        return
+    end
+
     c_beg_ins = _optcol(cols, "_struct_sheet_range.pdbx_beg_PDB_ins_code")
     c_end_ins = _optcol(cols, "_struct_sheet_range.pdbx_end_PDB_ins_code")
 
