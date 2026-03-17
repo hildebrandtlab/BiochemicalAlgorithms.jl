@@ -5,7 +5,6 @@ authors = ["Andreas Hildebrandt <andreas.hildebrandt@uni-mainz.de> and contribut
 
 [deps]
 AutoHashEquals = "15f4f7f2-30c1-5605-9d31-71845cf9641f"
-BioStructures = "de9282ab-8554-53be-b2d6-f6c222edabfc"
 BioSymbols = "3c28c6f8-a34d-59c4-9654-267d177fcfa9"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 CellListMap = "69e1c6dd-3888-40e6-b3c8-31ac5f578864"
@@ -39,7 +38,6 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 [compat]
 Aqua = "0.8.14"
 AutoHashEquals = "2"
-BioStructures = "4.2"
 BioSymbols = "5"
 CSV = "0.10.13"
 CellListMap = "0.9.5"

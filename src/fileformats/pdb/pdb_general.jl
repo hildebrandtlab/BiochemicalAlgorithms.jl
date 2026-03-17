@@ -546,8 +546,12 @@ function interpret_record(record_type, tag, record_data...; sys, pdb_info, kwarg
     push!(pdb_info.records, PDBRecord(tag, record_data))
 end
 
-function postprocess_ssbonds_!(sys, pdb_info, fragment_cache)
-    for ssbond in pdb_info.ssbonds
+function postprocess_ssbonds_!(sys, pdb_info::PDBInfo, fragment_cache)
+    postprocess_ssbonds_!(sys, pdb_info.ssbonds, fragment_cache)
+end
+
+function postprocess_ssbonds_!(sys, ssbonds, fragment_cache)
+    for ssbond in ssbonds
         f1 = fragment_cache[ssbond.first]
         f2 = fragment_cache[ssbond.second]
 
@@ -584,8 +588,12 @@ function postprocess_ssbonds_!(sys, pdb_info, fragment_cache)
     end
 end
 
-function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, create_coils)
-    for ss in pdb_info.secondary_structures
+function postprocess_secondary_structures_!(sys, pdb_info::PDBInfo, fragment_cache, create_coils)
+    postprocess_secondary_structures_!(sys, pdb_info.secondary_structures, fragment_cache, create_coils)
+end
+
+function postprocess_secondary_structures_!(sys, ss_records, fragment_cache, create_coils)
+    for ss in ss_records
         initial_res  = get(fragment_cache, ss.initial_residue, nothing)
         terminal_res = get(fragment_cache, ss.terminal_residue, nothing)
 
