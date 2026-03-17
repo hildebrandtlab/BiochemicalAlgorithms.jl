@@ -5,21 +5,6 @@ export
     write_mmcif,
     write_pdb
 
-using BioStructures:
-    read,
-    writemmcif,
-    writepdb,
-    collectatoms,
-    collectchains,
-    collectresidues,
-    PDBFormat,
-    MMCIFFormat,
-    MolecularStructure,
-    Model,
-    unsafe_addatomtomodel!,
-    AtomRecord,
-    fixlists!
-
 using Printf
 
 function is_hetero_atom(a::Atom)
@@ -27,7 +12,7 @@ function is_hetero_atom(a::Atom)
     has_flag(a, :is_hetero_atom) || isnothing(f) || !is_amino_acid(f)
 end
 
-function parse_element_string(es::String)
+function parse_element_string(es::AbstractString)
     result = Elements.Unknown
 
     # handle special cases
@@ -73,118 +58,6 @@ function extract_element(pdb_element::String, atom_name::String)
     end
 
     return element
-end
-
-function Base.convert(::Type{System{T}}, orig_pdb::MolecularStructure) where T
-    orig_df  = DataFrame(collectatoms(orig_pdb))
-
-    # then, convert to our representation
-    sys = System{T}(orig_pdb.name)
-    mol = Molecule(sys; name = sys.name)
-
-    ### convert the atom positions
-    r = Vector3{T}.(T.(orig_df.x), T.(orig_df.y), T.(orig_df.z))
-
-    ### extracting the elements is a little more complicated than it could be,
-    ### as the DataFrame-conversion strips whitespaces from atom names
-    elements = extract_element.(orig_df.element, getproperty.(collectatoms(orig_pdb, expand_disordered=true), :name))
-
-    atoms = DataFrame(
-        number=orig_df.serial,
-        name=orig_df.atomname,
-        element=elements,
-        r = r,
-        formal_charge = orig_df.charge
-    )
-
-    # convert other columns of interest to atom properties
-    atoms.properties = Properties.(
-        collect(
-                zip(
-                    Pair.(:tempfactor,            orig_df.tempfactor),
-                    Pair.(:occupancy,             orig_df.occupancy),
-                    Pair.(:is_hetero_atom,        orig_df.ishetero),
-                    Pair.(:insertion_code,        orig_df.inscode),
-                    Pair.(:alternate_location_id, orig_df.altlocid)
-                )
-        )
-    )
-
-    atoms.flags = map(
-        h -> h ? Flags([:is_hetero_atom]) : Flags(),
-        orig_df.ishetero
-    ) .∪ map(
-        d -> d ? Flags([:is_deuterium]) : Flags(),
-        orig_df.element .== "D"
-    )
-
-    atoms.frame_id = orig_df.modelnumber
-    atoms.chain_idx = orig_df.chainid
-    atoms.fragment_idx = orig_df.resnumber
-    atoms.inscode = orig_df.inscode
-
-    # note: we will remove this column as soon as we have filtered out alternates
-    atoms.altlocid = orig_df.altlocid
-
-    # collect fragment information
-    for orig_chain in collectchains(orig_pdb)
-        chain = Chain(mol; name = orig_chain.id)
-        for orig_frag in collectresidues(orig_chain)
-            Fragment(chain, orig_frag.number;
-                name = orig_frag.name,
-                properties = Properties([
-                    :is_hetero_fragment => orig_frag.het_res,
-                    :insertion_code => orig_frag.ins_code
-                ]),
-                variant = _fragment_variant(strip(orig_frag.name))
-            )
-        end
-    end
-
-    # now, handle alternate location ids
-
-    # we try to be as tolerant as possible, as the PDB file format does not
-    # seem to formalize many restrictions here.
-    # general idea:
-    #   - for each atom that has alternative locations, find them
-    #   - find the smallest alternate location id and use this as the base case
-    #   - store all other variants as properties
-    all_altlocs = groupby(filter(:altlocid => !=(' '), atoms, view=true), [:chain_idx, :fragment_idx, :name])
-    for altlocs in all_altlocs
-        sorted_altlocs = sort(altlocs, :altlocid, view=true)
-
-        base_case = sorted_altlocs[1, :]
-        base_case.altlocid = ' '
-
-        if nrow(sorted_altlocs) > 1
-            for altloc in eachrow(sorted_altlocs[2:end, :])
-                atoms.properties[base_case.number][Symbol("alternate_location_$(altloc.altlocid)")] = altloc
-            end
-        end
-    end
-
-    # drop all alternates
-    atoms = filter(:altlocid => ==(' '), atoms)
-
-    # add all remaining atoms to the system
-    grp_atoms = groupby(atoms, [:chain_idx, :fragment_idx, :inscode])
-    for frag in fragments(mol)
-        for atom in eachrow(grp_atoms[(
-            chain_idx = parent_chain(frag).name,
-            fragment_idx = frag.number,
-            inscode = frag.properties[:insertion_code]
-        )])
-            Atom(frag, atom.number, atom.element;
-                name = atom.name,
-                r = atom.r,
-                properties = atom.properties,
-                flags = atom.flags,
-                frame_id = atom.frame_id
-            )
-        end
-    end
-
-    sys
 end
 
 
@@ -255,63 +128,9 @@ Read a PDBx/mmCIF file.
 !!! note
     Models are stored as frames, using the model number as `frame_id`.
 """
-function load_mmcif(fname_io::Union{AbstractString, IO}, ::Type{T} = Float32) where {T <: Real}
-    # TODO: how to handle disordered atoms properly?
-
-    # first, read the structure using BioStructures.jl
-    orig_mmcif = read(fname_io, MMCIFFormat)
-    convert(System{T}, orig_mmcif)
-end
-
-function _to_atom_record(a::Atom)
-    # TODO: handle alternative location identifiers!
-    f = parent_fragment(a)
-
-    AtomRecord(
-        is_hetero_atom(a),
-        a.number,
-        @sprintf("%4s", a.name),
-        ' ',
-        f.name,
-        parent_chain(a).name,
-        f.number,
-        only(get_property(a, :insertion_code, ' ')),
-        Vector{Float64}(a.r),
-        get_property(a, :occupancy, 1.0),
-        get_property(a, :tempfactor, 0.0),
-        string(a.element),
-        string(a.formal_charge)
-    )
-end
-
-function Base.convert(::Type{MolecularStructure}, ac::AbstractAtomContainer{T}) where T
-    # Build a MolecularStructure and add to it incrementally
-    struc = MolecularStructure(ac.name)
-
-    # figure out if all molecules in the atom container have the same frames
-    sys_frame_ids = frame_ids(ac)
-
-    if ac isa System{T}
-        for m in molecules(ac)
-            if frame_ids(m) != sys_frame_ids
-                error("pdb.jl: cannot convert System containing molecules with different numbers of frames")
-            end
-        end
-    end
-
-    for (i, frame_id) in enumerate(sys_frame_ids)
-        struc[i] = Model(i, struc)
-
-        for a in atoms(ac; frame_id=frame_id)
-            unsafe_addatomtomodel!(
-                struc[i],
-                _to_atom_record(a)
-            )
-        end
-    end
-
-    fixlists!(struc)
-    struc
+function load_mmcif(fname_io::Union{AbstractString, IO}, ::Type{T} = Float32;
+        create_coils::Bool = true) where {T <: Real}
+    MMCIFDetails.read_mmcif(fname_io, T; create_coils=create_coils)
 end
 
 function write_pdb(io::IO, ac::Union{Chain{T}, Fragment{T}}) where T
@@ -359,7 +178,10 @@ end
 
 Save an atom container as PDBx/mmCIF file.
 """
-function write_mmcif(fname_io::Union{AbstractString, IO}, ac::AbstractAtomContainer)
-    ps = convert(MolecularStructure, ac)
-    writemmcif(fname_io, ps)
+function write_mmcif(io::IO, ac::AbstractAtomContainer)
+    MMCIFDetails.write_mmcif_impl(io, ac)
+end
+
+function write_mmcif(fname::AbstractString, ac::AbstractAtomContainer)
+    open(io -> write_mmcif(io, ac), fname, "w")
 end

@@ -86,6 +86,13 @@ include("fileformats/pdb/pdb_general.jl")
 include("fileformats/pdb/pdb_writer.jl")
 end
 
+include("fileformats/cif.jl")
+
+module MMCIFDetails
+include("fileformats/mmcif/mmcif_reader.jl")
+include("fileformats/mmcif/mmcif_writer.jl")
+end
+
 include("fileformats/sdfile.jl")
 
 # mappings

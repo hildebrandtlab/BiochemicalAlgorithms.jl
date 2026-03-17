@@ -1,11 +1,4 @@
 @testitem "Read PDB" begin
-    using BioStructures:
-        PDBFormat,
-        countatoms,
-        countchains,
-        countresidues,
-        read
-
     for T in [Float32, Float64]
         sys = load_pdb(ball_data_path("../test/data/bpti.pdb"), T)
         @test sys isa System{T}
@@ -181,26 +174,45 @@ end
     for T in [Float32, Float64]
         sys = load_mmcif(ball_data_path("../test/data/5pti.cif"), T)
         @test sys isa System{T}
-        @test sys.name == "5pti.cif"
+        @test sys.name == "5pti"
         @test natoms(sys) == 1087
-        @test nbonds(sys) == 0
+        @test nbonds(sys) == 3  # 3 disulfide bonds from _struct_conn
         @test nmolecules(sys) == 1
         @test nchains(sys) == 1
         @test nfragments(sys) == 123
         @test nnucleotides(sys) == 0
         @test nresidues(sys) == 58
 
-        sys = open(io -> load_mmcif(io, T), ball_data_path("../test/data/5pti.cif"))
-        @test sys isa System{T}
-        @test_broken sys.name == "5pti.cif" # BioStructures does not set a name here...
-        @test natoms(sys) == 1087
-        @test nbonds(sys) == 0
-        @test nmolecules(sys) == 1
-        @test nchains(sys) == 1
-        @test nfragments(sys) == 123
-        @test nnucleotides(sys) == 0
-        @test nresidues(sys) == 58
+        # verify disulfide bonds have correct flags
+        for b in bonds(sys)
+            @test has_flag(b, :TYPE__DISULPHIDE_BOND)
+        end
+
+        # verify coordinates of first atom (ARG-1 N)
+        a1 = first(atoms(sys))
+        @test a1.name == "N"
+        @test a1.element == Elements.N
+        @test isapprox(a1.r, Vector3{T}(32.231, 15.281, -13.143); atol=T(0.001))
+
+        # secondary structures (2 helices + 3 sheet ranges + coils)
+        @test nsecondary_structures(sys) > 0
+
+        # IO loading
+        sys2 = open(io -> load_mmcif(io, T), ball_data_path("../test/data/5pti.cif"))
+        @test sys2 isa System{T}
+        @test sys2.name == "5PTI"  # from data block name when reading from IO
+        @test natoms(sys2) == 1087
+        @test nbonds(sys2) == 3
+        @test nmolecules(sys2) == 1
+        @test nchains(sys2) == 1
+        @test nfragments(sys2) == 123
+        @test nnucleotides(sys2) == 0
+        @test nresidues(sys2) == 58
     end
+end
+
+@testitem "Read PDBx/mmCIF nonexistent" begin
+    @test_throws SystemError load_mmcif("nonexistent_file.cif")
 end
 
 @testitem "Write PDBx/mmCIF" begin
@@ -223,6 +235,11 @@ end
         @test nchains(sys2) == 1
         @test first(chains(sys2)).name == "A"
         @test nmolecules(sys2) == 1
+
+        # coordinate round-trip
+        for (a1, a2) in zip(atoms(sys), atoms(sys2))
+            @test isapprox(a1.r, a2.r; atol=T(0.001))
+        end
 
         open(io -> write_mmcif(io, sys), fname, "w")
         sys2 = load_mmcif(fname, T)
