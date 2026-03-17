@@ -201,13 +201,14 @@ end
 
 @inline function _offset_secondary_structure_indices!(sys::System, by::Int)
     _offset_indices!(sys._secondary_structures, by)
-    _offset_indices!(sys._fragments, :secondary_structure_idx, by)
     sys
 end
 
 @inline function _offset_fragment_indices!(sys::System, by::Int)
     _offset_indices!(sys._fragments, by)
     _offset_indices!(sys._atoms, :fragment_idx, by)
+    _offset_indices!(sys._secondary_structures, :first_fragment_idx, by)
+    _offset_indices!(sys._secondary_structures, :last_fragment_idx, by)
     sys
 end
 

@@ -6,16 +6,21 @@
         mol = Molecule(sys)
 
         c = Chain(mol)
+        f1 = Fragment(c, 1)
+        f2 = Fragment(c, 2)
+        f3 = Fragment(c, 3)
+        f4 = Fragment(c, 4)
 
         ss1 = SecondaryStructure(
-            c,
+            f1,
+            f2,
             1,
             SecondaryStructureElement.Helix;
             name = "H1",
             properties = Properties(:first => 'a', :second => "b"),
             flags = Flags([:third])
         )
-        ss2 = SecondaryStructure(c, 2, SecondaryStructureElement.Coil; name="C1")
+        ss2 = SecondaryStructure(f3, f4, 2, SecondaryStructureElement.Coil; name="C1")
 
         st = secondary_structures(sys)
 
@@ -66,6 +71,10 @@
         @test st.molecule_idx == [ss1.molecule_idx, ss2.molecule_idx]
         @test st.chain_idx isa AbstractVector{Int}
         @test st.chain_idx == [ss1.chain_idx, ss2.chain_idx]
+        @test st.first_fragment_idx isa AbstractVector{Int}
+        @test st.first_fragment_idx == [f1.idx, f3.idx]
+        @test st.last_fragment_idx isa AbstractVector{Int}
+        @test st.last_fragment_idx == [f2.idx, f4.idx]
 
         # Tables.getcolumn
         @test Tables.getcolumn(st, :idx) isa AbstractVector{Int}
@@ -89,6 +98,10 @@
         @test Tables.getcolumn(st, :molecule_idx) == [ss1.molecule_idx, ss2.molecule_idx]
         @test Tables.getcolumn(st, :chain_idx) isa AbstractVector{Int}
         @test Tables.getcolumn(st, :chain_idx) == [ss1.chain_idx, ss2.chain_idx]
+        @test Tables.getcolumn(st, :first_fragment_idx) isa AbstractVector{Int}
+        @test Tables.getcolumn(st, :first_fragment_idx) == [f1.idx, f3.idx]
+        @test Tables.getcolumn(st, :last_fragment_idx) isa AbstractVector{Int}
+        @test Tables.getcolumn(st, :last_fragment_idx) == [f2.idx, f4.idx]
 
         # setproperty!
         @test_throws ErrorException st.idx = [999, 998]
@@ -100,6 +113,8 @@
         @test_throws ErrorException st.flags = [Flags(), Flags([:fifth])]
         @test_throws ErrorException st.molecule_idx = [996, 995]
         @test_throws ErrorException st.chain_idx = [996, 995]
+        @test_throws ErrorException st.first_fragment_idx = [996, 995]
+        @test_throws ErrorException st.last_fragment_idx = [996, 995]
 
         # getindex
         @test st[1] === ss1
@@ -158,33 +173,21 @@
         @test nsecondary_structures(st) == 2
 
         # fragments
-        @test length(fragments(st)) == 0
-        @test nfragments(st) == 0
-        @test length(fragments(st; variant = FragmentVariant.None)) == 0
-        @test nfragments(st; variant = FragmentVariant.None) == 0
+        @test length(fragments(st)) == 4
+        @test nfragments(st) == 4
+        @test length(fragments(st; variant = FragmentVariant.None)) == 4
+        @test nfragments(st; variant = FragmentVariant.None) == 4
         @test length(nucleotides(st)) == 0
         @test nnucleotides(st) == 0
         @test length(residues(st)) == 0
         @test nresidues(st) == 0
 
-        Fragment(ss1, 1)
-        Nucleotide(ss1, 1)
-        r = Residue(ss2, 1)
-        @test length(fragments(st)) == 3
-        @test nfragments(st) == 3
-        @test length(fragments(st; variant = FragmentVariant.None)) == 1
-        @test nfragments(st; variant = FragmentVariant.None) == 1
-        @test length(nucleotides(st)) == 1
-        @test nnucleotides(st) == 1
-        @test length(residues(st)) == 1
-        @test nresidues(st) == 1
-
         # atoms
         @test length(atoms(st)) == 0
         @test natoms(st) == 0
 
-        a1 = Atom(r, 1, Elements.H)
-        a2 = Atom(r, 1, Elements.C)
+        a1 = Atom(f1, 1, Elements.H)
+        a2 = Atom(f2, 1, Elements.C)
         @test length(atoms(st)) == 2
         @test natoms(st) == 2
 
@@ -204,10 +207,15 @@ end
         mol = Molecule(sys)
         mol2 = Molecule(sys)
         chain = Chain(mol)
+        frag11 = Fragment(chain, 1)
+        frag12 = Fragment(chain, 2)
         chain2 = Chain(mol2)
+        frag21 = Fragment(chain2, 1)
+        frag22 = Fragment(chain2, 2)
 
         # constructors + parent
-        ss = SecondaryStructure(chain, 1, SecondaryStructureElement.Coil; name="C1")
+        ss = SecondaryStructure(frag11, frag12, 1, SecondaryStructureElement.Coil; name="C1")
+        @test only(secondary_structures(frag11)) === ss
 
         @test ss isa SecondaryStructure{T}
         @test parent(ss) === sys
@@ -218,14 +226,18 @@ end
         if T == Float32
             mol_ds = Molecule()
             chain_ds = Chain(mol_ds)
-            ss_ds = SecondaryStructure(chain_ds, 1, SecondaryStructureElement.Coil; name="C1")
+            frag1_ds = Fragment(chain_ds, 1)
+            frag2_ds = Fragment(chain_ds, 2)
+            frag3_ds = Fragment(chain_ds, 3)
+            frag4_ds = Fragment(chain_ds, 4)
+            ss_ds = SecondaryStructure(frag1_ds, frag2_ds, 1, SecondaryStructureElement.Coil; name="C1")
             parent(ss_ds) === default_system()
             parent_system(ss_ds) === default_system()
 
-            SecondaryStructure(chain_ds, 2, SecondaryStructureElement.Helix; name="H1", properties = Properties(:a => "b"), flags = Flags([:A]))
+            SecondaryStructure(frag3_ds, frag4_ds, 2, SecondaryStructureElement.Helix; name="H1", properties = Properties(:a => "b"), flags = Flags([:A]))
         end
 
-        ss2 = SecondaryStructure(chain2, 1, SecondaryStructureElement.Turn; name="T1", properties = Properties(:a => 1), flags = Flags([:A, :B]))
+        ss2 = SecondaryStructure(frag21, frag22, 1, SecondaryStructureElement.Turn; name="T1", properties = Properties(:a => 1), flags = Flags([:A, :B]))
 
         # getproperty
         @test ss.idx isa Int
@@ -268,7 +280,8 @@ end
         @test length(ss.flags) == 1
         @test :C in ss.flags
 
-        ss3 = SecondaryStructure(Chain(Molecule(System{T}())), 1, SecondaryStructureElement.Unknown; name="U1")
+        c3 = Chain(Molecule(System{T}()))
+        ss3 = SecondaryStructure(Fragment(c3, 1), Fragment(c3, 2), 1, SecondaryStructureElement.Unknown; name="U1")
         ss3.molecule_idx = 999
         @test ss3.molecule_idx == 999
 
@@ -293,7 +306,7 @@ end
         @test length(secondary_structures(sys, chain_idx = nothing)) == 2
 
 
-        # nsecondary_structures + push!
+        # nsecondary_structures
         @test nsecondary_structures(sys) isa Int
         @test nsecondary_structures(sys) == 2
         @test nsecondary_structures(sys, molecule_idx = -1) == 0
@@ -306,23 +319,6 @@ end
         @test nsecondary_structures(sys, chain_idx = chain2.idx) == 1
         @test nsecondary_structures(sys, chain_idx = nothing) == 2
 
-        @test push!(chain, ss) === chain
-        @test nsecondary_structures(sys) == 3
-        @test nsecondary_structures(sys, chain_idx = -1) == 0
-        @test nsecondary_structures(sys, chain_idx = chain.idx) == 2
-        @test nsecondary_structures(sys, chain_idx = chain2.idx) == 1
-        @test nsecondary_structures(sys, chain_idx = nothing) == 3
-
-        lss = last(secondary_structures(mol))
-        @test lss.idx != ss.idx
-        @test lss.number == ss.number
-        @test lss.type == ss.type
-        @test lss.name == ss.name
-        @test lss.properties == ss.properties
-        @test lss.flags == ss.flags
-        @test lss.molecule_idx == mol.idx
-        @test lss.chain_idx == chain.idx
-
         # molecule secondary structures
         mol3 = Molecule(sys)
         @test length(secondary_structures(mol3)) == 0
@@ -330,7 +326,8 @@ end
         @test nsecondary_structures(mol3) == 0
         @test nsecondary_structures(mol3) == nsecondary_structures(sys, molecule_idx = mol3.idx)
 
-        @test SecondaryStructure(Chain(mol3), 1, SecondaryStructureElement.Unknown; name="U1").molecule_idx == mol3.idx
+        chain3 = Chain(mol3)
+        @test SecondaryStructure(Fragment(chain3, 1), Fragment(chain3, 2), 1, SecondaryStructureElement.Unknown; name="U1").molecule_idx == mol3.idx
         @test length(secondary_structures(mol3)) == 1
         @test secondary_structures(mol3) == secondary_structures(sys, molecule_idx = mol3.idx)
         @test nsecondary_structures(mol3) == 1
@@ -340,82 +337,42 @@ end
         @test length(atoms(ss)) == 0
         @test natoms(ss) == 0
 
-        frag = Fragment(ss, 1)
-        Atom(frag, 1, Elements.H)
-        @test length(atoms(ss)) == 1
-        @test natoms(ss) == 1
+        # secondary structure atoms
+        chain4 = Chain(mol3)
+        a1 = Atom(Residue(chain4, 1), 1, Elements.O)
+        a2 = Atom(Residue(chain4, 2), 2, Elements.H)
+        a3 = Atom(Residue(chain4, 3), 3, Elements.C)
 
-        nuc = Nucleotide(ss, 1)
-        Atom(nuc, 2, Elements.C)
-        @test length(atoms(ss)) == 2
-        @test natoms(ss) == 2
-
-        res = Residue(ss, 1)
-        Atom(res, 3, Elements.O)
-        @test length(atoms(ss)) == 3
-        @test natoms(chain) == 3
-
-        for atom in atoms(ss)
-            @test parent_secondary_structure(atom) === ss
-        end
-        @test parent_secondary_structure(frag) === ss
-        @test parent_secondary_structure(nuc) === ss
-        @test parent_secondary_structure(res) === ss
-        @test parent_secondary_structure(Atom(frag, 1, Elements.H)) === ss
-        @test parent_secondary_structure(Atom(nuc, 2, Elements.C)) === ss
-        @test parent_secondary_structure(Atom(res, 3, Elements.O)) === ss
+        ss = SecondaryStructure(first(residues(chain4)), last(residues(chain4)), 1, SecondaryStructureElement.Coil)
+        at = atoms(ss)
+        @test a1.idx in at.idx
+        @test a2.idx in at.idx
+        @test a3.idx in at.idx
 
         # secondary structure bonds
         @test length(bonds(ss)) == 0
         @test nbonds(ss) == 0
 
-        Bond(chain, Atom(frag, 1, Elements.H).idx, Atom(frag, 2, Elements.C).idx, BondOrder.Single)
+        Bond(chain4, a1.idx, a2.idx, BondOrder.Single)
         @test length(bonds(ss)) == 1
         @test nbonds(ss) == 1
 
-        Bond(chain, Atom(nuc, 1, Elements.H).idx, Atom(nuc, 2, Elements.C).idx, BondOrder.Single)
-        @test length(bonds(ss)) == 2
-        @test nbonds(ss) == 2
-
-        Bond(chain, Atom(res, 1, Elements.H).idx, Atom(res, 2, Elements.C).idx, BondOrder.Single)
-        @test length(bonds(ss)) == 3
-        @test nbonds(ss) == 3
-
         # delete!
-        @test natoms(sys) == 12
-        @test nbonds(sys) == 3
+        @test natoms(sys) == 3
+        @test nbonds(sys) == 1
         @test nmolecules(sys) == 3
-        @test nchains(sys) == 3
+        @test nchains(sys) == 4
         @test nsecondary_structures(sys) == 4
-        @test nfragments(sys) == 3
+        @test nfragments(sys) == 9
 
         aidx = Set(atoms(ss).idx)
         @test delete!(ss; keep_fragments = true) === nothing
-        @test natoms(sys) == 12
-        @test nbonds(sys) == 3
+        @test natoms(sys) == 3
+        @test nbonds(sys) == 1
         @test nmolecules(sys) == 3
-        @test nchains(sys) == 3
+        @test nchains(sys) == 4
         @test nsecondary_structures(sys) == 3
-        @test nfragments(sys) == 3
+        @test nfragments(sys) == 9
         @test_throws KeyError ss.idx
-        @test all(isnothing, parent_secondary_structure.(atom_by_idx.(Ref(sys), aidx)))
-
-        frag = Fragment(ss2, 1)
-        Bond(Atom(frag, 1, Elements.H), Atom(frag, 2, Elements.C), BondOrder.Single)
-        @test natoms(sys) == 14
-        @test nbonds(sys) == 4
-        @test nmolecules(sys) == 3
-        @test nchains(sys) == 3
-        @test nsecondary_structures(sys) == 3
-        @test nfragments(sys) == 4
-
-        @test delete!(ss2; keep_fragments = false) === nothing
-        @test natoms(sys) == 12
-        @test nbonds(sys) == 3
-        @test nmolecules(sys) == 3
-        @test nchains(sys) == 3
-        @test nsecondary_structures(sys) == 2
-        @test nfragments(sys) == 3
-        @test_throws KeyError ss2.idx
     end
 end

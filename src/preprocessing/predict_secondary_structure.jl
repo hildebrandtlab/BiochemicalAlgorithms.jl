@@ -752,6 +752,8 @@ function _postprocess_dssp!(ac::AbstractAtomContainer, summary::Vector{Char})
     delete!(secondary_structures(ac); keep_fragments=true)
 
     all_fragments = fragments(ac)
+    first_frag = nothing
+    last_frag = nothing
 
     for i in range(1, length(summary))
         current_type = get_dssp_type_(summary[i])
@@ -759,38 +761,46 @@ function _postprocess_dssp!(ac::AbstractAtomContainer, summary::Vector{Char})
         current_chain = parent_chain(current_frag)
 
         if current_type != last_ss_type || last_chain_idx != current_chain.idx
-            # create a new secondary structure type
-            last_ss_type, last_ss = _create_new_ss(current_chain, ss_number, current_type)
+            if !isnothing(first_frag) && !isnothing(last_frag)
+                _create_new_ss(first_frag, last_frag, ss_number, current_type)
+                ss_number += 1
+            end
 
+            # start new segment
+            first_frag = current_frag
+            last_frag = current_frag
+            last_ss_type = current_type
             last_chain_idx = current_chain.idx
-
-            ss_number += 1
+        else
+            last_frag = current_frag
         end
-
-        current_frag.secondary_structure_idx = last_ss.idx
     end
+    if !isnothing(first_frag) && !isnothing(last_frag)
+        _create_new_ss(first_frag, last_frag, ss_number, get_dssp_type_(last(summary)))
+    end
+    nothing
 end
 
 function get_dssp_type_(type::Char)
     type ∉ ['H', 'G', 'I', 'E'] ? 'L' : type
 end
 
-function _create_new_ss(chain::Chain, number::Int, type::Char)
+function _create_new_ss(first_frag::Fragment, last_frag::Fragment, number::Int, type::Char)
     ss = nothing
 
     if     type == 'H'
-        ss = SecondaryStructure(chain, number, SecondaryStructureElement.Helix)
+        ss = SecondaryStructure(first_frag, last_frag, number, SecondaryStructureElement.Helix)
         set_property!(ss, :HELIX_TYPE, :ALPHA)
     elseif type == 'G'
-        ss = SecondaryStructure(chain, number, SecondaryStructureElement.Helix)
+        ss = SecondaryStructure(first_frag, last_frag, number, SecondaryStructureElement.Helix)
         set_property!(ss, :HELIX_TYPE, :THREE_TEN)
     elseif type == 'I'
-        ss = SecondaryStructure(chain, number, SecondaryStructureElement.Helix)
+        ss = SecondaryStructure(first_frag, last_frag, number, SecondaryStructureElement.Helix)
         set_property!(ss, :HELIX_TYPE, :PI)
     elseif type == 'E'
-        ss = SecondaryStructure(chain, number, SecondaryStructureElement.Strand)
+        ss = SecondaryStructure(first_frag, last_frag, number, SecondaryStructureElement.Strand)
     else
-        ss = SecondaryStructure(chain, number, SecondaryStructureElement.Coil)
+        ss = SecondaryStructure(first_frag, last_frag, number, SecondaryStructureElement.Coil)
     end
 
     type, ss
