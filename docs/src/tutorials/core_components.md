@@ -532,45 +532,47 @@ Now, that we learned about chains, we can take a look at the secondary structure
 s = System()
 chain = Chain(Molecule(s))
 ss1 = SecondaryStructure(
-    chain,
+    Residue(chain, 1),
+    Residue(chain, 2),
     1,
     SecondaryStructureElement.Helix;
     name="H1"
 )
 
 ss2 = SecondaryStructure(
-    chain,
+    Residue(chain, 3),
+    Residue(chain, 4),
     2,
     SecondaryStructureElement.Coil;
     name="C1"
 )
 
 ss3 = SecondaryStructure(
-    chain,
+    Residue(chain, 5),
+    Residue(chain, 6),
     3,
     SecondaryStructureElement.Strand;
     name="S1"
 )
 ss4 = SecondaryStructure(
-    chain,
+    Residue(chain, 7),
+    Residue(chain, 8),
     4,
     SecondaryStructureElement.Turn;
     name="T1"
 )
 
-ss3.type = SecondaryStructureElement.Helix
 println("Number of secondary structures: ", nsecondary_structures(s))
 
 # get all helices of the chain
-helices = (filter(sst -> sst.type == ss1.type, secondary_structures(chain)))
+filter(sst -> sst.type == SecondaryStructureElement.Helix, secondary_structures(chain))
 ```
 
     Number of secondary structures: 4
 
 | **\#** | **idx** | **number** | **type** | **name** |
 |-------:|:--------|:-----------|:---------|:---------|
-|      1 | 3       | 1          | Helix    | H1       |
-|      2 | 5       | 3          | Helix    | S1       |
+|      1 | 5       | 1          | Helix    | H1       |
 
 In addition, we can compute the secondary structures for an input file:
 
