@@ -71,13 +71,11 @@ private atom fields.
     frame_id::MaybeInt = 1,
     molecule_idx::Union{MaybeInt, Some{Nothing}} = nothing,
     chain_idx::Union{MaybeInt, Some{Nothing}} = nothing,
-    secondary_structure_idx::Union{MaybeInt, Some{Nothing}} = nothing,
     fragment_idx::Union{MaybeInt, Some{Nothing}} = nothing
 ) where T
     filter(row ->
         (isnothing(frame_id)                || row.frame_id == frame_id) &&
         (isnothing(molecule_idx)            || row.molecule_idx == something(molecule_idx)) &&
-        (isnothing(secondary_structure_idx) || row.secondary_structure_idx == something(secondary_structure_idx)) &&
         (isnothing(chain_idx)               || row.chain_idx == something(chain_idx)) &&
         (isnothing(fragment_idx)            || row.fragment_idx == something(fragment_idx)),
         substruct._atoms
