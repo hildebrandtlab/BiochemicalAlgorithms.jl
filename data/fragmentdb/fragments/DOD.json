@@ -1,0 +1,56 @@
+{
+  "name": "DOD",
+  "names": [
+    "Deuterated water"
+  ],
+  "type": "None",
+  "atoms": [
+    {
+      "name": "O",
+      "element": "O",
+      "r": [
+        42.646,
+        44.869,
+        64.255
+      ]
+    },
+    {
+      "name": "D1",
+      "element": "H",
+      "r": [
+        43.596,
+        44.869,
+        64.255
+      ]
+    },
+    {
+      "name": "D2",
+      "element": "H",
+      "r": [
+        42.408,
+        44.869,
+        65.175
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 1,
+      "a1": "O",
+      "a2": "D1",
+      "order": "Single"
+    },
+    {
+      "number": 2,
+      "a1": "O",
+      "a2": "D2",
+      "order": "Single"
+    }
+  ],
+  "connections": [],
+  "variants": [
+    {
+      "name": "DOD"
+    }
+  ]
+}
