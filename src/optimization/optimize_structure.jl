@@ -39,9 +39,10 @@ end
 
 
 function _callback(state, l)
-    state.iter % 25 == 1 && @show "Iteration: $(state.iter), Loss: $l"
-    return l < 1e-1 ## Terminate if loss is small
+    state.iter % 25 == 0 && @show "Iteration: $(state.iter), Loss: $l"
+    return false  ## Continue until maxiters is reached
 end
+
 
 """
     optimize_structure!(ff::ForceField)
@@ -54,40 +55,46 @@ This function passes all keyword arguments to
 with the following default values:
  - `alg = ()`
 """
-function optimize_structure_mini!(ff::ForceField; alg=OptimizationOptimisers.Adam(0.05), kwargs...)
+function optimize_structure_mini!(ff::ForceField; alg=OptimizationOptimisers.Adam(0.05), epochs::Int=10, batchsize::Int=10, kwargs...)
   
-    # the objective function and gradient are defined separately to allow for minibatching
-    optf = Optimization.OptimizationFunction(
-        _compute_energy_loss!;
-        grad = _compute_grad!
-        )
-
-    # initial solution
+    # Create initial solution
     r0 = collect(Float64, Iterators.flatten(atoms(ff.system).r))
 
-    # create dataset for minibatching
+    # Create dataset and dataloader for minibatching
     ds = InteractionDataSet(ff)
-    dataloader = MLUtils.DataLoader(ds, batchsize = 10, shuffle=true) # batchsize 10 means 10 interactions per batch
-   
-
-   # loop for epochs and batches
-    sol = []
-    for epoch in 1:10
-        for batch in dataloader
-             # create optimization problem
-            p = BatchParams(batch, ff)
-            prob = Optimization.OptimizationProblem(optf, r0, p, maxiters=1)
-            sol_batch = Optimization.solve(prob, alg; kwargs...)
-            r0 = sol_batch.u   # update parameters
-            push!(sol, sol_batch)
+    dataloader = MLUtils.DataLoader(ds, batchsize=batchsize, shuffle=true)
+    batches = collect(dataloader)
+    
+    # Create mutable container to track current batch across closures
+    state = MiniBatchParams(ff, batches, 1)
+    
+    # Define optimization function using closure that captures state
+    # Loss: out-of-place, returns scalar
+    # Gradient: in-place, modifies gradient array
+    optf = Optimization.OptimizationFunction(
+        (r, p=nothing) -> begin
+            p = p !== nothing ? p : state
+            _compute_energy_loss(r, p)
+        end,
+        grad = (g, r, p=nothing) -> begin
+            p = p !== nothing ? p : state
+            _compute_grad!(g, r, p)
         end
-        # TODO: update dataloader with new interactions after each epoch
-        ds = InteractionDataSet(ff)
-        dataloader = MLUtils.DataLoader(ds, batchsize=10, shuffle=true)
-    end
-    sol
+    )
 
- #   Optimization.solve(prob, OptimizationOptimisers.Adam(0.05); _callback, epochs = 10, kwargs...)
+    # Pass state as the parameters
+    prob = Optimization.OptimizationProblem(optf, r0, state)
+
+    # Solve with optimizer
+    sol = Optimization.solve(
+        prob,
+        alg;
+        callback=_callback, 
+        maxiters=epochs * length(batches),
+        kwargs...
+    )
+    
+    return sol
 end
 
 """

@@ -35,14 +35,12 @@ end
 end
 
 @testitem "Optimize with minibatching" begin
-    sys2 = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
-
-    fdb = FragmentDB()
-    normalize_names!(sys, fdb)
-    reconstruct_fragments!(sys, fdb)
-    build_bonds!(sys, fdb)
+    sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+    infer_topology!(sys)
 
     ff = AmberFF(sys)
+    @run optimize_structure_mini!(ff)
+    
     @test compute_energy!(ff) ≈ 1425.5979f0
     @test Int(optimize_structure!(ff; minibatching=true).retcode) == 1
     @test compute_energy!(ff) ≈ -374.3136f0
