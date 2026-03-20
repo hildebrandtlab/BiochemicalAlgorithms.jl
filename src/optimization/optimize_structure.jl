@@ -1,7 +1,7 @@
 export
     optimize_hydrogen_positions!,
-    optimize_structure!,
-    optimize_structure_mini!
+    optimize_structure!
+
 
 """
     optimize_structure!(ff::ForceField)
@@ -38,64 +38,7 @@ function optimize_structure!(ff::ForceField; alg=OptimizationLBFGSB.LBFGSB(), kw
 end
 
 
-function _callback(state, l)
-    state.iter % 25 == 0 && @show "Iteration: $(state.iter), Loss: $l"
-    return false  ## Continue until maxiters is reached
-end
 
-
-"""
-    optimize_structure!(ff::ForceField)
-
-Attempts to solve the energy optimization problem represented by the given force field object with a minibatching approach.
-
-# Supported keyword arguments
-This function passes all keyword arguments to
-[Optimization.solve](https://docs.sciml.ai/Optimization/stable/API/solve/),
-with the following default values:
- - `alg = ()`
-"""
-function optimize_structure_mini!(ff::ForceField; alg=OptimizationOptimisers.Adam(0.05), epochs::Int=10, batchsize::Int=10, kwargs...)
-  
-    # Create initial solution
-    r0 = collect(Float64, Iterators.flatten(atoms(ff.system).r))
-
-    # Create dataset and dataloader for minibatching
-    ds = InteractionDataSet(ff)
-    dataloader = MLUtils.DataLoader(ds, batchsize=batchsize, shuffle=true)
-    batches = collect(dataloader)
-    
-    # Create mutable container to track current batch across closures
-    state = MiniBatchParams(ff, batches, 1)
-    
-    # Define optimization function using closure that captures state
-    # Loss: out-of-place, returns scalar
-    # Gradient: in-place, modifies gradient array
-    optf = Optimization.OptimizationFunction(
-        (r, p=nothing) -> begin
-            p = p !== nothing ? p : state
-            _compute_energy_loss(r, p)
-        end,
-        grad = (g, r, p=nothing) -> begin
-            p = p !== nothing ? p : state
-            _compute_grad!(g, r, p)
-        end
-    )
-
-    # Pass state as the parameters
-    prob = Optimization.OptimizationProblem(optf, r0, state)
-
-    # Solve with optimizer
-    sol = Optimization.solve(
-        prob,
-        alg;
-        callback=_callback, 
-        maxiters=epochs * length(batches),
-        kwargs...
-    )
-    
-    return sol
-end
 
 """
     optimize_hydrogen_positions!(ff::ForceField)
