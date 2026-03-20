@@ -548,8 +548,13 @@ end
 
 function postprocess_ssbonds_!(sys, pdb_info, fragment_cache)
     for ssbond in pdb_info.ssbonds
-        f1 = fragment_cache[ssbond.first]
-        f2 = fragment_cache[ssbond.second]
+        f1 = get(fragment_cache, ssbond.first, nothing)
+        f2 = get(fragment_cache, ssbond.second, nothing)
+
+        if isnothing(f1) || isnothing(f2)
+            @debug "load_pdb: ignoring disulphide bond $(ssbond.first) -> $(ssbond.second)"
+            continue
+        end
 
         set_flag!(f1, :HAS_SSBOND)
         set_flag!(f2, :HAS_SSBOND)
