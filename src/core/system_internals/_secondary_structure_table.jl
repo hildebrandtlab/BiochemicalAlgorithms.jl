@@ -1,5 +1,5 @@
 const _secondary_structure_table_cols_main = (:idx, :number, :type, :name)
-const _secondary_structure_table_cols_extra = (:properties, :flags, :molecule_idx, :chain_idx)
+const _secondary_structure_table_cols_extra = (:properties, :flags, :molecule_idx, :chain_idx, :first_fragment_idx, :last_fragment_idx)
 const _secondary_structure_table_cols = (_secondary_structure_table_cols_main..., _secondary_structure_table_cols_extra...)
 const _secondary_structure_table_cols_set = Set(_secondary_structure_table_cols)
 const _secondary_structure_table_schema = Tables.Schema(
@@ -19,6 +19,8 @@ const _secondary_structure_table_schema = Tables.Schema(
     flags::Vector{Flags}
     molecule_idx::Vector{Int}
     chain_idx::Vector{Int}
+    first_fragment_idx::Vector{Int}
+    last_fragment_idx::Vector{Int}
 
     # internals
     _idx_map::_IdxMap
@@ -31,6 +33,8 @@ const _secondary_structure_table_schema = Tables.Schema(
             String[],
             Properties[],
             Flags[],
+            Int[],
+            Int[],
             Int[],
             Int[],
             _IdxMap()
@@ -60,7 +64,9 @@ function Base.push!(
     number::Int,
     type::SecondaryStructureType,
     molecule_idx::Int,
-    chain_idx::Int;
+    chain_idx::Int,
+    first_fragment_idx::Int,
+    last_fragment_idx::Int;
     name::AbstractString = "",
     properties::Properties = Properties(),
     flags::Flags = Flags()
@@ -74,16 +80,18 @@ function Base.push!(
     push!(st.flags, flags)
     push!(st.molecule_idx, molecule_idx)
     push!(st.chain_idx, chain_idx)
+    push!(st.first_fragment_idx, first_fragment_idx)
+    push!(st.last_fragment_idx, last_fragment_idx)
     st
 end
 
 function _secondary_structure_table(itr)
     st = _SecondaryStructureTable()
-    for c in itr
-        push!(st, c.idx, c.number, c.type, c.molecule_idx, c.chain_idx;
-            name = c.name,
-            properties = c.properties,
-            flags = c.flags
+    for s in itr
+        push!(st, s.idx, s.number, s.type, s.molecule_idx, s.chain_idx, s.first_fragment_idx, s.last_fragment_idx;
+            name = s.name,
+            properties = s.properties,
+            flags = s.flags
        )
     end
     st
