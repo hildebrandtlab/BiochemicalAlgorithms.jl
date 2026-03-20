@@ -1,9 +1,55 @@
 export
-    MiniBatchParams,
-    InteractionDataSet,
-    getobs,
-    _compute_energy_loss,
-    _compute_grad!
+    optimize_structure_mini!
+
+"""
+    optimize_structure!(ff::ForceField)
+
+Attempts to solve the energy optimization problem represented by the given force field object with a minibatching approach.
+
+# Supported keyword arguments
+This function passes all keyword arguments to
+[Optimization.solve](https://docs.sciml.ai/Optimization/stable/API/solve/),
+with the following default values:
+ - `alg = ()`
+"""
+function optimize_structure_mini!(ff::ForceField; alg=OptimizationOptimisers.Adam(0.01), epochs::Int=10, batchsize::Int=10, kwargs...)
+    r0 = collect(Float64, Iterators.flatten(atoms(ff.system).r))
+
+    ds = InteractionDataSet(ff)
+    dataloader = MLUtils.DataLoader(ds, batchsize=batchsize, shuffle=true)
+    batches = collect(dataloader)
+
+    state = MiniBatchParams(ff, batches, 1)
+
+    optf = Optimization.OptimizationFunction(
+        (r, p=nothing) -> begin
+            p = p !== nothing ? p : state
+            _compute_energy_loss(r, p)
+        end,
+        grad = (g, r, p=nothing) -> begin
+            p = p !== nothing ? p : state
+            _compute_grad!(g, r, p)
+        end
+    )
+
+    prob = Optimization.OptimizationProblem(optf, r0, state)
+
+    iters_in_epoch = Ref(0)
+    epoch_steps = Ref(max(1, length(state.batches)))
+    done_epochs = Ref(0)
+
+    sol = Optimization.solve(
+        prob,
+        alg;
+        callback = (opt_state, l) -> _epoch_minibatch_callback(
+            opt_state, l, state, iters_in_epoch, epoch_steps, done_epochs, epochs, batchsize
+        ),
+        maxiters = max(1, epochs * epoch_steps[]),
+        kwargs...
+    )
+
+    return sol
+end
 
 
 @enumx Interaction begin
@@ -95,8 +141,7 @@ mutable struct MiniBatchParams
 end 
 
 function _compute_energy_loss(r::Vector{T}, p::MiniBatchParams) where T
-    # Cycle to next batch
-    p.current_batch_idx = mod1(p.current_batch_idx + 1, length(p.batches))
+
 
     batch = p.batches[p.current_batch_idx]
     ff = p.ff
@@ -145,6 +190,8 @@ function _compute_energy_loss(r::Vector{T}, p::MiniBatchParams) where T
     )
     total_energy += e_lj + e_hbond + e_es
 
+    # Cycle to next batch
+    p.current_batch_idx = mod1(p.current_batch_idx + 1, length(p.batches))
     total_energy
 end
 
@@ -183,4 +230,48 @@ function _compute_grad!(grad::Vector{T}, r::Vector{T}, p::MiniBatchParams) where
  #   F[ff.constrained_atoms] .= Ref(zeros(3))
     grad .= -collect(Float64, Iterators.flatten(F))
     nothing
+end
+
+
+function _callback(state, l)
+    state.iter % 25 == 0 && @show "Iteration: $(state.iter), Energy: $l"
+    return false  ## Continue until maxiters is reached
+end
+
+
+
+
+
+
+function _refresh_minibatches!(p::MiniBatchParams; batchsize::Int, shuffle::Bool=true)
+    update!(p.ff)
+    ds = InteractionDataSet(p.ff)
+    p.batches = collect(MLUtils.DataLoader(ds, batchsize=batchsize, shuffle=shuffle))
+    p.current_batch_idx = 1
+    return max(1, length(p.batches))
+end
+
+function _epoch_minibatch_callback(
+    opt_state,
+    l,
+    p::MiniBatchParams,
+    iters_in_epoch::Base.RefValue{Int},
+    epoch_steps::Base.RefValue{Int},
+    done_epochs::Base.RefValue{Int},
+    epochs::Int,
+    batchsize::Int
+)
+    e = compute_energy!(p.ff)
+    _callback(opt_state, e)
+    iters_in_epoch[] += 1
+
+    if iters_in_epoch[] >= epoch_steps[]
+        done_epochs[] += 1
+        done_epochs[] >= epochs && return true
+
+        epoch_steps[] = _refresh_minibatches!(p; batchsize=batchsize, shuffle=true)
+        iters_in_epoch[] = 0
+    end
+
+    return false
 end
