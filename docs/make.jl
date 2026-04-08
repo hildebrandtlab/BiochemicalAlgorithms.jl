@@ -24,7 +24,6 @@ const pages = Any[
         "Utility functions" => "public/utils.md",
         "Internals" => Any[
             "Biomolecular systems" => "private/system.md",
-            "File Formats" => "private/fileformats.md",
             "Mappings" => "private/mappings.md",
             "Molecular preprocessing" => "private/preprocessing.md"
         ]
