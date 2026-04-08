@@ -453,24 +453,6 @@ function interpret_record(
     )
 end
 
-
-"""
-    _atom_by_number(
-        ac::AbstractAtomContainer{T} = default_system(),
-        idx::Int
-    ) -> Atom{T}
-
-Returns the first `Atom{T}` associated with the given `number` in `sys`. Throws a `KeyError` if no such
-atom exists.
-"""
-@inline function _atom_by_number(
-    ac::AbstractAtomContainer{T},
-    serial_number::Int;
-) where T
-    idx = filter(atom -> atom.number == serial_number, atoms(ac)).idx
-    isempty(idx) ? nothing : atom_by_idx(parent(ac), first(idx))
-end
-
 function interpret_record(
     ::Val{RECORD_TYPE__CONECT},
     tag,
