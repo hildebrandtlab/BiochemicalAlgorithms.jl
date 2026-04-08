@@ -433,7 +433,7 @@ Hydrogen bonds (`has_flag(bond, :TYPE__HYDROGEN)`) are ignored.
 function is_bound_to(a1::Atom, a2::Atom)
     s = parent(a1)
 
-    if s != parent(a2)
+    if s !== parent(a2)
         return false
     end
 
@@ -457,7 +457,7 @@ bond to a third atom. For example the two hydrogen atoms in water are geminal.
 Hydrogen bonds (`has_flag(bond, :TYPE__HYDROGEN)`) are ignored.
 """
 function is_geminal(a1::Atom, a2::Atom)
-    if a1 == a2
+    if a1 === a2
         return false
     end
 
@@ -477,7 +477,7 @@ Two atoms are vicinal if they are separated by three bonds (1-4 position).
 Hydrogen bonds (`has_flag(bond, :TYPE__HYDROGEN)`) are ignored.
 """
 function is_vicinal(a1::Atom, a2::Atom)
-    if a1 == a2
+    if a1 === a2
         return false
     end
 
