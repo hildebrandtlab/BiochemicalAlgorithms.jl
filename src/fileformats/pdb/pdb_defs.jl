@@ -2,9 +2,10 @@ using AutoHashEquals
 using DataStructures
 
 using BiochemicalAlgorithms:
-    Molecule,
+    Atom,
     Chain,
-    Fragment
+    Fragment,
+    Molecule
 
 export PDBInfo
 
@@ -166,12 +167,15 @@ end
     alternate_location_identifier::String
     alternate_location_warning::Bool
 
+    # TODO: will become obsolete as soon as we finalize indexing for table cols
+    atom_cache::Dict{Int, Atom{T}}
+
     writer_stats::PDBWriterStats
 
     function PDBInfo{T}(selected_model=-1) where {T}
         new("", "", "", "", Deque{PDBRecord}(), Deque{SSBondRecord}(),
             Deque{Union{HelixRecord, SheetRecord, TurnRecord}}(), selected_model,
-            1, nothing, nothing, "A", false, PDBWriterStats())
+            1, nothing, nothing, "A", false, Dict{Int, Atom{T}}(), PDBWriterStats())
     end
 end
 
