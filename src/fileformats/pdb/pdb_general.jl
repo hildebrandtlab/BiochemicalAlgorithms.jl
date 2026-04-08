@@ -213,7 +213,7 @@ function interpret_record(
     formal_charge = tryparse(Int, charge)
     formal_charge = isnothing(formal_charge) ? 0 : formal_charge
 
-    Atom(
+    pdb_info.atom_cache[serial_number] = Atom(
         pdb_info.current_residue,
         serial_number,
         parse_element_string(strip(element_symbol), atom_name);
@@ -498,7 +498,7 @@ function interpret_record(
         Elements.I, Elements.Kr, Elements.N, Elements.S, Elements.Xe]
 
 
-    a = _atom_by_number(sys, serial_number)
+    a = get(pdb_info.atom_cache, serial_number, nothing)
     if isnothing(a)
         return
     end
@@ -509,7 +509,7 @@ function interpret_record(
 
     if a.element in nonmetals
         for b_idx in bond_atoms
-            b = _atom_by_number(sys, b_idx)
+            b = get(pdb_info.atom_cache, b_idx, nothing)
             if !isnothing(b) && !is_bound_to(b, a)
                 if b.element in nonmetals
                     flags = Flags()
@@ -519,7 +519,7 @@ function interpret_record(
             end
         end
         for h_idx in hbond_atoms
-            h = _atom_by_number(sys, h_idx)
+            h = get(pdb_info.atom_cache, h_idx, nothing)
             if !isnothing(h) && h.element in nonmetals
                 if !is_bound_to(h, a)
                     flags = Flags()
@@ -532,7 +532,7 @@ function interpret_record(
 
     # create salt bridges
     for b_idx in salt_bridge_atoms
-        b = _atom_by_number(sys, b_idx)
+        b = get(pdb_info.atom_cache, b_idx, nothing)
         if !isnothing(b) && !is_bound_to(b, a)
             flags = Flags()
             push!(flags, :TYPE__SALT_BRIDGE)
