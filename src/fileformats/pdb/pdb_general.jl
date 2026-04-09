@@ -503,7 +503,7 @@ function interpret_record(
         return
     end
 
-    bond_atoms = [bond_atom1, bond_atom2, bond_atom3]
+    bond_atoms = [bond_atom1, bond_atom2, bond_atom3, bond_atom4]
     hbond_atoms = [hbond_atom1, hbond_atom2, hbond_atom3, hbond_atom4]
     salt_bridge_atoms = [salt_bridge_atom1, salt_bridge_atom2]
 
