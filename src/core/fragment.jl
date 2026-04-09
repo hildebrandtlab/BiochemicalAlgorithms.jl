@@ -950,7 +950,7 @@ is_nucleotide(name::AbstractString) = name ∈ ["A", "C", "G", "T", "U", "I", "D
 
             for f in fragments(c)
                 if is_amino_acid(f)
-                    return f == frag
+                    return f === frag
                 end
             end
         end
@@ -969,7 +969,7 @@ end
 
             for f in Iterators.reverse(fragments(c))
                 if is_amino_acid(f)
-                    return f == frag
+                    return f === frag
                 end
             end
         end
@@ -988,7 +988,7 @@ end
 
             for f in Iterators.reverse(fragments(c))
                 if is_nucleotide(f)
-                    return f == frag
+                    return f === frag
                 end
             end
         end
@@ -1007,7 +1007,7 @@ end
 
             for f in fragments(c)
                 if is_nucleotide(f)
-                    return f == frag
+                    return f === frag
                 end
             end
         end
@@ -1017,7 +1017,7 @@ end
 end
 
 @inline function is_previous(f1::Fragment{T}, f2::Fragment{T}) where T
-    if parent_chain(f1) == parent_chain(f2)
+    if parent_chain(f1) === parent_chain(f2)
 
         fs = fragments(parent_chain(f1))
         f1_pos = findfirst(f -> f.idx == f1.idx, fs)
