@@ -940,7 +940,6 @@ end
 # TODO: we should come up with a better test than just checking the name
 is_nucleotide(name::AbstractString) = name ∈ ["A", "C", "G", "T", "U", "I", "DA", "DC", "DG", "DT", "DU", "DI"]
 
-# TODO: these should really be defined in Residue, not Fragment
 @inline function is_n_terminal(frag::Fragment; precomputed=true)
     if (precomputed)
         has_flag(frag, :N_TERMINAL)
@@ -979,7 +978,6 @@ end
     end
 end
 
-# TODO: these should really be defined in Nucleotide, not Fragment
 @inline function is_3_prime(frag::Fragment; precomputed=true)
     if (precomputed)
         has_flag(frag, Symbol("3_PRIME"))
@@ -1020,7 +1018,7 @@ end
 
 @inline function is_previous(f1::Fragment{T}, f2::Fragment{T}) where T
     if parent_chain(f1) == parent_chain(f2)
-    
+
         fs = fragments(parent_chain(f1))
         f1_pos = findfirst(f -> f.idx == f1.idx, fs)
 
