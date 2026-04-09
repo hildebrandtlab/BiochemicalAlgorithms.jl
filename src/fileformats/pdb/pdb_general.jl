@@ -595,7 +595,8 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
 
         new_ss = if typeof(ss) == HelixRecord
             new_ss = SecondaryStructure(
-                parent_chain(initial_res),
+                initial_res,
+                terminal_res,
                 ss.number,
                 SecondaryStructureElement.Helix;
                 name=strip(ss.name))
@@ -605,7 +606,8 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
             new_ss
         elseif typeof(ss) == SheetRecord
             new_ss = SecondaryStructure(
-                parent_chain(initial_res),
+                initial_res,
+                terminal_res,
                 ss.number,
                 SecondaryStructureElement.Strand;
                 name=strip("$(ss.name):$(ss.number)"))
@@ -614,7 +616,8 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
             new_ss
         else
             new_ss = SecondaryStructure(
-                parent_chain(initial_res),
+                initial_res,
+                terminal_res,
                 ss.number,
                 SecondaryStructureElement.Turn;
                 name=strip(ss.name))
@@ -622,39 +625,44 @@ function postprocess_secondary_structures_!(sys, pdb_info, fragment_cache, creat
 
             new_ss
         end
-
-        for f in fragments(parent_chain(initial_res))
-            if f.number >= initial_res.number && f.number <= terminal_res.number
-                if !isnothing(f.secondary_structure_idx)
-                    @warn "load_pdb: reassigning secondary structure of fragment $(f.idx): $(new_ss.idx) (was: $(f.secondary_structure_idx))"
-                end
-                f.secondary_structure_idx = new_ss.idx
-            end
-        end
     end
 
     # do we need to put every amino acid residue into a secondary structure?
     if create_coils
+        fragments_in_ss = Set(fragments(secondary_structures(sys)).idx)
         for c in chains(sys)
-            fs = residues(c, variant=FragmentVariant.Residue)
+            rt = residues(c)
 
-            if isempty(fs[fs.secondary_structure_idx .== nothing])
+            if isempty(setdiff(Set(rt.idx), fragments_in_ss))
                 continue
             end
 
-            last_fragment = nothing
+            first_frag = nothing
+            last_frag = nothing
+            for res in rt
+                if res.idx ∉ fragments_in_ss && isnothing(first_frag)
+                    first_frag = res
 
-            current_ss = nothing
-            for f in fs
-                if isnothing(f.secondary_structure_idx)
-                    if isnothing(last_fragment) || isnothing(current_ss) || parent_secondary_structure(last_fragment).idx != current_ss.idx
-                        current_ss = SecondaryStructure(c,
+                elseif res.idx ∈ fragments_in_ss && !isnothing(first_frag) && !isnothing(last_frag)
+                    SecondaryStructure(
+                        first_frag,
+                        last_frag,
                         maximum(secondary_structures(c).number, init=0) + 1,
-                        SecondaryStructureElement.Coil)
-                    end
-                    f.secondary_structure_idx = current_ss.idx
+                        SecondaryStructureElement.Coil
+                    )
+                    first_frag = nothing
+                    last_frag = nothing
+                    continue
                 end
-                last_fragment = f
+                last_frag = res
+            end
+            if !isnothing(first_frag) && !isnothing(last_frag)
+                SecondaryStructure(
+                    first_frag,
+                    last_frag,
+                    maximum(secondary_structures(c).number, init=0) + 1,
+                    SecondaryStructureElement.Coil
+                )
             end
         end
     end

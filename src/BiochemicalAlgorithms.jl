@@ -53,8 +53,8 @@ include("core/system_internals/_atom_table.jl")
 include("core/system_internals/_bond_table.jl")
 include("core/system_internals/_molecule_table.jl")
 include("core/system_internals/_chain_table.jl")
-include("core/system_internals/_secondary_structure_table.jl")
 include("core/system_internals/_fragment_table.jl")
+include("core/system_internals/_secondary_structure_table.jl")
 include("core/system.jl")
 
 # system components
@@ -63,8 +63,8 @@ include("core/atom.jl")
 include("core/bond.jl")
 include("core/molecule.jl")
 include("core/chain.jl")
-include("core/secondary_structure.jl")
 include("core/fragment.jl")
+include("core/secondary_structure.jl")
 
 # molgraph
 include("core/moleculargraph_wrapper.jl")
