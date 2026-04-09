@@ -437,13 +437,11 @@ function is_bound_to(a1::Atom{T}, a2::Atom{T}) where T
         return false
     end
 
-    return !isnothing(
-        findfirst(
-            b ->
-                ((b.a1 == a1.idx) && (b.a2 == a2.idx)) ||
-                ((b.a1 == a2.idx) && (b.a2 == a1.idx)),
-            non_hydrogen_bonds(s)
-        )
+    return any(
+        b ->
+            ((b.a1 == a1.idx) && (b.a2 == a2.idx)) ||
+            ((b.a1 == a2.idx) && (b.a2 == a1.idx)),
+        non_hydrogen_bonds(s)
     )
 end
 
