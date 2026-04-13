@@ -141,8 +141,7 @@ mutable struct MiniBatchParams
 end 
 
 function _compute_energy_loss(r::Vector{T}, p::MiniBatchParams) where T
-
-
+    
     batch = p.batches[p.current_batch_idx]
     ff = p.ff
 
@@ -200,8 +199,6 @@ function _compute_grad!(grad::Vector{T}, r::Vector{T}, p::MiniBatchParams) where
     ff = p.ff
     
     atoms(ff.system).r .= eachcol(reshape(r, 3, :))
- #   update!(ff)
-
     # Build index mapping once
     idx_map = idx_by_type(batch)
     
@@ -210,38 +207,33 @@ function _compute_grad!(grad::Vector{T}, r::Vector{T}, p::MiniBatchParams) where
     F .= Ref(zeros(3))
     
     # Compute forces for batch interactions only
-    f_stretch = map(compute_forces!, ff.components[1].stretches[get(idx_map, Interaction.Stretch, [])])
-    f_bend = map(compute_forces!, ff.components[2].bends[get(idx_map, Interaction.Bends, [])])
-    f_proper = map(compute_forces!, ff.components[3].proper_torsions[get(idx_map, Interaction.Torsion, [])])
-    f_improper = map(compute_forces!, ff.components[3].improper_torsions[get(idx_map, Interaction.ImproperTorsion, [])])
+    map(compute_forces!, ff.components[1].stretches[get(idx_map, Interaction.Stretch, [])])
+    map(compute_forces!, ff.components[2].bends[get(idx_map, Interaction.Bends, [])])
+    map(compute_forces!, ff.components[3].proper_torsions[get(idx_map, Interaction.Torsion, [])])
+    map(compute_forces!, ff.components[3].improper_torsions[get(idx_map, Interaction.ImproperTorsion, [])])
     
     # Non-bonded interactions - iterate directly over filtered interactions
     for v in [v for (i, v) in enumerate(ff.components[4].lj_interactions) if i in get(idx_map, Interaction.LJP, [])]
         compute_forces!(v)
     end
+
     for v in [v for (i, v) in enumerate(ff.components[4].hydrogen_bonds) if i in get(idx_map, Interaction.HydrogenBond, [])]
         compute_forces!(v)
     end
+
     for v in [v for (i, v) in enumerate(ff.components[4].electrostatic_interactions) if i in get(idx_map, Interaction.Electrostatic, [])]
         compute_forces!(v)
     end
-
-    # Extract gradients from batch forces
- #   F[ff.constrained_atoms] .= Ref(zeros(3))
+    
     grad .= -collect(Float64, Iterators.flatten(F))
     nothing
 end
 
 
 function _callback(state, l)
-    state.iter % 25 == 0 && @show "Iteration: $(state.iter), Energy: $l"
+    state.iter % 1000 == 0 && @show "Iteration: $(state.iter), Energy: $l"
     return false  ## Continue until maxiters is reached
 end
-
-
-
-
-
 
 function _refresh_minibatches!(p::MiniBatchParams; batchsize::Int, shuffle::Bool=true)
     update!(p.ff)
@@ -261,8 +253,7 @@ function _epoch_minibatch_callback(
     epochs::Int,
     batchsize::Int
 )
-    e = compute_energy!(p.ff)
-    _callback(opt_state, e)
+    _callback(opt_state, compute_energy!(p.ff))
     iters_in_epoch[] += 1
 
     if iters_in_epoch[] >= epoch_steps[]
