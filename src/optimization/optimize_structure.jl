@@ -23,7 +23,6 @@ function optimize_structure!(ff::ForceField; alg = OptimizationLBFGSB.LBFGSB(), 
             compute_energy!(ff)
         end,
         grad = (grad, r, _) -> begin
-            update!(ff)
             compute_forces!(ff)
             F = atoms(ff.system).F
             F[ff.constrained_atoms] .= Ref(zeros(3))
