@@ -236,6 +236,7 @@ function load_pdb(
         pdb_info.current_chain = nothing
         pdb_info.current_residue = nothing
         empty!(pdb_info.atom_cache)
+        empty!(pdb_info.bond_cache)
 
         set_property!(sys, :PDBInfo, pdb_info)
     end

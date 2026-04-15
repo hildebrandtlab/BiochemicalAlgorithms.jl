@@ -453,6 +453,24 @@ function interpret_record(
     )
 end
 
+const _nonmetals = Set([
+    Elements.Sb, Elements.As, Elements.At, Elements.Fm, Elements.Ge,
+    Elements.H, Elements.Ne, Elements.O, Elements.P, Elements.Po,
+    Elements.Rn, Elements.Si, Elements.Te, Elements.Ar, Elements.B,
+    Elements.Br, Elements.C, Elements.Cl, Elements.F, Elements.He,
+    Elements.I, Elements.Kr, Elements.N, Elements.S, Elements.Xe
+])
+
+function _is_bound_to(pdb_info, a1, a2)
+    a1 < a2 ?
+        (a1, a2) in pdb_info.bond_cache :
+        (a2, a1) in pdb_info.bond_cache
+end
+
+function _record_bond!(pdb_info, a1, a2)
+    push!(pdb_info.bond_cache, a1 < a2 ? (a1, a2) : (a2, a1))
+end
+
 function interpret_record(
     ::Val{RECORD_TYPE__CONECT},
     tag,
@@ -471,15 +489,6 @@ function interpret_record(
     pdb_info,
     kwargs...)
 
-    # find the corresponding atom which bonds we want to recreate
-    nonmetals = [
-        Elements.Sb, Elements.As, Elements.At, Elements.Fm, Elements.Ge,
-        Elements.H, Elements.Ne, Elements.O, Elements.P, Elements.Po,
-        Elements.Rn, Elements.Si, Elements.Te, Elements.Ar, Elements.B,
-        Elements.Br, Elements.C, Elements.Cl, Elements.F, Elements.He,
-        Elements.I, Elements.Kr, Elements.N, Elements.S, Elements.Xe]
-
-
     a = get(pdb_info.atom_cache, serial_number, nothing)
     if isnothing(a)
         return
@@ -489,24 +498,26 @@ function interpret_record(
     hbond_atoms = [hbond_atom1, hbond_atom2, hbond_atom3, hbond_atom4]
     salt_bridge_atoms = [salt_bridge_atom1, salt_bridge_atom2]
 
-    if a.element in nonmetals
+    if a.element in _nonmetals
         for b_idx in bond_atoms
             b = get(pdb_info.atom_cache, b_idx, nothing)
-            if !isnothing(b) && !is_bound_to(b, a)
-                if b.element in nonmetals
+            if !isnothing(b) && !_is_bound_to(pdb_info, b.idx, a.idx)
+                if b.element in _nonmetals
                     flags = Flags()
                     push!(flags, :TYPE__COVALENT)
                     Bond(sys, a.idx, b.idx, BondOrder.Single; flags)
+                    _record_bond!(pdb_info, a.idx, b.idx)
                 end
             end
         end
         for h_idx in hbond_atoms
             h = get(pdb_info.atom_cache, h_idx, nothing)
-            if !isnothing(h) && h.element in nonmetals
-                if !is_bound_to(h, a)
+            if !isnothing(h) && h.element in _nonmetals
+                if !_is_bound_to(pdb_info, h.idx, a.idx)
                     flags = Flags()
                     push!(flags, :TYPE__HYDROGEN)
                     Bond(sys, a.idx, h.idx, BondOrder.Single; flags)
+                    _record_bond!(pdb_info, a.idx, h.idx)
                 end
             end
         end
@@ -515,10 +526,11 @@ function interpret_record(
     # create salt bridges
     for b_idx in salt_bridge_atoms
         b = get(pdb_info.atom_cache, b_idx, nothing)
-        if !isnothing(b) && !is_bound_to(b, a)
+        if !isnothing(b) && !_is_bound_to(pdb_info, b.idx, a.idx)
             flags = Flags()
             push!(flags, :TYPE__SALT_BRIDGE)
             Bond(sys, a.idx, b.idx, BondOrder.Single; flags)
+            _record_bond!(pdb_info, a.idx, b.idx)
         end
     end
 end

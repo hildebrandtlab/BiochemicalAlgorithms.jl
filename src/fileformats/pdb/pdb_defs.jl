@@ -169,13 +169,15 @@ end
 
     # TODO: will become obsolete as soon as we finalize indexing for table cols
     atom_cache::Dict{Int, Atom{T}}
+    bond_cache::Set{Tuple{Int, Int}}
 
     writer_stats::PDBWriterStats
 
     function PDBInfo{T}(selected_model=-1) where {T}
         new("", "", "", "", Deque{PDBRecord}(), Deque{SSBondRecord}(),
             Deque{Union{HelixRecord, SheetRecord, TurnRecord}}(), selected_model,
-            1, nothing, nothing, "A", false, Dict{Int, Atom{T}}(), PDBWriterStats())
+            1, nothing, nothing, "A", false, Dict{Int, Atom{T}}(), Set{Tuple{Int, Int}}(),
+            PDBWriterStats())
     end
 end
 
