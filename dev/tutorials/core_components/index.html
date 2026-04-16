@@ -233,37 +233,40 @@ Chain 2 contains 141 fragments.
 The parent molecule of chain 2 is: BiochemicalAlgorithms.Molecule{Float32}: (idx = 1, name = &quot;OXYGEN TRANSPORT&quot;)</code></pre><h2 id="SecondaryStructures"><a class="docs-heading-anchor" href="#SecondaryStructures">SecondaryStructures</a><a id="SecondaryStructures-1"></a><a class="docs-heading-anchor-permalink" href="#SecondaryStructures" title="Permalink"></a></h2><p>Now, that we learned about chains, we can take a look at the secondary structures. Let’s create a molecule:</p><pre><code class="language-julia hljs">s = System()
 chain = Chain(Molecule(s))
 ss1 = SecondaryStructure(
-    chain,
+    Residue(chain, 1),
+    Residue(chain, 2),
     1,
     SecondaryStructureElement.Helix;
     name=&quot;H1&quot;
 )
 
 ss2 = SecondaryStructure(
-    chain,
+    Residue(chain, 3),
+    Residue(chain, 4),
     2,
     SecondaryStructureElement.Coil;
     name=&quot;C1&quot;
 )
 
 ss3 = SecondaryStructure(
-    chain,
+    Residue(chain, 5),
+    Residue(chain, 6),
     3,
     SecondaryStructureElement.Strand;
     name=&quot;S1&quot;
 )
 ss4 = SecondaryStructure(
-    chain,
+    Residue(chain, 7),
+    Residue(chain, 8),
     4,
     SecondaryStructureElement.Turn;
     name=&quot;T1&quot;
 )
 
-ss3.type = SecondaryStructureElement.Helix
 println(&quot;Number of secondary structures: &quot;, nsecondary_structures(s))
 
 # get all helices of the chain
-helices = (filter(sst -&gt; sst.type == ss1.type, secondary_structures(chain)))</code></pre><pre><code class="nohighlight hljs">Number of secondary structures: 4</code></pre><table><tr><th style="text-align: right"><strong>#</strong></th><th style="text-align: left"><strong>idx</strong></th><th style="text-align: left"><strong>number</strong></th><th style="text-align: left"><strong>type</strong></th><th style="text-align: left"><strong>name</strong></th></tr><tr><td style="text-align: right">1</td><td style="text-align: left">3</td><td style="text-align: left">1</td><td style="text-align: left">Helix</td><td style="text-align: left">H1</td></tr><tr><td style="text-align: right">2</td><td style="text-align: left">5</td><td style="text-align: left">3</td><td style="text-align: left">Helix</td><td style="text-align: left">S1</td></tr></table><p>In addition, we can compute the secondary structures for an input file:</p><pre><code class="language-julia hljs">s = load_pdb(ball_data_path(&quot;../test/data/bpti.pdb&quot;))
+filter(sst -&gt; sst.type == SecondaryStructureElement.Helix, secondary_structures(chain))</code></pre><pre><code class="nohighlight hljs">Number of secondary structures: 4</code></pre><table><tr><th style="text-align: right"><strong>#</strong></th><th style="text-align: left"><strong>idx</strong></th><th style="text-align: left"><strong>number</strong></th><th style="text-align: left"><strong>type</strong></th><th style="text-align: left"><strong>name</strong></th></tr><tr><td style="text-align: right">1</td><td style="text-align: left">5</td><td style="text-align: left">1</td><td style="text-align: left">Helix</td><td style="text-align: left">H1</td></tr></table><p>In addition, we can compute the secondary structures for an input file:</p><pre><code class="language-julia hljs">s = load_pdb(ball_data_path(&quot;../test/data/bpti.pdb&quot;))
 println(s)
 
 infer_topology!(s)
@@ -273,4 +276,4 @@ predict_secondary_structure!(s)</code></pre><pre><code class="nohighlight hljs">
 [ Info: build_bonds!(): built 903 bonds
 [ Info: Added 31 hydrogen bonds.
 
-&quot;---GGG-----------EEEEEEETTTTEEEEEEE---------B--HHHHHHHHTT-&quot;</code></pre><h2 id="Congratulation"><a class="docs-heading-anchor" href="#Congratulation">Congratulation</a><a id="Congratulation-1"></a><a class="docs-heading-anchor-permalink" href="#Congratulation" title="Permalink"></a></h2><p>You are now familiar with the most important core entities of BiochemicalAlgorithms.jl</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../getting_started/">« How to get started</a><a class="docs-footer-nextpage" href="../iterate/">How to iterate »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Monday 13 April 2026 08:27">Monday 13 April 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+&quot;---GGG-----------EEEEEEETTTTEEEEEEE---------B--HHHHHHHHTT-&quot;</code></pre><h2 id="Congratulation"><a class="docs-heading-anchor" href="#Congratulation">Congratulation</a><a id="Congratulation-1"></a><a class="docs-heading-anchor-permalink" href="#Congratulation" title="Permalink"></a></h2><p>You are now familiar with the most important core entities of BiochemicalAlgorithms.jl</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../getting_started/">« How to get started</a><a class="docs-footer-nextpage" href="../iterate/">How to iterate »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Thursday 16 April 2026 14:42">Thursday 16 April 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
