@@ -129,7 +129,8 @@ bonds(s)
 Bonds can be accessed via their respective index, deleted, and be put in the system
 ```{julia}
 bond = bond_by_idx(s, 30)
-println("Bond index: ", bond.idx, ", between atom ", bond.a1, " and ", bond.a2, ", with order: ", bond.order)
+a1, a2 = get_partners(bond)
+println("Bond index: ", bond.idx, ", between atom ", a1.idx, " and ", a2.idx, ", with order: ", bond.order)
 
 println("Bonds in the system: ", nbonds(s))
 
@@ -137,9 +138,9 @@ delete!(bond)
 
 println("Bonds in the system after deletion: ", nbonds(s))
 
-bond = Bond(s, 5, 13, BondOrder.Single)
+bond = Bond(a1, a2, BondOrder.Single)
 
-println("Bonds in the system after deletion: ", nbonds(s))
+println("Bonds in the system after re-adding the bond: ", nbonds(s))
 ```
 
 Be careful: The bond index is now different because it is a new Bond object:

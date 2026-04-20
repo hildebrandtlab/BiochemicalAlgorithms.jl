@@ -214,36 +214,37 @@ Let’s take a deeper look at the bonds. Bond are only formed inside the same sy
 bonds(s)
 ```
 
-| **\#** | **idx** | **a1** | **a2** | **order** |
-|-------:|:--------|:-------|:-------|:----------|
-|      1 | 29      | 4      | 12     | Single    |
-|      2 | 30      | 4      | 5      | Single    |
-|      3 | 31      | 4      | 8      | Single    |
-|      4 | 32      | 4      | 10     | Single    |
-|      5 | 33      | 5      | 15     | Single    |
-|      6 | 34      | 5      | 6      | Single    |
-|      7 | 35      | 5      | 14     | Single    |
-|      8 | 36      | 6      | 7      | Double    |
-|      9 | 37      | 9      | 14     | Single    |
-|     10 | 38      | 11     | 14     | Single    |
-|     11 | 39      | 13     | 14     | Single    |
-|     12 | 40      | 17     | 20     | Single    |
-|     13 | 41      | 17     | 18     | Single    |
-|     14 | 42      | 18     | 25     | Single    |
-|     15 | 43      | 18     | 19     | Single    |
-|     16 | 44      | 18     | 24     | Single    |
-|     17 | 45      | 19     | 26     | Double    |
-|     18 | 46      | 19     | 27     | Single    |
-|     19 | 47      | 21     | 24     | Single    |
-|     20 | 48      | 22     | 24     | Single    |
-|     21 | 49      | 23     | 24     | Single    |
-|     22 | 50      | 6      | 17     | Single    |
+| **\#** | **idx** | **order** |
+|-------:|:--------|:----------|
+|      1 | 29      | Single    |
+|      2 | 30      | Single    |
+|      3 | 31      | Single    |
+|      4 | 32      | Single    |
+|      5 | 33      | Single    |
+|      6 | 34      | Single    |
+|      7 | 35      | Single    |
+|      8 | 36      | Double    |
+|      9 | 37      | Single    |
+|     10 | 38      | Single    |
+|     11 | 39      | Single    |
+|     12 | 40      | Single    |
+|     13 | 41      | Single    |
+|     14 | 42      | Single    |
+|     15 | 43      | Single    |
+|     16 | 44      | Single    |
+|     17 | 45      | Double    |
+|     18 | 46      | Single    |
+|     19 | 47      | Single    |
+|     20 | 48      | Single    |
+|     21 | 49      | Single    |
+|     22 | 50      | Single    |
 
 Bonds can be accessed via their respective index, deleted, and be put in the system
 
 ``` julia
 bond = bond_by_idx(s, 30)
-println("Bond index: ", bond.idx, ", between atom ", bond.a1, " and ", bond.a2, ", with order: ", bond.order)
+a1, a2 = get_partners(bond)
+println("Bond index: ", bond.idx, ", between atom ", a1.idx, " and ", a2.idx, ", with order: ", bond.order)
 
 println("Bonds in the system: ", nbonds(s))
 
@@ -251,15 +252,15 @@ delete!(bond)
 
 println("Bonds in the system after deletion: ", nbonds(s))
 
-bond = Bond(s, 5, 13, BondOrder.Single)
+bond = Bond(a1, a2, BondOrder.Single)
 
-println("Bonds in the system after deletion: ", nbonds(s))
+println("Bonds in the system after re-adding the bond: ", nbonds(s))
 ```
 
     Bond index: 30, between atom 4 and 5, with order: Single
     Bonds in the system: 22
     Bonds in the system after deletion: 21
-    Bonds in the system after deletion: 22
+    Bonds in the system after re-adding the bond: 22
 
 Be careful: The bond index is now different because it is a new Bond object:
 
