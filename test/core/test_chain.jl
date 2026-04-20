@@ -145,7 +145,7 @@
         @test length(bonds(ct)) == 0
         @test nbonds(ct) == 0
 
-        Bond(sys, a1.idx, a2.idx, BondOrder.Single)
+        Bond(a1, a2, BondOrder.Single)
         @test length(bonds(ct)) == 1
         @test nbonds(ct) == 1
 
@@ -329,19 +329,19 @@ end
         @test nbonds(chain) == 0
         @test nbonds(chain) == nbonds(sys, chain_idx = chain.idx)
 
-        Bond(chain, Atom(frag, 1, Elements.H).idx, Atom(frag, 2, Elements.C).idx, BondOrder.Single)
+        Bond(Atom(frag, 1, Elements.H), Atom(frag, 2, Elements.C), BondOrder.Single)
         @test length(bonds(chain)) == 1
         @test bonds(chain) == bonds(sys, chain_idx = chain.idx)
         @test nbonds(chain) == 1
         @test nbonds(chain) == nbonds(sys, chain_idx = chain.idx)
 
-        Bond(chain, Atom(nuc, 1, Elements.H).idx, Atom(nuc, 2, Elements.C).idx, BondOrder.Single)
+        Bond(Atom(nuc, 1, Elements.H), Atom(nuc, 2, Elements.C), BondOrder.Single)
         @test length(bonds(chain)) == 2
         @test bonds(chain) == bonds(sys, chain_idx = chain.idx)
         @test nbonds(chain) == 2
         @test nbonds(chain) == nbonds(sys, chain_idx = chain.idx)
 
-        Bond(chain, Atom(res, 1, Elements.H).idx, Atom(res, 2, Elements.C).idx, BondOrder.Single)
+        Bond(Atom(res, 1, Elements.H), Atom(res, 2, Elements.C), BondOrder.Single)
         @test length(bonds(chain)) == 3
         @test bonds(chain) == bonds(sys, chain_idx = chain.idx)
         @test nbonds(chain) == 3

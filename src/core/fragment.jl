@@ -806,9 +806,9 @@ Returns `true` if the torsion angle has been applied successfully, `false` other
                 return false
             end
 
-            if !in(atom_by_idx(parent(atom),bond.a2), component)
-                push!(component, atom_by_idx(parent(atom), bond.a2))
-                push!(queue, atom_by_idx(parent(atom), bond.a2))
+            if !in(atom_by_idx(parent(atom),bond.atom2_idx), component)
+                push!(component, atom_by_idx(parent(atom), bond.atom2_idx))
+                push!(queue, atom_by_idx(parent(atom), bond.atom2_idx))
             end
         end
     end

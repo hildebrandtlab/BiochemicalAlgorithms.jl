@@ -159,7 +159,7 @@
         @test length(bonds(mt)) == 0
         @test nbonds(mt) == 0
 
-        Bond(sys, a1.idx, a2.idx, BondOrder.Single)
+        Bond(a1, a2, BondOrder.Single)
         @test length(bonds(mt)) == 1
         @test nbonds(mt) == 1
 
@@ -616,7 +616,7 @@ end
         @test nbonds(mol) == 0
         @test nbonds(mol) == nbonds(sys, molecule_idx = mol.idx)
 
-        Bond(mol, Atom(mol, 1, Elements.H).idx, Atom(mol, 2, Elements.C).idx, BondOrder.Single)
+        Bond(Atom(mol, 1, Elements.H), Atom(mol, 2, Elements.C), BondOrder.Single)
         @test length(bonds(mol)) == 1
         @test bonds(mol) == bonds(sys, molecule_idx = mol.idx)
         @test nbonds(mol) == 1
@@ -727,7 +727,7 @@ end
         @test nbonds(prot) == 0
         @test nbonds(prot) == nbonds(sys, molecule_idx = prot.idx)
 
-        Bond(prot, Atom(prot, 1, Elements.H).idx, Atom(prot, 2, Elements.C).idx, BondOrder.Single)
+        Bond(Atom(prot, 1, Elements.H), Atom(prot, 2, Elements.C), BondOrder.Single)
         @test length(bonds(prot)) == 1
         @test bonds(prot) == bonds(sys, molecule_idx = prot.idx)
         @test nbonds(prot) == 1

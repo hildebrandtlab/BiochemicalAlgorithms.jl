@@ -505,7 +505,7 @@ function interpret_record(
                 if b.element in _nonmetals
                     flags = Flags()
                     push!(flags, :TYPE__COVALENT)
-                    Bond(sys, a.idx, b.idx, BondOrder.Single; flags)
+                    Bond(a, b, BondOrder.Single; flags)
                     _record_bond!(pdb_info, a.idx, b.idx)
                 end
             end
@@ -516,7 +516,7 @@ function interpret_record(
                 if !_is_bound_to(pdb_info, h.idx, a.idx)
                     flags = Flags()
                     push!(flags, :TYPE__HYDROGEN)
-                    Bond(sys, a.idx, h.idx, BondOrder.Single; flags)
+                    Bond(a, h, BondOrder.Single; flags)
                     _record_bond!(pdb_info, a.idx, h.idx)
                 end
             end
@@ -529,7 +529,7 @@ function interpret_record(
         if !isnothing(b) && !_is_bound_to(pdb_info, b.idx, a.idx)
             flags = Flags()
             push!(flags, :TYPE__SALT_BRIDGE)
-            Bond(sys, a.idx, b.idx, BondOrder.Single; flags)
+            Bond(a, b, BondOrder.Single; flags)
             _record_bond!(pdb_info, a.idx, b.idx)
         end
     end
@@ -562,8 +562,8 @@ function postprocess_ssbonds_!(sys, pdb_info, fragment_cache)
             # we will only add the corresponding flag
             bond_idx = findfirst(
                 b ->
-                ((b.a1 == atoms(f1)[a1].idx) && (b.a2 == atoms(f2)[a2].idx)) ||
-                ((b.a1 == atoms(f2)[a2].idx) && (b.a2 == atoms(f1)[a1].idx)), bonds(sys))
+                ((b.atom1_idx == atoms(f1)[a1].idx) && (b.atom2_idx == atoms(f2)[a2].idx)) ||
+                ((b.atom1_idx == atoms(f2)[a2].idx) && (b.atom2_idx == atoms(f1)[a1].idx)), bonds(sys))
 
             if !isnothing(bond_idx)
                 set_flag!(bonds(sys)[bond_idx],(:TYPE__DISULPHIDE_BOND))
@@ -571,7 +571,7 @@ function postprocess_ssbonds_!(sys, pdb_info, fragment_cache)
                 set_property!(bonds(sys)[bond_idx], :SYMMETRY_OPERATOR_1, ssbond.symmetry_operator_1)
                 set_property!(bonds(sys)[bond_idx], :BOND_LENGTH, ssbond.bond_length)
             else
-                Bond(sys, atoms(f1)[a1].idx, atoms(f2)[a2].idx, BondOrder.Single;
+                Bond(atoms(f1)[a1], atoms(f2)[a2], BondOrder.Single;
                      flags=Flags((:TYPE__DISULPHIDE_BOND,)),
                      properties=Properties(
                         :SYMMETRY_OPERATOR_0 => ssbond.symmetry_operator_0,

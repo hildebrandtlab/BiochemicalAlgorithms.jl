@@ -62,7 +62,6 @@ bonds
 nbonds
 sort_bonds!
 Base.delete!(::Bond)
-Base.push!(::System{T}, ::Bond{T}) where T
 ```
 
 ## Molecules

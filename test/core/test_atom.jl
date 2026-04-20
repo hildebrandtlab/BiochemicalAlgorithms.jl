@@ -214,7 +214,7 @@
         @test length(bonds(at)) == 0
         @test nbonds(at) == 0
 
-        Bond(sys, a1.idx, a2.idx, BondOrder.Single)
+        Bond(a1, a2, BondOrder.Single)
         @test length(bonds(at)) == 1
         @test nbonds(at) == 1
     end
@@ -430,8 +430,8 @@ end
         @test !is_geminal(a, a)
         @test !is_geminal(a, b)
 
-        Bond(sys, a.idx, b.idx, BondOrder.Single)
-        Bond(sys, b.idx, c.idx, BondOrder.Single)
+        Bond(a, b, BondOrder.Single)
+        Bond(b, c, BondOrder.Single)
 
         @test !is_geminal(a, b)
         @test is_geminal(a, c)
@@ -445,9 +445,9 @@ end
         @test !is_vicinal(a, a)
         @test !is_vicinal(a, b)
 
-        Bond(sys, a.idx, b.idx, BondOrder.Single)
-        Bond(sys, b.idx, c.idx, BondOrder.Single)
-        Bond(sys, c.idx, d.idx, BondOrder.Single)
+        Bond(a, b, BondOrder.Single)
+        Bond(b, c, BondOrder.Single)
+        Bond(c, d, BondOrder.Single)
 
         @test !is_vicinal(a, a)
         @test !is_vicinal(a, c)
@@ -459,27 +459,24 @@ end
         @test nbonds(atom) == 0
 
         @test parent(Bond(
-            sys,
-            atom.idx,
-            Atom(sys, 2, Elements.C).idx,
+            atom,
+            Atom(sys, 2, Elements.C),
             BondOrder.Single
         )) === sys
         @test length(bonds(atom)) == 1
         @test nbonds(atom) == 1
 
         @test parent(Bond(
-            sys,
-            Atom(sys, 3, Elements.C).idx,
-            atom.idx,
+            Atom(sys, 3, Elements.C),
+            atom,
             BondOrder.Double
         )) === sys
         @test length(bonds(atom)) == 2
         @test nbonds(atom) == 2
 
         @test parent(Bond(
-            sys,
-            Atom(sys, 4, Elements.C).idx,
-            Atom(sys, 5, Elements.C).idx,
+            Atom(sys, 4, Elements.C),
+            Atom(sys, 5, Elements.C),
             BondOrder.Double
         )) === sys
         @test length(bonds(atom)) == 2

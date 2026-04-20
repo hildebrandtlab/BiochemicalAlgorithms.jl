@@ -18,7 +18,7 @@
         end
 
         @test length(g.eprops) == nbonds(sys)
-        bds_sys = Set((b.a1, b.a2, Int(b.order)) for b in bonds(sys))
+        bds_sys = Set((b.atom1_idx, b.atom2_idx, Int(b.order)) for b in bonds(sys))
         bds_g   = Set((aidx_dict[e.first.key.src], aidx_dict[e.first.key.dst], e.second.order) for e in g.eprops)
         @test length(bds_sys ∩ bds_g) == nbonds(sys)
     end

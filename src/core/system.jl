@@ -172,8 +172,8 @@ end
 
 @inline function _offset_atom_indices!(sys::System, by::Int)
     _offset_indices!(sys._atoms, by)
-    _offset_indices!(sys._bonds, :a1, by)
-    _offset_indices!(sys._bonds, :a2, by)
+    _offset_indices!(sys._bonds, :atom1_idx, by)
+    _offset_indices!(sys._bonds, :atom2_idx, by)
     sys
 end
 
