@@ -16,8 +16,8 @@ h1 = Atom(h2o, 2, Elements.H, r=Vector3{Float32}(1,0,0))
 h2 = Atom(h2o, 3, Elements.H, r=Vector3{Float32}(cos(deg2rad(105)), sin(deg2rad(105)), 0))
 
 # add bonds
-Bond(h2o, o1.idx, h1.idx, BondOrder.Single)
-Bond(h2o, o1.idx, h2.idx, BondOrder.Single)
+Bond(o1, h1, BondOrder.Single)
+Bond(o1, h2, BondOrder.Single)
 
 println("Number of atoms: ", natoms(h2o))
 println("Number of bonds: ", nbonds(h2o))
@@ -264,7 +264,6 @@ neighbors = neighborlist(positions=[a.r for a in atoms(sys)], cutoff=1.5)
      (10, 11, 1.2292563742786)
      (13, 12, 1.328092566103565)
      ⋮
-     (2344, 2346, 0.9578454673076238)
      (2344, 2345, 0.96483334318895)
      (2347, 2348, 0.9646835173520685)
      (2347, 2349, 0.9621348854276188)

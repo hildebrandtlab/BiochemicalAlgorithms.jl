@@ -26,8 +26,8 @@ h1 = Atom(h2o, 2, Elements.H, r=Vector3{Float32}(1,0,0))
 h2 = Atom(h2o, 3, Elements.H, r=Vector3{Float32}(cos(deg2rad(105)), sin(deg2rad(105)), 0))
 
 # add bonds
-Bond(h2o, o1.idx, h1.idx, BondOrder.Single)
-Bond(h2o, o1.idx, h2.idx, BondOrder.Single)
+Bond(o1, h1, BondOrder.Single)
+Bond(o1, h2, BondOrder.Single)
 
 println("Number of atoms: ", natoms(h2o))
 println("Number of bonds: ", nbonds(h2o))

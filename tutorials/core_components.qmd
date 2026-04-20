@@ -12,7 +12,6 @@ In the center of all classes resides the [`System`](@ref). So let's see it in ac
 using BiochemicalAlgorithms
 
 s = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
-s
 ```
 
 This will give us an overview of the objects associated with our system. It contains 23 atoms, 0 bonds, 1 molecule, 1 chain, 0 secondary structures and 2 fragments. We look at each group separately in the following sections.
@@ -129,7 +128,9 @@ bonds(s)
 Bonds can be accessed via their respective index, deleted, and be put in the system
 ```{julia}
 bond = bond_by_idx(s, 30)
-println("Bond index: ", bond.idx, ", between atom ", bond.a1, " and ", bond.a2, ", with order: ", bond.order)
+a1, a2 = get_partners(bond)
+println("Bond index: ", bond.idx, ", between atoms ", a1.idx, " and ", a2.idx,
+    ", with order: ", bond.order)
 
 println("Bonds in the system: ", nbonds(s))
 
@@ -137,24 +138,19 @@ delete!(bond)
 
 println("Bonds in the system after deletion: ", nbonds(s))
 
-bond = Bond(s, 5, 13, BondOrder.Single)
+bond = Bond(a1, a2, BondOrder.Single)
 
-println("Bonds in the system after deletion: ", nbonds(s))
+println("Bonds in the system after re-adding the bond: ", nbonds(s))
 ```
 
 Be careful: The bond index is now different because it is a new Bond object:
 ```{julia}
 bond.idx
-
 ```
 
-Another helpful functionalities when it comes to bonds are the following:
+We have used `get_partners` above to retrieve both atoms associated with a bond. Similarly, `get_partner` can be used to retrieve the second atom if one atom of a bond is already known:
 
 ```{julia}
-# get the atoms sharing a bond
-a1, a2 = get_partners(bond)
-
-# or if we have only given one atom
 atom = atom_by_idx(s, 12)
 bond = bonds(atom)[1]
 partner_atom = get_partner(bond, atom)
