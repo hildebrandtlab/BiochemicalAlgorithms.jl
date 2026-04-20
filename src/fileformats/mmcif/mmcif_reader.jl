@@ -484,7 +484,7 @@ function _build_struct_conn_bonds!(sys, conns, fragment_cache)
             props[:BOND_LENGTH] = conn.distance
         end
 
-        Bond(sys, at1[a1].idx, at2[a2].idx, order;
+        Bond(at1[a1], at2[a2], order;
              flags = Flags((flag,)),
              properties = props)
     end

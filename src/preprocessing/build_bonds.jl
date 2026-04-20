@@ -59,12 +59,12 @@ function build_fragment_bonds!(
 
                 # ok, find out if the fragment already contains the bond
                 bond_index = findfirst(
-                    b ->    (b.a1 == atom.idx && b.a2 == partner_atom.idx)
-                         || (b.a1 == partner_atom.idx && b.a2 == atom.idx),
+                    b ->    (b.atom1_idx == atom.idx && b.atom2_idx == partner_atom.idx)
+                         || (b.atom1_idx == partner_atom.idx && b.atom2_idx == atom.idx),
                     fbonds)
 
                 if isnothing(bond_index)
-                    push!(fbonds._idx, Bond(parent_system(f), atom.idx, partner_atom.idx, tpl_bond.order).idx)
+                    push!(fbonds._idx, Bond(atom, partner_atom, tpl_bond.order).idx)
 
                     num_bonds_built += 1
                 else
@@ -127,7 +127,7 @@ function try_build_connection!(a1::Atom{T}, con1::DBConnection{T}, a2::Atom{T}, 
         push!(flags, :TYPE__DISULPHIDE_BOND)
     end
 
-    Bond(parent_system(a1), a1.idx, a2.idx, con1.order; flags = flags)
+    Bond(a1, a2, con1.order; flags = flags)
 
     return true
 end
@@ -153,8 +153,8 @@ function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     bond_cache = Set{Tuple{Int, Int}}()
 
     for bond in bonds(m)
-        push!(bond_cache, (bond.a1, bond.a2))
-        push!(bond_cache, (bond.a2, bond.a1))
+        push!(bond_cache, (bond.atom1_idx, bond.atom2_idx))
+        push!(bond_cache, (bond.atom2_idx, bond.atom1_idx))
     end
 
     num_bonds_built = 0

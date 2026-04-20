@@ -34,9 +34,9 @@ end
 function filter_atoms(fn, mol::AbstractAtomContainer; name::AbstractString="", adjacent_bonds::Bool=false)
     atom_view = filter(fn, atoms(mol))
     idxset = Set(atom_view.idx)
-    bond_view = filter(row ->
-        adjacent_bonds ? row.a1 ∈ idxset || row.a2 ∈ idxset
-                        : row.a1 ∈ idxset && row.a2 ∈ idxset,
+    bond_view = filter(b ->
+        adjacent_bonds ? b.atom1_idx ∈ idxset || b.atom2_idx ∈ idxset
+                       : b.atom1_idx ∈ idxset && b.atom2_idx ∈ idxset,
         bonds(mol)
     )
     Substructure(name, mol, atom_view, bond_view)
@@ -84,7 +84,7 @@ end
 
 @inline function bonds(substruct::Substructure; kwargs...)
     aidx = Set(atoms(substruct; kwargs...).idx)
-    filter(row -> row.a1 in aidx || row.a2.idx, substruct._bonds)
+    filter(row -> row.atom1_idx in aidx || row.atom2_idx in aidx, substruct._bonds)
 end
 
 @inline function molecules(substruct::Substructure; kwargs...)

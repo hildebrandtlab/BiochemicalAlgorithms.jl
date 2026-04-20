@@ -196,8 +196,8 @@
         @test length(bonds(ft)) == 0
         @test nbonds(ft) == 0
 
-        Bond(sys, a1.idx, a2.idx, BondOrder.Single)
-        Bond(sys, a2.idx, a3.idx, BondOrder.Double)
+        Bond(a1, a2, BondOrder.Single)
+        Bond(a2, a3, BondOrder.Double)
         @test length(bonds(ft)) == 2
         @test nbonds(ft) == 2
 
@@ -935,7 +935,7 @@ end
         @test nbonds(frag) == 0
         @test nbonds(frag) == nbonds(sys; fragment_idx = frag.idx)
 
-        Bond(frag, Atom(frag, 1, Elements.H).idx, Atom(frag, 2, Elements.C).idx, BondOrder.Single)
+        Bond(Atom(frag, 1, Elements.H), Atom(frag, 2, Elements.C), BondOrder.Single)
         @test length(bonds(frag)) == 1
         @test bonds(frag) == bonds(sys; fragment_idx = frag.idx)
         @test nbonds(frag) == 1
@@ -1149,7 +1149,7 @@ end
         @test nbonds(nuc) == 0
         @test nbonds(nuc) == nbonds(sys, fragment_idx = nuc.idx)
 
-        Bond(nuc, Atom(nuc, 1, Elements.H).idx, Atom(nuc, 2, Elements.C).idx, BondOrder.Single)
+        Bond(Atom(nuc, 1, Elements.H), Atom(nuc, 2, Elements.C), BondOrder.Single)
         @test length(bonds(nuc)) == 1
         @test bonds(nuc) == bonds(sys, fragment_idx = nuc.idx)
         @test nbonds(nuc) == 1
@@ -1363,7 +1363,7 @@ end
         @test nbonds(res) == 0
         @test nbonds(res) == nbonds(sys, fragment_idx = res.idx)
 
-        Bond(res, Atom(res, 1, Elements.H).idx, Atom(res, 2, Elements.C).idx, BondOrder.Single)
+        Bond(Atom(res, 1, Elements.H), Atom(res, 2, Elements.C), BondOrder.Single)
         @test length(bonds(res)) == 1
         @test bonds(res) == bonds(sys, fragment_idx = res.idx)
         @test nbonds(res) == 1

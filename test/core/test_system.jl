@@ -136,22 +136,22 @@
         @test size(bt2) == size(bt)
         @test bt2.idx == sort(bt.idx; rev = true)
 
-        bt2 = sort(bt; by = bond -> bond.a2)
+        bt2 = sort(bt; by = bond -> bond.atom2_idx)
         @test bt2 isa BondTable{T}
         @test size(bt2) == size(bt)
-        @test bt2.a2 == sort(bt.a2)
+        @test bt2.atom2_idx == sort(bt.atom2_idx)
 
         @test sort!(bt; rev = true) === bt
         @test bt.idx == sort(bonds(sys)[100:2:200].idx; rev = true)
 
-        @test sort!(bt; by = bond -> bond.a2) === bt
-        @test bt.a2 == sort(bonds(sys)[100:2:200].a2)
+        @test sort!(bt; by = bond -> bond.atom2_idx) === bt
+        @test bt.atom2_idx == sort(bonds(sys)[100:2:200].atom2_idx)
 
         @test sort_bonds!(sys; rev = true) === sys
         @test issorted(bonds(sys).idx; rev = true)
 
-        @test sort_bonds!(sys; by = bond -> bond.a2) === sys
-        @test issorted(bonds(sys).a2)
+        @test sort_bonds!(sys; by = bond -> bond.atom2_idx) === sys
+        @test issorted(bonds(sys).atom2_idx)
 
         ## delete! + revalidate_indices!
         sys = deepcopy(testsys)

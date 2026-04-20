@@ -203,36 +203,36 @@ function _setup_proper_torsions!(tc::TorsionComponent{T}) where T
                 continue
             end
 
-            if atom.idx == bond_1.a1
+            if atom.idx == bond_1.atom1_idx
                 # central atoms
                 a2 = atom
-                a3::Atom{T} = atom_by_idx(parent_system(atom), bond_1.a2)
+                a3::Atom{T} = atom_by_idx(parent_system(atom), bond_1.atom2_idx)
 
                 for bond_2 in bs
                     if has_flag(bond_2, :TYPE__HYDROGEN)
                         continue
                     end
 
-                    if bond_2.a2 == bond_1.a2
+                    if bond_2.atom2_idx == bond_1.atom2_idx
                         continue
                     end
 
                     # determine the first atom
-                    a1::Atom{T} = ((bond_2.a1 == atom.idx) ? atom_by_idx(parent_system(atom), bond_2.a2)
-                                                           : atom_by_idx(parent_system(atom), bond_2.a1))
+                    a1::Atom{T} = ((bond_2.atom1_idx == atom.idx) ? atom_by_idx(parent_system(atom), bond_2.atom2_idx)
+                                                           : atom_by_idx(parent_system(atom), bond_2.atom1_idx))
 
-                    for bond_3 in bonds(atom_by_idx(parent_system(atom), bond_1.a2))
+                    for bond_3 in bonds(atom_by_idx(parent_system(atom), bond_1.atom2_idx))
                         if has_flag(bond_3, :TYPE__HYDROGEN)
                             continue
                         end
 
-                        if bond_3.a1 == a2.idx
+                        if bond_3.atom1_idx == a2.idx
                             continue
                         end
 
                         # determine the fourth atom a4
-                        a4::Atom{T} = ((bond_3.a1 == a3.idx) ? atom_by_idx(parent_system(atom), bond_3.a2)
-                                                             : atom_by_idx(parent_system(atom), bond_3.a1))
+                        a4::Atom{T} = ((bond_3.atom1_idx == a3.idx) ? atom_by_idx(parent_system(atom), bond_3.atom2_idx)
+                                                             : atom_by_idx(parent_system(atom), bond_3.atom1_idx))
 
                         _try_assign_torsion!(
                             tc,

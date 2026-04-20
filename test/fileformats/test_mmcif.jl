@@ -198,8 +198,7 @@ end
         @test nbonds(sys) == 4
         for b in bonds(sys)
             @test has_flag(b, :TYPE__COVALENT)
-            a1 = atom_by_idx(sys, b.a1)
-            a2 = atom_by_idx(sys, b.a2)
+            a1, a2 = get_partners(b)
             elements = (a1.element, a2.element)
             @test Elements.Fe in elements
             @test Elements.N in elements

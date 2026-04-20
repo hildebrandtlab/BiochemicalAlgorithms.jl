@@ -281,7 +281,7 @@ Returns a `BondTable{T}` containing all bonds of the given atom(s).
 @inline function bonds(atom::Atom)
     aidx = atom.idx
     _filter_bonds(
-        bond -> bond.a1 == aidx || bond.a2 == aidx,
+        bond -> bond.atom1_idx == aidx || bond.atom2_idx == aidx,
         parent(atom)
     )
 end
@@ -289,7 +289,7 @@ end
 @inline function bonds(at::AtomTable)
     aidx = Set(at.idx)
     _filter_bonds(
-        bond -> bond.a1 in aidx || bond.a2 in aidx,
+        bond -> bond.atom1_idx in aidx || bond.atom2_idx in aidx,
         at._sys
     )
 end
@@ -431,8 +431,8 @@ function is_bound_to(a1::Atom{T}, a2::Atom{T}) where T
 
     return any(
         b ->
-            ((b.a1 == a1.idx) && (b.a2 == a2.idx)) ||
-            ((b.a1 == a2.idx) && (b.a2 == a1.idx)),
+            ((b.atom1_idx == a1.idx) && (b.atom2_idx == a2.idx)) ||
+            ((b.atom1_idx == a2.idx) && (b.atom2_idx == a1.idx)),
         non_hydrogen_bonds(s)
     )
 end

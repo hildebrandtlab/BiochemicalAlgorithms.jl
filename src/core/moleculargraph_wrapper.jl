@@ -9,8 +9,8 @@ end
 
 @inline function _bond_to_molgraph_edge(b::Bond, idx_to_molgraph_atom::Dict{Int,Int})
     # MolecularGraph assumes src < dst (cf. MolecularGraph.u_edge)
-    e1 = idx_to_molgraph_atom[b.a1]
-    e2 = idx_to_molgraph_atom[b.a2]
+    e1 = idx_to_molgraph_atom[b.atom1_idx]
+    e2 = idx_to_molgraph_atom[b.atom2_idx]
     e1 < e2 ? Edge(e1, e2) : Edge(e2, e1)
 end
 
@@ -77,9 +77,8 @@ end
 @inline function _molgraph_to_bond(mol::Molecule, (e, b)::Pair{E, MolecularGraph.SDFBond}) where E
     at = atoms(mol)
     Bond(
-        mol,
-        only(filter(atom -> atom.number == src(e), at)).idx,
-        only(filter(atom -> atom.number == dst(e), at)).idx,
+        only(filter(atom -> atom.number == src(e), at)),
+        only(filter(atom -> atom.number == dst(e), at)),
         BondOrderType(b.order);
         properties = Properties(
             :notation => b.notation
@@ -90,9 +89,8 @@ end
 @inline function _molgraph_to_bond(mol::Molecule, (e, b)::Pair{E, MolecularGraph.SMILESBond}) where E
     at = atoms(mol)
     Bond(
-        mol,
-        only(filter(atom -> atom.number == src(e), at)).idx,
-        only(filter(atom -> atom.number == dst(e), at)).idx,
+        only(filter(atom -> atom.number == src(e), at)),
+        only(filter(atom -> atom.number == dst(e), at)),
         BondOrderType(b.order);
         properties = Properties(
             :is_aromatic => b.isaromatic,

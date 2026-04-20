@@ -75,7 +75,7 @@ function _parse_atoms!(mol::Molecule, compound::JSON.Object, ::Type{T} = Float32
 end
 
 function _parse_bonds!(mol::Molecule, compound::JSON.Object, ::Type{T} = Float32) where {T <: Real}
-    aidx = Dict(a.number => a.idx for a in atoms(parent_system(mol)))
+    atoms_by_number = Dict(a.number => a for a in atoms(parent_system(mol)))
     if haskey(compound, :bonds)
         for i in eachindex(compound.bonds.aid1)
             aid1 = compound.bonds.aid1[i]
@@ -100,9 +100,9 @@ function _parse_bonds!(mol::Molecule, compound::JSON.Object, ::Type{T} = Float32
                 properties[:PCBondAnnotation_for_conformer] = annotations
             end
 
-            Bond(mol,
-                aidx[aid1],
-                aidx[aid2],
+            Bond(
+                atoms_by_number[aid1],
+                atoms_by_number[aid2],
                 (order <= 4) ? BondOrderType(order) : BondOrder.Unknown;
                 properties = properties
             )

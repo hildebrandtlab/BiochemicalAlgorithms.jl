@@ -195,7 +195,7 @@
         @test length(bonds(st)) == 0
         @test nbonds(st) == 0
 
-        Bond(sys, a1.idx, a2.idx, BondOrder.Single)
+        Bond(a1, a2, BondOrder.Single)
         @test length(bonds(st)) == 1
         @test nbonds(st) == 1
     end
@@ -353,7 +353,7 @@ end
         @test length(bonds(ss)) == 0
         @test nbonds(ss) == 0
 
-        Bond(chain4, a1.idx, a2.idx, BondOrder.Single)
+        Bond(a1, a2, BondOrder.Single)
         @test length(bonds(ss)) == 1
         @test nbonds(ss) == 1
 

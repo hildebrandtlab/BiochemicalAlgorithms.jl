@@ -38,7 +38,7 @@ function place_peptide_bond_h_!(frag::Fragment{T}) where T
             r = n_atom.r .- (OC .* BOND_LENGTH_N_H) ./ length,
         )
 
-        Bond(parent_system(frag), n_atom.idx, h_atom.idx, BondOrder.Single)
+        Bond(n_atom, h_atom, BondOrder.Single)
 
         return true
     end
@@ -131,7 +131,7 @@ function _add_hydrogen!(atom::Atom{T}, r::Vector3{T}, atom_nr::Int) where T
         r = r
     )
 
-    Bond(parent_system(atom), atom.idx, h_atom.idx, BondOrder.Single)
+    Bond(atom, h_atom, BondOrder.Single)
 end
 
 function _get_normal(v::Vector3{T}) where {T<:Real}

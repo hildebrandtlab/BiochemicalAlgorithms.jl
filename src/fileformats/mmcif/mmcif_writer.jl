@@ -191,8 +191,7 @@ function _write_struct_conn(io::IO, ac::AbstractAtomContainer{T}) where T
     sys = parent_system(ac)
 
     for (i, (b, ctype)) in enumerate(conn_bonds)
-        a1 = atom_by_idx(sys, b.a1)
-        a2 = atom_by_idx(sys, b.a2)
+        a1, a2 = get_partners(b)
         f1 = parent_fragment(a1)
         f2 = parent_fragment(a2)
         c1 = parent_chain(a1)

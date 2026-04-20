@@ -50,8 +50,7 @@ function setup!(qsc::QuadraticStretchComponent{T}) where T
 
     # iterate over all bonds in the system
     for (i, bond) in enumerate(bonds(ff.system))
-        a1 = atom_by_idx(parent_system(ff.system), bond.a1)
-        a2 = atom_by_idx(parent_system(ff.system), bond.a2)
+        a1, a2 = get_partners(bond)
 
         type_a1 = a1.atom_type
         type_a2 = a2.atom_type

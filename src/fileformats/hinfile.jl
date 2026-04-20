@@ -239,7 +239,7 @@ function _handle_hin_endmolecule!(parser_state::HINParserState)
 
         type = b[3]
 
-        nb = Bond(parser_state.s, a1.idx, a2.idx, type)
+        nb = Bond(a1, a2, type)
 
         f1 = parent_fragment(a1)
         f2 = parent_fragment(a2)
