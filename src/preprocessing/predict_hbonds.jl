@@ -112,10 +112,10 @@ function predict_hbonds_kabsch_sander!(ac::AbstractAtomContainer{T}, h_bond_from
 
         n_added_hbonds += 1
 
-        donor_idx    = h_bond_from_donor ? N.idx : H.idx
-        acceptor_idx = O.idx
+        donor    = h_bond_from_donor ? N : H
+        acceptor = O
 
-        Bond(parent_system(N), donor_idx, acceptor_idx, BondOrder.Single; flags=Flags([:TYPE__HYDROGEN]))
+        Bond(donor, acceptor, BondOrder.Single; flags=Flags([:TYPE__HYDROGEN]))
 
         @debug "H-Bond found between $(get_full_name(c1)) and $(get_full_name(c2))"
     end

@@ -1,5 +1,5 @@
-const _bond_table_cols_main = (:idx, :a1, :a2, :order)
-const _bond_table_cols_extra = (:properties, :flags)
+const _bond_table_cols_main = (:idx, :order)
+const _bond_table_cols_extra = (:properties, :flags, :atom1_idx, :atom2_idx)
 const _bond_table_cols = (_bond_table_cols_main..., _bond_table_cols_extra...)
 const _bond_table_cols_set = Set(_bond_table_cols)
 const _bond_table_schema = Tables.Schema(
@@ -9,13 +9,13 @@ const _bond_table_schema = Tables.Schema(
 
 @auto_hash_equals struct _BondTable <: _AbstractSystemComponentTable
     idx::Vector{Int}
-    a1::Vector{Int}
-    a2::Vector{Int}
     order::Vector{BondOrderType}
 
     # private columns
     properties::Vector{Properties}
     flags::Vector{Flags}
+    atom1_idx::Vector{Int}
+    atom2_idx::Vector{Int}
 
     # internals
     _idx_map::_IdxMap
@@ -23,11 +23,11 @@ const _bond_table_schema = Tables.Schema(
     function _BondTable()
         new(
             Int[],
-            Int[],
-            Int[],
             BondOrderType[],
             Properties[],
             Flags[],
+            Int[],
+            Int[],
             _IdxMap()
         )
     end
@@ -52,26 +52,26 @@ end
 function Base.push!(
     bt::_BondTable,
     idx::Int,
-    a1::Int,
-    a2::Int,
-    order::BondOrderType;
+    order::BondOrderType,
+    atom1_idx::Int,
+    atom2_idx::Int;
     properties::Properties = Properties(),
     flags::Flags = Flags()
 )
     bt._idx_map[idx] = length(bt.idx) + 1
     push!(bt.idx, idx)
-    push!(bt.a1, a1)
-    push!(bt.a2, a2)
     push!(bt.order, order)
     push!(bt.properties, properties)
     push!(bt.flags, flags)
+    push!(bt.atom1_idx, atom1_idx)
+    push!(bt.atom2_idx, atom2_idx)
     bt
 end
 
 function _bond_table(itr)
     bt = _BondTable()
     for b in itr
-        push!(bt, b.idx, b.a1, b.a2, b.order;
+        push!(bt, b.idx, b.order, b.atom1_idx, b.atom2_idx;
             properties = b.properties,
             flags = b.flags
         )

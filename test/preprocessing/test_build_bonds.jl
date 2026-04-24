@@ -31,8 +31,8 @@
             @test length(ss_bonds) == 3
 
             for b in ss_bonds
-                a1 = atom_by_idx(sys, b.a1)
-                a2 = atom_by_idx(sys, b.a2)
+                a1 = atom_by_idx(sys, b.atom1_idx)
+                a2 = atom_by_idx(sys, b.atom2_idx)
                 @test a1.name == "SG"
                 @test a2.name == "SG"
                 @test parent_fragment(a1).name == "CYS"
@@ -49,8 +49,8 @@
 
             # verify inter-fragment peptide bond
             peptide_bonds = filter(bonds(sys)) do b
-                a1 = atom_by_idx(sys, b.a1)
-                a2 = atom_by_idx(sys, b.a2)
+                a1 = atom_by_idx(sys, b.atom1_idx)
+                a2 = atom_by_idx(sys, b.atom2_idx)
                 parent_fragment(a1) != parent_fragment(a2)
             end
             @test length(peptide_bonds) == 1

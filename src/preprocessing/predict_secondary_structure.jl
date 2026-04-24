@@ -66,8 +66,7 @@ function _prepare_hbonds(ac::AbstractAtomContainer)
     # these are stored such that the acceptor is mapped to the donor
 
     function convert_bond(b::Bond)
-        a1 = atom_by_idx(ac, b.a1)
-        a2 = atom_by_idx(ac, b.a2)
+        a1, a2 = get_partners(b)
 
         if a1.name == "N"
             (idx_map[parent_fragment(a2).idx], idx_map[parent_fragment(a1).idx])

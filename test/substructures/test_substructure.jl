@@ -8,7 +8,7 @@
     filtered_atoms = filter(filter_fn, atoms(mol))
     idxset = Set(filtered_atoms.idx)
     filtered_bonds = filter(bond ->
-        bond.a1 ∈ idxset && bond.a2 ∈ idxset,
+        bond.atom1_idx ∈ idxset && bond.atom2_idx ∈ idxset,
         bonds(mol)
     )
 
