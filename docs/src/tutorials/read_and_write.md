@@ -49,7 +49,7 @@ sys = load_pubchem_json(ball_data_path("../test/data/aspirin_pug.json"))
 sys = load_sdfile(ball_data_path("../test/data/rings_test.sdf"))
 ```
 
-    System{Float32}: rings_test.sdf
+    System{Float32}:
       148 atoms
       151 bonds
         9 molecules
