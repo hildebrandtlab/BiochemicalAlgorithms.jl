@@ -1,0 +1,86 @@
+{
+  "name": "PO4",
+  "names": [
+    "Phosphate ion"
+  ],
+  "type": "None",
+  "atoms": [
+    {
+      "name": "P",
+      "element": "P",
+      "r": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "O1",
+      "element": "O",
+      "r": [
+        0.0,
+        -1.288,
+        -0.911
+      ]
+    },
+    {
+      "name": "O2",
+      "element": "O",
+      "r": [
+        0.0,
+        1.288,
+        -0.911
+      ]
+    },
+    {
+      "name": "O3",
+      "element": "O",
+      "r": [
+        -1.288,
+        0.0,
+        0.911
+      ]
+    },
+    {
+      "name": "O4",
+      "element": "O",
+      "r": [
+        1.288,
+        0.0,
+        0.911
+      ]
+    }
+  ],
+  "bonds": [
+    {
+      "number": 1,
+      "a1": "P",
+      "a2": "O1",
+      "order": "Double"
+    },
+    {
+      "number": 1,
+      "a1": "P",
+      "a2": "O2",
+      "order": "Single"
+    },
+    {
+      "number": 1,
+      "a1": "P",
+      "a2": "O3",
+      "order": "Single"
+    },
+    {
+      "number": 1,
+      "a1": "P",
+      "a2": "O4",
+      "order": "Single"
+    }
+  ],
+  "connections": [],
+  "variants": [
+    {
+      "name": "PO4"
+    }
+  ]
+}
