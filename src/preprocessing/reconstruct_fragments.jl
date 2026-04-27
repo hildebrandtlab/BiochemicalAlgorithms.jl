@@ -65,7 +65,7 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
             # later on.
 			new_atom = Atom(
                 f,
-                maximum(atoms(parent_system(f)).number)+1, # does this make sense?
+                maximum(atoms(parent_system(f)).number; init = 0)+1, # does this make sense?
                 tpl_atom.element;
                 name = tpl_atom.name,
                 r = tpl_atom.r
