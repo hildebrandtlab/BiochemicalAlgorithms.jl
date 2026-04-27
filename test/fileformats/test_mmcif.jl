@@ -2,7 +2,7 @@
     for T in [Float32, Float64]
         sys = load_mmcif(ball_data_path("../test/data/5pti.cif"), T)
         @test sys isa System{T}
-        @test sys.name == "5pti"
+        @test sys.name == "5PTI"  # from data block name
         @test natoms(sys) == 1087
         @test nbonds(sys) == 3  # 3 disulfide bonds from _struct_conn
         @test nmolecules(sys) == 1
@@ -28,7 +28,8 @@
         # IO loading
         sys2 = open(io -> load_mmcif(io, T), ball_data_path("../test/data/5pti.cif"))
         @test sys2 isa System{T}
-        @test sys2.name == "5PTI"  # from data block name when reading from IO
+        @test sys2.name == "5PTI"  # name comes from data block in both cases
+        @test sys.name == sys2.name
         @test natoms(sys2) == 1087
         @test nbonds(sys2) == 3
         @test nmolecules(sys2) == 1

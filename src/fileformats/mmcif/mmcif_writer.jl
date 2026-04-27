@@ -2,11 +2,7 @@ using Printf
 
 using BiochemicalAlgorithms
 
-"""
-    write_mmcif_impl(io::IO, ac::AbstractAtomContainer{T})
-
-Write an atom container as PDBx/mmCIF format to the given IO stream.
-"""
+# Write an atom container as PDBx/mmCIF format to the given IO stream.
 function write_mmcif_impl(io::IO, ac::AbstractAtomContainer{T}) where T
     name = replace(ac.name, r"\s+" => "_")
     isempty(name) && (name = "unnamed")
@@ -22,9 +18,8 @@ end
 
 # ─── CIF value quoting ───────────────────────────────────────────────
 
-"""Quote a string value for CIF output."""
+# Quote a string value for CIF output.
 function _cif_quote(s::AbstractString)
-    s = string(s)
     isempty(s) && return "."
     # Multiline values must use semicolon text blocks
     if occursin('\n', s) || occursin('\r', s)
