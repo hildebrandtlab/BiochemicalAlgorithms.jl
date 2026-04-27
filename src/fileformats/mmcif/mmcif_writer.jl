@@ -173,7 +173,7 @@ end
 # ─── _struct_conf (helices) ──────────────────────────────────────────
 
 function _write_struct_conf(io::IO, ac::AbstractAtomContainer{T}) where T
-    helices = filter(ss -> ss.element == SecondaryStructureElement.Helix, secondary_structures(ac))
+    helices = filter(ss -> ss.type == SecondaryStructureElement.Helix, secondary_structures(ac))
     isempty(helices) && return
 
     println(io, "loop_")
@@ -216,7 +216,7 @@ end
 # ─── _struct_sheet_range (sheets) ────────────────────────────────────
 
 function _write_struct_sheet_range(io::IO, ac::AbstractAtomContainer{T}) where T
-    strands = filter(ss -> ss.element == SecondaryStructureElement.Strand, secondary_structures(ac))
+    strands = filter(ss -> ss.type == SecondaryStructureElement.Strand, secondary_structures(ac))
     isempty(strands) && return
 
     println(io, "loop_")
