@@ -6,7 +6,7 @@
         @test natoms(sys) == 1087
         @test nbonds(sys) == 3  # 3 disulfide bonds from _struct_conn
         @test nmolecules(sys) == 1
-        @test nchains(sys) == 1
+        @test nchains(sys) == 2  # ATOM and HETATM split into separate chains, both named "A"
         @test nfragments(sys) == 123
         @test nnucleotides(sys) == 0
         @test nresidues(sys) == 58
@@ -33,7 +33,7 @@
         @test natoms(sys2) == 1087
         @test nbonds(sys2) == 3
         @test nmolecules(sys2) == 1
-        @test nchains(sys2) == 1
+        @test nchains(sys2) == 2
         @test nfragments(sys2) == 123
         @test nnucleotides(sys2) == 0
         @test nresidues(sys2) == 58
@@ -84,15 +84,16 @@ end
 
 @testitem "mmCIF vs PDB equivalence: 5PTI" begin
     # 5PTI is a single-chain hydrolase inhibitor. Expected format differences we
-    # don't assert across: sys.name (PDB TITLE vs CIF data block), nchains
-    # (PDB splits HETATMs onto a second chain, CIF keeps them on one asym_id),
-    # nbonds (PDB also has CONECT records; CIF has only _struct_conn SS bonds).
+    # don't assert across: sys.name (PDB TITLE vs CIF data block), nbonds (PDB
+    # also has CONECT records; CIF has only _struct_conn SS bonds).
     for T in [Float32, Float64]
         sys_pdb = load_pdb(ball_data_path("../test/data/5PTI.pdb"), T)
         sys_cif = load_mmcif(ball_data_path("../test/data/5pti.cif"), T)
 
         @test natoms(sys_pdb) == natoms(sys_cif)
+        @test nchains(sys_pdb) == nchains(sys_cif)
         @test nfragments(sys_pdb) == nfragments(sys_cif)
+        @test nfragments.(chains(sys_pdb)) == nfragments.(chains(sys_cif))
         @test nresidues(sys_pdb) == nresidues(sys_cif)
         @test nnucleotides(sys_pdb) == nnucleotides(sys_cif)
 

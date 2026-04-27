@@ -149,6 +149,7 @@ function _build_atoms!(sys::System{T}, mol::Molecule{T}, loop::CIFLoop, ::Type{T
     current_chain::Union{Chain{T}, Nothing} = nothing
     current_frag::Union{Fragment{T}, Nothing} = nothing
     current_chain_id = ""
+    current_is_hetero = false
     current_frag_key = ("", 0, "")  # (comp_id, seq_id, ins_code)
 
     altloc_warning = false
@@ -187,10 +188,16 @@ function _build_atoms!(sys::System{T}, mol::Molecule{T}, loop::CIFLoop, ::Type{T
             end
         end
 
-        # Chain
-        if isnothing(current_chain) || chain_id != current_chain_id
+        is_hetero = strip(row[c_group]) == "HETATM"
+
+        # Chain — split on chain_id change OR on ATOM↔HETATM transition within
+        # the same chain_id, mirroring the PDB reader's TER-based behavior.
+        if isnothing(current_chain) ||
+                chain_id != current_chain_id ||
+                is_hetero != current_is_hetero
             current_chain = Chain(mol; name = chain_id)
             current_chain_id = chain_id
+            current_is_hetero = is_hetero
             current_frag = nothing
             current_frag_key = ("", 0, "")
         end
@@ -198,7 +205,6 @@ function _build_atoms!(sys::System{T}, mol::Molecule{T}, loop::CIFLoop, ::Type{T
         # Fragment
         frag_key = (comp_id, seq_id, ins_code)
         if isnothing(current_frag) || frag_key != current_frag_key
-            is_hetero = strip(row[c_group]) == "HETATM"
             current_frag = Fragment(current_chain, seq_id;
                 name = comp_id,
                 variant = _fragment_variant(comp_id),
