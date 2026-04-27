@@ -4,13 +4,8 @@ using BiochemicalAlgorithms: CIFFile, CIFDataBlock, CIFLoop, CIFParser,
 import BiochemicalAlgorithms: PDBDetails
 using DataStructures: Deque
 
-"""
-    read_mmcif(fname_io::Union{AbstractString, IO}, ::Type{T} = Float32; create_coils::Bool = true) -> System{T}
-
-Read a PDBx/mmCIF file and return a System.
-
-Models are stored as frames, using the model number as `frame_id`.
-"""
+# Read a PDBx/mmCIF file and return a System. Models are stored as frames,
+# using the model number as `frame_id`.
 function read_mmcif(fname_io::Union{AbstractString, IO}, ::Type{T} = Float32;
         create_coils::Bool = true) where {T <: Real}
     cif = if fname_io isa AbstractString
@@ -25,18 +20,8 @@ function read_mmcif(fname_io::Union{AbstractString, IO}, ::Type{T} = Float32;
 
     block = first(values(cif.blocks))
 
-    # Set system name from data block name (or filename if available)
-    sys_name = if fname_io isa AbstractString
-        bn = basename(fname_io)
-        # strip extension
-        idx = findlast('.', bn)
-        isnothing(idx) ? bn : bn[1:idx-1]
-    else
-        block.name
-    end
-
-    sys = System{T}(sys_name)
-    mol = Molecule(sys; name = sys_name)
+    sys = System{T}(block.name)
+    mol = Molecule(sys; name = block.name)
 
     # Parse _atom_site loop
     atom_loop = _find_loop(block, "_atom_site.")
@@ -70,7 +55,7 @@ end
 
 # ─── Helpers ──────────────────────────────────────────────────────────
 
-"""Find a loop in the data block whose tags start with the given prefix."""
+# Find a loop in the data block whose tags start with the given prefix.
 function _find_loop(block::CIFDataBlock, prefix::String)
     for loop in block.loops
         if !isempty(loop.tags) && startswith(loop.tags[1], prefix)
@@ -80,35 +65,37 @@ function _find_loop(block::CIFDataBlock, prefix::String)
     return nothing
 end
 
-"""Build a tag→column-index map for a loop."""
+# Build a tag→column-index map for a loop.
 @inline function _col_map(loop::CIFLoop)
     Dict(tag => i for (i, tag) in enumerate(loop.tags))
 end
 
-"""Get a value from a row, returning `nothing` for CIF missing values (? and .)."""
+# Get a value from a row, returning `nothing` for CIF missing values (? and .).
 @inline function _get(row::Vector{String}, col::Int)
     v = row[col]
     (v == "?" || v == ".") ? nothing : v
 end
 
-"""Get a value with a default for missing."""
+# Get a value with a default for missing.
 @inline function _get(row::Vector{String}, col::Int, default)
     v = _get(row, col)
     isnothing(v) ? default : v
 end
 
-"""Get an optional column index, returning nothing if the tag is not present."""
+# Get an optional column index, returning nothing if the tag is not present.
 @inline function _optcol(cols::Dict{String, Int}, tag::String)
     get(cols, tag, nothing)
 end
 
-"""Get a required column index, trying `primary` first then `fallback`. Returns nothing if neither exists."""
+# Get a required column index, trying `primary` first then `fallback`. Returns
+# nothing if neither exists.
 @inline function _reqcol(cols::Dict{String, Int}, primary::String, fallback::String)
     c = get(cols, primary, nothing)
     isnothing(c) ? get(cols, fallback, nothing) : c
 end
 
-"""Parse mmCIF formal charge string. Handles plain integers ("1", "-1") and sign-suffixed ("1+", "2-")."""
+# Parse mmCIF formal charge string. Handles plain integers ("1", "-1") and
+# sign-suffixed ("1+", "2-").
 function _parse_formal_charge(s::Union{Nothing, String})
     isnothing(s) && return Int(0)
     s = strip(s)
@@ -325,7 +312,7 @@ function _parse_ssbonds(block::CIFDataBlock)
     return ssbonds
 end
 
-"""Parse CIF symmetry operator string like '1_555' into an integer."""
+# Parse CIF symmetry operator string like '1_555' into an integer.
 function _parse_symmetry_operator(s::String)
     s = strip(s)
     (s == "?" || s == "." || isempty(s)) && return 0
@@ -429,13 +416,6 @@ function _parse_sheets!(records, block::CIFDataBlock)
         return
     end
 
-    # If any required begin/end columns are missing, skip sheet parsing to avoid
-    # out-of-bounds access on row[...] (since 0 is not a valid index in Julia).
-    if c_beg_comp == 0 || c_beg_asym == 0 || c_beg_seq == 0 ||
-       c_end_comp == 0 || c_end_asym == 0 || c_end_seq == 0
-        return
-    end
-
     c_beg_ins = _optcol(cols, "_struct_sheet_range.pdbx_beg_PDB_ins_code")
     c_end_ins = _optcol(cols, "_struct_sheet_range.pdbx_end_PDB_ins_code")
 
@@ -468,7 +448,7 @@ function _parse_sheets!(records, block::CIFDataBlock)
     end
 end
 
-"""Parse _struct_sheet_order to get sense values for each sheet range."""
+# Parse _struct_sheet_order to get sense values for each sheet range.
 function _parse_sheet_order_sense(block::CIFDataBlock)
     sense_map = Dict{Tuple{String, Int}, Int}()
     loop = _find_loop(block, "_struct_sheet_order.")
