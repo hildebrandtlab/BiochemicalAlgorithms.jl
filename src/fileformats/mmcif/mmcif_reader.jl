@@ -42,9 +42,11 @@ function read_mmcif(fname_io::Union{AbstractString, IO}, ::Type{T} = Float32;
         )] = f
     end
 
-    # Parse disulfide bonds from _struct_conn
-    ssbonds = _parse_ssbonds(block)
+    # Parse disulfide and other inter-residue bonds from _struct_conn
+    ssbonds, other_conns = _parse_struct_conn(block)
     PDBDetails.postprocess_ssbonds_!(sys, ssbonds, fragment_cache)
+    _build_struct_conn_bonds!(sys, other_conns, fragment_cache)
+    _flag_disulphide_bonds_covalent!(sys)
 
     # Parse secondary structure from _struct_conf and _struct_sheet_range
     ss_records = _parse_secondary_structures(block)
@@ -255,17 +257,38 @@ function _build_atoms!(sys::System{T}, mol::Molecule{T}, loop::CIFLoop, ::Type{T
     end
 end
 
-# ─── SSBond Parsing ──────────────────────────────────────────────────
+# ─── _struct_conn Parsing ────────────────────────────────────────────
 
-function _parse_ssbonds(block::CIFDataBlock)
+# Connection record for non-disulphide bonds (covale / metalc / hydrog / saltbr).
+# Disulphides are kept in the existing SSBondRecord path so they reuse
+# PDBDetails.postprocess_ssbonds_!.
+struct StructConnRecord
+    conn_type::String
+    res1::PDBDetails.UniqueResidueID
+    atom1::String
+    res2::PDBDetails.UniqueResidueID
+    atom2::String
+    distance::Float64
+end
+
+# Map _struct_conn.conn_type_id values to the BiochemicalAlgorithms bond flag.
+const _CONN_TYPE_FLAGS = Dict(
+    "covale" => :TYPE__COVALENT,
+    "metalc" => :TYPE__COVALENT,  # BA.jl has no separate metal-coordination flag
+    "hydrog" => :TYPE__HYDROGEN,
+    "saltbr" => :TYPE__SALT_BRIDGE,
+)
+
+function _parse_struct_conn(block::CIFDataBlock)
     ssbonds = Deque{PDBDetails.SSBondRecord}()
+    others = StructConnRecord[]
     loop = _find_loop(block, "_struct_conn.")
-    isnothing(loop) && return ssbonds
+    isnothing(loop) && return ssbonds, others
 
     cols = _col_map(loop)
 
     c_type = get(cols, "_struct_conn.conn_type_id", nothing)
-    isnothing(c_type) && return ssbonds
+    isnothing(c_type) && return ssbonds, others
 
     # Use auth fields for residue identification, fall back to label
     c_p1_asym = _reqcol(cols, "_struct_conn.ptnr1_auth_asym_id", "_struct_conn.ptnr1_label_asym_id")
@@ -275,11 +298,16 @@ function _parse_ssbonds(block::CIFDataBlock)
     c_p2_comp = _reqcol(cols, "_struct_conn.ptnr2_auth_comp_id", "_struct_conn.ptnr2_label_comp_id")
     c_p2_seq  = _reqcol(cols, "_struct_conn.ptnr2_auth_seq_id", "_struct_conn.ptnr2_label_seq_id")
 
-    # All partner columns are required for SSBond parsing
+    # All partner residue columns are required
     if any(isnothing, (c_p1_asym, c_p1_comp, c_p1_seq, c_p2_asym, c_p2_comp, c_p2_seq))
-        @warn "mmCIF _struct_conn loop is missing required partner columns; skipping SSBond parsing"
-        return ssbonds
+        @warn "mmCIF _struct_conn loop is missing required partner columns; skipping connection parsing"
+        return ssbonds, others
     end
+
+    # Atom-name columns (required only for non-disulphide types where the
+    # specific atoms matter; for disulphides we look up the S atom of the CYS).
+    c_p1_atom = _reqcol(cols, "_struct_conn.ptnr1_auth_atom_id", "_struct_conn.ptnr1_label_atom_id")
+    c_p2_atom = _reqcol(cols, "_struct_conn.ptnr2_auth_atom_id", "_struct_conn.ptnr2_label_atom_id")
 
     c_p1_ins  = _optcol(cols, "_struct_conn.pdbx_ptnr1_PDB_ins_code")
     c_p2_ins  = _optcol(cols, "_struct_conn.pdbx_ptnr2_PDB_ins_code")
@@ -287,35 +315,80 @@ function _parse_ssbonds(block::CIFDataBlock)
     c_sym2    = _optcol(cols, "_struct_conn.ptnr2_symmetry")
     c_dist    = _optcol(cols, "_struct_conn.pdbx_dist_value")
 
-    n = 0
+    n_ss = 0
     for row in loop.rows
-        strip(row[c_type]) == "disulf" || continue
-        n += 1
+        ctype = strip(row[c_type])
 
         p1_ins = isnothing(c_p1_ins) ? " " : _get(row, c_p1_ins, " ")
         p2_ins = isnothing(c_p2_ins) ? " " : _get(row, c_p2_ins, " ")
-
         first_res = PDBDetails.UniqueResidueID(
             strip(row[c_p1_comp]),
             strip(row[c_p1_asym]),
             parse(Int, strip(row[c_p1_seq])),
-            p1_ins
+            p1_ins,
         )
         second_res = PDBDetails.UniqueResidueID(
             strip(row[c_p2_comp]),
             strip(row[c_p2_asym]),
             parse(Int, strip(row[c_p2_seq])),
-            p2_ins
+            p2_ins,
         )
-
-        sym1 = isnothing(c_sym1) ? 0 : _parse_symmetry_operator(_get(row, c_sym1, "0"))
-        sym2 = isnothing(c_sym2) ? 0 : _parse_symmetry_operator(_get(row, c_sym2, "0"))
         dist = isnothing(c_dist) ? 0.0 : parse(Float64, _get(row, c_dist, "0.0"))
 
-        push!(ssbonds, PDBDetails.SSBondRecord(n, first_res, second_res, sym1, sym2, dist))
+        if ctype == "disulf"
+            sym1 = isnothing(c_sym1) ? 0 : _parse_symmetry_operator(_get(row, c_sym1, "0"))
+            sym2 = isnothing(c_sym2) ? 0 : _parse_symmetry_operator(_get(row, c_sym2, "0"))
+            n_ss += 1
+            push!(ssbonds, PDBDetails.SSBondRecord(n_ss, first_res, second_res, sym1, sym2, dist))
+        elseif haskey(_CONN_TYPE_FLAGS, ctype)
+            if isnothing(c_p1_atom) || isnothing(c_p2_atom)
+                @warn "mmCIF _struct_conn loop is missing atom-name columns; skipping $ctype rows"
+                continue
+            end
+            a1_name = strip(row[c_p1_atom])
+            a2_name = strip(row[c_p2_atom])
+            push!(others, StructConnRecord(ctype, first_res, a1_name, second_res, a2_name, dist))
+        end
     end
 
-    return ssbonds
+    return ssbonds, others
+end
+
+# Build bonds for non-disulphide _struct_conn entries (covale, metalc, hydrog,
+# saltbr) by resolving each partner's atom via the fragment cache.
+function _build_struct_conn_bonds!(sys, conns, fragment_cache)
+    for conn in conns
+        f1 = get(fragment_cache, conn.res1, nothing)
+        f2 = get(fragment_cache, conn.res2, nothing)
+        if isnothing(f1) || isnothing(f2)
+            @warn "mmCIF _struct_conn: residue not found, skipping $(conn.conn_type) bond"
+            continue
+        end
+
+        a1 = findfirst(a -> strip(a.name) == conn.atom1, atoms(f1))
+        a2 = findfirst(a -> strip(a.name) == conn.atom2, atoms(f2))
+        if isnothing(a1) || isnothing(a2)
+            @warn "mmCIF _struct_conn: atom not found ($(conn.atom1) in $(conn.res1.name)/$(conn.res1.number) or $(conn.atom2) in $(conn.res2.name)/$(conn.res2.number)); skipping $(conn.conn_type) bond"
+            continue
+        end
+
+        flag = _CONN_TYPE_FLAGS[conn.conn_type]
+        props = conn.distance == 0.0 ? Properties() : Properties(:BOND_LENGTH => conn.distance)
+        Bond(sys, atoms(f1)[a1].idx, atoms(f2)[a2].idx, BondOrder.Single;
+             flags = Flags((flag,)),
+             properties = props)
+    end
+end
+
+# After PDBDetails.postprocess_ssbonds_!, also set :TYPE__COVALENT on every
+# disulphide bond — they ARE covalent bonds, and tkemmer flagged that the flag
+# was missing on bonds parsed from _struct_conn.
+function _flag_disulphide_bonds_covalent!(sys)
+    for b in bonds(sys)
+        if has_flag(b, :TYPE__DISULPHIDE_BOND)
+            set_flag!(b, :TYPE__COVALENT)
+        end
+    end
 end
 
 # Parse CIF symmetry operator string like '1_555' into an integer.

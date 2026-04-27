@@ -11,9 +11,10 @@
         @test nnucleotides(sys) == 0
         @test nresidues(sys) == 58
 
-        # verify disulfide bonds have correct flags
+        # verify disulfide bonds have correct flags (also flagged covalent)
         for b in bonds(sys)
             @test has_flag(b, :TYPE__DISULPHIDE_BOND)
+            @test has_flag(b, :TYPE__COVALENT)
         end
 
         # verify coordinates of first atom (ARG-1 N)
@@ -135,6 +136,10 @@ end
         ss_cif = count(b -> has_flag(b, :TYPE__DISULPHIDE_BOND), bonds(sys_cif))
         @test ss_pdb == ss_cif == 9
 
+        # CIF additionally parses 6 metal-coordination bonds (Ca²⁺ in trypsin)
+        # from _struct_conn (the PDB reader doesn't); they're flagged covalent.
+        @test count(b -> has_flag(b, :TYPE__COVALENT), bonds(sys_cif)) == 15
+
         # HETATM flag agreement
         hetero_pdb = count(a -> has_property(a, :is_hetero_atom) &&
                                 Bool(get_property(a, :is_hetero_atom)), atoms(sys_pdb))
@@ -187,6 +192,17 @@ end
         for f in water_frags, a in atoms(f)
             @test has_property(a, :is_hetero_atom)
             @test Bool(get_property(a, :is_hetero_atom))
+        end
+
+        # 4 metal-coordination bonds (Fe — NE2 of His) parsed from _struct_conn
+        @test nbonds(sys) == 4
+        for b in bonds(sys)
+            @test has_flag(b, :TYPE__COVALENT)
+            a1 = atom_by_idx(sys, b.a1)
+            a2 = atom_by_idx(sys, b.a2)
+            elements = (a1.element, a2.element)
+            @test Elements.Fe in elements
+            @test Elements.N in elements
         end
     end
 end
