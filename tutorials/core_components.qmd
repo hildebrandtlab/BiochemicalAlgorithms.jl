@@ -162,8 +162,6 @@ println(partner_atom.idx)
 println("The bond length is ", bond_length(bond))
 ```
 
-Sometimes it is necessary to discriminate between hydrogen and nonhydrogen_bonds. Since this a common use case, there are built in functionalities:
-
 
 ## Fragment
 
