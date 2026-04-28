@@ -289,8 +289,6 @@ println("The bond length is ", bond_length(bond))
     4
     The bond length is 1.0135294
 
-Sometimes it is necessary to discriminate between hydrogen and nonhydrogen_bonds. Since this a common use case, there are built in functionalities:
-
 ## Fragment
 
 Fragments represent molecule fragments. In context of proteins or nucleic acids, the fragment can be used to represent residues or nucleotides. See the documentation for the definition of the [`FragmentVariantType`](@ref)
