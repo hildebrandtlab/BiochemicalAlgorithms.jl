@@ -171,42 +171,64 @@ end
 function parse_compound_values(line::String)
     result = String[]
     buffer = IOBuffer()
-    in_list = false
-    in_table = false
+    list_depth = 0
+    table_depth = 0
     in_quote = false
     quote_char = ' '
+    at_token_start = true
 
-    for c in line
-        if c in ('"', '\'')
-            if in_quote && c == quote_char
-                in_quote = false
+    chars = collect(line)
+    n = length(chars)
+    for i in 1:n
+        c = chars[i]
+        eol = i == n
+        next_is_space = !eol && isspace(chars[i+1])
+
+        if in_quote
+            # CIF spec: a quoted string ends when the quote char is followed
+            # by whitespace (or end of line). A bare quote inside the string
+            # is literal — this is what allows tokens like "O5'" without
+            # losing the apostrophe.
+            if c == quote_char && (eol || next_is_space)
                 push!(result, String(take!(buffer)))
-            elseif !in_quote
-                in_quote = true
-                quote_char = c
+                in_quote = false
+                at_token_start = true
             else
                 write(buffer, c)
             end
-        elseif c == '['
-            in_list = true
+        elseif at_token_start && (c == '\'' || c == '"')
+            in_quote = true
+            quote_char = c
+        elseif c == '[' && (at_token_start || list_depth > 0 || table_depth > 0)
+            list_depth += 1
             write(buffer, c)
-        elseif c == ']'
-            in_list = false
+            at_token_start = false
+        elseif c == ']' && list_depth > 0
+            list_depth -= 1
             write(buffer, c)
-            push!(result, String(take!(buffer)))
-        elseif c == '{'
-            in_table = true
+            if list_depth == 0 && table_depth == 0
+                push!(result, String(take!(buffer)))
+                at_token_start = true
+            end
+        elseif c == '{' && (at_token_start || list_depth > 0 || table_depth > 0)
+            table_depth += 1
             write(buffer, c)
-        elseif c == '}'
-            in_table = false
+            at_token_start = false
+        elseif c == '}' && table_depth > 0
+            table_depth -= 1
             write(buffer, c)
-            push!(result, String(take!(buffer)))
-        elseif isspace(c) && !in_quote && !in_list && !in_table
+            if list_depth == 0 && table_depth == 0
+                push!(result, String(take!(buffer)))
+                at_token_start = true
+            end
+        elseif isspace(c) && list_depth == 0 && table_depth == 0
             if buffer.size > 0
                 push!(result, String(take!(buffer)))
             end
+            at_token_start = true
         else
             write(buffer, c)
+            at_token_start = false
         end
     end
     if buffer.size > 0
