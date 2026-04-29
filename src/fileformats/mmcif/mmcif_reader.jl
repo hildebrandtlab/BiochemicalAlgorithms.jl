@@ -234,11 +234,10 @@ function _build_atoms!(sys::System{T}, mol::Molecule{T}, loop::CIFLoop, ::Type{T
 
         model_num = isnothing(c_model) ? 1 : parse(Int, _get(row, c_model, "1"))
 
-        is_hetero_atom = strip(row[c_group]) == "HETATM"
         is_deuterium = strip(row[c_symbol]) == "D"
 
         flags = Flags()
-        is_hetero_atom && push!(flags, :is_hetero_atom)
+        is_hetero && push!(flags, :is_hetero_atom)
         is_deuterium && push!(flags, :is_deuterium)
 
         Atom(current_frag, serial, element;
@@ -248,7 +247,7 @@ function _build_atoms!(sys::System{T}, mol::Molecule{T}, loop::CIFLoop, ::Type{T
             properties = Properties([
                 :tempfactor => tempfactor,
                 :occupancy => occupancy,
-                :is_hetero_atom => is_hetero_atom,
+                :is_hetero_atom => is_hetero,
                 :insertion_code => ins_code
             ]),
             flags = flags,
@@ -461,7 +460,12 @@ function _parse_helices!(records, block::CIFDataBlock)
             end_ins
         )
 
-        helix_class = isnothing(c_helix_class) ? 1 : (tryparse(Int, _get(row, c_helix_class, "1")) === nothing ? 1 : parse(Int, _get(row, c_helix_class, "1")))
+        helix_class = if isnothing(c_helix_class)
+            1
+        else
+            v = tryparse(Int, _get(row, c_helix_class, "1"))
+            isnothing(v) ? 1 : v
+        end
         details = isnothing(c_details) ? "" : _get(row, c_details, "")
 
         push!(records, PDBDetails.HelixRecord(n, helix_name, initial, terminal, helix_class, details))
@@ -534,11 +538,13 @@ function _parse_sheet_order_sense(block::CIFDataBlock)
     isnothing(loop) && return sense_map
 
     cols = _col_map(loop)
-    c_sheet = cols["_struct_sheet_order.sheet_id"]
-    c_range2 = cols["_struct_sheet_order.range_id_2"]
+    c_sheet = _optcol(cols, "_struct_sheet_order.sheet_id")
+    c_range2 = _optcol(cols, "_struct_sheet_order.range_id_2")
     c_sense = _optcol(cols, "_struct_sheet_order.sense")
 
-    isnothing(c_sense) && return sense_map
+    if isnothing(c_sheet) || isnothing(c_range2) || isnothing(c_sense)
+        return sense_map
+    end
 
     for row in loop.rows
         sheet_id = strip(row[c_sheet])
