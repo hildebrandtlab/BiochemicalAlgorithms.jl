@@ -86,12 +86,15 @@ function _write_atom_site(io::IO, ac::AbstractAtomContainer{T}) where T
         chain = isnothing(frag) ? nothing : parent_chain(frag)
 
         group = is_hetero_atom(a) ? "HETATM" : "ATOM"
-        type_sym = string(a.element)
+        # Preserve deuterium as "D" in the type_symbol when the flag is set —
+        # the reader maps "D" to Elements.H but keeps :is_deuterium so we can
+        # restore it here.
+        type_sym = has_flag(a, :is_deuterium) ? "D" : string(a.element)
         atom_name = _cif_quote(a.name)
         alt_id = "."
 
-        comp_id = isnothing(frag) ? "UNK" : frag.name
-        chain_id = isnothing(chain) ? "." : chain.name
+        comp_id  = _cif_quote(isnothing(frag)  ? "UNK" : frag.name)
+        chain_id = _cif_quote(isnothing(chain) ? "."   : chain.name)
         entity_id = isnothing(chain) ? 1 : get(entity_map, chain.name, 1)
         seq_id = isnothing(frag) ? 0 : frag.number
         ins_code = isnothing(frag) ? "?" : _cif_quote(get_property(frag, :insertion_code, "?"))
@@ -113,7 +116,12 @@ function _write_atom_site(io::IO, ac::AbstractAtomContainer{T}) where T
 
         model_num = a.frame_id
 
-        println(io, "$group $( a.number) $type_sym $atom_name $alt_id $comp_id $chain_id $entity_id $seq_id $ins_code $x $y $z $occ $bfac $charge $seq_id $comp_id $chain_id $atom_name $model_num")
+        println(io, join((
+            group, a.number, type_sym, atom_name, alt_id,
+            comp_id, chain_id, entity_id, seq_id, ins_code,
+            x, y, z, occ, bfac, charge,
+            seq_id, comp_id, chain_id, atom_name, model_num,
+        ), " "))
     end
 
     println(io, "#")
@@ -159,7 +167,12 @@ function _write_struct_conn(io::IO, ac::AbstractAtomContainer{T}) where T
         sym2_str = sym2 == 0 ? "?" : string(sym2)
         dist_str = dist == 0.0 ? "?" : @sprintf("%.3f", dist)
 
-        println(io, "disulf$(i) disulf $(c1.name) $(f1.name) $(f1.number) $(a1.name) $(sym1_str) $(c2.name) $(f2.name) $(f2.number) $(a2.name) $(sym2_str) $(dist_str)")
+        println(io, join((
+            "disulf$i", "disulf",
+            _cif_quote(c1.name), _cif_quote(f1.name), f1.number, _cif_quote(a1.name), sym1_str,
+            _cif_quote(c2.name), _cif_quote(f2.name), f2.number, _cif_quote(a2.name), sym2_str,
+            dist_str,
+        ), " "))
     end
 
     println(io, "#")
@@ -199,10 +212,15 @@ function _write_struct_conf(io::IO, ac::AbstractAtomContainer{T}) where T
         details = _cif_quote(get_property(ss, :COMMENT, "?"))
         helix_length = length(frags)
 
-        beg_ins = get_property(first_frag, :insertion_code, "?")
-        end_ins = get_property(last_frag, :insertion_code, "?")
+        beg_ins = _cif_quote(get_property(first_frag, :insertion_code, "?"))
+        end_ins = _cif_quote(get_property(last_frag, :insertion_code, "?"))
 
-        println(io, "HELX_P HELX_P$(ss.number) $(ss.name) $(first_frag.name) $(chain.name) $(first_frag.number) $(_cif_quote(beg_ins)) $(last_frag.name) $(chain.name) $(last_frag.number) $(_cif_quote(end_ins)) $(helix_class) $(details) $(helix_length)")
+        println(io, join((
+            "HELX_P", "HELX_P$(ss.number)", _cif_quote(ss.name),
+            _cif_quote(first_frag.name), _cif_quote(chain.name), first_frag.number, beg_ins,
+            _cif_quote(last_frag.name),  _cif_quote(chain.name), last_frag.number,  end_ins,
+            helix_class, details, helix_length,
+        ), " "))
     end
 
     println(io, "#")
@@ -234,14 +252,18 @@ function _write_struct_sheet_range(io::IO, ac::AbstractAtomContainer{T}) where T
         last_frag = last(frags)
         chain = parent_chain(ss)
 
-        # Extract sheet name from "SheetName:RangeId" format used by PDB reader
-        name_parts = split(ss.name, ":")
-        sheet_id = length(name_parts) >= 1 ? name_parts[1] : "S1"
+        # Extract sheet name from "SheetName:RangeId" format used by PDB reader.
+        # `split` always yields at least one element, so first(name_parts) is safe.
+        sheet_id = first(split(ss.name, ":"))
 
-        beg_ins = get_property(first_frag, :insertion_code, "?")
-        end_ins = get_property(last_frag, :insertion_code, "?")
+        beg_ins = _cif_quote(get_property(first_frag, :insertion_code, "?"))
+        end_ins = _cif_quote(get_property(last_frag, :insertion_code, "?"))
 
-        println(io, "$(sheet_id) $(ss.number) $(first_frag.name) $(chain.name) $(first_frag.number) $(_cif_quote(beg_ins)) $(last_frag.name) $(chain.name) $(last_frag.number) $(_cif_quote(end_ins))")
+        println(io, join((
+            _cif_quote(sheet_id), ss.number,
+            _cif_quote(first_frag.name), _cif_quote(chain.name), first_frag.number, beg_ins,
+            _cif_quote(last_frag.name),  _cif_quote(chain.name), last_frag.number,  end_ins,
+        ), " "))
     end
 
     println(io, "#")
