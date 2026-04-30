@@ -241,9 +241,8 @@ end
 
 @testitem "mmCIF real-structure round-trip" begin
     # Round-trip a real multi-fragment structure: 5pti.cif has 58 residues,
-    # 3 disulfide bonds, and HETATMs (waters + ligand). The writer currently
-    # preserves atoms, chains, fragments, coordinates, disulfide bonds, and
-    # HETATM flags — but not CONECT-style bonds or arbitrary metadata.
+    # 3 disulfide bonds, secondary structure (2 helices + 3 strands + coils),
+    # and HETATMs (waters + ligand).
     for T in [Float32, Float64]
         sys = load_mmcif(ball_data_path("../test/data/5pti.cif"), T)
 
@@ -272,8 +271,195 @@ end
             hetero_after  = count(a -> has_property(a, :is_hetero_atom) &&
                                        Bool(get_property(a, :is_hetero_atom)), atoms(sys2))
             @test hetero_before == hetero_after
+
+            # secondary structures survive in count and per-type composition,
+            # and the strand names retain the original sheet:range_id format.
+            n_helix(s) = count(ss -> ss.type == SecondaryStructureElement.Helix, secondary_structures(s))
+            n_strand(s) = count(ss -> ss.type == SecondaryStructureElement.Strand, secondary_structures(s))
+            @test n_helix(sys2)  == n_helix(sys)  == 2
+            @test n_strand(sys2) == n_strand(sys) == 3
+
+            strand_names(s) = [ss.name for ss in secondary_structures(s) if ss.type == SecondaryStructureElement.Strand]
+            @test strand_names(sys2) == strand_names(sys)
         finally
             rm(tmpfile; force=true)
         end
     end
+end
+
+@testitem "mmCIF read: 1bna hydrogen bonds" begin
+    # 1bna: B-DNA dodecamer. The mmCIF file's `_struct_conn` loop encodes the
+    # base-pair hydrogen bonds; verify they're parsed with TYPE__HYDROGEN.
+    for T in [Float32, Float64]
+        sys = load_mmcif(ball_data_path("../test/data/1bna.cif"), T)
+        @test nbonds(sys) == 32
+        for b in bonds(sys)
+            @test has_flag(b, :TYPE__HYDROGEN)
+            @test !has_flag(b, :TYPE__COVALENT)
+        end
+    end
+end
+
+@testitem "mmCIF read: NMR multi-model" begin
+    # 1d3z: NMR ensemble of ubiquitin (10 models, 1231 atoms each). Verify
+    # that all models are loaded as separate frames and that fragments are
+    # shared across models — i.e. nfragments matches one model's residue
+    # count, not 10×.
+    for T in [Float32, Float64]
+        sys = load_mmcif(ball_data_path("../test/data/1d3z.cif"), T)
+        @test sys isa System{T}
+        @test get_property(sys, :experimental_method, "") == "SOLUTION NMR"
+
+        frames = sort(unique(sys._atoms.frame_id))
+        @test length(frames) == 10
+        @test frames == collect(1:10)
+
+        # Each frame contributes the same atom count.
+        per_frame = [count(==(f), sys._atoms.frame_id) for f in frames]
+        @test all(==(per_frame[1]), per_frame)
+        @test sum(per_frame) == length(sys._atoms.idx)
+
+        # Fragments are shared, not replicated per model.
+        @test nfragments(sys) == 76
+        @test nchains(sys) == 1
+
+        # natoms() returns just the current frame.
+        @test natoms(sys) == per_frame[1] == 1231
+    end
+end
+
+@testitem "mmCIF metadata extraction" begin
+    sys = load_mmcif(ball_data_path("../test/data/5pti.cif"))
+    @test get_property(sys, :entry_id, "") == "5PTI"
+    @test occursin("BOVINE PANCREATIC TRYPSIN INHIBITOR", get_property(sys, :title, ""))
+    @test get_property(sys, :keywords, "") == "Hydrolase Inhibitor"
+    @test get_property(sys, :deposition_date, "") == "1984-10-05"
+    @test get_property(sys, :experimental_method, "") == "X-RAY DIFFRACTION"
+    @test get_property(sys, :resolution, 0.0) ≈ 1.0
+    @test get_property(sys, :space_group, "") == "P 21 21 21"
+    @test get_property(sys, :cell_a, 0.0) ≈ 74.1
+    @test get_property(sys, :cell_b, 0.0) ≈ 23.4
+    @test get_property(sys, :cell_c, 0.0) ≈ 28.9
+    @test get_property(sys, :cell_alpha, 0.0) ≈ 90.0
+
+    # 4hhb has a non-orthorhombic angle, useful as a contrasting check.
+    sys = load_mmcif(ball_data_path("../test/data/4hhb.cif"))
+    @test get_property(sys, :entry_id, "") == "4HHB"
+    @test get_property(sys, :keywords, "") == "OXYGEN TRANSPORT"
+    @test get_property(sys, :resolution, 0.0) ≈ 1.74
+    @test get_property(sys, :cell_beta, 0.0) ≈ 99.34
+end
+
+@testitem "mmCIF parser: CIF 2.0 syntax" begin
+    # Smoke-test the CIF 2.0 magic line and triple-quoted string parsing.
+    # Triple-quoted text blocks are recognised when the value starts on the
+    # line after the tag (i.e. the first character of the value-line is `\"\"\"`).
+    cif = """#\\#CIF_2.0
+data_test
+_entry.id TEST
+_struct.title
+\"\"\"a multi-line
+title with 'apostrophes' inside\"\"\"
+"""
+    sys = load_mmcif(IOBuffer(cif))
+    @test sys.name == "test"
+    @test get_property(sys, :entry_id, "") == "TEST"
+    title = get_property(sys, :title, "")
+    @test occursin("apostrophes", title)
+    @test occursin("multi-line", title)
+end
+
+@testitem "mmCIF parser: multi-block CIF picks first" begin
+    # Multi-block files are valid CIF; the loader picks the first data block
+    # (and warns? actually no — silently picks first per spec).
+    cif = """data_first
+_entry.id FIRST
+data_second
+_entry.id SECOND
+"""
+    sys = load_mmcif(IOBuffer(cif))
+    @test get_property(sys, :entry_id, "") == "FIRST"
+end
+
+@testitem "mmCIF read: insertion codes" begin
+    # Synthetic CIF with two residues at sequence number 100, distinguished by
+    # insertion code A and B (a common antibody/immunoglobulin pattern).
+    cif = """data_INS
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.label_seq_id
+_atom_site.pdbx_PDB_ins_code
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.pdbx_PDB_model_num
+ATOM 1 N N . ALA A 100 A 0.000 0.000 0.000 1
+ATOM 2 C CA . ALA A 100 A 1.000 0.000 0.000 1
+ATOM 3 N N . GLY A 100 B 2.000 0.000 0.000 1
+ATOM 4 C CA . GLY A 100 B 3.000 0.000 0.000 1
+"""
+    sys = load_mmcif(IOBuffer(cif))
+    @test natoms(sys) == 4
+    @test nfragments(sys) == 2
+    frags = collect(fragments(sys))
+    @test [f.name for f in frags] == ["ALA", "GLY"]
+    @test [get_property(f, :insertion_code, "") for f in frags] == ["A", "B"]
+    # Same sequence number, different insertion codes — must be treated as
+    # distinct residues, not collapsed.
+    @test all(f.number == 100 for f in frags)
+end
+
+@testitem "mmCIF read: covale bonds" begin
+    # Synthetic CIF with a covale (covalent linker) connection.
+    cif = """data_COV
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.label_seq_id
+_atom_site.pdbx_PDB_ins_code
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.pdbx_PDB_model_num
+ATOM 1 N N  . LYS A 1 ? 0.000 0.000 0.000 1
+ATOM 2 C CA . LYS A 1 ? 1.000 0.000 0.000 1
+ATOM 3 N NZ . LYS A 1 ? 2.000 0.000 0.000 1
+ATOM 4 C C  . PYR A 2 ? 3.000 0.000 0.000 1
+ATOM 5 O O  . PYR A 2 ? 4.000 0.000 0.000 1
+#
+loop_
+_struct_conn.id
+_struct_conn.conn_type_id
+_struct_conn.ptnr1_label_asym_id
+_struct_conn.ptnr1_label_comp_id
+_struct_conn.ptnr1_label_seq_id
+_struct_conn.ptnr1_label_atom_id
+_struct_conn.ptnr2_label_asym_id
+_struct_conn.ptnr2_label_comp_id
+_struct_conn.ptnr2_label_seq_id
+_struct_conn.ptnr2_label_atom_id
+_struct_conn.pdbx_value_order
+covale1 covale A LYS 1 NZ A PYR 2 C doub
+"""
+    sys = load_mmcif(IOBuffer(cif))
+    @test nbonds(sys) == 1
+    b = first(bonds(sys))
+    @test has_flag(b, :TYPE__COVALENT)
+    @test b.order == BondOrder.Double
+    @test get_property(b, :CIF_CONN_TYPE, "") == "covale"
+end
+
+@testitem "mmCIF malformed: missing data block" begin
+    @test_throws ErrorException load_mmcif(IOBuffer("# just a comment\n"))
 end

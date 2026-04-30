@@ -227,6 +227,11 @@ function _build_atoms!(sys::System{T}, mol::Molecule{T}, loop::CIFLoop, ::Type{T
     current_is_hetero = false
     current_frag_key = ("", 0, "")  # (comp_id, seq_id, ins_code)
 
+    # Across-models fragment cache (keyed within the current chain). Multi-
+    # model files repeat the same residue with each model, but atoms should
+    # attach to a single shared Fragment with different `frame_id`s.
+    chain_fragments = Dict{Tuple{String, Int, String}, Fragment{T}}()
+
     altloc_warning = false
     first_altloc_id = Dict{Tuple{String, Int, String, String}, String}()  # (chain, seq, ins, atom_name) -> first altloc
 
@@ -275,19 +280,30 @@ function _build_atoms!(sys::System{T}, mol::Molecule{T}, loop::CIFLoop, ::Type{T
             current_is_hetero = is_hetero
             current_frag = nothing
             current_frag_key = ("", 0, "")
+            empty!(chain_fragments)
         end
 
-        # Fragment
+        # Fragment — shared across models. The fast path checks the just-seen
+        # fragment; otherwise we look up in the chain-scoped cache before
+        # creating a new one. This is what makes a 10-model NMR ensemble end
+        # up with N residues, not 10×N.
         frag_key = (comp_id, seq_id, ins_code)
         if isnothing(current_frag) || frag_key != current_frag_key
-            current_frag = Fragment(current_chain, seq_id;
-                name = comp_id,
-                variant = _fragment_variant(comp_id),
-                properties = Properties([
-                    :is_hetero_fragment => is_hetero,
-                    :insertion_code => ins_code
-                ])
-            )
+            cached = get(chain_fragments, frag_key, nothing)
+            current_frag = if !isnothing(cached)
+                cached
+            else
+                f = Fragment(current_chain, seq_id;
+                    name = comp_id,
+                    variant = _fragment_variant(comp_id),
+                    properties = Properties([
+                        :is_hetero_fragment => is_hetero,
+                        :insertion_code => ins_code
+                    ])
+                )
+                chain_fragments[frag_key] = f
+                f
+            end
             current_frag_key = frag_key
         end
 

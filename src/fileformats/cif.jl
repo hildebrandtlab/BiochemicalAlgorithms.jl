@@ -1,6 +1,8 @@
 # CIF 1.1 / CIF 2.0 Parser in Julia
 # Includes in-memory model for structured access
 
+using DataStructures: OrderedDict
+
 @enum CIFVersion v1_1 v2_0
 @enum ParserState begin
     Start
@@ -26,7 +28,9 @@ end
 
 mutable struct CIFFile
     version::CIFVersion
-    blocks::Dict{String, CIFDataBlock}
+    # Use an OrderedDict so iteration follows insertion order — `first(values(...))`
+    # in the mmCIF reader needs the FIRST data block of a multi-block file.
+    blocks::OrderedDict{String, CIFDataBlock}
 end
 
 mutable struct CIFParser
@@ -45,7 +49,7 @@ mutable struct CIFParser
 end
 
 function CIFParser()
-    CIFParser(v1_1, Start, nothing, String[], String[], 0, false, String[], nothing, nothing, CIFFile(v1_1, Dict()), Start)
+    CIFParser(v1_1, Start, nothing, String[], String[], 0, false, String[], nothing, nothing, CIFFile(v1_1, OrderedDict{String, CIFDataBlock}()), Start)
 end
 
 function parse_line!(parser::CIFParser, line::String)
