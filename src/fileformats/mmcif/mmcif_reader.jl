@@ -268,6 +268,7 @@ struct StructConnRecord
     res2::PDBDetails.UniqueResidueID
     atom2::String
     distance::Float64
+    order::String  # raw _struct_conn.pdbx_value_order — "sing", "doub", "trip", "quad", or ""
 end
 
 # Map _struct_conn.conn_type_id values to the BiochemicalAlgorithms bond flag.
@@ -276,6 +277,15 @@ const _CONN_TYPE_FLAGS = Dict(
     "metalc" => :TYPE__COVALENT,  # BA.jl has no separate metal-coordination flag
     "hydrog" => :TYPE__HYDROGEN,
     "saltbr" => :TYPE__SALT_BRIDGE,
+)
+
+# Map mmCIF `pdbx_value_order` strings to BondOrder.
+const _BOND_ORDER_FROM_CIF = Dict(
+    "sing" => BondOrder.Single,
+    "doub" => BondOrder.Double,
+    "trip" => BondOrder.Triple,
+    "quad" => BondOrder.Quadruple,
+    "arom" => BondOrder.Aromatic,
 )
 
 function _parse_struct_conn(block::CIFDataBlock)
@@ -313,6 +323,7 @@ function _parse_struct_conn(block::CIFDataBlock)
     c_sym1    = _optcol(cols, "_struct_conn.ptnr1_symmetry")
     c_sym2    = _optcol(cols, "_struct_conn.ptnr2_symmetry")
     c_dist    = _optcol(cols, "_struct_conn.pdbx_dist_value")
+    c_order   = _optcol(cols, "_struct_conn.pdbx_value_order")
 
     n_ss = 0
     for row in loop.rows
@@ -333,6 +344,7 @@ function _parse_struct_conn(block::CIFDataBlock)
             p2_ins,
         )
         dist = isnothing(c_dist) ? 0.0 : parse(Float64, _get(row, c_dist, "0.0"))
+        order_str = isnothing(c_order) ? "" : something(_get(row, c_order), "")
 
         if ctype == "disulf"
             sym1 = isnothing(c_sym1) ? 0 : _parse_symmetry_operator(_get(row, c_sym1, "0"))
@@ -346,7 +358,7 @@ function _parse_struct_conn(block::CIFDataBlock)
             end
             a1_name = strip(row[c_p1_atom])
             a2_name = strip(row[c_p2_atom])
-            push!(others, StructConnRecord(ctype, first_res, a1_name, second_res, a2_name, dist))
+            push!(others, StructConnRecord(ctype, first_res, a1_name, second_res, a2_name, dist, order_str))
         end
     end
 
@@ -354,7 +366,9 @@ function _parse_struct_conn(block::CIFDataBlock)
 end
 
 # Build bonds for non-disulphide _struct_conn entries (covale, metalc, hydrog,
-# saltbr) by resolving each partner's atom via the fragment cache.
+# saltbr) by resolving each partner's atom via the fragment cache. Stores the
+# original `conn_type_id` as `:CIF_CONN_TYPE` on the bond so the writer can
+# distinguish e.g. covale from metalc on round-trip (both share TYPE__COVALENT).
 function _build_struct_conn_bonds!(sys, conns, fragment_cache)
     for conn in conns
         f1 = get(fragment_cache, conn.res1, nothing)
@@ -372,20 +386,26 @@ function _build_struct_conn_bonds!(sys, conns, fragment_cache)
         end
 
         flag = _CONN_TYPE_FLAGS[conn.conn_type]
-        props = conn.distance == 0.0 ? Properties() : Properties(:BOND_LENGTH => conn.distance)
-        Bond(sys, atoms(f1)[a1].idx, atoms(f2)[a2].idx, BondOrder.Single;
+        order = get(_BOND_ORDER_FROM_CIF, conn.order, BondOrder.Single)
+
+        props = Properties(:CIF_CONN_TYPE => conn.conn_type)
+        if conn.distance != 0.0
+            props[:BOND_LENGTH] = conn.distance
+        end
+
+        Bond(sys, atoms(f1)[a1].idx, atoms(f2)[a2].idx, order;
              flags = Flags((flag,)),
              properties = props)
     end
 end
 
 # After PDBDetails.postprocess_ssbonds_!, also set :TYPE__COVALENT on every
-# disulphide bond — they ARE covalent bonds, and tkemmer flagged that the flag
-# was missing on bonds parsed from _struct_conn.
+# disulphide bond and tag them as `disulf` for the writer round-trip.
 function _flag_disulphide_bonds_covalent!(sys)
     for b in bonds(sys)
         if has_flag(b, :TYPE__DISULPHIDE_BOND)
             set_flag!(b, :TYPE__COVALENT)
+            set_property!(b, :CIF_CONN_TYPE, "disulf")
         end
     end
 end

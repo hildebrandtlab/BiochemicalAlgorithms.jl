@@ -127,12 +127,37 @@ function _write_atom_site(io::IO, ac::AbstractAtomContainer{T}) where T
     println(io, "#")
 end
 
-# ─── _struct_conn (disulfide bonds) ──────────────────────────────────
+# ─── _struct_conn (inter-residue bonds) ──────────────────────────────
+
+# Map BondOrder to mmCIF `pdbx_value_order` strings.
+const _BOND_ORDER_TO_CIF = Dict(
+    BondOrder.Single    => "sing",
+    BondOrder.Double    => "doub",
+    BondOrder.Triple    => "trip",
+    BondOrder.Quadruple => "quad",
+    BondOrder.Aromatic  => "arom",
+)
+
+# Pick the mmCIF conn_type_id for a bond. Prefer the original parsed value
+# (stored as :CIF_CONN_TYPE on read) so reader→writer round-trips don't lose
+# the covale/metalc distinction. Fall back to the bond's flags otherwise.
+function _conn_type_for(b)
+    t = get_property(b, :CIF_CONN_TYPE, nothing)
+    !isnothing(t) && return String(t)
+    has_flag(b, :TYPE__DISULPHIDE_BOND) && return "disulf"
+    has_flag(b, :TYPE__HYDROGEN)        && return "hydrog"
+    has_flag(b, :TYPE__SALT_BRIDGE)     && return "saltbr"
+    has_flag(b, :TYPE__COVALENT)        && return "covale"
+    return nothing
+end
 
 function _write_struct_conn(io::IO, ac::AbstractAtomContainer{T}) where T
-    # Find disulfide bonds
-    disulfides = filter(b -> has_flag(b, :TYPE__DISULPHIDE_BOND), bonds(ac))
-    isempty(disulfides) && return
+    # Bonds we emit: anything that has a known mmCIF conn_type. Programmatically
+    # constructed bonds without flags are skipped (they're not inter-residue
+    # connections in the mmCIF sense).
+    conn_bonds = [(b, _conn_type_for(b)) for b in bonds(ac)]
+    filter!(p -> !isnothing(p[2]), conn_bonds)
+    isempty(conn_bonds) && return
 
     println(io, "loop_")
     println(io, "_struct_conn.id")
@@ -148,10 +173,11 @@ function _write_struct_conn(io::IO, ac::AbstractAtomContainer{T}) where T
     println(io, "_struct_conn.ptnr2_label_atom_id")
     println(io, "_struct_conn.ptnr2_symmetry")
     println(io, "_struct_conn.pdbx_dist_value")
+    println(io, "_struct_conn.pdbx_value_order")
 
     sys = parent_system(ac)
 
-    for (i, b) in enumerate(disulfides)
+    for (i, (b, ctype)) in enumerate(conn_bonds)
         a1 = atom_by_idx(sys, b.a1)
         a2 = atom_by_idx(sys, b.a2)
         f1 = parent_fragment(a1)
@@ -166,12 +192,13 @@ function _write_struct_conn(io::IO, ac::AbstractAtomContainer{T}) where T
         sym1_str = sym1 == 0 ? "?" : string(sym1)
         sym2_str = sym2 == 0 ? "?" : string(sym2)
         dist_str = dist == 0.0 ? "?" : @sprintf("%.3f", dist)
+        order_str = get(_BOND_ORDER_TO_CIF, b.order, "?")
 
         println(io, join((
-            "disulf$i", "disulf",
+            "$(ctype)$i", ctype,
             _cif_quote(c1.name), _cif_quote(f1.name), f1.number, _cif_quote(a1.name), sym1_str,
             _cif_quote(c2.name), _cif_quote(f2.name), f2.number, _cif_quote(a2.name), sym2_str,
-            dist_str,
+            dist_str, order_str,
         ), " "))
     end
 
@@ -252,15 +279,19 @@ function _write_struct_sheet_range(io::IO, ac::AbstractAtomContainer{T}) where T
         last_frag = last(frags)
         chain = parent_chain(ss)
 
-        # Extract sheet name from "SheetName:RangeId" format used by PDB reader.
-        # `split` always yields at least one element, so first(name_parts) is safe.
-        sheet_id = first(split(ss.name, ":"))
+        # Recover the original sheet_id and range_id from the name. The PDB
+        # reader's postprocessing stores the strand name as `<sheet>:<range>`
+        # but renumbers `ss.number` sequentially within the chain, so the
+        # original range_id is only available via the name.
+        name_parts = split(ss.name, ":")
+        sheet_id = first(name_parts)
+        range_id = length(name_parts) >= 2 ? something(tryparse(Int, name_parts[2]), ss.number) : ss.number
 
         beg_ins = _cif_quote(get_property(first_frag, :insertion_code, "?"))
         end_ins = _cif_quote(get_property(last_frag, :insertion_code, "?"))
 
         println(io, join((
-            _cif_quote(sheet_id), ss.number,
+            _cif_quote(sheet_id), range_id,
             _cif_quote(first_frag.name), _cif_quote(chain.name), first_frag.number, beg_ins,
             _cif_quote(last_frag.name),  _cif_quote(chain.name), last_frag.number,  end_ins,
         ), " "))
