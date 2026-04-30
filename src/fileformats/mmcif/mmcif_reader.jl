@@ -4,8 +4,19 @@ using BiochemicalAlgorithms: CIFFile, CIFDataBlock, CIFLoop, CIFParser,
 import BiochemicalAlgorithms: PDBDetails
 using DataStructures: Deque
 
-# Read a PDBx/mmCIF file and return a System. Models are stored as frames,
-# using the model number as `frame_id`.
+# Read a PDBx/mmCIF file and return a System.
+#
+# Multi-model handling (A2): each row in _atom_site contributes one Atom whose
+# `frame_id` is set from `_atom_site.pdbx_PDB_model_num`. Chains and Fragments
+# are NOT replicated per model — atoms across all models share a single
+# fragment object identified by (chain, comp, seq, ins_code). This matches the
+# package's System-as-trajectory model. As a consequence, _struct_conn and
+# secondary-structure annotations are resolved against the shared fragments
+# (effectively against the last model's atoms when fragment-cache lookup is
+# needed) — which is fine for entries where bond topology and SS assignment
+# are constant across models, i.e. the typical NMR ensemble case.
+#
+# Only the first data block of a multi-block file is loaded.
 function read_mmcif(fname_io::Union{AbstractString, IO}, ::Type{T} = Float32;
         create_coils::Bool = true) where {T <: Real}
     cif = if fname_io isa AbstractString
@@ -22,6 +33,8 @@ function read_mmcif(fname_io::Union{AbstractString, IO}, ::Type{T} = Float32;
 
     sys = System{T}(block.name)
     mol = Molecule(sys; name = block.name)
+
+    _extract_metadata!(sys, block)
 
     # Parse _atom_site loop
     atom_loop = _find_loop(block, "_atom_site.")
@@ -56,6 +69,66 @@ function read_mmcif(fname_io::Union{AbstractString, IO}, ::Type{T} = Float32;
 end
 
 # ─── Helpers ──────────────────────────────────────────────────────────
+
+# Look up a single tag's value in the block. Tries the simple tag-value store
+# first, then scans single-row loops. Returns `nothing` if absent or the value
+# is the CIF "missing" sentinel (`?` or `.`).
+function _get_block_value(block::CIFDataBlock, tag::String)
+    if haskey(block.tags, tag)
+        v = block.tags[tag]
+        return (v == "?" || v == ".") ? nothing : v
+    end
+    for loop in block.loops
+        idx = findfirst(==(tag), loop.tags)
+        if !isnothing(idx) && !isempty(loop.rows)
+            v = loop.rows[1][idx]
+            return (v == "?" || v == ".") ? nothing : v
+        end
+    end
+    return nothing
+end
+
+# Set a string property on `sys` if `value` is a usable string.
+function _maybe_set!(sys, key::Symbol, value)
+    if !isnothing(value)
+        s = String(strip(value))
+        !isempty(s) && set_property!(sys, key, s)
+    end
+end
+
+# Set a numeric property on `sys` if `value` parses as a Float64.
+function _maybe_set_float!(sys, key::Symbol, value)
+    if !isnothing(value)
+        x = tryparse(Float64, strip(value))
+        !isnothing(x) && set_property!(sys, key, x)
+    end
+end
+
+# Extract commonly useful header metadata (title, experimental method,
+# resolution, deposition date, cell parameters, space group, keywords) from
+# the CIF data block onto the `System` as properties. Values are looked up in
+# the block's simple tag-value store first, then in any single-row loops.
+function _extract_metadata!(sys, block::CIFDataBlock)
+    _maybe_set!(sys, :entry_id,            _get_block_value(block, "_entry.id"))
+    _maybe_set!(sys, :title,               _get_block_value(block, "_struct.title"))
+    _maybe_set!(sys, :keywords,            _get_block_value(block, "_struct_keywords.pdbx_keywords"))
+    _maybe_set!(sys, :deposition_date,     _get_block_value(block, "_pdbx_database_status.recvd_initial_deposition_date"))
+    _maybe_set!(sys, :experimental_method, _get_block_value(block, "_exptl.method"))
+    _maybe_set!(sys, :space_group,         _get_block_value(block, "_symmetry.space_group_name_H-M"))
+
+    # Resolution: prefer `_refine.ls_d_res_high`, fall back to the reflns
+    # equivalent for entries without a refine block (e.g. some EM structures).
+    res = _get_block_value(block, "_refine.ls_d_res_high")
+    isnothing(res) && (res = _get_block_value(block, "_reflns.d_resolution_high"))
+    _maybe_set_float!(sys, :resolution, res)
+
+    for (k, tag) in (
+        :cell_a => "_cell.length_a", :cell_b => "_cell.length_b", :cell_c => "_cell.length_c",
+        :cell_alpha => "_cell.angle_alpha", :cell_beta => "_cell.angle_beta", :cell_gamma => "_cell.angle_gamma",
+    )
+        _maybe_set_float!(sys, k, _get_block_value(block, tag))
+    end
+end
 
 # Find a loop in the data block whose tags start with the given prefix.
 function _find_loop(block::CIFDataBlock, prefix::String)
