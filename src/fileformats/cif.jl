@@ -157,7 +157,11 @@ function parse_line!(parser::CIFParser, line::String)
             parser.state = InMultilineText
             return
         else
-            store_key_value(parser, parser.current_tag, String(stripped))
+            # Run the value through the tokenizer so that quoted strings have
+            # their surrounding quotes stripped (e.g. `'foo bar'` → `foo bar`).
+            tokens = parse_compound_values(String(stripped))
+            value = isempty(tokens) ? String(stripped) : join(tokens, " ")
+            store_key_value(parser, parser.current_tag, value)
             parser.current_tag = nothing
             parser.state = InDataBlock
             return
