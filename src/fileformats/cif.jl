@@ -62,7 +62,11 @@ function parse_line!(parser::CIFParser, line::String)
         return
     end
 
-    if isempty(stripped) || startswith(stripped, '#')
+    # Skip blank lines and `#` comments — but only outside of multiline text
+    # blocks and CIF 2.0 triple-quoted strings, where empty lines and lines
+    # starting with `#` are part of the value.
+    if !parser.in_text && isnothing(parser.triple_quote_delim) &&
+            (isempty(stripped) || startswith(stripped, '#'))
         return
     end
 
@@ -149,10 +153,20 @@ function parse_line!(parser::CIFParser, line::String)
     elseif parser.state == ExpectValue
         if parser.version == v2_0 && (startswith(line, "\"\"\"") || startswith(line, "'''"))
             delim = startswith(line, "\"\"\"") ? "\"\"\"" : "'''"
-            content = replace(line, delim => "")
-            parser.triple_quote_delim = delim
-            parser.text_buffer = [content]
-            parser.state = InTripleQuotedString
+            # Strip only the leading delimiter; if the closing delimiter also
+            # appears on the same line (`\"\"\"foo\"\"\"`), finalize immediately
+            # instead of waiting for a delimiter on a later line.
+            content = replace(line, delim => "", count=1)
+            if endswith(content, delim)
+                content = length(content) == length(delim) ? "" : content[1:end-length(delim)]
+                store_key_value(parser, parser.current_tag, content)
+                parser.current_tag = nothing
+                parser.state = InDataBlock
+            else
+                parser.triple_quote_delim = delim
+                parser.text_buffer = [content]
+                parser.state = InTripleQuotedString
+            end
             return
         elseif startswith(line, ";")
             parser.pre_text_state = ExpectValue
