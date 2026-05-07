@@ -18,28 +18,34 @@ end
 
 # ─── CIF value quoting ───────────────────────────────────────────────
 
-# Quote a string value for CIF output.
+# Quote a string value for inline CIF output (a single token within a row).
+# Always returns a single-line representation: a CIF semicolon text block
+# must start at column 1 on its own line, and our caller `join`s fields with
+# spaces, so we can't emit one here. Newlines and carriage returns are
+# collapsed to spaces; embedded quotes are handled by switching delimiters.
 function _cif_quote(s::AbstractString)
     isempty(s) && return "."
-    # Multiline values must use semicolon text blocks
     if occursin('\n', s) || occursin('\r', s)
-        return ";\n$s\n;"
+        s = replace(s, r"[\r\n]+" => " ")
     end
-    # No quoting needed for simple values
+    # No quoting needed for simple values.
     if !any(c -> isspace(c), s) && !startswith(s, '_') && !startswith(s, '#') &&
        !startswith(s, '\'') && !startswith(s, '"') && s != "." && s != "?"
         return s
     end
-    # Use single quotes if possible
+    # Use single quotes if possible.
     if !occursin('\'', s)
         return "'$s'"
     end
-    # Use double quotes
+    # Use double quotes.
     if !occursin('"', s)
         return "\"$s\""
     end
-    # Fall back to semicolon text block
-    return ";\n$s\n;"
+    # Both quote types present — escape internal single quotes and wrap in
+    # single quotes. Not strictly CIF-compliant (CIF has no escape syntax),
+    # but produces parseable output for the round-trip case where neither
+    # quote alone fits.
+    return "'" * replace(s, '\'' => "\\'") * "'"
 end
 
 # ─── _atom_site ───────────────────────────────────────────────────────
@@ -86,10 +92,17 @@ function _write_atom_site(io::IO, ac::AbstractAtomContainer{T}) where T
         chain = isnothing(frag) ? nothing : parent_chain(frag)
 
         group = is_hetero_atom(a) ? "HETATM" : "ATOM"
-        # Preserve deuterium as "D" in the type_symbol when the flag is set —
-        # the reader maps "D" to Elements.H but keeps :is_deuterium so we can
-        # restore it here.
-        type_sym = has_flag(a, :is_deuterium) ? "D" : string(a.element)
+        # mmCIF requires `_atom_site.type_symbol` to be a chemical symbol or
+        # a missing-value marker. Map `Elements.Unknown` to `?` rather than
+        # the literal string `"Unknown"`. Preserve deuterium as `D` when the
+        # `:is_deuterium` flag is set (the reader maps `D` to `Elements.H`).
+        type_sym = if has_flag(a, :is_deuterium)
+            "D"
+        elseif a.element == Elements.Unknown
+            "?"
+        else
+            string(a.element)
+        end
         atom_name = _cif_quote(a.name)
         alt_id = "."
 

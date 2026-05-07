@@ -463,3 +463,99 @@ end
 @testitem "mmCIF malformed: missing data block" begin
     @test_throws ErrorException load_mmcif(IOBuffer("# just a comment\n"))
 end
+
+@testitem "mmCIF parser: blank/comment lines preserved inside text blocks" begin
+    # CIF semicolon text blocks may contain blank lines and lines starting
+    # with `#`; the parser must not silently drop them.
+    cif = """data_TXT
+_struct.title
+;line one
+
+# this isn't a comment, it's part of the value
+line three
+;
+"""
+    sys = load_mmcif(IOBuffer(cif))
+    title = get_property(sys, :title, "")
+    @test occursin("line one", title)
+    @test occursin("line three", title)
+    @test occursin("# this isn't a comment", title)
+    # blank line between "line one" and the `#` line should also survive
+    @test occursin("\n\n", title) || occursin("line one\n\n", title)
+end
+
+@testitem "mmCIF parser: triple-quoted on a single line" begin
+    # CIF 2.0: a triple-quoted string value may both open and close on the
+    # same line. Tested with the tag-then-value-on-next-line form, which is
+    # what triggers the parser's `ExpectValue` triple-quote branch.
+    cif = """#\\#CIF_2.0
+data_TQ
+_entry.id TQ
+_struct.title
+\"\"\"single-line title\"\"\"
+"""
+    sys = load_mmcif(IOBuffer(cif))
+    @test get_property(sys, :entry_id, "") == "TQ"
+    @test get_property(sys, :title, "") == "single-line title"
+
+    # Empty triple-quoted body is also valid.
+    cif_empty = """#\\#CIF_2.0
+data_TQ2
+_entry.id TQ2
+_struct.title
+\"\"\"\"\"\"
+"""
+    sys = load_mmcif(IOBuffer(cif_empty))
+    @test get_property(sys, :entry_id, "") == "TQ2"
+    @test get_property(sys, :title, "") == ""
+end
+
+@testitem "mmCIF writer: Elements.Unknown maps to ?" begin
+    sys = System{Float32}()
+    mol = Molecule(sys)
+    chain = Chain(mol; name = "A")
+    frag = Fragment(chain, 1; name = "UNK")
+    Atom(frag, 1, Elements.Unknown; name = "X")
+
+    tmp = tempname() * ".cif"
+    try
+        write_mmcif(tmp, sys)
+        text = read(tmp, String)
+        # The ATOM row's third whitespace-separated field is type_symbol.
+        atom_lines = filter(l -> startswith(l, "ATOM ") || startswith(l, "HETATM "), split(text, '\n'))
+        @test length(atom_lines) == 1
+        type_sym = split(atom_lines[1])[3]
+        @test type_sym == "?"
+
+        # Round-trip should still load (the reader's parse_element_string
+        # accepts `?` and treats it as Unknown).
+        sys2 = load_mmcif(tmp)
+        @test natoms(sys2) == 1
+        @test first(atoms(sys2)).element == Elements.Unknown
+    finally
+        rm(tmp; force=true)
+    end
+end
+
+@testitem "mmCIF writer: multiline string in property is collapsed" begin
+    # If a property contains a newline, the writer must keep the row on a
+    # single line (semicolon text blocks can't be embedded in a row that's
+    # written via space-joined fields).
+    sys = System{Float32}()
+    mol = Molecule(sys)
+    chain = Chain(mol; name = "A")
+    frag = Fragment(chain, 1; name = "ALA")
+    Atom(frag, 1, Elements.C; name = "C\nD")  # newline inside atom name
+
+    tmp = tempname() * ".cif"
+    try
+        write_mmcif(tmp, sys)
+        text = read(tmp, String)
+        atom_lines = filter(l -> startswith(l, "ATOM ") || startswith(l, "HETATM "), split(text, '\n'))
+        @test length(atom_lines) == 1   # exactly one row, not split across lines
+        # The newline must have been collapsed.
+        @test !occursin('\n', atom_lines[1])
+    finally
+        rm(tmp; force=true)
+    end
+end
