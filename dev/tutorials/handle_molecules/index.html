@@ -8,7 +8,7 @@ h2o = Molecule(sys)
 # create system atoms
 o1 = Atom(h2o, 1, Elements.O) # o1.r = [0, 0, 0]  &lt;-- this is the default value!
 h1 = Atom(h2o, 2, Elements.H, r=Vector3{Float32}(1,0,0))
-h2 = Atom(h2o, 3, Elements.H, r=Vector3{Float32}(cos(deg2rad(105)), sin(deg2rad(105)), 0)) 
+h2 = Atom(h2o, 3, Elements.H, r=Vector3{Float32}(cos(deg2rad(105)), sin(deg2rad(105)), 0))
 
 # add bonds
 Bond(h2o, o1.idx, h1.idx, BondOrder.Single)
@@ -151,24 +151,24 @@ Number of atoms after removing water: 2301</code></pre><h1 id="How-can-I-identif
 
 sys = load_pdb(ball_data_path(&quot;../test/data/1tgh.pdb&quot;))
 
-neighbors = neighborlist([a.r for a in atoms(sys)], 1.5)</code></pre><pre><code class="nohighlight hljs">1693-element Vector{Tuple{Int64, Int64, Float64}}:
- (1, 19, 0.9589779473125072)
- (2, 1, 1.4388685066986233)
+neighbors = neighborlist(positions=[a.r for a in atoms(sys)], cutoff=1.5)</code></pre><pre><code class="nohighlight hljs">1693-element Vector{Tuple{Int64, Int64, Float64}}:
+ (1, 19, 0.9589779473125027)
+ (2, 1, 1.4388685066986193)
  (3, 4, 1.4438002160243146)
  (4, 8, 1.4110367235570076)
- (5, 6, 1.423614076686212)
+ (5, 6, 1.4236140766862064)
  (8, 9, 1.4528402026870852)
  (9, 10, 1.3692218168573846)
- (10, 11, 1.2292563742786062)
  (10, 12, 1.3467147068968133)
+ (10, 11, 1.2292563742786)
  (13, 12, 1.328092566103565)
  ⋮
- (2344, 2345, 0.96483334318895)
  (2344, 2346, 0.9578454673076238)
- (2347, 2348, 0.9646835173520671)
- (2347, 2349, 0.9621348854276189)
+ (2344, 2345, 0.96483334318895)
+ (2347, 2348, 0.9646835173520685)
+ (2347, 2349, 0.9621348854276188)
  (2350, 2351, 0.9633766194458323)
- (2352, 2350, 0.9584511836064512)
- (2353, 2354, 0.9596359268143725)
- (2353, 2355, 0.9774217099578173)
- (2354, 2355, 1.4942598847835975)</code></pre><p><code>neighborlist</code> returns a tuple consisting of indices for the neighbors and the computed distance between them. For more advanced use cases have a look at the <a href="https://m3g.github.io/CellListMap.jl/stable/neighborlists/"><code>CellListMap.jl</code> documentation</a> .</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../force_field_ops/">« How to apply force fields</a><a class="docs-footer-nextpage" href="../read_and_write/">How to read and write »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 3 May 2026 01:33">Sunday 3 May 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ (2352, 2350, 0.9584511836064477)
+ (2353, 2355, 0.9774217099578166)
+ (2354, 2353, 0.9596359268143725)
+ (2354, 2355, 1.4942598847835966)</code></pre><p><code>neighborlist</code> returns a tuple consisting of indices for the neighbors and the computed distance between them. For more advanced use cases have a look at the <a href="https://m3g.github.io/CellListMap.jl/stable/neighborlists/"><code>CellListMap.jl</code> documentation</a> .</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../force_field_ops/">« How to apply force fields</a><a class="docs-footer-nextpage" href="../read_and_write/">How to read and write »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Thursday 7 May 2026 11:29">Thursday 7 May 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
