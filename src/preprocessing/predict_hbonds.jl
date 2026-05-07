@@ -49,7 +49,7 @@ function predict_hbonds_kabsch_sander!(ac::AbstractAtomContainer{T}, h_bond_from
     O_rs = getproperty.(atom_by_name.(amino_acids, "O"), :r)
 
     # now, find all pairs of residues with an N-O distance less than 5.2Å
-    candidates = neighborlist(N_rs, O_rs, MAX_HBOND_LENGTH)
+    candidates = neighborlist(xpositions=N_rs, ypositions=O_rs, cutoff=MAX_HBOND_LENGTH)
 
     candidate_fragments = map(c -> (amino_acids[c[1]], amino_acids[c[2]], c[3]), candidates)
 
