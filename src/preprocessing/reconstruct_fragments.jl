@@ -67,7 +67,7 @@ function _reconstruct_fragment!(f::Fragment{T}, template::DBFragmentVariant{T}) 
                 maximum(atoms(parent_system(f)).number; init = 0)+1, # does this make sense?
                 tpl_atom.element;
                 name = tpl_atom.name,
-                r = Vector3{T}(tpl_atom.r)
+                r = tpl_atom.r
             )
 
             tpl_to_frag[tpl_atom] = new_atom

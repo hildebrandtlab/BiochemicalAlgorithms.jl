@@ -7,7 +7,7 @@ export
 @auto_hash_equals struct DBAtom{T <: Real}
     name::String
     element::ElementType
-    r::Vector{T}
+    r::Vector3{T}
 end
 
 @auto_hash_equals struct DBBond
