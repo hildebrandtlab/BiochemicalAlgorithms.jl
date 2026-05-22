@@ -12,7 +12,7 @@ This function passes all keyword arguments to
 with the following default values:
  - `alg = ()`
 """
-function optimize_structure_mini!(ff::ForceField; alg=OptimizationOptimisers.Adam(0.01), epochs::Int=10, batchsize::Int=10, kwargs...)
+function optimize_structure_mini!(ff::ForceField; alg=OptimizationOptimisers.Adam(0.01), epochs::Int=10, batchsize::Int=10, callback=nothing, kwargs...)
     r0 = collect(Float64, Iterators.flatten(atoms(ff.system).r))
 
     ds = InteractionDataSet(ff)
@@ -38,12 +38,22 @@ function optimize_structure_mini!(ff::ForceField; alg=OptimizationOptimisers.Ada
     epoch_steps = Ref(max(1, length(state.batches)))
     done_epochs = Ref(0)
 
+    combined_callback = (opt_state, l) -> begin
+        stop = _epoch_minibatch_callback(
+            opt_state, l, state, iters_in_epoch, epoch_steps, done_epochs, epochs, batchsize
+        )
+        if callback !== nothing
+            e = compute_energy!(ff)
+            callback(opt_state.iter, e)
+        end
+        opt_state.iter % 1000 == 0 && 
+        return stop
+    end
+
     sol = Optimization.solve(
         prob,
         alg;
-        callback = (opt_state, l) -> _epoch_minibatch_callback(
-            opt_state, l, state, iters_in_epoch, epoch_steps, done_epochs, epochs, batchsize
-        ),
+        callback = combined_callback,
         maxiters = max(1, epochs * epoch_steps[]),
         kwargs...
     )
@@ -229,12 +239,6 @@ function _compute_grad!(grad::Vector{T}, r::Vector{T}, p::MiniBatchParams) where
     nothing
 end
 
-
-function _callback(state, l)
-    state.iter % 1000 == 0 && @show "Iteration: $(state.iter), Energy: $l"
-    return false  ## Continue until maxiters is reached
-end
-
 function _refresh_minibatches!(p::MiniBatchParams; batchsize::Int, shuffle::Bool=true)
     update!(p.ff)
     ds = InteractionDataSet(p.ff)
@@ -253,7 +257,6 @@ function _epoch_minibatch_callback(
     epochs::Int,
     batchsize::Int
 )
-    _callback(opt_state, compute_energy!(p.ff))
     iters_in_epoch[] += 1
 
     if iters_in_epoch[] >= epoch_steps[]
@@ -263,6 +266,5 @@ function _epoch_minibatch_callback(
         epoch_steps[] = _refresh_minibatches!(p; batchsize=batchsize, shuffle=true)
         iters_in_epoch[] = 0
     end
-
     return false
 end
