@@ -7,6 +7,7 @@ using DataFrames
 using DataStructures
 using DocStringExtensions
 using EnumX
+using GeometryBasics: GeometryBasics, Point3, Vec3, TriangleFace, Sphere
 using Graphs
 using LinearAlgebra
 using Mendeleev
@@ -124,6 +125,21 @@ include("preprocessing/predict_secondary_structure.jl")
 
 # structure analysis
 include("structureanalysis/bounding_box.jl")
+
+# molecular surfaces
+include("structureanalysis/surfaces/types.jl")
+include("structureanalysis/surfaces/geometry.jl")
+include("structureanalysis/surfaces/radii.jl")
+include("structureanalysis/surfaces/numerical_sas.jl")
+include("structureanalysis/surfaces/reduced_surface.jl")
+include("structureanalysis/surfaces/solvent_accessible_surface.jl")
+include("structureanalysis/surfaces/solvent_excluded_surface.jl")
+include("structureanalysis/surfaces/advancing_front.jl")
+include("structureanalysis/surfaces/triangulated_sas.jl")
+include("structureanalysis/surfaces/triangulated_ses.jl")
+include("structureanalysis/surfaces/ses_triangulator.jl")
+include("structureanalysis/surfaces/areas.jl")
+include("structureanalysis/surfaces/cleanup.jl")
 
 # optimization
 include("optimization/optimize_structure.jl")

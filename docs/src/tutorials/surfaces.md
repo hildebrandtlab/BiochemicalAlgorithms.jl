@@ -1,0 +1,148 @@
+# Working with Molecular Surfaces
+
+
+# Molecular surfaces
+
+`BiochemicalAlgorithms.jl` ships with the full Connolly-style molecular-
+surface pipeline ported from `BALL`: numerical SAS area/volume, the analytical
+reduced surface, the analytical solvent-accessible surface (SAS), the
+analytical solvent-excluded surface (SES), and triangulated meshes for both.
+
+All surface functions live in the top-level namespace; nothing extra needs to
+be imported beyond `BiochemicalAlgorithms`.
+
+## van-der-Waals radii
+
+Most molecular surfaces are defined relative to *inflated* atom spheres
+(atom radius + probe radius). Atoms loaded from PDB or HIN files have
+`radius = 0` by default; populate them with [`assign_radii!`](@ref) using
+Bondi values from `Mendeleev.jl`:
+
+``` julia
+using BiochemicalAlgorithms
+
+sys = load_pdb(ball_data_path("../test/data/bpti.pdb"))
+assign_radii!(sys)
+```
+
+The lookup table is exposed as [`vdw_radius`](@ref):
+
+``` julia
+vdw_radius(Float64, Elements.C)   # 1.7
+vdw_radius(Float32, Elements.O)   # 1.52f0
+```
+
+## Fast numerical SAS
+
+The Eisenhaber/Argos double-cubic-lattice algorithm gives a fast estimate
+of solvent-accessible surface area and volume by icosphere sampling. It’s
+the workhorse for routine area calculations:
+
+``` julia
+result = compute_numerical_sas(sys; probe_radius = 1.5, number_of_points = 400)
+result.total_area     # Å²
+result.total_volume   # Å³
+result.atom_areas     # per-atom contributions
+```
+
+For one-call convenience, [`sas_area`](@ref) and [`sas_volume`](@ref) wrap
+the same routine:
+
+``` julia
+sas_area(sys)         # ≈ 3917 Å² for BPTI
+sas_volume(sys)       # ≈ 11840 Å³ for BPTI
+```
+
+## Reduced surface
+
+The reduced surface (RS) is the topological skeleton of probe contacts. Its
+*vertices* sit on individual atoms, *edges* on atom pairs where the probe
+rolls, and *faces* on atom triples where the probe rests tangentially:
+
+``` julia
+rs = compute_reduced_surface(sys; probe_radius = 1.5)
+nvertices(rs)        # number of RS vertices (lobes-per-atom)
+nedges(rs)
+nfaces(rs)
+```
+
+Single isolated atoms become isolated `RSVertex` records; pairs of atoms
+within probe reach but without a third partner become *free edges* (full 2π
+rolling). Multi-lobe atoms (rare for proteins) get one `RSVertex` per lobe.
+
+## Solvent-accessible and solvent-excluded surfaces
+
+The analytical SAS is the dual of the reduced surface; the analytical SES
+decomposes into contact, toric (saddle), and spheric (inverted-probe)
+faces:
+
+``` julia
+sas = compute_sas(rs)              # or compute_sas(sys; probe_radius)
+ses = compute_ses(rs)              # or compute_ses(sys; probe_radius)
+
+nvertices(sas), nedges(sas), nfaces(sas)
+ncontact_faces(ses), ntoric_faces(ses), nspheric_faces(ses)
+```
+
+Total surface area:
+
+``` julia
+sas_area(sas)         # numerical (Eisenhaber)
+ses_area(ses)         # contact + toric + spheric
+```
+
+Singular toric faces — those arising when the rolling probe touches a
+fourth atom — are tagged as `SESFaceType.ToricSingular` and carry the
+line/probe-sphere intersection points in their vertex list, but are not
+otherwise subdivided. For dense molecules this approximation may slightly
+overcount the SES area; for an exact mesh-integrated answer, triangulate:
+
+## Triangulated meshes
+
+Both surfaces produce `GeometryBasics.Mesh` output with per-vertex
+normals; the `density` keyword scales the sampling rate. A common pattern:
+
+``` julia
+mesh_sas = triangulate(sas; density = 2.0)
+mesh_ses = triangulate(ses; density = 2.0)
+
+# integrated area from the mesh
+surface_area(mesh_sas)
+surface_area(mesh_ses)
+
+# inspect the mesh
+nvertices(mesh_ses)
+ntriangles(mesh_ses)
+```
+
+The meshes plot directly through any `Makie.jl` backend without further
+conversion — `mesh(mesh_ses)` will render a coloured solvent-excluded
+surface.
+
+## Reading MSMS files
+
+For interoperability with Sanner’s MSMS tool, [`read_msms`](@ref) loads a
+mesh from a `.vert`/`.face` pair:
+
+``` julia
+m = read_msms(Float64, "molecule.vert", "molecule.face")
+```
+
+## Summary of exports
+
+| Function | Purpose |
+|----|----|
+| `assign_radii!` | Populate atom radii from Mendeleev (Bondi) |
+| `vdw_radius` | Element → vdW radius lookup |
+| `compute_numerical_sas` | Fast SAS area/volume + point cloud |
+| `sas_area`, `sas_volume` | Convenience wrappers |
+| `compute_reduced_surface` | Analytical RS |
+| `compute_sas` | Analytical SAS (dual of RS) |
+| `compute_ses` | Analytical SES (contact/toric/spheric) |
+| `ses_area` | Closed-form + numerical SES area |
+| `triangulate_sas` | SAS mesh |
+| `triangulate_ses` | SES mesh (contact + spheric + parametric toric) |
+| `triangulate` | Dispatches on SAS/SES |
+| `icosphere` | Geodesic unit sphere |
+| `read_msms` | Sanner MSMS file format |
+| `surface_area`, `nvertices`, `ntriangles` | Mesh helpers |
