@@ -14,22 +14,15 @@ every energy/force evaluation. The canonical atom table (`atoms(system).r`/`.F`)
 is kept current at every pair-list rebuild and fully synchronized when the
 optimization finishes, so the rest of the library and any registered observables
 see consistent state.
-
-# Callbacks
-Before a callback fires, `atoms(system).r`/`.F` are refreshed from the compiled
-evaluator, and `loss` is the current total energy.
-
-!!! warning
-    Do **not** call `compute_energy!(ff)` or `compute_forces!(ff)` inside a
-    callback (or any observer) to track energies during the optimization. The
-    optimization evaluates the compiled copy of `ff`; the reference nonbonded
-    caches of `ff` (stored pair distances) are not updated between iterations,
-    so these calls would combine current bonded terms with stale nonbonded terms
-    and return a wrong energy. Read `loss` instead. The reference
-    force field is made consistent again once `optimize_structure!` returns.
-
 # Supported keyword arguments
  - `alg = OptimizationLBFGSB.LBFGSB()`
+ - `accumulation::Type = T` — accumulation precision (`Float32`/`Float64`)
+ - `backend::Symbol = :serial` — evaluation backend
+ - `update_frequency::Integer = 0` — force a rebuild every N evaluations (0 = skin-only)
+ - `max_displacement::Real = -1` — Verlet skin in Å (-1 = auto-derive from cutoffs)
+
+All other keyword arguments are forwarded to
+[Optimization.solve](https://docs.sciml.ai/Optimization/stable/API/solve/).
  - `accumulation::Type = T` — accumulation precision (`Float32`/`Float64`)
  - `backend::Symbol = :serial` — evaluation backend
  - `update_frequency::Integer = 0` — force a rebuild every N evaluations (0 = skin-only)
@@ -50,14 +43,31 @@ function optimize_structure!(ff::ForceField{T};
     cff = compile(ff; acc=accumulation, backend=backend,
                   update_frequency=update_frequency, max_displacement=max_displacement)
 
+function optimize_structure!(ff::ForceField{T};
+        alg = OptimizationLBFGSB.LBFGSB(),
+        accumulation::Type = T,
+        backend::Symbol = :serial,
+        update_frequency::Integer = 0,
+        max_displacement::Real = -1,
+        callback = nothing,
+        kwargs...) where T
+
+    cff = compile(ff; acc=accumulation, backend=backend,
+                  update_frequency=update_frequency, max_displacement=max_displacement)
+
     r0 = collect(Float64, Iterators.flatten(atoms(ff.system).r))
 
     optf = Optimization.OptimizationFunction(
         (r, _ = nothing) -> begin
             prepare_eval!(cff, r)
             Float64(compute_energy!(cff))
+            prepare_eval!(cff, r)
+            Float64(compute_energy!(cff))
         end,
         grad = (grad, r, _) -> begin
+            prepare_eval!(cff, r)
+            compute_forces!(cff)
+            gradient_flat!(grad, cff)
             prepare_eval!(cff, r)
             compute_forces!(cff)
             gradient_flat!(grad, cff)
