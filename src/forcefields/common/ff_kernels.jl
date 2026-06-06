@@ -238,6 +238,7 @@ end
         i = p.i[n]; j = p.j[n]
         direction = r[i] - r[j]
         factor = _f_lj_factor(squared_norm(direction), p.A[n], p.B[n], p.scaling[n], sw)
+        iszero(factor) && continue          # skip the (zero) force write for out-of-cutoff pairs
         force = factor * direction
         F[i] += force
         F[j] -= force
@@ -250,6 +251,7 @@ end
         i = p.i[n]; j = p.j[n]
         direction = r[i] - r[j]
         factor = _f_hb_factor(squared_norm(direction), p.A[n], p.B[n], p.scaling[n], sw)
+        iszero(factor) && continue
         force = factor * direction
         F[i] += force
         F[j] -= force
@@ -263,6 +265,7 @@ end
         i = p.i[n]; j = p.j[n]
         direction = r[i] - r[j]
         factor = _f_es_factor(squared_norm(direction), p.q1q2[n], p.scaling[n], sw, ddd, pref)
+        iszero(factor) && continue
         force = factor * direction
         F[i] += force
         F[j] -= force
