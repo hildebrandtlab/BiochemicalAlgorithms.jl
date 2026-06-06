@@ -257,11 +257,18 @@ function compile(ff::ForceField{T};
     sync_positions_from_table!(cff)   # fill cff.r from the table FIRST
     rebuild_pairlist!(cff)            # then lower nonbonded + snapshot positions
     _backend_init!(cff)               # GPU extensions allocate/upload device state here
+    _backend_init!(cff)               # GPU extensions allocate/upload device state here
     cff
 end
 
 _select_backend(::Val{:serial}, ::ForceField, ::Type) = SerialBackend()
 _select_backend(::Val{:threads}, ::ForceField, ::Type) = ThreadedBackend(Threads.nthreads())
+function _select_backend(::Val{:gpu}, ff::ForceField, ::Type{Acc}) where Acc
+    hasmethod(_make_gpu_backend, Tuple{ForceField, Type}) || throw(ArgumentError(
+        "the :gpu backend needs `using KernelAbstractions` plus a device package " *
+        "(`using Metal` on Apple Silicon, or `using CUDA`)"))
+    _make_gpu_backend(ff, Acc)
+end
 function _select_backend(::Val{:gpu}, ff::ForceField, ::Type{Acc}) where Acc
     hasmethod(_make_gpu_backend, Tuple{ForceField, Type}) || throw(ArgumentError(
         "the :gpu backend needs `using KernelAbstractions` plus a device package " *
@@ -380,6 +387,7 @@ function rebuild_pairlist!(cff::CompiledForceField{T, Acc}) where {T, Acc}
         cff.r_at_last_build[k] = cff.r[k]
     end
     cff.iters_since_build = 0
+    _backend_upload_pairs!(cff)   # GPU extensions re-upload the new pair arrays
     _backend_upload_pairs!(cff)   # GPU extensions re-upload the new pair arrays
     cff
 end
