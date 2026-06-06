@@ -67,4 +67,21 @@
         rebuild_pairlist!(cff)
         @test compute_energy!(cff) ≈ E0
     end
+
+    # Threaded backend must agree with serial (deterministic per-thread buffers;
+    # Float64 matches to ~rounding, Float32 differs only by summation order).
+    let p = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+        infer_topology!(p)
+        ff = AmberFF(p)
+        for acc in (Float32, Float64)
+            cs = compile(ff; acc = acc, backend = :serial)
+            ct = compile(ff; acc = acc, backend = :threads)
+            Es = compute_energy!(cs); Et = compute_energy!(ct)
+            compute_forces!(cs); compute_forces!(ct)
+            etol = acc === Float64 ? 1e-6 : 1e-1
+            ftol = acc === Float64 ? 1e-6 : 1e-1
+            @test isapprox(Float64(Es), Float64(Et); atol = etol, rtol = etol)
+            @test maxabs([Float64(maxabs(cs.F[n] - ct.F[n])) for n in eachindex(cs.F)]) <= ftol
+        end
+    end
 end
