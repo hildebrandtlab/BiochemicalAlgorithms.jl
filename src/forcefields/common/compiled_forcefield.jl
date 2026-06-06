@@ -29,6 +29,9 @@ struct SerialBackend   <: EvalBackend end
 struct ThreadedBackend <: EvalBackend
     nthreads::Int
 end
+struct ThreadedBackend <: EvalBackend
+    nthreads::Int
+end
 
 # --- per-component SoA payloads (row numbers into r/F buffers) ---------------
 struct StretchArrays{Acc}
@@ -121,6 +124,10 @@ mutable struct CompiledForceField{T, Acc, B <: EvalBackend}
     F_threads::Vector{Vector{Vector3{Acc}}}
     e_threads::Vector{Acc}
 
+    # per-thread scratch for the ThreadedBackend (empty for SerialBackend)
+    F_threads::Vector{Vector{Vector3{Acc}}}
+    e_threads::Vector{Acc}
+
     # per-category energies (keys match ForceField reference path)
     energy::Dict{String, Acc}
 
@@ -200,6 +207,10 @@ function compile(ff::ForceField{T};
     F_threads = [Vector{Vector3{Acc}}(undef, natoms) for _ in 1:nthreads]
     e_threads = zeros(Acc, nthreads)
 
+    nthreads = b isa ThreadedBackend ? b.nthreads : 0
+    F_threads = [Vector{Vector3{Acc}}(undef, natoms) for _ in 1:nthreads]
+    e_threads = zeros(Acc, nthreads)
+
     constrained_mask = falses(natoms)
     for a in ff.constrained_atoms
         # `constrained_atoms` holds row positions into atoms(system); mirror the
@@ -216,6 +227,7 @@ function compile(ff::ForceField{T};
         CubicSwitchingFunction{Acc}(zero(Acc), zero(Acc)),
         CubicSwitchingFunction{Acc}(zero(Acc), zero(Acc)),
         Acc(ES_Prefactor), Acc(ES_Prefactor_force), false,
+        r, F, F_threads, e_threads,
         r, F, F_threads, e_threads,
         Dict{String, Acc}(),
         idx2row, natoms,

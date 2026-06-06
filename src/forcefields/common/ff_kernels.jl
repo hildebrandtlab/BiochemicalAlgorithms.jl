@@ -6,7 +6,14 @@
 #  to read positions from `cff.r[row]` and accumulate forces into a row-indexed
 #  force buffer (no `Atom{T}` row-views, no Dict lookups). With acc == storage
 #  type the results match the reference path bit-for-bit.
+#  to read positions from `cff.r[row]` and accumulate forces into a row-indexed
+#  force buffer (no `Atom{T}` row-views, no Dict lookups). With acc == storage
+#  type the results match the reference path bit-for-bit.
 #
+#  The nonbonded loops are written over an index range [lo, hi] so the same code
+#  serves the serial backend (one range) and the threaded backend (one range
+#  per thread, into per-thread force buffers). Bonded terms are cheap and remain
+#  serial.
 #  The nonbonded loops are written over an index range [lo, hi] so the same code
 #  serves the serial backend (one range) and the threaded backend (one range
 #  per thread, into per-thread force buffers). Bonded terms are cheap and remain
@@ -19,6 +26,7 @@
 
 
 # ---------------------------------------------------------------------------
+#  Bonded ENERGY (serial accumulation in Acc)
 #  Bonded ENERGY (serial accumulation in Acc)
 # ---------------------------------------------------------------------------
 function _energy_stretch(cff::CompiledForceField{T, Acc}) where {T, Acc}
@@ -164,7 +172,10 @@ end
 
 # ---------------------------------------------------------------------------
 #  Bonded FORCES (serial accumulation into a row-indexed buffer F)
+#  Bonded FORCES (serial accumulation into a row-indexed buffer F)
 # ---------------------------------------------------------------------------
+function _force_stretch!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
+    s = cff.stretch; r = cff.r
 function _force_stretch!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
     s = cff.stretch; r = cff.r
     @inbounds for n in eachindex(s.k)
@@ -178,6 +189,8 @@ function _force_stretch!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
     nothing
 end
 
+function _force_bend!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
+    b = cff.bend; r = cff.r
 function _force_bend!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
     b = cff.bend; r = cff.r
     @inbounds for n in eachindex(b.k)
@@ -336,6 +349,8 @@ end
 """
     compute_forces!(cff::CompiledForceField)
 
+Zero and recompute forces at the current coordinates. Forces on constrained
+atoms are zeroed afterwards.
 Zero and recompute forces at the current coordinates. Forces on constrained
 atoms are zeroed afterwards.
 """
