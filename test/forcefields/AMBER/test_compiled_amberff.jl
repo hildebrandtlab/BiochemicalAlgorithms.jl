@@ -108,6 +108,7 @@
         @test compute_energy!(cff) ≈ E0
     end
 
+<<<<<<< HEAD
     # Moving coordinates past the Verlet skin rebuilds the pair list and still
     # agrees with the reference force field at the new geometry.
     let
@@ -159,6 +160,8 @@
         @test at.F[1] == cff.F[1]
     end
 
+=======
+>>>>>>> befda91b (Tests: cover threaded backend in CompiledForceField testitem)
     # Threaded backend must agree with serial (deterministic per-thread buffers;
     # Float64 matches to ~rounding, Float32 differs only by summation order).
     let p = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
