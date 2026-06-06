@@ -60,14 +60,78 @@ function _energy_torsion(cff::CompiledForceField{T, Acc}, t::TorsionArrays{Acc})
 end
 
 # ---------------------------------------------------------------------------
+#  Per-pair nonbonded math (scalar; shared by serial / threaded / GPU loops).
+#
+#  Energy helpers return the pair's energy contribution given the squared
+#  distance `sq`. Force helpers return a scalar `factor` such that the force on
+#  atom i is `factor * (r_i - r_j)` (and `-factor * (r_i - r_j)` on j) — every
+#  nonbonded force in the reference has exactly this form, so a single scalar
+#  unifies the CPU (SVector) and GPU (scalar SoA) loops.
+# ---------------------------------------------------------------------------
+@inline function _e_lj_pair(sq::Acc, A, B, scaling, sw::CubicSwitchingFunction{Acc}) where Acc
+    inv6 = sq^-3
+    inv6 * (inv6 * A - B) * scaling * switching_function(sw, sq)
+end
+
+@inline function _e_hb_pair(sq::Acc, A, B, scaling, sw::CubicSwitchingFunction{Acc}) where Acc
+    # precedence transcribed verbatim: scaling/switching multiply 2nd term only
+    sq^-6 * A - sq^-5 * B * scaling * switching_function(sw, sq)
+end
+
+@inline function _e_es_pair(sq::Acc, q1q2, scaling, sw::CubicSwitchingFunction{Acc},
+                            ddd::Bool, pref::Acc) where Acc
+    inner = ddd ? q1q2 / 4 / sq : q1q2 / sqrt(sq)
+    inner * scaling * switching_function(sw, sq) * pref
+end
+
+@inline function _f_lj_factor(sq::Acc, A, B, scaling, sw::CubicSwitchingFunction{Acc}) where Acc
+    (sq > zero(Acc) && sq <= sw.sq_cutoff) || return zero(Acc)
+    inv6 = sq^-3
+    factor = (one(Acc) / sq) * inv6 * scaling * (12 * A * inv6 - 6 * B)
+    if sq > sw.sq_cuton
+        sval, sder = switching_derivative(sw, sq)
+        factor *= sval
+        factor += sder * (-scaling * inv6 * (inv6 * A - B))
+    end
+    factor
+end
+
+@inline function _f_hb_factor(sq::Acc, A, B, scaling, sw::CubicSwitchingFunction{Acc}) where Acc
+    (sq > zero(Acc) && sq <= sw.sq_cutoff) || return zero(Acc)
+    inv2 = one(Acc) / sq
+    factor = inv2 * sq^-6 * (12 * A * inv2 - 10 * B)
+    if sq > sw.sq_cuton
+        sval, sder = switching_derivative(sw, sq)
+        factor *= sval
+        factor += sder * (-scaling * sq^-5 * (A * inv2 - B))
+    end
+    factor
+end
+
+@inline function _f_es_factor(sq::Acc, q1q2, scaling, sw::CubicSwitchingFunction{Acc},
+                              ddd::Bool, pref::Acc) where Acc
+    (sq > zero(Acc) && sq <= sw.sq_cutoff) || return zero(Acc)
+    inv2 = one(Acc) / sq
+    inv = sqrt(inv2)
+    factor = q1q2 * inv2 * scaling * pref
+    factor *= ddd ? Acc(0.5) * inv2 : inv
+    if sq > sw.sq_cuton
+        sval, sder = switching_derivative(sw, sq)
+        factor *= sval
+        ddf = ddd ? Acc(0.25) * inv : one(Acc)
+        factor += sder * (-pref * scaling * ddf * inv * q1q2)
+    end
+    factor
+end
+
+# ---------------------------------------------------------------------------
 #  Nonbonded ENERGY over a pair-index range [lo, hi] (returns Acc partial sum)
 # ---------------------------------------------------------------------------
 @inline function _sum_lj(r, p::PairLJArrays{Acc}, sw::CubicSwitchingFunction{Acc}, lo, hi) where Acc
     e = zero(Acc)
     @inbounds for n in lo:hi
         sq = squared_norm(r[p.i[n]] - r[p.j[n]])
-        inv6 = sq^-3
-        e += inv6 * (inv6 * p.A[n] - p.B[n]) * p.scaling[n] * switching_function(sw, sq)
+        e += _e_lj_pair(sq, p.A[n], p.B[n], p.scaling[n], sw)
     end
     e
 end
@@ -76,8 +140,7 @@ end
     e = zero(Acc)
     @inbounds for n in lo:hi
         sq = squared_norm(r[p.i[n]] - r[p.j[n]])
-        # precedence transcribed verbatim: scaling/switching multiply 2nd term only
-        e += sq^-6 * p.A[n] - sq^-5 * p.B[n] * p.scaling[n] * switching_function(sw, sq)
+        e += _e_hb_pair(sq, p.A[n], p.B[n], p.scaling[n], sw)
     end
     e
 end
@@ -87,8 +150,7 @@ end
     e = zero(Acc)
     @inbounds for n in lo:hi
         sq = squared_norm(r[p.i[n]] - r[p.j[n]])
-        inner = ddd ? p.q1q2[n] / 4 / sq : p.q1q2[n] / sqrt(sq)
-        e += inner * p.scaling[n] * switching_function(sw, sq) * pref
+        e += _e_es_pair(sq, p.q1q2[n], p.scaling[n], sw, ddd, pref)
     end
     e
 end
@@ -175,17 +237,7 @@ end
     @inbounds for n in lo:hi
         i = p.i[n]; j = p.j[n]
         direction = r[i] - r[j]
-        sq = squared_norm(direction)
-        (sq > zero(Acc) && sq <= sw.sq_cutoff) || continue
-        factor = one(Acc) / sq
-        inv6 = sq^-3
-        factor *= inv6 * p.scaling[n] * (12 * p.A[n] * inv6 - 6 * p.B[n])
-        if sq > sw.sq_cuton
-            sval, sder = switching_derivative(sw, sq)
-            factor *= sval
-            energy = -p.scaling[n] * inv6 * (inv6 * p.A[n] - p.B[n])
-            factor += sder * energy
-        end
+        factor = _f_lj_factor(squared_norm(direction), p.A[n], p.B[n], p.scaling[n], sw)
         force = factor * direction
         F[i] += force
         F[j] -= force
@@ -197,19 +249,7 @@ end
     @inbounds for n in lo:hi
         i = p.i[n]; j = p.j[n]
         direction = r[i] - r[j]
-        sq = squared_norm(direction)
-        (sq > zero(Acc) && sq <= sw.sq_cutoff) || continue
-        inv2 = one(Acc) / sq
-        inv10 = sq^-5
-        inv12 = sq^-6
-        factor = inv2
-        factor *= inv12 * (12 * p.A[n] * inv2 - 10 * p.B[n])
-        if sq > sw.sq_cuton
-            sval, sder = switching_derivative(sw, sq)
-            factor *= sval
-            energy = -p.scaling[n] * inv10 * (p.A[n] * inv2 - p.B[n])
-            factor += sder * energy
-        end
+        factor = _f_hb_factor(squared_norm(direction), p.A[n], p.B[n], p.scaling[n], sw)
         force = factor * direction
         F[i] += force
         F[j] -= force
@@ -222,23 +262,7 @@ end
     @inbounds for n in lo:hi
         i = p.i[n]; j = p.j[n]
         direction = r[i] - r[j]
-        sq = squared_norm(direction)
-        (sq > zero(Acc) && sq <= sw.sq_cutoff) || continue
-        inv2 = one(Acc) / sq
-        inv = sqrt(inv2)
-        factor = p.q1q2[n] * inv2 * p.scaling[n] * pref
-        if ddd
-            factor *= Acc(0.5) * inv2
-        else
-            factor *= inv
-        end
-        if sq > sw.sq_cuton
-            sval, sder = switching_derivative(sw, sq)
-            factor *= sval
-            ddf = ddd ? Acc(0.25) * inv : one(Acc)
-            energy = -pref * p.scaling[n] * ddf * inv * p.q1q2[n]
-            factor += sder * energy
-        end
+        factor = _f_es_factor(squared_norm(direction), p.q1q2[n], p.scaling[n], sw, ddd, pref)
         force = factor * direction
         F[i] += force
         F[j] -= force
