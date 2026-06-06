@@ -130,6 +130,9 @@ mutable struct CompiledForceField{T, Acc, B <: EvalBackend}
     max_displacement::Acc
     r_at_last_build::Vector{Vector3{Acc}}
     iters_since_build::Int
+
+    # device-resident state for the GPU backend (nothing for CPU backends)
+    gpu::Any
 end
 
 @inline accumulation_type(::CompiledForceField{T, Acc}) where {T, Acc} = Acc
@@ -200,6 +203,7 @@ function compile(ff::ForceField{T};
         constrained_mask,
         Int(update_frequency), Acc(max_displacement),
         Vector{Vector3{Acc}}(undef, natoms), 0,
+        nothing,
     )
 
     # auto-derive a safe Verlet skin from the cutoffs unless overridden: a pair
@@ -214,13 +218,42 @@ function compile(ff::ForceField{T};
     _lower_bonded!(cff)
     sync_positions_from_table!(cff)   # fill cff.r from the table FIRST
     rebuild_pairlist!(cff)            # then lower nonbonded + snapshot positions
+    _backend_init!(cff)               # GPU extensions allocate/upload device state here
     cff
 end
 
 _select_backend(::Val{:serial}, ::ForceField, ::Type) = SerialBackend()
 _select_backend(::Val{:threads}, ::ForceField, ::Type) = ThreadedBackend(Threads.nthreads())
+function _select_backend(::Val{:gpu}, ff::ForceField, ::Type{Acc}) where Acc
+    hasmethod(_make_gpu_backend, Tuple{ForceField, Type}) || throw(ArgumentError(
+        "the :gpu backend needs `using KernelAbstractions` plus a device package " *
+        "(`using Metal` on Apple Silicon, or `using CUDA`)"))
+    _make_gpu_backend(ff, Acc)
+end
 _select_backend(::Val{B}, ::ForceField, ::Type) where B =
-    throw(ArgumentError("unknown backend :$B (available: :serial, :threads)"))
+    throw(ArgumentError("unknown backend :$B (available: :serial, :threads, :gpu)"))
+
+# Implemented by the KernelAbstractions extension (BiochemicalAlgorithmsGPUExt).
+function _make_gpu_backend end
+
+# GPU device registry. Filled by the Metal/CUDA package extensions when loaded;
+# the device-agnostic KernelAbstractions kernels live in the GPU extension.
+const _GPU_DEVICE = Ref{Any}(nothing)
+
+"""
+    _register_gpu_device!(device; supports_f64)
+
+Called by the Metal/CUDA package extensions on load to register a
+KernelAbstractions device for the `:gpu` backend.
+"""
+function _register_gpu_device!(device; supports_f64::Bool)
+    _GPU_DEVICE[] = (device = device, f64 = supports_f64)
+    nothing
+end
+
+# Hooks specialized for the GPU backend in ff_gpu.jl (no-ops for CPU backends).
+_backend_init!(::CompiledForceField) = nothing        # called at end of compile
+_backend_upload_pairs!(::CompiledForceField) = nothing # called at end of rebuild_pairlist!
 
 @inline _row(cff::CompiledForceField, atom) = cff.idx2row[atom.idx]
 
@@ -312,6 +345,7 @@ function rebuild_pairlist!(cff::CompiledForceField{T, Acc}) where {T, Acc}
         cff.r_at_last_build[k] = cff.r[k]
     end
     cff.iters_since_build = 0
+    _backend_upload_pairs!(cff)   # GPU extensions re-upload the new pair arrays
     cff
 end
 
