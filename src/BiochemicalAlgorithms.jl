@@ -107,6 +107,7 @@ include("forcefields/common/stretch_component.jl")
 include("forcefields/common/bend_component.jl")
 include("forcefields/common/torsion_component.jl")
 include("forcefields/common/nonbonded_component.jl")
+include("forcefields/common/compiled_forcefield.jl")
 
 include("forcefields/AMBER/amberff_parameters.jl")
 include("forcefields/AMBER/amberff.jl")
