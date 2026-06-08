@@ -133,6 +133,9 @@ mutable struct CompiledForceField{T, Acc, B <: EvalBackend}
 
     # device-resident state for the GPU backend (nothing for CPU backends)
     gpu::Any
+
+    # cached CellListMap in-place neighbor list (built once, updated in place)
+    nl::Any
 end
 
 @inline accumulation_type(::CompiledForceField{T, Acc}) where {T, Acc} = Acc
@@ -203,7 +206,7 @@ function compile(ff::ForceField{T};
         constrained_mask,
         Int(update_frequency), Acc(max_displacement),
         Vector{Vector3{Acc}}(undef, natoms), 0,
-        nothing,
+        nothing, nothing,
     )
 
     # auto-derive a safe Verlet skin from the cutoffs unless overridden: a pair
@@ -321,23 +324,16 @@ function rebuild_pairlist!(cff::CompiledForceField{T, Acc}) where {T, Acc}
     end
     nbc === nothing && return cff
 
-    # Push the evaluator's current coordinates into the canonical table so the
-    # reference `update!` (which reads atoms(system).r and the CellListMap
-    # neighbor search) sees the right positions. This also keeps the table
-    # current at every rebuild (good for observables / visualization).
-    sync_to_table!(cff; forces=false)
-
-    # Re-run the reference nonbonded update (applies exclusions, HB/vdW
-    # classification, 1-4 scaling, switching assignment). Single-sourced.
-    update!(nbc)
-
     cff.vdw_sw = _convert_sw(Acc, nbc.cache.vdw_switching_function)
     cff.es_sw  = _convert_sw(Acc, nbc.cache.es_switching_function)
     cff.distance_dependent_dielectric = ff.options[:distance_dependent_dielectric]::Bool
 
-    _lower_lj!(cff, cff.lj, nbc.lj_interactions)
-    _lower_lj!(cff, cff.hb, nbc.hydrogen_bonds)
-    _lower_es!(cff, cff.es, nbc.electrostatic_interactions)
+    # Build the SoA pair arrays directly from a cached in-place neighbor list,
+    # reusing the exclusion/classification caches that `setup!(nbc)` produced.
+    # This avoids the reference `update!`'s fresh `neighborlist` allocation and
+    # its Deque-of-row-view reconstruction. `setup!` (run by the AmberFF
+    # constructor) must have populated `nbc.cache`.
+    _build_nonbonded_soa!(cff, nbc)
 
     # snapshot positions for the displacement check
     resize!(cff.r_at_last_build, cff.natoms)
@@ -392,20 +388,81 @@ end
 _convert_sw(::Type{Acc}, sw::CubicSwitchingFunction) where Acc =
     CubicSwitchingFunction{Acc}(Acc(sw.cutoff), Acc(sw.cuton))
 
-function _lower_lj!(cff::CompiledForceField{T, Acc}, p::PairLJArrays{Acc}, interactions) where {T, Acc}
-    empty!(p.i); empty!(p.j); empty!(p.A); empty!(p.B); empty!(p.scaling)
-    for lji in interactions
-        push!(p.i, _row(cff, lji.a1)); push!(p.j, _row(cff, lji.a2))
-        push!(p.A, Acc(lji.A)); push!(p.B, Acc(lji.B)); push!(p.scaling, Acc(lji.scaling_factor))
-    end
-    nothing
-end
+# Build the vdW / hydrogen-bond / electrostatic SoA arrays directly from a
+# cached in-place neighbor list. This is a faithful port of `update!(nbc)`
+# (nonbonded_component.jl): same exclusions (bond/geminal), same HB-vs-vdW
+# classification, same 1-4 scaling — but it emits the row-indexed SoA arrays
+# directly and reuses the neighbor list across rebuilds. The neighbor search
+# runs on `cff.r` (no atom-table round-trip). Validated against the reference
+# Deque path by test_compiled_amberff.jl.
+function _build_nonbonded_soa!(cff::CompiledForceField{T, Acc}, nbc::NonBondedComponent{T}) where {T, Acc}
+    ff = cff.ff
+    c  = nbc.cache
+    cutoff = Acc(c.nonbonded_cutoff)
+    pbc = ff.options[:periodic_boundary_conditions]::Bool
 
-function _lower_es!(cff::CompiledForceField{T, Acc}, p::PairESArrays{Acc}, interactions) where {T, Acc}
-    empty!(p.i); empty!(p.j); empty!(p.q1q2); empty!(p.scaling)
-    for esi in interactions
-        push!(p.i, _row(cff, esi.a1)); push!(p.j, _row(cff, esi.a2))
-        push!(p.q1q2, Acc(esi.q1q2)); push!(p.scaling, Acc(esi.scaling_factor))
+    if cff.nl === nothing
+        cff.nl = pbc ?
+            CellListMap.InPlaceNeighborList(positions=cff.r, cutoff=cutoff, unitcell=Acc.(c.periodic_box)) :
+            CellListMap.InPlaceNeighborList(positions=cff.r, cutoff=cutoff)
+    elseif pbc
+        CellListMap.update!(cff.nl; positions=cff.r, unitcell=Acc.(c.periodic_box))
+    else
+        CellListMap.update!(cff.nl; positions=cff.r)
+    end
+    # concrete type annotations: cff.nl is stored as Any and atoms(...) is not
+    # inferred, so without these the 634k-iteration loop boxes every access.
+    pairs::Vector{Tuple{Int, Int, Acc}} = CellListMap.neighborlist!(cff.nl)
+
+    at    = atoms(ff.system)::AtomTable{T}
+    idxc  = at.idx
+    chgc  = at.charge
+    typc  = at.atom_type
+    bond  = c.bond_cache; gem = c.geminal_cache; vic = c.vicinal_cache
+    ljc   = c.lj_combinations; hbc = c.hydrogen_bond_combinations
+    s_es  = Acc(c.scaling_es_1_4)
+    s_vdw = Acc(c.scaling_vdw_1_4)
+
+    lj = cff.lj; hb = cff.hb; es = cff.es
+    empty!(lj.i); empty!(lj.j); empty!(lj.A); empty!(lj.B); empty!(lj.scaling)
+    empty!(hb.i); empty!(hb.j); empty!(hb.A); empty!(hb.B); empty!(hb.scaling)
+    empty!(es.i); empty!(es.j); empty!(es.q1q2); empty!(es.scaling)
+
+    @inbounds for cand in pairs
+        i = cand[1]::Int; j = cand[2]::Int
+        ii = idxc[i]; jj = idxc[j]
+        # exclude 1-2 (bond) and 1-3 (geminal) interactions
+        ((ii => jj) in bond || (ii => jj) in gem) && continue
+        vicinal = (ii => jj) in vic
+
+        q1q2 = Acc(chgc[i]) * Acc(chgc[j])
+        if q1q2 != zero(Acc)
+            push!(es.i, Int32(i)); push!(es.j, Int32(j))
+            push!(es.q1q2, q1q2); push!(es.scaling, vicinal ? s_es : one(Acc))
+        end
+
+        t1 = typc[i]; t2 = typc[j]
+        if !vicinal
+            h = get(hbc, (I=t1, J=t2), missing)
+            ismissing(h) && (h = get(hbc, (I=t2, J=t1), missing))
+            if !ismissing(h)
+                push!(hb.i, Int32(i)); push!(hb.j, Int32(j))
+                push!(hb.A, Acc(only(h.A))); push!(hb.B, Acc(only(h.B))); push!(hb.scaling, one(Acc))
+            else
+                p = get(ljc, (I=t1, J=t2), missing)
+                if !ismissing(p)
+                    push!(lj.i, Int32(i)); push!(lj.j, Int32(j))
+                    push!(lj.A, Acc(p.A_ij)); push!(lj.B, Acc(p.B_ij)); push!(lj.scaling, one(Acc))
+                end
+            end
+        else
+            # 1-4 (torsion) pair: scaled vdW
+            p = get(ljc, (I=t1, J=t2), missing)
+            if !ismissing(p)
+                push!(lj.i, Int32(i)); push!(lj.j, Int32(j))
+                push!(lj.A, Acc(p.A_ij)); push!(lj.B, Acc(p.B_ij)); push!(lj.scaling, s_vdw)
+            end
+        end
     end
     nothing
 end

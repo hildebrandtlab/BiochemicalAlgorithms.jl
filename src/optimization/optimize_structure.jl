@@ -67,9 +67,15 @@ function optimize_structure!(ff::ForceField{T};
 
     # write the final optimized state back into the canonical atom table
     set_positions_flat!(cff, solution.u)
-    rebuild_pairlist!(cff)
-    compute_forces!(cff)
-    sync_to_table!(cff; forces=true)
+    sync_to_table!(cff; forces=false)
+
+    # Leave the force field consistent with the optimized geometry for the
+    # reference path: `update!` refreshes each component's cached state (the
+    # nonbonded interaction list stores per-pair distances), and
+    # `compute_forces!` repopulates `atoms(system).F`. After this, the usual
+    # `compute_energy!(ff)` / `compute_forces!(ff)` report the minimized state.
+    update!(ff)
+    compute_forces!(ff)
 
     solution
 end
