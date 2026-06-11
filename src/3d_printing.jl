@@ -601,6 +601,40 @@ function atom_sphere_mesh(center::AbstractVector{T}, radius::T,
     _compact_vertices(mesh)
 end
 
+# Lay out a list of (already-settled) parts in a roughly square grid on the
+# build plate so the slicer doesn't have them stacked at (0, 0, 0). Each part
+# is shifted in XY only; z stays untouched. `padding` is added between cells.
+function _layout_grid(parts::AbstractVector{PrintablePart}; padding::Real = 5.0)
+    n = length(parts)
+    n == 0 && return parts
+    # Footprint of each part: (xspan, yspan).
+    spans = Vector{Tuple{Float64, Float64}}(undef, n)
+    for (i, p) in enumerate(parts)
+        xs = [Float64(v[1]) for v in p.mesh.position]
+        ys = [Float64(v[2]) for v in p.mesh.position]
+        spans[i] = (maximum(xs) - minimum(xs), maximum(ys) - minimum(ys))
+    end
+    cell_w = maximum(s[1] for s in spans) + padding
+    cell_h = maximum(s[2] for s in spans) + padding
+    cols = max(1, ceil(Int, sqrt(n)))
+    out = PrintablePart[]
+    sizehint!(out, n)
+    for (i, p) in enumerate(parts)
+        col = (i - 1) % cols
+        row = (i - 1) ÷ cols
+        dx = col * cell_w
+        dy = row * cell_h
+        T = eltype(eltype(p.mesh.position))
+        new_pos = [Point3{T}(v[1] + T(dx), v[2] + T(dy), v[3]) for v in p.mesh.position]
+        new_mesh = GeometryBasics.Mesh(
+            new_pos,
+            [TriangleFace{Int}(Int(f[1]), Int(f[2]), Int(f[3])) for f in p.mesh.faces],
+        )
+        push!(out, PrintablePart(new_mesh, p.color, p.name, p.face_colors))
+    end
+    out
+end
+
 # Drop vertices not referenced by any face; renumber faces accordingly.
 function _compact_vertices(mesh::GeometryBasics.Mesh)
     used = falses(length(mesh.position))
@@ -872,7 +906,12 @@ function construction_kit(ac::AbstractAtomContainer{T};
         push!(parts, PrintablePart(mesh, col, "bond-$(k)", face_colors))
     end
 
-    parts
+    # Grid-layout the parts on the build plate. Each part has already been
+    # settled to z = 0 with its xy bbox centred at the origin; the grid shifts
+    # them to non-overlapping cells. Slicers that DO auto-arrange will simply
+    # rearrange; slicers that don't (e.g. OrcaSlicer's 3MF importer) honour
+    # this layout and the parts come in already spread out on the plate.
+    _layout_grid(parts; padding = T(5.0))
 end
 
 # ---------------------------------------------------------------------------

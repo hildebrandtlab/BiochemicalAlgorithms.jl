@@ -247,19 +247,28 @@ end
     Bond(sys, oa.idx, hb.idx, BondOrder.Single)
     assign_radii!(sys)
     parts = construction_kit(sys; scale=20)
+    # Parts must not overlap on the build plate (grid layout).
+    function xy_bbox(p)
+        xs = [Float64(v[1]) for v in p.mesh.position]
+        ys = [Float64(v[2]) for v in p.mesh.position]
+        (minimum(xs), maximum(xs), minimum(ys), maximum(ys))
+    end
+    boxes = [xy_bbox(p) for p in parts]
     for p in parts
         zs = [v[3] for v in p.mesh.position]
-        xs = [v[1] for v in p.mesh.position]
-        ys = [v[2] for v in p.mesh.position]
         # z-min == 0 (sits on build plate).
         @test isapprox(minimum(zs), 0; atol=1e-8)
-        # Recentred on XY origin.
-        @test isapprox((minimum(xs) + maximum(xs)) / 2, 0; atol=1e-8)
-        @test isapprox((minimum(ys) + maximum(ys)) / 2, 0; atol=1e-8)
         # Every part has uniform face_colors set.
         @test p.face_colors !== nothing
         @test length(p.face_colors) == length(p.mesh.faces)
         @test length(unique(p.face_colors)) == 1
+    end
+    # No pair of parts has overlapping xy bounding boxes.
+    for i in eachindex(boxes), j in (i+1):length(boxes)
+        (x0i, x1i, y0i, y1i) = boxes[i]
+        (x0j, x1j, y0j, y1j) = boxes[j]
+        overlap = (x0i < x1j) && (x0j < x1i) && (y0i < y1j) && (y0j < y1i)
+        @test !overlap
     end
 end
 
