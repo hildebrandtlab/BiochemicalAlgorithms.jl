@@ -234,3 +234,48 @@ end
         @test filesize(path) > 1000
     end
 end
+
+@testitem "construction_kit parts sit on z=0 and carry face_colors" begin
+    using BiochemicalAlgorithms
+    sys = System{Float64}()
+    mol = Molecule(sys; name="water")
+    ch = Chain(mol); f = Fragment(ch, 1; name="WAT")
+    oa = Atom(f, 1, Elements.O; r=Vector3{Float64}(0, 0, 0))
+    ha = Atom(f, 2, Elements.H; r=Vector3{Float64}(0.96, 0, 0))
+    hb = Atom(f, 3, Elements.H; r=Vector3{Float64}(-0.24, 0.93, 0))
+    Bond(sys, oa.idx, ha.idx, BondOrder.Single)
+    Bond(sys, oa.idx, hb.idx, BondOrder.Single)
+    assign_radii!(sys)
+    parts = construction_kit(sys; scale=20)
+    for p in parts
+        zs = [v[3] for v in p.mesh.position]
+        xs = [v[1] for v in p.mesh.position]
+        ys = [v[2] for v in p.mesh.position]
+        # z-min == 0 (sits on build plate).
+        @test isapprox(minimum(zs), 0; atol=1e-8)
+        # Recentred on XY origin.
+        @test isapprox((minimum(xs) + maximum(xs)) / 2, 0; atol=1e-8)
+        @test isapprox((minimum(ys) + maximum(ys)) / 2, 0; atol=1e-8)
+        # Every part has uniform face_colors set.
+        @test p.face_colors !== nothing
+        @test length(p.face_colors) == length(p.mesh.faces)
+        @test length(unique(p.face_colors)) == 1
+    end
+end
+
+@testitem "export_ses_3mf reorient=true reduces z extent" begin
+    using BiochemicalAlgorithms
+    using LinearAlgebra
+    sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), Float64)
+    assign_radii!(sys)
+    ses = compute_ses(sys; probe_radius=1.5)
+    mktempdir() do dir
+        # Compare unoriented vs reoriented bounding boxes.
+        unori = joinpath(dir, "unori.3mf")
+        ori   = joinpath(dir, "ori.3mf")
+        export_ses_3mf(ses, sys, unori; density=2.0, reorient=false)
+        export_ses_3mf(ses, sys, ori;   density=2.0, reorient=true)
+        @test isfile(unori) && isfile(ori)
+        @test filesize(unori) > 0 && filesize(ori) > 0
+    end
+end

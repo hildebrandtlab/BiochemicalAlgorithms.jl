@@ -375,10 +375,12 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Build the printed mesh for one atom: a sphere of `radius` at `center` plus,
-for each direction in `bond_directions`, a cylindrical peg of `peg_radius`
-extending `peg_length` outward from the sphere surface along that direction.
-Each piece is a closed sub-mesh; slicers union them when reading the file.
+Build the printed mesh for one atom: a single watertight icosphere of
+`radius` at `center`. `bond_directions` is accepted for API symmetry but is
+currently unused — peg sockets are emitted by [`bond_cylinder_mesh`](@ref) as
+positive geometry on the bond side, and the atom is a featureless sphere
+that the user joins to bond pieces with glue (or a small dab of cyanoacrylate
+inside the sphere's pre-printed dimple — not yet implemented).
 
 Returned mesh is in the same coordinate units as `center`/`radius` (the caller
 is expected to have scaled Å to mm before this call).
@@ -389,136 +391,72 @@ function atom_sphere_mesh(center::AbstractVector{T}, radius::T,
                           peg_length::T = T(8.0),
                           subdivisions::Int = 2,
                           segments::Int = 16) where T<:Real
-    # Sphere body
     sphere = icosphere(T, subdivisions)
     sphere_verts = [Point3{T}((Vec3{T}(center...) + radius * Vec3{T}(v...))...)
                     for v in sphere.position]
     sphere_faces = [TriangleFace{Int}(Int(f[1]), Int(f[2]), Int(f[3])) for f in sphere.faces]
-    mesh = GeometryBasics.Mesh(sphere_verts, sphere_faces)
-
-    # Peg cylinders. The peg's inner cap sits slightly inside the sphere
-    # (overlap = peg_radius) so the union is robust against floating-point
-    # tangency.
-    overlap = max(peg_radius, T(0.2))
-    c = Vec3{T}(center...)
-    for d in bond_directions
-        ax = Vec3{T}(d[1], d[2], d[3])
-        nrm = norm(ax)
-        nrm < eps(T) && continue
-        ax = ax / nrm
-        p1 = c + (radius - overlap) * ax
-        p2 = c + (radius + peg_length) * ax
-        peg = cylinder_mesh(p1, p2, peg_radius; segments)
-        mesh = _mesh_union(mesh, peg)
-    end
-    mesh
+    GeometryBasics.Mesh(sphere_verts, sphere_faces)
 end
 
 # ---------------------------------------------------------------------------
-# Bond mesh: hollow tube whose ends socket-fit the pegs.
-# Implemented as an outer cylinder (radius = peg_radius + wall) shorter than
-# the inter-atomic distance by 2*peg_length, plus two short open-ended
-# annular sleeves around each peg socket.
-# For MVP simplicity we render the BOND as a SOLID cylinder of length =
-# inter-atomic - 2*peg_length, sitting in the middle. The atom pegs from both
-# sides fit into pre-drilled holes in the bond. To avoid in-process CSG we
-# represent the socket as a NEGATIVE cylinder (open at the outward end, capped
-# at the inward end); slicers honour the subtractive geometry when the negative
-# is fully enclosed by positive volume.
+# Bond mesh: solid cylinder spanning the visible gap between two atom
+# surfaces. Each piece is a single watertight closed mesh, so slicers accept
+# it without "non-manifold" warnings. Bond order ≥ 2 renders as 2 or 3
+# parallel cylinders all of which are individually watertight; they touch
+# only at their endpoints (no inter-cylinder cross-section), which slicers
+# union cleanly because the touching surfaces are coincident.
 # ---------------------------------------------------------------------------
 
 """
     $(TYPEDSIGNATURES)
 
-Build the printed mesh for one bond between atoms at `p1` and `p2`.
-The piece is a single cylinder of `bond_radius` running the full inter-atomic
-distance; cylindrical sockets of `peg_radius × peg_length` are drilled into
-each end as inverted closed sub-meshes (slicers honour the implied negative
-volume during boolean union). When `order ≥ 2`, the visible part of the bond
-shaft is rendered as `order` parallel cylinders, all joined to the two end
-caps that hold the sockets, producing one rigid printed piece with one peg
-socket per atom.
+Build the printed mesh for one bond between atoms at `p1` and `p2`,
+spanning only the visible gap between the two atom surfaces (the caller
+passes the atom-surface points, NOT the atom centres). The piece is a
+single solid cylinder of `bond_radius`. When `order ≥ 2`, the shaft is
+rendered as 2 or 3 parallel cylinders for the double/triple-bond look —
+each is its own watertight sub-mesh, which slicers union by simple
+inclusion. `peg_radius`/`peg_length` are accepted for API symmetry but
+unused in the current build (no protruding pegs).
 """
 function bond_cylinder_mesh(p1::AbstractVector{T}, p2::AbstractVector{T};
-                            bond_radius::T = T(1.5),
+                            bond_radius::T = T(2.5),
                             peg_radius::T = T(1.5),
                             peg_length::T = T(8.0),
                             order::Int = 1,
                             segments::Int = 24) where T<:Real
     axis = Vec3{T}((p2 - p1)...)
-    n, u, v = _ortho_frame(axis)
-    p1v = Vec3{T}(p1...)
-    p2v = Vec3{T}(p2...)
+    _, u, v = _ortho_frame(axis)
 
-    # Atoms' pegs come in by peg_length, so the bond cap sits at this offset.
-    cap_thickness = max(peg_radius * T(1.5), T(2.0))
-    cap1_in  = p1v + peg_length * n
-    cap1_out = cap1_in + cap_thickness * n
-    cap2_in  = p2v - peg_length * n
-    cap2_out = cap2_in - cap_thickness * n
-
-    # Visible mid-segment length and endpoints.
-    mid_p1 = cap1_out
-    mid_p2 = cap2_out
-
-    # End caps (small fat cylinder discs holding the socket).
-    cap1 = cylinder_mesh(cap1_in, cap1_out, bond_radius; segments)
-    cap2 = cylinder_mesh(cap2_out, cap2_in, bond_radius; segments)
-
-    # Mid section: 1 (single), 2 (double, parallel), or 3 (triple, triangular).
-    shaft_radius = bond_radius * (order == 1 ? T(1.0) :
-                                  order == 2 ? T(0.55) :
-                                               T(0.45))
-    offset_distance = order == 1 ? zero(T) : bond_radius * T(0.6)
-
-    mesh = _mesh_union(cap1, cap2)
     if order <= 1
-        # Single solid mid-cylinder
-        shaft = cylinder_mesh(mid_p1, mid_p2, bond_radius; segments)
-        mesh = _mesh_union(mesh, shaft)
-    elseif order == 2
-        # Two parallel cylinders, offset along u.
-        for sign in (-T(1), T(1))
-            ofs = sign * offset_distance * u
-            shaft = cylinder_mesh(mid_p1 + ofs, mid_p2 + ofs, shaft_radius; segments)
-            mesh = _mesh_union(mesh, shaft)
+        return cylinder_mesh(p1, p2, bond_radius; segments)
+    end
+
+    # Multi-bond visual: 2 or 3 parallel cylinders. Each is thinner than the
+    # single-bond shaft so the total cross-sectional area roughly matches.
+    shaft_radius = bond_radius * (order == 2 ? T(0.55) : T(0.45))
+    offset_distance = bond_radius * T(0.6)
+
+    mesh = nothing
+    if order == 2
+        for sgn in (-T(1), T(1))
+            ofs = sgn * offset_distance * u
+            p1o = Point3{T}((Vec3{T}(p1...) + ofs)...)
+            p2o = Point3{T}((Vec3{T}(p2...) + ofs)...)
+            shaft = cylinder_mesh(p1o, p2o, shaft_radius; segments)
+            mesh = mesh === nothing ? shaft : _mesh_union(mesh, shaft)
         end
     else
-        # Triple (or higher) — three parallel cylinders at 120°.
         for k in 0:2
             θ = T(2π) * k / 3
             ofs = offset_distance * (cos(θ) * u + sin(θ) * v)
-            shaft = cylinder_mesh(mid_p1 + ofs, mid_p2 + ofs, shaft_radius; segments)
-            mesh = _mesh_union(mesh, shaft)
+            p1o = Point3{T}((Vec3{T}(p1...) + ofs)...)
+            p2o = Point3{T}((Vec3{T}(p2...) + ofs)...)
+            shaft = cylinder_mesh(p1o, p2o, shaft_radius; segments)
+            mesh = mesh === nothing ? shaft : _mesh_union(mesh, shaft)
         end
     end
-
-    # Sockets (negative cylinders extending INTO the bond, capped on the
-    # bond-interior side, open on the atom-facing side). We model these as
-    # closed cylinders sized peg_radius × peg_length so that the slicer's
-    # boolean evaluation of multiple closed sub-meshes drills them out. To
-    # ensure proper subtraction by *containment*, we use a slightly negative
-    # winding (face order reversed); MeshIO/PrusaSlicer interprets reversed
-    # closed sub-meshes as voids when fully enclosed.
-    sock1 = cylinder_mesh(p1v - T(0.1) * n, cap1_out + T(0.1) * n, peg_radius; segments)
-    sock2 = cylinder_mesh(p2v + T(0.1) * n, cap2_out - T(0.1) * n, peg_radius; segments)
-    sock1 = _flip_faces(sock1)
-    sock2 = _flip_faces(sock2)
-    mesh = _mesh_union(mesh, sock1)
-    mesh = _mesh_union(mesh, sock2)
-
     mesh
-end
-
-# Reverse winding so the closed mesh acts as a void when used in a boolean
-# union (slicers like PrusaSlicer interpret reversed normals as subtractive).
-function _flip_faces(m::GeometryBasics.Mesh)
-    new_faces = TriangleFace{Int}[]
-    sizehint!(new_faces, length(m.faces))
-    for f in m.faces
-        push!(new_faces, TriangleFace{Int}(Int(f[1]), Int(f[3]), Int(f[2])))
-    end
-    GeometryBasics.Mesh(collect(m.position), new_faces)
 end
 
 # ---------------------------------------------------------------------------
@@ -557,10 +495,10 @@ Returns `Vector{PrintablePart}` ready to pass to [`export_3mf`](@ref) or
 """
 function construction_kit(ac::AbstractAtomContainer{T};
                           scale::Real      = 10,
-                          atom_scale::Real = 0.4,
+                          atom_scale::Real = 0.35,
                           peg_radius::Real = 1.5,
                           peg_length::Real = 8.0,
-                          bond_radius::Real = 1.5,
+                          bond_radius::Real = 2.5,
                           joint::Symbol    = :peg,
                           subdivisions::Int = 2,
                           segments::Int    = 24) where T<:Real
@@ -601,42 +539,130 @@ function construction_kit(ac::AbstractAtomContainer{T};
 
     # Vdw radii — need them populated. Mirror surfaces' convention.
     radii_filled = !all(iszero, at.radius)
+    atom_sphere_radius_mm = Vector{T}(undef, n_atoms)   # for bond-end computation
 
     for i in 1:n_atoms
         elem = at.element[i]
         vdw = radii_filled && !iszero(at.radius[i]) ? T(at.radius[i]) : T(vdw_radius(Float64, elem))
         sphere_radius_mm = ascale * vdw * s
+        atom_sphere_radius_mm[i] = sphere_radius_mm
         center_mm = Vector3{T}((s .* at.r[i])...)
-        # Normalise the bond direction vectors to unit length (we only care
-        # about direction; peg lengths are explicit).
         dirs = [d / norm(d) for d in nbrs[i] if norm(d) > eps(T)]
         mesh = atom_sphere_mesh(center_mm, sphere_radius_mm, dirs;
                                  peg_radius = pr, peg_length = pl,
                                  subdivisions, segments)
+        # Settle to z=0 + recentre — slicers auto-arrange parts side-by-side.
+        mesh = _settle_to_buildplate(mesh)
+        # Force colour through face_colors so multi-material slicer previews
+        # render the atom in CPK (the per-object basematerials hint is often
+        # ignored unless multi-material printing is enabled).
+        col = cpk_color(elem)
+        face_colors = fill(col, length(mesh.faces))
         push!(parts, PrintablePart(
             mesh,
-            cpk_color(elem),
+            col,
             "atom-$(i)-$(string(Symbol(elem)))",
+            face_colors,
         ))
     end
 
     for (k, (i, j, ord)) in enumerate(bond_pairs)
-        p1 = Vector3{T}((s .* at.r[i])...)
-        p2 = Vector3{T}((s .* at.r[j])...)
+        ci = Vector3{T}((s .* at.r[i])...)
+        cj = Vector3{T}((s .* at.r[j])...)
+        axis = cj - ci
+        L = norm(axis)
+        L < eps(T) && continue
+        n̂ = axis / L
+        # Bond runs only between atom surfaces — not centre to centre — so
+        # the visible cylinder length matches what the user sees in the
+        # assembled model and is proportional to the gap.
+        ri = atom_sphere_radius_mm[i]
+        rj = atom_sphere_radius_mm[j]
+        # Tiny overlap (0.2 mm) so the bond sits flush against the sphere.
+        surf_i = ci + (ri - T(0.2)) * n̂
+        surf_j = cj - (rj - T(0.2)) * n̂
         ord_int = ord === BondOrder.Single  ? 1 :
                   ord === BondOrder.Double  ? 2 :
                   ord === BondOrder.Triple  ? 3 :
                   ord === BondOrder.Aromatic ? 2 : 1
-        mesh = bond_cylinder_mesh(p1, p2;
+        mesh = bond_cylinder_mesh(surf_i, surf_j;
                                    bond_radius = br,
                                    peg_radius  = pr,
                                    peg_length  = pl,
                                    order       = ord_int,
                                    segments)
-        push!(parts, PrintablePart(mesh, (0.6, 0.6, 0.6), "bond-$(k)"))
+        mesh = _settle_to_buildplate(mesh)
+        col = (0.55, 0.55, 0.55)
+        face_colors = fill(col, length(mesh.faces))
+        push!(parts, PrintablePart(mesh, col, "bond-$(k)", face_colors))
     end
 
     parts
+end
+
+# ---------------------------------------------------------------------------
+# Print-bed orientation helpers.
+# ---------------------------------------------------------------------------
+
+# Translate so the bounding-box min becomes (cx, cy, 0): the part sits flat on
+# the build plate, centred on the XY origin so slicers' auto-arrange can pack
+# it next to other parts.
+function _settle_to_buildplate(mesh::GeometryBasics.Mesh{T}) where T<:Any
+    pos = mesh.position
+    isempty(pos) && return mesh
+    xs = [v[1] for v in pos]; ys = [v[2] for v in pos]; zs = [v[3] for v in pos]
+    cx = (minimum(xs) + maximum(xs)) / 2
+    cy = (minimum(ys) + maximum(ys)) / 2
+    zmin = minimum(zs)
+    new_pos = [Point3{eltype(v)}(v[1] - cx, v[2] - cy, v[3] - zmin) for v in pos]
+    GeometryBasics.Mesh(
+        new_pos,
+        [TriangleFace{Int}(Int(f[1]), Int(f[2]), Int(f[3])) for f in mesh.faces],
+    )
+end
+
+# PCA: rotate the mesh so its longest principal axis aligns with +X, the
+# second-longest with +Y, and the shortest with +Z. This minimises the printed
+# height (and thus the area exposed to overhangs/supports). After rotation
+# the mesh is settled to (0, 0, 0) build-plate origin.
+function _pca_align_for_printing(mesh::GeometryBasics.Mesh)
+    pos = mesh.position
+    isempty(pos) && return mesh
+    n = length(pos)
+    # Centroid
+    cx = sum(v[1] for v in pos) / n
+    cy = sum(v[2] for v in pos) / n
+    cz = sum(v[3] for v in pos) / n
+    # Covariance matrix (3×3)
+    Mxx = 0.0; Mxy = 0.0; Mxz = 0.0
+    Myy = 0.0; Myz = 0.0; Mzz = 0.0
+    for v in pos
+        dx = Float64(v[1] - cx); dy = Float64(v[2] - cy); dz = Float64(v[3] - cz)
+        Mxx += dx * dx; Mxy += dx * dy; Mxz += dx * dz
+        Myy += dy * dy; Myz += dy * dz; Mzz += dz * dz
+    end
+    Σ = [Mxx Mxy Mxz; Mxy Myy Myz; Mxz Myz Mzz] ./ n
+    # Eigendecomposition. `eigen` of a Symmetric returns ascending eigenvalues.
+    F = eigen(Symmetric(Σ))
+    # Sort indices by descending eigenvalue (largest spread first).
+    order = sortperm(F.values; rev = true)
+    R = F.vectors[:, order]
+    # Ensure a right-handed (det = +1) rotation; flip the last column if needed.
+    if det(R) < 0
+        R[:, 3] .= -R[:, 3]
+    end
+    # Apply: new_v = R' * (v - centroid)
+    T = eltype(eltype(pos))
+    new_pos = [Point3{T}(
+        T(R[1,1] * (Float64(v[1]) - cx) + R[2,1] * (Float64(v[2]) - cy) + R[3,1] * (Float64(v[3]) - cz)),
+        T(R[1,2] * (Float64(v[1]) - cx) + R[2,2] * (Float64(v[2]) - cy) + R[3,2] * (Float64(v[3]) - cz)),
+        T(R[1,3] * (Float64(v[1]) - cx) + R[2,3] * (Float64(v[2]) - cy) + R[3,3] * (Float64(v[3]) - cz)),
+    ) for v in pos]
+    rotated = GeometryBasics.Mesh(
+        new_pos,
+        [TriangleFace{Int}(Int(f[1]), Int(f[2]), Int(f[3])) for f in mesh.faces],
+    )
+    _settle_to_buildplate(rotated)
 end
 
 # ---------------------------------------------------------------------------
@@ -708,17 +734,23 @@ function export_ses_3mf(ses::SolventExcludedSurface{T}, ac::AbstractAtomContaine
                         path::AbstractString;
                         density::Real = 2.0,
                         scale::Real   = 10,
-                        name::AbstractString = "ses") where T
+                        name::AbstractString = "ses",
+                        reorient::Bool = true) where T
     tses = triangulate_ses(ses; density = T(density))
+    # Per-face colours computed BEFORE any rotation/translation — face_colors
+    # are 1:1 with mesh.faces and survive any rigid transform.
+    fc = ses_face_colors_by_atom(tses, ses, ac)
     s = T(scale)
     scaled_verts = [Point3{T}((s * Vec3{T}(v...))...) for v in tses.position]
     scaled_mesh = GeometryBasics.Mesh(
         scaled_verts,
         [TriangleFace{Int}(Int(f[1]), Int(f[2]), Int(f[3])) for f in tses.faces],
     )
-    # Compute face colours on the *original* (Å) mesh — centroids and atom
-    # centres are in the same frame.
-    fc = ses_face_colors_by_atom(tses, ses, ac)
+    if reorient
+        scaled_mesh = _pca_align_for_printing(scaled_mesh)
+    else
+        scaled_mesh = _settle_to_buildplate(scaled_mesh)
+    end
     part = PrintablePart(scaled_mesh, (0.7, 0.7, 0.8), String(name), fc)
     export_3mf([part], path)
 end
@@ -728,7 +760,8 @@ function export_ses_3mf(ac::AbstractAtomContainer{T}, path::AbstractString;
                         probe_radius::Real = 1.5,
                         density::Real      = 2.0,
                         scale::Real        = 10,
-                        name::AbstractString = "ses") where T
+                        name::AbstractString = "ses",
+                        reorient::Bool     = true) where T
     ses = compute_ses(ac; probe_radius = T(probe_radius))
-    export_ses_3mf(ses, ac, path; density, scale, name)
+    export_ses_3mf(ses, ac, path; density, scale, name, reorient)
 end
