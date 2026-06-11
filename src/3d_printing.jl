@@ -704,15 +704,22 @@ function bond_cylinder_mesh(p1::AbstractVector{T}, p2::AbstractVector{T};
     # Order-dependent shaft radius (single peg always).
     shaft_r = bond_radius * (order == 1 ? T(1.0) : order == 2 ? T(1.15) : T(1.3))
 
-    # Six ring profiles. Ring k has axial position z_k and radius r_k.
-    # All rings have `segments` vertices.
+    # Six ring profiles. Each ring has `segments` vertices.
+    # Profile, from left peg tip to right peg tip:
+    #   peg_tip → peg_base_at_surface → taper → shaft → taper → peg_base_at_surface → peg_tip
+    # The conic taper sits in the visible bond gap (NOT inside the atom
+    # socket, whose bore is straight). Matches the look of commercial
+    # molecular-kit bond sticks (Molymod / HGS).
+    # Cap chamfer at L/3 so short bonds still have a visible shaft.
+    chamfer = min(shaft_r - peg_radius, L / T(3))
+    chamfer = max(chamfer, T(0))
     rings = [
-        (-peg_length,             peg_radius),   # 1: outer end of left peg
-        (zero(T),                 peg_radius),   # 2: left peg, at the shoulder
-        (zero(T),                 shaft_r),      # 3: bond shaft, at the shoulder
-        (L,                       shaft_r),      # 4: bond shaft, at the right shoulder
-        (L,                       peg_radius),   # 5: right peg, at the right shoulder
-        (L + peg_length,          peg_radius),   # 6: outer end of right peg
+        (-peg_length,         peg_radius),   # 1: left peg tip (at socket bottom)
+        (zero(T),             peg_radius),   # 2: peg ends at atom surface
+        (chamfer,             shaft_r),      # 3: taper ends, shaft begins
+        (L - chamfer,         shaft_r),      # 4: shaft ends, taper begins
+        (L,                   peg_radius),   # 5: peg starts at far atom surface
+        (L + peg_length,      peg_radius),   # 6: right peg tip
     ]
 
     verts = Point3{T}[]
