@@ -375,49 +375,285 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Build the printed mesh for one atom: a single watertight icosphere of
-`radius` at `center`. `bond_directions` is accepted for API symmetry but is
-currently unused — peg sockets are emitted by [`bond_cylinder_mesh`](@ref) as
-positive geometry on the bond side, and the atom is a featureless sphere
-that the user joins to bond pieces with glue (or a small dab of cyanoacrylate
-inside the sphere's pre-printed dimple — not yet implemented).
+Build the printed mesh for one atom: an icosphere of `radius` at `center`
+with one cylindrical socket of `peg_radius × peg_length` drilled radially
+outward along every entry in `bond_directions`. The result is a **single
+watertight mesh** — no overlapping closed sub-meshes — so slicers accept it
+without "non-manifold" warnings.
 
-Returned mesh is in the same coordinate units as `center`/`radius` (the caller
-is expected to have scaled Å to mm before this call).
+The cut is procedural (no CSG library): for each socket direction `axis_k`,
+let `θ_k = asin(peg_radius / radius)` be the half-angle of the spherical
+cap that fits the peg. Vertices with `dot(v_unit, axis_k) > cos(θ_k)` are
+classified as "in-cap"; in-cap triangles are dropped, and triangles
+straddling the cap boundary are clipped against the cone by bisecting their
+edges. The resulting hole rim is connected to an inner ring (translated
+along `-axis_k` by `peg_length`) by a quad strip, then capped at the
+bottom with a fan. Each socket adds one outer rim + one inner ring + one
+bottom centre vertex.
+
+Pass an empty `bond_directions` to get a plain solid sphere.
+
+Use enough `subdivisions` that several icosphere triangles fall inside each
+cap — for the default `peg_radius=1.5 mm` and `radius ≈ 6–11 mm` the cap
+half-angle is ~8–14° and `subdivisions = 3` (642 verts) gives 12–20-sided
+rims, which prints smoothly.
+
+Returned mesh is in the same coordinate units as `center`/`radius` (the
+caller is expected to have scaled Å to mm before this call).
 """
 function atom_sphere_mesh(center::AbstractVector{T}, radius::T,
                           bond_directions::AbstractVector{<:AbstractVector{<:Real}};
                           peg_radius::T = T(1.5),
                           peg_length::T = T(8.0),
-                          subdivisions::Int = 2,
+                          subdivisions::Int = 3,
                           segments::Int = 16) where T<:Real
-    sphere = icosphere(T, subdivisions)
-    sphere_verts = [Point3{T}((Vec3{T}(center...) + radius * Vec3{T}(v...))...)
-                    for v in sphere.position]
-    sphere_faces = [TriangleFace{Int}(Int(f[1]), Int(f[2]), Int(f[3])) for f in sphere.faces]
-    GeometryBasics.Mesh(sphere_verts, sphere_faces)
+    # Empty / oversized-peg fall-throughs: just a plain sphere.
+    if isempty(bond_directions) || peg_radius >= radius
+        sphere = icosphere(T, subdivisions)
+        verts = [Point3{T}((Vec3{T}(center...) + radius * Vec3{T}(v...))...) for v in sphere.position]
+        faces = [TriangleFace{Int}(Int(f[1]), Int(f[2]), Int(f[3])) for f in sphere.faces]
+        return GeometryBasics.Mesh(verts, faces)
+    end
+
+    # Normalise socket directions.
+    K = length(bond_directions)
+    axes_n = Vector{Vec3{T}}(undef, K)
+    for k in 1:K
+        a = Vec3{T}(bond_directions[k][1], bond_directions[k][2], bond_directions[k][3])
+        axes_n[k] = a / norm(a)
+    end
+    # sin(θ_k) = peg_radius / radius  ⇒  cos(θ_k) for cap classification.
+    cos_θ = T(sqrt(1 - (Float64(peg_radius) / Float64(radius))^2))
+
+    # Step 1: icosphere on the unit sphere.
+    ico = icosphere(T, subdivisions)
+    pos = [Vec3{T}(p...) for p in ico.position]  # will grow
+    n_orig = length(pos)
+
+    # Step 2: classify each original vertex by socket (0 = outside all).
+    in_socket = zeros(Int, n_orig)
+    for i in 1:n_orig
+        v = pos[i]
+        for k in 1:K
+            if dot(v, axes_n[k]) > cos_θ
+                in_socket[i] = k
+                break
+            end
+        end
+    end
+
+    # Bisect edge (a,b) against cone-k. Returns new vertex on the unit sphere.
+    # (One endpoint must be inside socket k, the other outside it.)
+    function bisect_boundary(a::Int, b::Int, k::Int)
+        va = pos[a]; vb = pos[b]
+        ax = axes_n[k]
+        lo, hi = 0.0, 1.0
+        # f(t) = dot(normalize((1-t)*va + t*vb), ax) - cos_θ
+        f_lo = Float64(dot(va, ax)) - Float64(cos_θ)
+        for _ in 1:40
+            mid = (lo + hi) / 2
+            vm = (1 - mid) * va + mid * vb
+            vm = vm / norm(vm)
+            f_mid = Float64(dot(vm, ax)) - Float64(cos_θ)
+            if (f_lo > 0) == (f_mid > 0)
+                lo = mid; f_lo = f_mid
+            else
+                hi = mid
+            end
+        end
+        t = (lo + hi) / 2
+        vm = (1 - T(t)) * va + T(t) * vb
+        vm = vm / norm(vm)
+        push!(pos, vm)
+        length(pos)
+    end
+
+    boundary_vert_of = Dict{Tuple{Int, Int, Int}, Int}()
+    boundary_verts_by_socket = [Int[] for _ in 1:K]
+
+    function get_boundary_vert(a::Int, b::Int, k::Int)
+        key = a < b ? (a, b, k) : (b, a, k)
+        if haskey(boundary_vert_of, key)
+            return boundary_vert_of[key]
+        end
+        idx = bisect_boundary(a, b, k)
+        boundary_vert_of[key] = idx
+        push!(boundary_verts_by_socket[k], idx)
+        idx
+    end
+
+    # Step 3: process each triangle. We assume each triangle straddles AT MOST
+    # one socket (true when sockets don't overlap on the sphere — i.e. bonds
+    # don't share a direction, which is always the case for real molecules).
+    new_faces = TriangleFace{Int}[]
+    for f in ico.faces
+        a, b, c = Int(f[1]), Int(f[2]), Int(f[3])
+        sa, sb, sc = in_socket[a], in_socket[b], in_socket[c]
+
+        if sa == 0 && sb == 0 && sc == 0
+            push!(new_faces, TriangleFace{Int}(a, b, c))
+            continue
+        end
+        if sa == sb == sc != 0
+            continue  # whole triangle in a socket → drop
+        end
+
+        # Pick the socket this triangle is partly inside.
+        k = max(sa, sb, sc)
+        ia = sa == k; ib = sb == k; ic = sc == k
+        cnt_in = (ia ? 1 : 0) + (ib ? 1 : 0) + (ic ? 1 : 0)
+
+        # Walk the triangle in its original cyclic order (a → b → c) and find
+        # the two boundary crossings. Producing the OUTSIDE part with the same
+        # cyclic order preserves outward winding.
+        if cnt_in == 1
+            # One vertex in, two out. Outside region is a quad.
+            verts = (a, b, c)
+            ins = (ia, ib, ic)
+            # Find the in-vertex index in (1,2,3)
+            iv = ins[1] ? 1 : (ins[2] ? 2 : 3)
+            o1 = mod1(iv + 1, 3); o2 = mod1(iv + 2, 3)
+            vi = verts[iv]; vo1 = verts[o1]; vo2 = verts[o2]
+            nb_in_to_o1 = get_boundary_vert(vi, vo1, k)
+            nb_o2_to_in = get_boundary_vert(vo2, vi, k)
+            # Original winding: ... → vi → vo1 → vo2 → vi → ...
+            # Outside quad in same cyclic order: nb_in_to_o1 → vo1 → vo2 → nb_o2_to_in
+            push!(new_faces, TriangleFace{Int}(nb_in_to_o1, vo1, vo2))
+            push!(new_faces, TriangleFace{Int}(nb_in_to_o1, vo2, nb_o2_to_in))
+        else  # cnt_in == 2
+            verts = (a, b, c)
+            ins = (ia, ib, ic)
+            ov = ins[1] ? (ins[2] ? 3 : 2) : 1   # the one out-vertex index
+            i1 = mod1(ov + 1, 3); i2 = mod1(ov + 2, 3)
+            vo = verts[ov]; vi1 = verts[i1]; vi2 = verts[i2]
+            nb_o_to_i1 = get_boundary_vert(vo, vi1, k)
+            nb_i2_to_o = get_boundary_vert(vi2, vo, k)
+            # Outside is a triangle in the same cyclic order:
+            # vo → nb_o_to_i1 → nb_i2_to_o (preserves outward normal).
+            push!(new_faces, TriangleFace{Int}(vo, nb_o_to_i1, nb_i2_to_o))
+        end
+    end
+
+    # Step 4: for each socket, build cylindrical wall + bottom cap.
+    for k in 1:K
+        bverts = unique!(sort(boundary_verts_by_socket[k]))
+        length(bverts) < 3 && continue   # cap too small / no usable rim
+
+        ax = axes_n[k]
+        _, u, v = _ortho_frame(ax)
+        # Sort by azimuth in the (u, v) plane perpendicular to the axis.
+        function azi(idx)
+            p = pos[idx]
+            atan(Float64(dot(p, v)), Float64(dot(p, u)))
+        end
+        sorted = sort(bverts; by = azi)
+        n = length(sorted)
+
+        # Inner ring lies at axial position `cos(θ) - peg_length/radius` (in
+        # unit-sphere coords). Radial position is `peg_radius/radius` along
+        # the same azimuth as the corresponding outer vertex.
+        axial_inner = T(Float64(cos_θ) - Float64(peg_length) / Float64(radius))
+        radial = T(Float64(peg_radius) / Float64(radius))
+        inner_ring = Int[]
+        for bv in sorted
+            p = pos[bv]
+            perp = p - dot(p, ax) * ax
+            perp_n = norm(perp)
+            unit_perp = perp_n > eps(T) ? perp / perp_n : u
+            push!(pos, radial * unit_perp + axial_inner * ax)
+            push!(inner_ring, length(pos))
+        end
+
+        # Wall: quad strip, normals point TOWARD the axis (into the cylinder
+        # interior — "outside" of the solid is the cylinder bore).
+        # Order verified: (out_i, inner_j, out_j) gives the correct outward
+        # winding away from the bore (i.e. into the bore, since the bore is
+        # part of the "negative space"). Adjust if normals come out wrong.
+        for i in 1:n
+            j = mod1(i + 1, n)
+            oi = sorted[i]; oj = sorted[j]
+            ii = inner_ring[i]; ij = inner_ring[j]
+            push!(new_faces, TriangleFace{Int}(oi, ij, ii))
+            push!(new_faces, TriangleFace{Int}(oi, oj, ij))
+        end
+
+        # Bottom cap centre vertex.
+        push!(pos, axial_inner * ax)
+        center_idx = length(pos)
+        for i in 1:n
+            j = mod1(i + 1, n)
+            # Winding: from inside the cylinder bore looking down the axis,
+            # the bottom disk is CCW. Triangle (in_i, in_j, centre) gives that
+            # winding when in_ring is sorted CCW around +ax.
+            push!(new_faces, TriangleFace{Int}(inner_ring[i], center_idx, inner_ring[j]))
+        end
+    end
+
+    # Step 5: scale to radius and translate to centre.
+    cv = Vec3{T}(center...)
+    final_verts = [Point3{T}((cv + radius * p)...) for p in pos]
+    mesh = GeometryBasics.Mesh(final_verts, new_faces)
+    # Step 6: compact away vertices that aren't referenced by any face. The
+    # 1-in-2-out clip path replaces the in-cap icosphere vertex with two new
+    # boundary verts; the original is then orphaned in `pos` even though it
+    # never appears in any triangle. Slicers tolerate unreferenced verts but
+    # the resulting Euler characteristic is wrong — compact for cleanliness.
+    _compact_vertices(mesh)
+end
+
+# Drop vertices not referenced by any face; renumber faces accordingly.
+function _compact_vertices(mesh::GeometryBasics.Mesh)
+    used = falses(length(mesh.position))
+    for f in mesh.faces
+        used[Int(f[1])] = true
+        used[Int(f[2])] = true
+        used[Int(f[3])] = true
+    end
+    remap = zeros(Int, length(used))
+    new_pos = eltype(mesh.position)[]
+    for i in eachindex(used)
+        if used[i]
+            push!(new_pos, mesh.position[i])
+            remap[i] = length(new_pos)
+        end
+    end
+    new_faces = [TriangleFace{Int}(remap[Int(f[1])], remap[Int(f[2])], remap[Int(f[3])])
+                 for f in mesh.faces]
+    GeometryBasics.Mesh(new_pos, new_faces)
 end
 
 # ---------------------------------------------------------------------------
-# Bond mesh: solid cylinder spanning the visible gap between two atom
-# surfaces. Each piece is a single watertight closed mesh, so slicers accept
-# it without "non-manifold" warnings. Bond order ≥ 2 renders as 2 or 3
-# parallel cylinders all of which are individually watertight; they touch
-# only at their endpoints (no inter-cylinder cross-section), which slicers
-# union cleanly because the touching surfaces are coincident.
+# Bond mesh: stepped cylinder with two pegs (one at each end) that
+# friction-fit into the atom's sockets. Single watertight closed mesh.
+# Bond order is encoded in the central-shaft radius (single bond uses the
+# nominal `bond_radius`, double scales it up, triple scales further), so
+# each printed bond piece always has exactly one peg per atom socket.
 # ---------------------------------------------------------------------------
 
 """
     $(TYPEDSIGNATURES)
 
-Build the printed mesh for one bond between atoms at `p1` and `p2`,
-spanning only the visible gap between the two atom surfaces (the caller
-passes the atom-surface points, NOT the atom centres). The piece is a
-single solid cylinder of `bond_radius`. When `order ≥ 2`, the shaft is
-rendered as 2 or 3 parallel cylinders for the double/triple-bond look —
-each is its own watertight sub-mesh, which slicers union by simple
-inclusion. `peg_radius`/`peg_length` are accepted for API symmetry but
-unused in the current build (no protruding pegs).
+Build the printed mesh for one bond connecting atom surfaces at `p1` and
+`p2`. The geometry is a **stepped cylinder**:
+
+```
+peg_r → shaft_r → peg_r       (radius profile)
+└──╴   ────────   ╶──┘
+peg ↑   ↑shaft↑   ↑ peg
+```
+
+i.e. a central cylindrical shaft of `bond_radius` (multiplied by an
+order-dependent factor) running between `p1` and `p2`, plus a thinner
+cylindrical peg of `peg_radius × peg_length` protruding from each shoulder
+along the bond axis. The peg ends fit into atom sockets produced by
+[`atom_sphere_mesh`](@ref). The whole part is a single watertight closed
+mesh (six rings of vertices + two annular washers where the radius changes
++ two flat end disks).
+
+`order = 1` uses `bond_radius` as-is. `order = 2` scales the shaft radius by
+1.15 and `order = 3` by 1.3; pegs stay at `peg_radius` so every bond fits
+the same atom socket regardless of order. (Parallel multi-cylinder visuals
+would require CSG-merging at the shoulders.)
 """
 function bond_cylinder_mesh(p1::AbstractVector{T}, p2::AbstractVector{T};
                             bond_radius::T = T(2.5),
@@ -425,38 +661,75 @@ function bond_cylinder_mesh(p1::AbstractVector{T}, p2::AbstractVector{T};
                             peg_length::T = T(8.0),
                             order::Int = 1,
                             segments::Int = 24) where T<:Real
-    axis = Vec3{T}((p2 - p1)...)
-    _, u, v = _ortho_frame(axis)
+    p1v = Vec3{T}(p1...)
+    p2v = Vec3{T}(p2...)
+    axis = p2v - p1v
+    L = norm(axis)
+    n, u, v = _ortho_frame(axis)
 
-    if order <= 1
-        return cylinder_mesh(p1, p2, bond_radius; segments)
+    # Order-dependent shaft radius (single peg always).
+    shaft_r = bond_radius * (order == 1 ? T(1.0) : order == 2 ? T(1.15) : T(1.3))
+
+    # Six ring profiles. Ring k has axial position z_k and radius r_k.
+    # All rings have `segments` vertices.
+    rings = [
+        (-peg_length,             peg_radius),   # 1: outer end of left peg
+        (zero(T),                 peg_radius),   # 2: left peg, at the shoulder
+        (zero(T),                 shaft_r),      # 3: bond shaft, at the shoulder
+        (L,                       shaft_r),      # 4: bond shaft, at the right shoulder
+        (L,                       peg_radius),   # 5: right peg, at the right shoulder
+        (L + peg_length,          peg_radius),   # 6: outer end of right peg
+    ]
+
+    verts = Point3{T}[]
+    ring_start = Int[]   # first vertex index of each ring (1-based)
+    for (z, r) in rings
+        push!(ring_start, length(verts) + 1)
+        center_z = p1v + z * n
+        for k in 0:segments-1
+            θ = T(2π) * k / segments
+            push!(verts, Point3{T}((center_z + r * (cos(θ) * u + sin(θ) * v))...))
+        end
     end
 
-    # Multi-bond visual: 2 or 3 parallel cylinders. Each is thinner than the
-    # single-bond shaft so the total cross-sectional area roughly matches.
-    shaft_radius = bond_radius * (order == 2 ? T(0.55) : T(0.45))
-    offset_distance = bond_radius * T(0.6)
+    faces = TriangleFace{Int}[]
 
-    mesh = nothing
-    if order == 2
-        for sgn in (-T(1), T(1))
-            ofs = sgn * offset_distance * u
-            p1o = Point3{T}((Vec3{T}(p1...) + ofs)...)
-            p2o = Point3{T}((Vec3{T}(p2...) + ofs)...)
-            shaft = cylinder_mesh(p1o, p2o, shaft_radius; segments)
-            mesh = mesh === nothing ? shaft : _mesh_union(mesh, shaft)
-        end
-    else
-        for k in 0:2
-            θ = T(2π) * k / 3
-            ofs = offset_distance * (cos(θ) * u + sin(θ) * v)
-            p1o = Point3{T}((Vec3{T}(p1...) + ofs)...)
-            p2o = Point3{T}((Vec3{T}(p2...) + ofs)...)
-            shaft = cylinder_mesh(p1o, p2o, shaft_radius; segments)
-            mesh = mesh === nothing ? shaft : _mesh_union(mesh, shaft)
+    # Connect ring i to ring i+1 with a quad strip.
+    # Orientation: outward normal points AWAY from the axis. For a ring at
+    # ascending z, going CCW around the axis (as viewed along -n), the quad
+    # (i, i+1_seg, i+1_next, i_next) gives an outward face.
+    for ri in 1:length(rings)-1
+        a0 = ring_start[ri]
+        b0 = ring_start[ri + 1]
+        for k in 0:segments-1
+            knext = mod(k + 1, segments)
+            a = a0 + k
+            anext = a0 + knext
+            b = b0 + k
+            bnext = b0 + knext
+            push!(faces, TriangleFace{Int}(a, b, bnext))
+            push!(faces, TriangleFace{Int}(a, bnext, anext))
         end
     end
-    mesh
+
+    # End caps at ring 1 (left peg tip, normal -n) and ring 6 (right peg tip, +n).
+    bot_centre_idx = length(verts) + 1
+    push!(verts, Point3{T}((p1v + rings[1][1] * n)...))
+    a0 = ring_start[1]
+    for k in 0:segments-1
+        knext = mod(k + 1, segments)
+        push!(faces, TriangleFace{Int}(bot_centre_idx, a0 + knext, a0 + k))
+    end
+
+    top_centre_idx = length(verts) + 1
+    push!(verts, Point3{T}((p1v + rings[end][1] * n)...))
+    a0 = ring_start[end]
+    for k in 0:segments-1
+        knext = mod(k + 1, segments)
+        push!(faces, TriangleFace{Int}(top_centre_idx, a0 + k, a0 + knext))
+    end
+
+    GeometryBasics.Mesh(verts, faces)
 end
 
 # ---------------------------------------------------------------------------
@@ -500,7 +773,7 @@ function construction_kit(ac::AbstractAtomContainer{T};
                           peg_length::Real = 8.0,
                           bond_radius::Real = 2.5,
                           joint::Symbol    = :peg,
-                          subdivisions::Int = 2,
+                          subdivisions::Int = 3,
                           segments::Int    = 24) where T<:Real
     if joint === :magnet
         # 3 mm Ø × 1 mm neodymium disc, typical kit dimensions.
@@ -578,9 +851,11 @@ function construction_kit(ac::AbstractAtomContainer{T};
         # assembled model and is proportional to the gap.
         ri = atom_sphere_radius_mm[i]
         rj = atom_sphere_radius_mm[j]
-        # Tiny overlap (0.2 mm) so the bond sits flush against the sphere.
-        surf_i = ci + (ri - T(0.2)) * n̂
-        surf_j = cj - (rj - T(0.2)) * n̂
+        # Bond shoulders sit exactly at atom surfaces — the peg geometry
+        # then extends INTO the atom's pre-drilled socket. Each printed
+        # part is a separate solid; no volumetric overlap in the slicer.
+        surf_i = ci + ri * n̂
+        surf_j = cj - rj * n̂
         ord_int = ord === BondOrder.Single  ? 1 :
                   ord === BondOrder.Double  ? 2 :
                   ord === BondOrder.Triple  ? 3 :

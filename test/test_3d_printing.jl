@@ -263,6 +263,52 @@ end
     end
 end
 
+@testitem "construction_kit parts are watertight (χ=2, no boundary, no non-manifold)" begin
+    using BiochemicalAlgorithms
+    function audit(mesh)
+        V = length(mesh.position); F = length(mesh.faces)
+        ec = Dict{Tuple{Int,Int}, Int}()
+        for f in mesh.faces
+            for (a, b) in ((Int(f[1]), Int(f[2])), (Int(f[2]), Int(f[3])), (Int(f[3]), Int(f[1])))
+                k = a < b ? (a, b) : (b, a)
+                ec[k] = get(ec, k, 0) + 1
+            end
+        end
+        E = length(ec)
+        boundary = count(v -> v == 1, values(ec))
+        non_manifold = count(v -> v > 2, values(ec))
+        (V = V, E = E, F = F, χ = V - E + F, boundary = boundary, non_manifold = non_manifold)
+    end
+
+    # Methane: 4 sockets on C + 1 socket on each H + 4 bonds with pegs.
+    sys = System{Float64}()
+    mol = Molecule(sys; name="methane")
+    ch = Chain(mol); f = Fragment(ch, 1; name="MET")
+    ca = Atom(f, 1, Elements.C; r=Vector3{Float64}(0, 0, 0))
+    positions = [Vector3{Float64}(1,1,1)*0.629, Vector3{Float64}(-1,-1,1)*0.629,
+                 Vector3{Float64}(1,-1,-1)*0.629, Vector3{Float64}(-1,1,-1)*0.629]
+    for (i, p) in enumerate(positions)
+        h = Atom(f, i+1, Elements.H; r=p)
+        Bond(sys, ca.idx, h.idx, BondOrder.Single)
+    end
+    assign_radii!(sys)
+    parts = construction_kit(sys; scale=20)
+    @test length(parts) == 9
+    for p in parts
+        s = audit(p.mesh)
+        # χ = 2 ⇒ closed orientable genus-0 surface (= topological sphere)
+        @test s.χ == 2
+        @test s.boundary == 0
+        @test s.non_manifold == 0
+    end
+
+    # Sanity: the C atom (4 sockets) should have more vertices than the H
+    # atoms (1 socket each) — proving sockets are actually being cut.
+    c_part = parts[findfirst(p -> endswith(p.name, "-C"), parts)]
+    h_part = parts[findfirst(p -> endswith(p.name, "-H"), parts)]
+    @test length(c_part.mesh.position) > length(h_part.mesh.position)
+end
+
 @testitem "export_ses_3mf reorient=true reduces z extent" begin
     using BiochemicalAlgorithms
     using LinearAlgebra
