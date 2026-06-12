@@ -577,15 +577,21 @@ function atom_sphere_mesh(center::AbstractVector{T}, radius::T,
             push!(new_faces, TriangleFace{Int}(oi, oj, ij))
         end
 
-        # Bottom cap centre vertex.
+        # Bottom cap centre vertex. The cap is at axial position
+        # `axial_inner * ax` (deeper than the sphere surface along the bond
+        # axis); its outward normal must point INTO the bore — i.e. toward
+        # the sphere surface, along +ax. Visiting (in_i → in_j → centre) is
+        # CCW when viewed from +ax (since inner_ring is sorted CCW around
+        # +ax), so the resulting normal points along +ax, which is what we
+        # want. The previous winding (in_i, centre, in_j) traces CW and
+        # gave a flipped normal — the cap rendered as inside-out and
+        # slicers (Bambu Studio in particular) saw through to the opposite
+        # side of the sphere.
         push!(pos, axial_inner * ax)
         center_idx = length(pos)
         for i in 1:n
             j = mod1(i + 1, n)
-            # Winding: from inside the cylinder bore looking down the axis,
-            # the bottom disk is CCW. Triangle (in_i, in_j, centre) gives that
-            # winding when in_ring is sorted CCW around +ax.
-            push!(new_faces, TriangleFace{Int}(inner_ring[i], center_idx, inner_ring[j]))
+            push!(new_faces, TriangleFace{Int}(inner_ring[i], inner_ring[j], center_idx))
         end
     end
 
@@ -735,21 +741,23 @@ function bond_cylinder_mesh(p1::AbstractVector{T}, p2::AbstractVector{T};
 
     faces = TriangleFace{Int}[]
 
-    # Connect ring i to ring i+1 with a quad strip.
-    # Orientation: outward normal points AWAY from the axis. For a ring at
-    # ascending z, going CCW around the axis (as viewed along -n), the quad
-    # (i, i+1_seg, i+1_next, i_next) gives an outward face.
+    # Connect ring i to ring i+1 with a quad strip. The rings are oriented
+    # CCW around +n (because the per-vertex angle θ_k = 2π k/segments goes
+    # CCW in the right-handed (u, v) frame). For an outward-facing normal
+    # (away from the axis), the panel's triangle must be wound so that
+    # going (a, bnext, b) is CCW when viewed from OUTSIDE the cylinder.
+    # `a` is at ring i, angle θ_k; `b` at ring i+1, angle θ_k; etc.
     for ri in 1:length(rings)-1
         a0 = ring_start[ri]
         b0 = ring_start[ri + 1]
         for k in 0:segments-1
             knext = mod(k + 1, segments)
-            a = a0 + k
+            a     = a0 + k
             anext = a0 + knext
-            b = b0 + k
+            b     = b0 + k
             bnext = b0 + knext
-            push!(faces, TriangleFace{Int}(a, b, bnext))
-            push!(faces, TriangleFace{Int}(a, bnext, anext))
+            push!(faces, TriangleFace{Int}(a, bnext, b))
+            push!(faces, TriangleFace{Int}(a, anext, bnext))
         end
     end
 
