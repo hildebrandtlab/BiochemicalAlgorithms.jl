@@ -1,5 +1,4 @@
 @testitem "cpk_color" begin
-    using BiochemicalAlgorithms
     @test cpk_color(Elements.H) == (1.0, 1.0, 1.0)
     @test cpk_color(Elements.C) == (0.300, 0.300, 0.300)
     @test cpk_color(Elements.O)[1] > cpk_color(Elements.O)[2]   # red-ish
@@ -9,7 +8,6 @@
 end
 
 @testitem "PrintablePart + STL/3MF I/O" begin
-    using BiochemicalAlgorithms
     using BiochemicalAlgorithms: PrintablePart
     GB = BiochemicalAlgorithms.GeometryBasics
     verts = GB.Point3{Float64}[
@@ -44,7 +42,6 @@ end
 end
 
 @testitem "cylinder_mesh: closed + watertight + correct face count" begin
-    using BiochemicalAlgorithms
     using BiochemicalAlgorithms: cylinder_mesh
     using LinearAlgebra
     for T in [Float32, Float64]
@@ -67,7 +64,6 @@ end
 end
 
 @testitem "construction_kit: water" begin
-    using BiochemicalAlgorithms
     using BiochemicalAlgorithms: PrintablePart
     for T in [Float32, Float64]
         sys = System{T}()
@@ -98,7 +94,6 @@ end
 end
 
 @testitem "construction_kit: bond orders 1/2/3" begin
-    using BiochemicalAlgorithms
     for ord in (BondOrder.Single, BondOrder.Double, BondOrder.Triple)
         sys = System{Float64}()
         mol = Molecule(sys; name="x")
@@ -117,7 +112,6 @@ end
 end
 
 @testitem "construction_kit: :magnet joint and error on bogus" begin
-    using BiochemicalAlgorithms
     sys = System{Float64}()
     mol = Molecule(sys; name="x")
     ch = Chain(mol)
@@ -134,7 +128,6 @@ end
 end
 
 @testitem "export_stl on a cylinder round-trips file size" begin
-    using BiochemicalAlgorithms
     using BiochemicalAlgorithms: cylinder_mesh
     m = cylinder_mesh([0.0, 0, 0], [0.0, 0, 10.0], 2.5; segments=20)
     mktempdir() do dir
@@ -145,7 +138,6 @@ end
 end
 
 @testitem "PrintablePart: per-face colors round-trip into 3MF" begin
-    using BiochemicalAlgorithms
     using BiochemicalAlgorithms: PrintablePart
     ZipFile = BiochemicalAlgorithms.ZipFile
     GB = BiochemicalAlgorithms.GeometryBasics
@@ -189,7 +181,6 @@ end
 end
 
 @testitem "ses_face_colors_by_atom + export_ses_3mf" begin
-    using BiochemicalAlgorithms
     ZipFile = BiochemicalAlgorithms.ZipFile
     sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), Float64)
     assign_radii!(sys)
@@ -224,7 +215,6 @@ end
 end
 
 @testitem "export_ses_3mf one-call convenience from AtomContainer" begin
-    using BiochemicalAlgorithms
     sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), Float64)
     assign_radii!(sys)
     mktempdir() do dir
@@ -236,7 +226,6 @@ end
 end
 
 @testitem "construction_kit parts sit on z=0 and carry face_colors" begin
-    using BiochemicalAlgorithms
     sys = System{Float64}()
     mol = Molecule(sys; name="water")
     ch = Chain(mol); f = Fragment(ch, 1; name="WAT")
@@ -273,7 +262,6 @@ end
 end
 
 @testitem "construction_kit parts are watertight (χ=2, no boundary, no non-manifold)" begin
-    using BiochemicalAlgorithms
     function audit(mesh)
         V = length(mesh.position); F = length(mesh.faces)
         ec = Dict{Tuple{Int,Int}, Int}()
@@ -319,7 +307,6 @@ end
 end
 
 @testitem "export_ses_3mf reorient=true reduces z extent" begin
-    using BiochemicalAlgorithms
     using LinearAlgebra
     sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), Float64)
     assign_radii!(sys)

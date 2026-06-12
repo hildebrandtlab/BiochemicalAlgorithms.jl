@@ -697,7 +697,7 @@ would require CSG-merging at the shoulders.)
 """
 function bond_cylinder_mesh(p1::AbstractVector{T}, p2::AbstractVector{T};
                             bond_radius::T = T(2.5),
-                            peg_radius::T = T(1.5),
+                            peg_radius::T = T(2.5),
                             peg_length::T = T(8.0),
                             order::Int = 1,
                             segments::Int = 24) where T<:Real
@@ -707,26 +707,35 @@ function bond_cylinder_mesh(p1::AbstractVector{T}, p2::AbstractVector{T};
     L = norm(axis)
     n, u, v = _ortho_frame(axis)
 
-    # Order-dependent shaft radius (single peg always).
+    # Bond order is currently encoded by shaft radius (multi-cylinder
+    # "curved double bond" visuals are a known TODO; they require either
+    # CSG or curved-extrusion meshing that we haven't implemented yet).
     shaft_r = bond_radius * (order == 1 ? T(1.0) : order == 2 ? T(1.15) : T(1.3))
 
-    # Six ring profiles. Each ring has `segments` vertices.
-    # Profile, from left peg tip to right peg tip:
-    #   peg_tip → peg_base_at_surface → taper → shaft → taper → peg_base_at_surface → peg_tip
-    # The conic taper sits in the visible bond gap (NOT inside the atom
-    # socket, whose bore is straight). Matches the look of commercial
-    # molecular-kit bond sticks (Molymod / HGS).
-    # Cap chamfer at L/3 so short bonds still have a visible shaft.
-    chamfer = min(shaft_r - peg_radius, L / T(3))
-    chamfer = max(chamfer, T(0))
-    rings = [
-        (-peg_length,         peg_radius),   # 1: left peg tip (at socket bottom)
-        (zero(T),             peg_radius),   # 2: peg ends at atom surface
-        (chamfer,             shaft_r),      # 3: taper ends, shaft begins
-        (L - chamfer,         shaft_r),      # 4: shaft ends, taper begins
-        (L,                   peg_radius),   # 5: peg starts at far atom surface
-        (L + peg_length,      peg_radius),   # 6: right peg tip
-    ]
+    # Uniform-diameter cylinder profile, matching commercial molecular kits
+    # (Molymod / HGS / Conatex): the peg is the same radius as the visible
+    # shaft, just the part inside the atom socket. Four ring profile (no
+    # chamfer): peg_tip_left, surface_left, surface_right, peg_tip_right.
+    # When peg_radius differs from bond_radius (uncommon), a short conic
+    # taper is inserted at each end of the visible bond.
+    chamfer = min(abs(shaft_r - peg_radius), L / T(3))
+    rings = if shaft_r == peg_radius || chamfer == 0
+        [
+            (-peg_length,    peg_radius),    # 1: left peg tip
+            (zero(T),        peg_radius),    # 2: enters atom A
+            (L,              peg_radius),    # 3: exits atom B's surface
+            (L + peg_length, peg_radius),    # 4: right peg tip
+        ]
+    else
+        [
+            (-peg_length,    peg_radius),    # 1: left peg tip
+            (zero(T),        peg_radius),    # 2: peg ends at atom surface
+            (chamfer,        shaft_r),       # 3: taper ends, shaft begins
+            (L - chamfer,    shaft_r),       # 4: shaft ends, taper begins
+            (L,              peg_radius),    # 5: peg starts at far surface
+            (L + peg_length, peg_radius),    # 6: right peg tip
+        ]
+    end
 
     verts = Point3{T}[]
     ring_start = Int[]   # first vertex index of each ring (1-based)
@@ -817,12 +826,12 @@ Returns `Vector{PrintablePart}` ready to pass to [`export_3mf`](@ref) or
 """
 function construction_kit(ac::AbstractAtomContainer{T};
                           scale::Real      = 10,
-                          atom_scale::Real = 0.35,
-                          peg_radius::Real = 1.5,
+                          atom_scale::Real = 0.22,
+                          peg_radius::Real = 2.5,
                           peg_length::Real = 8.0,
                           bond_radius::Real = 2.5,
                           joint::Symbol    = :peg,
-                          subdivisions::Int = 3,
+                          subdivisions::Int = 4,
                           segments::Int    = 24) where T<:Real
     if joint === :magnet
         # 3 mm Ø × 1 mm neodymium disc, typical kit dimensions.
