@@ -827,9 +827,9 @@ Returns `Vector{PrintablePart}` ready to pass to [`export_3mf`](@ref) or
 function construction_kit(ac::AbstractAtomContainer{T};
                           scale::Real      = 10,
                           atom_scale::Real = 0.22,
-                          peg_radius::Real = 2.5,
+                          peg_radius::Real = 2.0,
                           peg_length::Real = 8.0,
-                          bond_radius::Real = 2.5,
+                          bond_radius::Real = 2.8,
                           joint::Symbol    = :peg,
                           subdivisions::Int = 4,
                           segments::Int    = 24) where T<:Real
