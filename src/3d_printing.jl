@@ -814,15 +814,19 @@ Returns `Vector{PrintablePart}` ready to pass to [`export_3mf`](@ref) or
 [`export_stl`](@ref).
 
 # Keyword arguments
- - `scale::Real = 10`         — Å → mm conversion factor.
- - `atom_scale::Real = 0.4`   — sphere radius as fraction of vdW radius.
- - `peg_radius::Real = 1.5`   — peg/socket radius in **mm**.
- - `peg_length::Real = 8.0`   — peg/socket length in **mm**.
- - `bond_radius::Real = 1.5`  — visible bond shaft radius in **mm**.
- - `joint::Symbol = :peg`     — `:peg` (friction fit) or `:magnet` (sized for
-                                 standard 3 mm × 1 mm neodymium discs).
- - `subdivisions::Int = 2`    — icosphere subdivisions for atom spheres.
- - `segments::Int = 24`       — cylinder facet count.
+ - `scale::Real        = 10`   — Å → mm conversion factor.
+ - `atom_scale::Real   = 0.22` — sphere radius as fraction of vdW radius.
+ - `peg_radius::Real   = 2.0`  — peg/socket radius in **mm**.
+ - `peg_length::Real   = 8.0`  — peg/socket length in **mm**.
+ - `bond_radius::Real  = 2.8`  — visible bond shaft radius in **mm**.
+                                  Together with `peg_radius` this gives a
+                                  0.8 mm conic chamfer at each peg shoulder.
+ - `joint::Symbol      = :peg` — `:peg` (friction fit) or `:magnet` (sized
+                                  for standard 3 mm × 1 mm neodymium discs).
+ - `subdivisions::Int  = 4`    — icosphere subdivisions for atom spheres
+                                  (2562 vertices/sphere — needed so sockets
+                                  don't render polygonal).
+ - `segments::Int      = 24`   — cylinder facet count.
 """
 function construction_kit(ac::AbstractAtomContainer{T};
                           scale::Real      = 10,
@@ -872,11 +876,18 @@ function construction_kit(ac::AbstractAtomContainer{T};
     radii_filled = !all(iszero, at.radius)
     atom_sphere_radius_mm = Vector{T}(undef, n_atoms)   # for bond-end computation
 
+    too_small_atoms = Int[]
     for i in 1:n_atoms
         elem = at.element[i]
         vdw = radii_filled && !iszero(at.radius[i]) ? T(at.radius[i]) : T(vdw_radius(Float64, elem))
         sphere_radius_mm = ascale * vdw * s
         atom_sphere_radius_mm[i] = sphere_radius_mm
+        # Sockets must fit on the sphere with at least 1 mm of solid rim left;
+        # otherwise atom_sphere_mesh falls through to "plain sphere, no
+        # sockets" and the bond piece has nowhere to plug into.
+        if pr >= sphere_radius_mm - T(1)
+            push!(too_small_atoms, i)
+        end
         center_mm = Vector3{T}((s .* at.r[i])...)
         dirs = [d / norm(d) for d in nbrs[i] if norm(d) > eps(T)]
         mesh = atom_sphere_mesh(center_mm, sphere_radius_mm, dirs;
@@ -928,6 +939,13 @@ function construction_kit(ac::AbstractAtomContainer{T};
         col = (0.55, 0.55, 0.55)
         face_colors = fill(col, length(mesh.faces))
         push!(parts, PrintablePart(mesh, col, "bond-$(k)", face_colors))
+    end
+
+    if !isempty(too_small_atoms)
+        elems = unique(string(Symbol(at.element[i])) for i in too_small_atoms)
+        @warn "construction_kit: $(length(too_small_atoms)) atom(s) have a sphere radius ≤ peg_radius + 1 mm; their sockets fall through to plain spheres (bond pieces won't seat). " *
+              "Elements affected: $(join(elems, ", ")). " *
+              "Raise `atom_scale` or `scale`, or lower `peg_radius`."
     end
 
     # Grid-layout the parts on the build plate. Each part has already been
@@ -1026,13 +1044,26 @@ function ses_face_colors_by_atom(mesh::GeometryBasics.Mesh,
                                   ac::AbstractAtomContainer) where T
     at = atoms(ac)
     rs = ses.reduced_surface
-    # Build a flat list of (centre, element) for nearest-atom lookup. Use
-    # the RS atoms (after singularity cleanup) to keep indexing consistent
-    # with how the SES was actually computed.
+    # Build (centre, element) per RS atom. Match RS atom k to an atom row in
+    # `ac` by nearest-position lookup, NOT by position-in-array, because RS
+    # construction can drop or reorder atoms during singularity cleanup. The
+    # nearest match is unambiguous because RS atoms originate as exact copies
+    # of `ac` atom positions (RS only translates/scales radii, never moves
+    # the centres).
     centres = [Vector3{T}(s.center...) for s in rs.atoms]
-    # Element of each RS atom — RS atoms are 1:1 with the original atom
-    # container, so we can index `ac.atoms` directly.
-    elems = [at.element[i] for i in 1:min(length(centres), length(at))]
+    elems = Vector{ElementType}(undef, length(centres))
+    for (k, c) in enumerate(centres)
+        best_i = 0; best_d2 = T(Inf)
+        for i in 1:length(at)
+            d = c - Vector3{T}(at.r[i]...)
+            d2 = dot(d, d)
+            if d2 < best_d2
+                best_d2 = d2; best_i = i
+            end
+        end
+        elems[k] = best_i == 0 ? Elements.Unknown : at.element[best_i]
+    end
+
     colors = Vector{NTuple{3, Float64}}(undef, length(mesh.faces))
     for (ti, f) in enumerate(mesh.faces)
         a = mesh.position[Int(f[1])]
@@ -1042,7 +1073,6 @@ function ses_face_colors_by_atom(mesh::GeometryBasics.Mesh,
         best = 0
         best_d2 = T(Inf)
         for (ai, ac_centre) in enumerate(centres)
-            ai > length(elems) && continue
             d = cent - ac_centre
             d2 = dot(d, d)
             if d2 < best_d2

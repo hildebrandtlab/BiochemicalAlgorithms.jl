@@ -365,17 +365,37 @@ end
 end
 
 @testitem "export_ses_3mf reorient=true reduces z extent" begin
-    using LinearAlgebra
+    ZipFile = BiochemicalAlgorithms.ZipFile
     sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), Float64)
     assign_radii!(sys)
     ses = compute_ses(sys; probe_radius=1.5)
+
+    function zextent(path)
+        zmin = Inf; zmax = -Inf
+        r = ZipFile.Reader(path)
+        for f in r.files
+            endswith(f.name, "3dmodel.model") || continue
+            xml = String(read(f))
+            for m in eachmatch(r"<vertex [^/]*z=\"([-\d.e+]+)\" />", xml)
+                z = parse(Float64, m.captures[1])
+                zmin = min(zmin, z); zmax = max(zmax, z)
+            end
+        end
+        close(r)
+        zmax - zmin
+    end
+
     mktempdir() do dir
-        # Compare unoriented vs reoriented bounding boxes.
         unori = joinpath(dir, "unori.3mf")
         ori   = joinpath(dir, "ori.3mf")
         export_ses_3mf(ses, sys, unori; density=2.0, reorient=false)
         export_ses_3mf(ses, sys, ori;   density=2.0, reorient=true)
-        @test isfile(unori) && isfile(ori)
-        @test filesize(unori) > 0 && filesize(ori) > 0
+        # PCA-aligned mesh: longest axis on X, shortest on Z. AlaAla is
+        # elongated along the peptide backbone, so reorient should shave at
+        # least 20% off the print height.
+        z_unori = zextent(unori)
+        z_ori   = zextent(ori)
+        @test z_ori < z_unori
+        @test z_ori <= z_unori * 0.85
     end
 end

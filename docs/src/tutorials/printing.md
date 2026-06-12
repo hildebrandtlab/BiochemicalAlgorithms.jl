@@ -1,120 +1,190 @@
 # 3D-printing molecules
 
 BiochemicalAlgorithms.jl can export molecular geometry to formats that any
-desktop 3D printer slicer understands (PrusaSlicer, OrcaSlicer, Bambu Studio,
+desktop 3D-printer slicer reads (PrusaSlicer, OrcaSlicer, Bambu Studio,
 Cura). Two workflows are supported:
 
-1. **Surface printing** — export a triangulated molecular surface
-   (`triangulate_ses`, `triangulate_sas`, …) as a single watertight STL or
-   3MF model.
+1. **Surface printing** — export the analytical solvent-excluded surface as
+   a single watertight STL or 3MF model, optionally with per-face CPK
+   colouring driven by the underlying atoms.
 2. **Construction-kit printing** — turn a small molecule into a set of
-   colour-coded atom spheres and bond cylinders that snap together with
-   friction-fit pegs (default) or magnets.
+   colour-coded atom spheres (with friction-fit sockets) and bond cylinders
+   (with matching pegs), ready to snap together.
 
-## Exporting a surface
+All examples use molecules shipped with the test data, so you can paste
+them into a REPL with the package activated:
 
 ```julia
 using BiochemicalAlgorithms
-sys = load_pdb("bpti.pdb")
-assign_radii!(sys)
-mesh = triangulate_ses(sys; probe_radius=1.5, density=2.0)
-
-# Single-mesh STL — every slicer reads this.
-export_stl(mesh, "bpti_ses.stl")
-
-# Or a 3MF with units + a base colour (slicers display the colour preview).
-export_3mf(mesh, "bpti_ses.3mf"; color=(0.7, 0.8, 1.0), name="BPTI SES")
+ball_data_path("../test/data/AlaAla.pdb")   # absolute path string
 ```
 
-The mesh comes out of the surface routines in **Ångströms**. Because 3D
-printer slicers default to **millimetres**, you may want to scale before
-exporting (e.g. `2.0` gives a model in cm/Å). The construction-kit
-orchestrator below does this automatically.
-
-### Coloured SES print
-
-For multi-material printers (Prusa XL, Bambu A1/X1/H2D, Prusa MMU3, Bambu
-AMS), each triangle of the SES can carry the CPK colour of its underlying
-atom. The 3MF specification stores this as a `<colorgroup>` resource that
-slicers read into the per-face filament map:
+## Surface printing
 
 ```julia
-sys = load_pdb("bpti.pdb")
+using BiochemicalAlgorithms
+
+sys = load_pdb(ball_data_path("../test/data/bpti.pdb"), Float32)
 assign_radii!(sys)
 
-# Two-call form: lets you reuse the SES for other work.
-ses  = compute_ses(sys; probe_radius=1.5)
-mesh = triangulate_ses(ses; density=2.0)
-fc   = ses_face_colors_by_atom(mesh, ses, sys)
-# Build a PrintablePart manually if you want a custom name/scale.
-
-# One-call convenience: triangulate, colour, and write a coloured 3MF.
-export_ses_3mf(sys, "bpti_ses_colored.3mf"; probe_radius=1.5, density=2.0)
+mesh = triangulate_ses(sys; probe_radius=1.5, density=2.0)
+export_stl(mesh, "bpti_ses.stl")
 ```
 
-Each triangle is mapped to its nearest atom's CPK colour ([`cpk_color`](@ref))
-— a centroid-to-atom-centre lookup, which is accurate for Connolly SES
-meshes because every triangle sits on or directly above a single atom.
-Slicers that do not understand the `m:colorgroup` extension fall back to
-the per-object base colour silently. STL has no place to store the colour
-data, so for coloured prints you must use 3MF.
+The mesh comes out of [`triangulate_ses`](@ref) in **Ångströms**. Slicers
+default to **millimetres**, so by default the raw STL will appear ~10× too
+small. Either scale the mesh manually before exporting, or use
+[`export_ses_3mf`](@ref) which handles the unit conversion for you.
+
+### Coloured SES with one call
+
+[`export_ses_3mf`](@ref) triangulates the SES, tags every triangle with the
+CPK colour of its nearest atom, scales to mm, and writes a 3MF in one step.
+Multi-material slicers (Prusa XL, Bambu A1/X1, Prusa MMU3, …) honour the
+`<m:colorgroup>` extension and map the colours to filaments; mono-material
+slicers fall back to the per-object base colour silently. STL has no place
+for the colour data, so coloured prints must use 3MF.
+
+```julia
+sys = load_pdb(ball_data_path("../test/data/bpti.pdb"), Float32)
+assign_radii!(sys)
+export_ses_3mf(sys, "bpti.3mf"; probe_radius=1.5, density=2.0)
+```
+
+The two new keyword arguments worth knowing about:
+
+#### `max_size_mm` — fit the build volume
+
+If you set `max_size_mm = N`, the longest dimension of the molecule's
+atom-coordinate bounding box maps to **N mm**; the mesh as a whole then
+fits inside an `N × N × N` mm cube (give or take the probe inflation,
+which adds ~3 mm × scale per axis).
+
+```julia
+# Bambu H2C has a 256 × 256 × 256 mm build volume; 200 mm leaves margin
+export_ses_3mf(sys, "bpti_fit.3mf"; density=2.0, max_size_mm=200)
+```
+
+When `max_size_mm` is set, it overrides the explicit `scale` kwarg.
+
+#### `by_chain` — one object per chain
+
+For proteins, you usually want each chain printed as a separate physical
+object. `by_chain = true` iterates `chains(sys)`, computes the SES of each
+chain independently, applies the same Å → mm scale to all of them, and
+emits one `<object>` per chain into the 3MF. The chains are grid-laid-out
+on the build plate so slicers that don't auto-arrange import them already
+spread out.
+
+```julia
+sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"), Float32)
+infer_topology!(sys)          # reconstruct missing atoms + build bonds
+assign_radii!(sys)
+export_ses_3mf(sys, "2ptc_split.3mf";
+    density      = 2.0,
+    max_size_mm  = 200,       # whole-molecule fit, applied to every chain
+    by_chain     = true,
+)
+```
+
+`infer_topology!` is the right preprocessing step for PDB inputs that lack
+hydrogen records — it fills them in from the fragment database. The
+1-arg method requires a `System{Float32}`; for `Float64` pass a
+`FragmentDB` explicitly.
+
+### Surface quality
+
+The triangulation density controls how polygonal the surface looks. For an
+SES that's going to be displayed in the slicer preview, density 3–4 is
+visually smooth; density 6.5 is overkill outside very small molecules
+because file size grows linearly with the triangle count. Approximate
+triangle counts on 2ptc (4587 atoms after `infer_topology!`):
+
+| density | triangles | 3MF size |
+|---|---:|---:|
+| 2.0 |  59 k | 7.0 MB |
+| 4.0 | 104 k | 12.3 MB |
+| 6.5 | 159 k | 18.9 MB |
+
+3MF carries triangle geometry only, no per-vertex normals — that's a
+limitation of the spec, not this exporter. Slicers compute face normals
+and shade flat; the only way to make a smooth preview is to triangulate
+finer.
 
 ## Construction kit
 
-[`construction_kit`](@ref) generates one printable [`PrintablePart`](@ref) per
-atom and per bond. Each atom is a sphere with cylindrical pegs pointing
-toward every bonded neighbour; each bond is a cylinder with matching sockets
-at each end. Bond orders 2 and 3 produce visually parallel (fused) shafts on
-one printed piece, with one peg per atom.
+[`construction_kit`](@ref) generates one [`PrintablePart`](@ref) per atom
+(a sphere with cylindrical sockets drilled toward each bonded neighbour)
+and one per bond (a uniform-diameter cylinder with a conic taper to a
+slightly-narrower peg at each end). All parts are settled to z = 0 and
+laid out on a grid so the slicer doesn't need to rearrange them.
 
 ```julia
-sys = load_sdfile("ethanol.sdf")[1]
+sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), Float64)
 assign_radii!(sys)
 
-parts = construction_kit(sys;
-    scale       = 10,    # Å → mm (10 mm/Å gives ~1 cm spheres)
-    atom_scale  = 0.4,   # sphere radius as fraction of vdW
-    peg_radius  = 1.5,   # mm
-    peg_length  = 8.0,   # mm
-    bond_radius = 1.5,   # mm
-    joint       = :peg,  # or :magnet for 3×1 mm neodymium discs
-)
-
-# Write as a single 3MF — slicers auto-arrange all parts on the bed.
-export_3mf(parts, "ethanol_kit.3mf")
-# Or one STL per part:
-export_stl(parts, "ethanol_kit/")
+parts = construction_kit(sys; scale = 20)   # 1 Å = 20 mm
+export_3mf(parts, "AlaAla_kit.3mf")
 ```
 
-### Joint mechanism
+### Tuning the kit
 
-The default `joint = :peg` produces friction-fit cylindrical pegs. Print
-with PETG or PLA at 0.2 mm layer height — the default 3 mm Ø × 8 mm peg
-seats firmly without glue. If parts come out too tight, scale the peg radius
-down by 0.05 mm and reprint; if too loose, scale up.
+Defaults are tuned to look like the kits sold by Molymod / HGS / Conatex:
 
-`joint = :magnet` switches to a 3 mm Ø × 1 mm flat-magnet socket geometry,
-suitable for 3 mm Ø × 1 mm N52 neodymium discs glued in after print. The
-magnetic connector is stronger than friction-fit and survives more
-disassembly cycles, but requires sourcing the magnets.
+| kwarg | default | meaning |
+|---|---|---|
+| `scale` | `10` | Å → mm conversion factor |
+| `atom_scale` | `0.22` | sphere radius as fraction of vdW radius |
+| `peg_radius` | `2.0` mm | socket / peg radius |
+| `peg_length` | `8.0` mm | how deep the peg seats into the socket |
+| `bond_radius` | `2.8` mm | visible bond shaft radius (gives a 0.8 mm chamfer at each end) |
+| `subdivisions` | `4` | icosphere subdivisions (2562 verts/sphere) |
+| `segments` | `24` | cylinder facet count |
+| `joint` | `:peg` | `:peg` for friction-fit or `:magnet` for 3 mm × 1 mm neodymium discs |
 
-### CPK colours
+Choose `scale` so the carbon ball comes out 7–10 mm in diameter for a kit
+that fits a desk; for a teaching demo, `scale = 20` gives ~15 mm balls.
 
-Each atom part is tagged with a Corey–Pauling–Koltun colour
-([`cpk_color`](@ref)). 3MF carries the colour as a base-material attribute;
-slicers display it in the preview and (on multi-material printers) drive the
-filament change. STL has no colour data, so the colour is lost on STL
-export — print each atom from a separate STL file with the matching
-filament instead, or use the 3MF.
+#### Joint mechanism
 
-### Tuning the geometry for your printer
+The default `:peg` is a friction fit: print in PETG or PLA at 0.2 mm layer
+height; the 2 mm × 8 mm peg seats firmly without glue. If parts come out
+too tight, reduce `peg_radius` by 0.05 mm; if too loose, raise it.
 
-* `scale` — Å → mm. `10` (default) gives carbon spheres of ~7 mm and
-  C–C bonds of ~15 mm overall. Increase to `15` or `20` for larger models;
-  decrease to `5` if you want a compact kit.
-* `atom_scale` — fraction of vdW radius. `0.4` matches commercial molecular
-  kits; raise toward `0.6` for chunkier spheres if pegs collide.
-* `subdivisions` — icosphere refinement (`2` = 162 vertices/sphere). Raise
-  to `3` for smoother spheres (642 verts) at print sizes ≥ 2 cm.
-* `segments` — cylinder facet count. `24` looks smooth at typical print
-  sizes; lower it to `12` for faster export of huge molecules.
+`:magnet` switches to a 1.55 mm × 1.2 mm socket geometry sized for 3 mm Ø ×
+1 mm N52 neodymium discs (glued in after printing). Stronger and more
+re-usable than friction-fit but needs sourcing the magnets.
+
+#### CPK colours
+
+Every atom part is tagged with the CPK colour returned by
+[`cpk_color`](@ref); bonds are grey. 3MF carries the colour via the
+materials extension that PrusaSlicer / OrcaSlicer / Bambu Studio read; you
+need a filament for each distinct colour you want printed. STL has no
+colour data, so STL kits print mono-coloured.
+
+#### Multi-bond rendering (limitation)
+
+Order ≥ 2 bonds are currently rendered as a single cylinder with a
+slightly larger shaft radius (1.15× single for double, 1.3× for triple).
+The "two parallel sticks" or "banana curved sticks" visualisation seen in
+commercial kits is **not yet implemented** — it needs either CSG or a
+swept-tube along a Bezier curve to keep the peg fit clean. If you need
+this for double bonds, open an issue.
+
+## What to check in the slicer
+
+When you load the file:
+
+- **Imported objects** should match what the call produced (one per kit
+  part, one per chain when `by_chain=true`, one for a whole-molecule SES).
+- **Bounding box** in the slicer's status bar should be at most
+  `max_size_mm × max_size_mm × max_size_mm` (probe inflation can push the
+  longest axis past `max_size_mm` by 1.5 Å × scale; reduce `max_size_mm`
+  if you need a hard cap).
+- **Watertightness**: the slicer might report a handful of non-manifold
+  edges at high SES densities — they come from the surface
+  triangulator's saturation at faces with very high curvature. Slicers
+  accept them and print fine.
+- **Multi-material colour preview**: turn on multi-material in your
+  slicer to see the per-atom CPK colours; otherwise they appear monocrome.
