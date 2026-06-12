@@ -225,6 +225,64 @@ end
     end
 end
 
+@testitem "export_ses_3mf max_size_mm scales mesh to target build-volume" begin
+    ZipFile = BiochemicalAlgorithms.ZipFile
+    sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), Float64)
+    assign_radii!(sys)
+    mktempdir() do dir
+        path = joinpath(dir, "ala_fit.3mf")
+        export_ses_3mf(sys, path; density=2.0, max_size_mm=100)
+        # Read vertex positions back out of the 3MF and check max extent.
+        xmin = ymin = zmin = Inf
+        xmax = ymax = zmax = -Inf
+        r = ZipFile.Reader(path)
+        for f in r.files
+            endswith(f.name, "3dmodel.model") || continue
+            xml = String(read(f))
+            for m in eachmatch(r"<vertex x=\"([-\d.e+]+)\" y=\"([-\d.e+]+)\" z=\"([-\d.e+]+)\" />", xml)
+                x = parse(Float64, m.captures[1])
+                y = parse(Float64, m.captures[2])
+                z = parse(Float64, m.captures[3])
+                xmin = min(xmin, x); xmax = max(xmax, x)
+                ymin = min(ymin, y); ymax = max(ymax, y)
+                zmin = min(zmin, z); zmax = max(zmax, z)
+            end
+        end
+        close(r)
+        # The mesh's longest extent is slightly larger than the atom-bbox
+        # extent (the probe inflates the surface ~1.5 Å × scale on each side).
+        # max_size_mm is anchored to the atom bbox, not the mesh bbox, so we
+        # expect ~100 mm + 2 * 1.5 * (100/atom_extent) on the longest axis.
+        # Allow [95, 130] mm.
+        max_ext = max(xmax - xmin, ymax - ymin, zmax - zmin)
+        @test 95 <= max_ext <= 130
+    end
+end
+
+@testitem "export_ses_3mf by_chain emits one 3MF object per chain" begin
+    ZipFile = BiochemicalAlgorithms.ZipFile
+    sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), Float64)
+    assign_radii!(sys)
+    nchains = length(chains(sys))
+    @test nchains >= 1
+    mktempdir() do dir
+        path = joinpath(dir, "ala_bychain.3mf")
+        export_ses_3mf(sys, path; density=2.0, by_chain=true)
+        @test isfile(path)
+        # Count <object> entries in the 3MF model XML.
+        n_objects = 0
+        r = ZipFile.Reader(path)
+        for f in r.files
+            endswith(f.name, "3dmodel.model") || continue
+            xml = String(read(f))
+            n_objects = length(collect(eachmatch(r"<object ", xml)))
+            break
+        end
+        close(r)
+        @test n_objects == nchains
+    end
+end
+
 @testitem "construction_kit parts sit on z=0 and carry face_colors" begin
     sys = System{Float64}()
     mol = Molecule(sys; name="water")

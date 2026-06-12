@@ -1093,13 +1093,98 @@ function export_ses_3mf(ses::SolventExcludedSurface{T}, ac::AbstractAtomContaine
     export_3mf([part], path)
 end
 
-# Convenience: take the AbstractAtomContainer directly and run the whole pipe.
+# Build a single PrintablePart for a (sub)container's SES. Caller supplies the
+# Å → mm scale (already resolved from `scale` or `max_size_mm`).
+function _ses_part(ac::AbstractAtomContainer{T}, name::AbstractString;
+                   probe_radius::T, density::T, scale_amm::T, reorient::Bool) where T
+    ses  = compute_ses(ac; probe_radius)
+    tses = triangulate_ses(ses; density)
+    fc = ses_face_colors_by_atom(tses, ses, ac)
+    scaled_verts = [Point3{T}((scale_amm * Vec3{T}(v...))...) for v in tses.position]
+    scaled_mesh = GeometryBasics.Mesh(
+        scaled_verts,
+        [TriangleFace{Int}(Int(f[1]), Int(f[2]), Int(f[3])) for f in tses.faces],
+    )
+    scaled_mesh = reorient ? _pca_align_for_printing(scaled_mesh) : _settle_to_buildplate(scaled_mesh)
+    PrintablePart(scaled_mesh, (0.7, 0.7, 0.8), String(name), fc)
+end
+
+# Compute the longest atom-coordinate extent (in Å) of an atom container.
+function _atom_max_extent(ac::AbstractAtomContainer{T}) where T
+    at = atoms(ac)
+    length(at) == 0 && return T(0)
+    xs = T[v[1] for v in at.r]; ys = T[v[2] for v in at.r]; zs = T[v[3] for v in at.r]
+    max(maximum(xs) - minimum(xs),
+        maximum(ys) - minimum(ys),
+        maximum(zs) - minimum(zs))
+end
+
+"""
+    $(TYPEDSIGNATURES)
+
+Compute the SES of `ac` and write it to `path` as a 3MF with per-triangle
+CPK colouring.
+
+# Keyword arguments
+ - `probe_radius::Real = 1.5`
+ - `density::Real      = 2.0`         — `triangulate_ses` density
+ - `scale::Real        = 10`          — Å → mm conversion (ignored when
+                                          `max_size_mm` is set)
+ - `max_size_mm`       = nothing      — if set, overrides `scale` so the
+                                          longest dimension of the molecule's
+                                          bounding box maps to this many mm
+                                          (useful for fitting a specific
+                                          printer build volume, e.g. 200 mm
+                                          for the Bambu H2C with 25 mm margin)
+ - `by_chain::Bool     = false`       — when true, emit one separate object
+                                          per chain (each chain's SES
+                                          computed independently). Chains are
+                                          grid-laid-out on the build plate so
+                                          the slicer doesn't auto-arrange.
+ - `reorient::Bool     = true`        — PCA-rotate so the longest axis is X
+ - `name::AbstractString = "ses"`     — object name (suffixed with `chain_N`
+                                          when `by_chain = true`)
+"""
 function export_ses_3mf(ac::AbstractAtomContainer{T}, path::AbstractString;
                         probe_radius::Real = 1.5,
                         density::Real      = 2.0,
                         scale::Real        = 10,
+                        max_size_mm        = nothing,
+                        by_chain::Bool     = false,
                         name::AbstractString = "ses",
                         reorient::Bool     = true) where T
-    ses = compute_ses(ac; probe_radius = T(probe_radius))
-    export_ses_3mf(ses, ac, path; density, scale, name, reorient)
+    # Resolve effective Å → mm scale.
+    scale_amm = if max_size_mm === nothing
+        T(scale)
+    else
+        # Use the whole-molecule bounding box so chains stay at consistent
+        # relative scale when by_chain is on.
+        ext = _atom_max_extent(ac)
+        ext < eps(T) ? T(scale) : T(max_size_mm) / ext
+    end
+
+    pr = T(probe_radius); dn = T(density)
+
+    if by_chain
+        parts = PrintablePart[]
+        for (ci, ch) in enumerate(chains(ac))
+            n = length(atoms(ch))
+            n == 0 && continue
+            cname = String(name) * "_chain_$(ch.name == "" ? string(ci) : ch.name)_$(ci)"
+            try
+                push!(parts, _ses_part(ch, cname;
+                                       probe_radius=pr, density=dn,
+                                       scale_amm, reorient))
+            catch e
+                @warn "skipping chain $(ch.name) (idx=$(ch.idx)): $e"
+            end
+        end
+        isempty(parts) && throw(ArgumentError("no chains produced an SES"))
+        # Grid-layout already-settled parts so the slicer doesn't pile them.
+        export_3mf(_layout_grid(parts; padding=T(5.0)), path)
+    else
+        part = _ses_part(ac, String(name);
+                         probe_radius=pr, density=dn, scale_amm, reorient)
+        export_3mf([part], path)
+    end
 end
