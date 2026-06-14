@@ -142,7 +142,7 @@ include("structureanalysis/surfaces/areas.jl")
 include("structureanalysis/surfaces/cleanup.jl")
 
 # 3D printing
-include("3d_printing.jl")
+include("printing/printing.jl")
 
 # optimization
 include("optimization/optimize_structure.jl")
