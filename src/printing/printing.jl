@@ -997,6 +997,15 @@ Returns `Vector{PrintablePart}` ready to pass to [`export_3mf`](@ref) or
                                   (2562 vertices/sphere — needed so sockets
                                   don't render polygonal).
  - `segments::Int      = 24`   — cylinder facet count.
+ - `flat_base_mm::Real = 0.5`  — sink each part this many mm into the build
+                                  plate so the first layer prints as a real
+                                  disk instead of a point/line. Without
+                                  this, atom spheres adhere by a single
+                                  point and curved bonds by a single line,
+                                  which Bambu Studio / PrusaSlicer cannot
+                                  print reliably. Set to `0.0` to disable
+                                  if you prefer to handle adhesion with the
+                                  slicer's brim feature instead.
 """
 function construction_kit(ac::AbstractAtomContainer{T};
                           scale::Real      = 10,
@@ -1006,7 +1015,8 @@ function construction_kit(ac::AbstractAtomContainer{T};
                           bond_radius::Real = 2.8,
                           joint::Symbol    = :peg,
                           subdivisions::Int = 4,
-                          segments::Int    = 24) where T<:Real
+                          segments::Int    = 24,
+                          flat_base_mm::Real = 0.5) where T<:Real
     if joint === :magnet
         # 3 mm Ø × 1 mm neodymium disc, typical kit dimensions.
         peg_radius = 1.55
@@ -1017,6 +1027,7 @@ function construction_kit(ac::AbstractAtomContainer{T};
 
     s = T(scale)
     ascale = T(atom_scale)
+    sink = T(flat_base_mm)   # extra downward offset; bed plane (z=0) clips the result
     pr = T(peg_radius)
     pl = T(peg_length)
     br = T(bond_radius)
@@ -1084,8 +1095,10 @@ function construction_kit(ac::AbstractAtomContainer{T};
         mesh = atom_sphere_mesh(center_mm, sphere_radius_mm, dirs;
                                  peg_radius = pr, peg_length = pl,
                                  subdivisions, segments)
-        # Settle to z=0 + recentre — slicers auto-arrange parts side-by-side.
-        mesh = _settle_to_buildplate(mesh)
+        # Settle to z=0 + recentre, then sink by `flat_base_mm` so the bed
+        # plane clips the part to a flat first-layer disk (sphere → point
+        # contact, line for a cylinder, would not adhere otherwise).
+        mesh = _sink_into_bed(_settle_to_buildplate(mesh), sink)
         # Force colour through face_colors so multi-material slicer previews
         # render the atom in CPK (the per-object basematerials hint is often
         # ignored unless multi-material printing is enabled).
@@ -1129,7 +1142,7 @@ function construction_kit(ac::AbstractAtomContainer{T};
                                    bond_radius = br,
                                    segments)
             end
-            mesh = _settle_to_buildplate(mesh)
+            mesh = _sink_into_bed(_settle_to_buildplate(mesh), sink)
             col = (0.55, 0.55, 0.55)
             face_colors = fill(col, length(mesh.faces))
             name = ord == 1 ? "bond-$(bk)" : "bond-$(bk)-cyl-$(ck)"
@@ -1167,6 +1180,21 @@ function _settle_to_buildplate(mesh::GeometryBasics.Mesh{T}) where T<:Any
     cy = (minimum(ys) + maximum(ys)) / 2
     zmin = minimum(zs)
     new_pos = [Point3{eltype(v)}(v[1] - cx, v[2] - cy, v[3] - zmin) for v in pos]
+    GeometryBasics.Mesh(
+        new_pos,
+        [TriangleFace{Int}(Int(f[1]), Int(f[2]), Int(f[3])) for f in mesh.faces],
+    )
+end
+
+# Push the whole mesh `h` mm below the build plate. The mesh stays a single
+# watertight solid; the slicer clips everything below z=0 at load time, which
+# turns a sphere's single-point bed contact into a circular disk of radius
+# √(2·R·h - h²). Required for spheres to print without a brim — without it
+# the first layer has nothing to grip.
+function _sink_into_bed(mesh::GeometryBasics.Mesh, h::Real)
+    h <= 0 && return mesh
+    T = eltype(eltype(mesh.position))
+    new_pos = [Point3{T}(v[1], v[2], v[3] - T(h)) for v in mesh.position]
     GeometryBasics.Mesh(
         new_pos,
         [TriangleFace{Int}(Int(f[1]), Int(f[2]), Int(f[3])) for f in mesh.faces],

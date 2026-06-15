@@ -338,7 +338,7 @@ end
     Bond(sys, oa.idx, ha.idx, BondOrder.Single)
     Bond(sys, oa.idx, hb.idx, BondOrder.Single)
     assign_radii!(sys)
-    parts = construction_kit(sys; scale=20)
+    parts = construction_kit(sys; scale=20, flat_base_mm=0)
     # Parts must not overlap on the build plate (grid layout).
     function xy_bbox(p)
         xs = [Float64(v[1]) for v in p.mesh.position]
@@ -348,12 +348,20 @@ end
     boxes = [xy_bbox(p) for p in parts]
     for p in parts
         zs = [v[3] for v in p.mesh.position]
-        # z-min == 0 (sits on build plate).
+        # z-min == 0 (sits on build plate, since flat_base_mm=0).
         @test isapprox(minimum(zs), 0; atol=1e-8)
         # Every part has uniform face_colors set.
         @test p.face_colors !== nothing
         @test length(p.face_colors) == length(p.mesh.faces)
         @test length(unique(p.face_colors)) == 1
+    end
+
+    # With the default flat_base_mm=0.5, every part should sit `0.5 mm`
+    # below the build plate so the slicer clips a small flat disk at z=0.
+    parts2 = construction_kit(sys; scale=20)
+    for p in parts2
+        zmin = minimum(v[3] for v in p.mesh.position)
+        @test isapprox(zmin, -0.5; atol=1e-8)
     end
     # No pair of parts has overlapping xy bounding boxes.
     for i in eachindex(boxes), j in (i+1):length(boxes)

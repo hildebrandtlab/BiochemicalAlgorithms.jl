@@ -141,9 +141,33 @@ Defaults are tuned to look like the kits sold by Molymod / HGS / Conatex:
 | `subdivisions` | `4` | icosphere subdivisions (2562 verts/sphere) |
 | `segments` | `24` | cylinder facet count |
 | `joint` | `:peg` | `:peg` for friction-fit or `:magnet` for 3 mm × 1 mm neodymium discs |
+| `flat_base_mm` | `0.5` | sink each part this many mm into the bed so the first layer is a flat disk (otherwise spheres adhere at a single point and curved bonds at a single line — both cause spaghetti failures on FDM printers) |
 
 Choose `scale` so the carbon ball comes out 7–10 mm in diameter for a kit
 that fits a desk; for a teaching demo, `scale = 20` gives ~15 mm balls.
+
+#### Bed adhesion
+
+Spheres and curved cylinders touch the build plate at a single point (or a
+single line, for a horizontal cylinder). That's not enough for FDM printers
+to grip the first layer — prints will "spaghetti" mid-job. Two
+complementary fixes:
+
+* **Built-in flat base** (the default): `flat_base_mm = 0.5` sinks each
+  part half a millimetre below the bed. The slicer clips below z=0 and
+  the first layer prints as a circular disk of radius
+  `√(2·R·flat_base_mm − flat_base_mm²)` instead of a point. For a 7 mm
+  sphere this gives a ~2.6 mm contact disk — enough for PLA/PETG on a
+  textured PEI plate. The visible loss to the sphere is sub-millimetre.
+
+* **Slicer brim** (recommended on top of `flat_base_mm > 0`): in Bambu
+  Studio, Process settings → Skirt/Brim → Brim type "Outer only", width
+  5–8 mm. The brim peels off after the print and dramatically improves
+  adhesion of the small parts.
+
+Set `flat_base_mm = 0` if you'd rather rely on brim alone or are
+post-processing the parts (e.g. lathing or sanding) and want the geometry
+mathematically pristine.
 
 #### Joint mechanism
 
