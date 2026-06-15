@@ -163,14 +163,23 @@ materials extension that PrusaSlicer / OrcaSlicer / Bambu Studio read; you
 need a filament for each distinct colour you want printed. STL has no
 colour data, so STL kits print mono-coloured.
 
-#### Multi-bond rendering (limitation)
+#### Multi-bond rendering
 
-Order ≥ 2 bonds are currently rendered as a single cylinder with a
-slightly larger shaft radius (1.15× single for double, 1.3× for triple).
-The "two parallel sticks" or "banana curved sticks" visualisation seen in
-commercial kits is **not yet implemented** — it needs either CSG or a
-swept-tube along a Bezier curve to keep the peg fit clean. If you need
-this for double bonds, open an issue.
+Bond order ≥ 2 produces the "banana"/"curved-stick" visualisation seen
+in commercial molecular kits:
+
+* **Double bond** → two curved cylinders bowing outward in opposite
+  perpendicular directions. Each cylinder is a separate printed
+  `PrintablePart` (named `bond-N-cyl-1` and `bond-N-cyl-2`).
+* **Triple bond** → three curved cylinders at 120° around the bond
+  axis.
+* **Single bond** stays a single straight cylinder.
+
+Atom spheres on each end of a multi-bond receive multiple sockets — one
+per parallel cylinder — at ±17° tilt from the bond axis, so each peg
+seats cleanly into its own radial socket. Each curved cylinder uses a
+cubic-Bezier sweep whose tangent at both endpoints matches the socket
+axis, giving a smooth fit at the atom surface.
 
 ## What to check in the slicer
 

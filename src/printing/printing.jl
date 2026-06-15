@@ -791,6 +791,176 @@ function bond_cylinder_mesh(p1::AbstractVector{T}, p2::AbstractVector{T};
 end
 
 # ---------------------------------------------------------------------------
+# General path-sweep mesh + curved bond builder (for "banana" multi-bonds).
+# ---------------------------------------------------------------------------
+
+# Sweep a circular cross-section of variable radius along a polyline of
+# (position, tangent, radius) samples. The ring at each sample is rotated
+# around the tangent using parallel transport so neighbouring rings stay
+# aligned, avoiding visible twist along the swept tube.
+function _sweep_tube_mesh(samples::Vector{Tuple{Vec3{T}, Vec3{T}, T}};
+                           segments::Int = 24) where T<:Real
+    n = length(samples)
+    @assert n >= 2 "_sweep_tube_mesh needs at least two samples"
+
+    verts = Point3{T}[]
+    ring_start = Int[]
+
+    # Pick a stable starting frame. Take any vector not parallel to the first
+    # tangent and project to its perpendicular plane.
+    pos1, tan1, r1 = samples[1]
+    seed = abs(tan1[1]) < T(0.9) ? Vec3{T}(1, 0, 0) : Vec3{T}(0, 1, 0)
+    up1 = seed - dot(seed, tan1) * tan1
+    up1 = up1 / norm(up1)
+    right1 = cross(tan1, up1)
+    right1 = right1 / norm(right1)
+
+    function push_ring(pos, up, right, r)
+        push!(ring_start, length(verts) + 1)
+        for k in 0:segments-1
+            θ = T(2π) * k / segments
+            push!(verts, Point3{T}((pos + r * (cos(θ) * up + sin(θ) * right))...))
+        end
+    end
+    push_ring(pos1, up1, right1, r1)
+
+    prev_tan = tan1
+    prev_up = up1
+    for i in 2:n
+        posi, tani, ri = samples[i]
+        # Parallel-transport: rotate `prev_up` by the rotation that takes
+        # `prev_tan` to `tani`.
+        axis = cross(prev_tan, tani)
+        axis_n = norm(axis)
+        if axis_n < eps(T)
+            new_up = prev_up
+        else
+            axis = axis / axis_n
+            cos_θ = clamp(Float64(dot(prev_tan, tani)), -1.0, 1.0)
+            sin_θ = sqrt(max(0.0, 1.0 - cos_θ^2))
+            # Rodrigues
+            new_up = T(cos_θ) * prev_up +
+                     T(sin_θ) * cross(axis, prev_up) +
+                     T(1 - cos_θ) * dot(axis, prev_up) * axis
+            # Re-orthogonalise against new tangent.
+            new_up = new_up - dot(new_up, tani) * tani
+            nn = norm(new_up)
+            new_up = nn > eps(T) ? new_up / nn : prev_up
+        end
+        new_right = cross(tani, new_up)
+        new_right = new_right / norm(new_right)
+        push_ring(posi, new_up, new_right, ri)
+        prev_tan = tani
+        prev_up = new_up
+    end
+
+    # Quad strips between consecutive rings.
+    faces = TriangleFace{Int}[]
+    for i in 1:n-1
+        a0 = ring_start[i]; b0 = ring_start[i+1]
+        for k in 0:segments-1
+            knext = mod(k + 1, segments)
+            push!(faces, TriangleFace{Int}(a0 + k, b0 + knext, b0 + k))
+            push!(faces, TriangleFace{Int}(a0 + k, a0 + knext, b0 + knext))
+        end
+    end
+    # End caps: triangle fan to a centre vertex at each end sample.
+    push!(verts, Point3{T}(samples[1][1]...))
+    bot = length(verts)
+    a0 = ring_start[1]
+    for k in 0:segments-1
+        knext = mod(k + 1, segments)
+        push!(faces, TriangleFace{Int}(bot, a0 + knext, a0 + k))
+    end
+    push!(verts, Point3{T}(samples[end][1]...))
+    top = length(verts)
+    a0 = ring_start[end]
+    for k in 0:segments-1
+        knext = mod(k + 1, segments)
+        push!(faces, TriangleFace{Int}(top, a0 + k, a0 + knext))
+    end
+    GeometryBasics.Mesh(verts, faces)
+end
+
+# Curved "banana"-style bond between two atoms. `p_a` and `p_b` are the atom
+# surface points (where the cylinder meets each atom); `t_a` and `t_b` are
+# outward-radial unit tangents at those points (i.e. the socket axes).
+# The visible portion is a cubic Bezier whose tangents at the endpoints
+# match t_a and -t_b, so the peg seats cleanly into a straight radial
+# socket. The peg portions are straight extensions of length `peg_length`
+# at radius `peg_radius`; the visible shaft is at radius `bond_radius`
+# with a short conic transition at each end.
+function _curved_bond_mesh(p_a::Vec3{T}, t_a::Vec3{T},
+                            p_b::Vec3{T}, t_b::Vec3{T};
+                            peg_radius::T,
+                            peg_length::T,
+                            bond_radius::T,
+                            n_arc::Int = 12,
+                            segments::Int = 24) where T<:Real
+    L = norm(p_b - p_a)
+    γ = L / T(3)
+    c1 = p_a + γ * t_a
+    c2 = p_b + γ * t_b
+
+    bezier(t) = let s = T(1) - t
+        s^3 * p_a + 3*s^2*t * c1 + 3*s*t^2 * c2 + t^3 * p_b
+    end
+    bezier_tan(t) = let s = T(1) - t
+        v = 3*s^2 * (c1 - p_a) + 6*s*t * (c2 - c1) + 3*t^2 * (p_b - c2)
+        v / norm(v)
+    end
+
+    samples = Tuple{Vec3{T}, Vec3{T}, T}[]
+    # Peg at A: straight backwards from p_a along -t_a, then arrive at p_a.
+    push!(samples, (p_a - peg_length * t_a, t_a, peg_radius))
+    push!(samples, (p_a,                   t_a, peg_radius))
+    # Short conic transition at the start of the visible curve.
+    t0 = T(0.06); t1 = T(1) - t0
+    push!(samples, (bezier(t0), bezier_tan(t0), bond_radius))
+    # Curve interior samples (excluding the two transition points already
+    # added — we sample evenly between them).
+    for i in 1:n_arc
+        t = t0 + (t1 - t0) * T(i) / T(n_arc + 1)
+        push!(samples, (bezier(t), bezier_tan(t), bond_radius))
+    end
+    push!(samples, (bezier(t1), bezier_tan(t1), bond_radius))
+    # Peg at B. The tangent on the B side points INWARD into B (i.e. -t_b),
+    # since the path is travelling from A toward B's interior.
+    push!(samples, (p_b,                  -t_b, peg_radius))
+    push!(samples, (p_b - peg_length * t_b, -t_b, peg_radius))
+    _sweep_tube_mesh(samples; segments)
+end
+
+# For a multi-bond from atom A toward atom B along unit axis `n̂`, return
+# the pair (axis_at_A, axis_at_B) of socket axes for the k-th of `order`
+# parallel cylinders. Sockets are tilted from n̂ by angle `α` in a
+# direction picked deterministically from the orthonormal (u, v) frame.
+function _multibond_socket_axes(n̂::Vec3{T}, k::Int, order::Int,
+                                  u::Vec3{T}, v::Vec3{T}, α::T) where T<:Real
+    @assert 1 <= k <= order "k out of range"
+    if order == 1
+        return (n̂, -n̂)
+    elseif order == 2
+        # Sockets at ±α tilt along +u and -u.
+        sign = k == 1 ? T(1) : T(-1)
+        ax_a = n̂ * cos(α) + sign * u * sin(α)
+        ax_b = -n̂ * cos(α) + sign * u * sin(α)
+        ax_a = ax_a / norm(ax_a)
+        ax_b = ax_b / norm(ax_b)
+        return (ax_a, ax_b)
+    else
+        # Order ≥ 3: spread cylinders 120° around the bond axis.
+        θ = T(2π) * (k - 1) / order
+        dir = cos(θ) * u + sin(θ) * v
+        ax_a =  n̂ * cos(α) + dir * sin(α)
+        ax_b = -n̂ * cos(α) + dir * sin(α)
+        ax_a = ax_a / norm(ax_a)
+        ax_b = ax_b / norm(ax_b)
+        return (ax_a, ax_b)
+    end
+end
+
+# ---------------------------------------------------------------------------
 # Construction-kit orchestrator.
 # ---------------------------------------------------------------------------
 
@@ -854,20 +1024,41 @@ function construction_kit(ac::AbstractAtomContainer{T};
     at = atoms(ac)
     bt = bonds(ac)
 
-    # Per-atom bond directions (toward each bonded neighbour, in mm).
+    # Each bond contributes `order` socket directions to each end atom.
+    # We resolve those here so the atom-sphere builder gets the same set of
+    # unit socket axes that the bond-curve builder will use.
+    # `bond_axes[k]` :: NamedTuple with the geometry of the k-th bond:
+    #   (i, j, order, n̂, u, v, α)
+    # where n̂ is the unit bond axis (i→j), u/v an orthonormal perpendicular
+    # frame, and α the angular offset of each socket from the bond axis.
+    α_multi = T(0.30)   # ≈ 17° tilt for ord ≥ 2 sockets (atan(0.30) ≈ 16.7°)
     n_atoms = length(at)
-    nbrs = [Vector3{T}[] for _ in 1:n_atoms]
-    bond_pairs = Tuple{Int, Int, BondOrderType}[]
+    nbrs = [Vec3{T}[] for _ in 1:n_atoms]
+    BondGeom = @NamedTuple{i::Int, j::Int, ord::Int,
+                            ni::Vec3{T}, u::Vec3{T}, v::Vec3{T}, α::T}
+    bond_axes = BondGeom[]
     for i in eachindex(bt)
         a1 = bt.a1[i]; a2 = bt.a2[i]
-        # The bond table stores atom *idx* values; map to row indices.
         r1 = findfirst(==(a1), at.idx)
         r2 = findfirst(==(a2), at.idx)
         (r1 === nothing || r2 === nothing) && continue
-        d = Vector3{T}((at.r[r2] - at.r[r1])...)
-        push!(nbrs[r1],  d)
-        push!(nbrs[r2], -d)
-        push!(bond_pairs, (r1, r2, bt.order[i]))
+        d = Vec3{T}((at.r[r2] - at.r[r1])...)
+        dn = norm(d)
+        dn < eps(T) && continue
+        n̂ = d / dn
+        _, u, v = _ortho_frame(n̂)
+        ord_int = bt.order[i] === BondOrder.Single  ? 1 :
+                  bt.order[i] === BondOrder.Double  ? 2 :
+                  bt.order[i] === BondOrder.Triple  ? 3 :
+                  bt.order[i] === BondOrder.Aromatic ? 2 : 1
+        push!(bond_axes, (i=r1, j=r2, ord=ord_int, ni=n̂, u=u, v=v, α=α_multi))
+        # Accumulate socket axes for each atom. For multi-bonds the sockets
+        # tilt from the bond axis by ±α (order 2) or 120°-spaced (order 3).
+        for k in 1:ord_int
+            ax_i, ax_j = _multibond_socket_axes(n̂, k, ord_int, u, v, α_multi)
+            push!(nbrs[r1], ax_i)
+            push!(nbrs[r2], ax_j)
+        end
     end
 
     parts = PrintablePart[]
@@ -908,37 +1099,42 @@ function construction_kit(ac::AbstractAtomContainer{T};
         ))
     end
 
-    for (k, (i, j, ord)) in enumerate(bond_pairs)
-        ci = Vector3{T}((s .* at.r[i])...)
-        cj = Vector3{T}((s .* at.r[j])...)
-        axis = cj - ci
-        L = norm(axis)
-        L < eps(T) && continue
-        n̂ = axis / L
-        # Bond runs only between atom surfaces — not centre to centre — so
-        # the visible cylinder length matches what the user sees in the
-        # assembled model and is proportional to the gap.
+    for (bk, bg) in enumerate(bond_axes)
+        i, j, ord = bg.i, bg.j, bg.ord
+        ci = Vec3{T}((s .* at.r[i])...)
+        cj = Vec3{T}((s .* at.r[j])...)
         ri = atom_sphere_radius_mm[i]
         rj = atom_sphere_radius_mm[j]
-        # Bond shoulders sit exactly at atom surfaces — the peg geometry
-        # then extends INTO the atom's pre-drilled socket. Each printed
-        # part is a separate solid; no volumetric overlap in the slicer.
-        surf_i = ci + ri * n̂
-        surf_j = cj - rj * n̂
-        ord_int = ord === BondOrder.Single  ? 1 :
-                  ord === BondOrder.Double  ? 2 :
-                  ord === BondOrder.Triple  ? 3 :
-                  ord === BondOrder.Aromatic ? 2 : 1
-        mesh = bond_cylinder_mesh(surf_i, surf_j;
+        n̂  = bg.ni; u = bg.u; v = bg.v; α = bg.α
+        for ck in 1:ord
+            ax_a, ax_b = _multibond_socket_axes(n̂, ck, ord, u, v, α)
+            surf_i = ci + ri * ax_a
+            surf_j = cj + rj * ax_b
+            # ax_a is the outward radial at atom i for cylinder ck; this is
+            # the curve's tangent at p_a (going INTO the bond from the
+            # atom surface). Same for the B side.
+            mesh = if ord == 1
+                # Order-1 bonds: still a straight cylinder for parity with
+                # the prior look (and slightly faster to mesh).
+                bond_cylinder_mesh(surf_i, surf_j;
                                    bond_radius = br,
                                    peg_radius  = pr,
                                    peg_length  = pl,
-                                   order       = ord_int,
+                                   order       = 1,
                                    segments)
-        mesh = _settle_to_buildplate(mesh)
-        col = (0.55, 0.55, 0.55)
-        face_colors = fill(col, length(mesh.faces))
-        push!(parts, PrintablePart(mesh, col, "bond-$(k)", face_colors))
+            else
+                _curved_bond_mesh(surf_i, ax_a, surf_j, ax_b;
+                                   peg_radius  = pr,
+                                   peg_length  = pl,
+                                   bond_radius = br,
+                                   segments)
+            end
+            mesh = _settle_to_buildplate(mesh)
+            col = (0.55, 0.55, 0.55)
+            face_colors = fill(col, length(mesh.faces))
+            name = ord == 1 ? "bond-$(bk)" : "bond-$(bk)-cyl-$(ck)"
+            push!(parts, PrintablePart(mesh, col, name, face_colors))
+        end
     end
 
     if !isempty(too_small_atoms)

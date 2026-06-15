@@ -93,21 +93,66 @@ end
     end
 end
 
-@testitem "construction_kit: bond orders 1/2/3" begin
-    for ord in (BondOrder.Single, BondOrder.Double, BondOrder.Triple)
+@testitem "construction_kit: bond orders 1/2/3 emit order-many bond parts" begin
+    # Single bond → 1 bond piece; double → 2 curved cylinders; triple → 3.
+    for (ord, n_bond_parts) in (
+        (BondOrder.Single, 1),
+        (BondOrder.Double, 2),
+        (BondOrder.Triple, 3),
+    )
         sys = System{Float64}()
         mol = Molecule(sys; name="x")
-        ch = Chain(mol)
-        f = Fragment(ch, 1; name="X")
+        ch = Chain(mol); f = Fragment(ch, 1; name="X")
         a = Atom(f, 1, Elements.C; r=Vector3{Float64}(0, 0, 0))
         b = Atom(f, 2, Elements.C; r=Vector3{Float64}(1.5, 0, 0))
         Bond(sys, a.idx, b.idx, ord)
         assign_radii!(sys)
 
         parts = construction_kit(sys; scale=10)
-        @test length(parts) == 3
-        bond = parts[end]
-        @test startswith(bond.name, "bond-")
+        bond_parts = filter(p -> startswith(p.name, "bond-"), parts)
+        @test length(parts) == 2 + n_bond_parts
+        @test length(bond_parts) == n_bond_parts
+    end
+end
+
+@testitem "construction_kit: curved double-bond cylinders are watertight" begin
+    function audit(mesh)
+        V = length(mesh.position); F = length(mesh.faces)
+        ec = Dict{Tuple{Int,Int}, Int}()
+        for fa in mesh.faces
+            for (a, b) in ((Int(fa[1]),Int(fa[2])),(Int(fa[2]),Int(fa[3])),(Int(fa[3]),Int(fa[1])))
+                k = a < b ? (a,b) : (b,a); ec[k] = get(ec, k, 0) + 1
+            end
+        end
+        E = length(ec); bd = count(==(1), values(ec)); nm = count(>(2), values(ec))
+        (V=V, E=E, F=F, χ=V-E+F, boundary=bd, non_manifold=nm)
+    end
+
+    # Ethylene C=C: classic curved-double-bond test case
+    sys = System{Float64}()
+    mol = Molecule(sys; name="ethylene")
+    ch = Chain(mol); f = Fragment(ch, 1; name="ETH")
+    c1 = Atom(f, 1, Elements.C; r=Vector3{Float64}( 0.67, 0, 0))
+    c2 = Atom(f, 2, Elements.C; r=Vector3{Float64}(-0.67, 0, 0))
+    h1 = Atom(f, 3, Elements.H; r=Vector3{Float64}( 1.24,  0.92, 0))
+    h2 = Atom(f, 4, Elements.H; r=Vector3{Float64}( 1.24, -0.92, 0))
+    h3 = Atom(f, 5, Elements.H; r=Vector3{Float64}(-1.24,  0.92, 0))
+    h4 = Atom(f, 6, Elements.H; r=Vector3{Float64}(-1.24, -0.92, 0))
+    Bond(sys, c1.idx, c2.idx, BondOrder.Double)
+    for h in (h1, h2); Bond(sys, c1.idx, h.idx, BondOrder.Single); end
+    for h in (h3, h4); Bond(sys, c2.idx, h.idx, BondOrder.Single); end
+    assign_radii!(sys)
+    parts = construction_kit(sys; scale=20)
+    # 2 C + 4 H + (2 double-bond cylinders) + (4 C-H bonds) = 12 parts
+    @test length(parts) == 12
+    # The two double-bond cylinders are named bond-1-cyl-1 and bond-1-cyl-2
+    cyls = filter(p -> startswith(p.name, "bond-1-cyl-"), parts)
+    @test length(cyls) == 2
+    for p in cyls
+        s = audit(p.mesh)
+        @test s.χ == 2
+        @test s.boundary == 0
+        @test s.non_manifold == 0
     end
 end
 
