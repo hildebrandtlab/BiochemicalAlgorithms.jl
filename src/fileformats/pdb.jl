@@ -2,10 +2,12 @@ export
     is_hetero_atom,
     load_mmcif,
     load_pdb,
+    download_pdb,
     write_mmcif,
     write_pdb
 
 using Printf
+using Downloads: Downloads
 
 function is_hetero_atom(a::Atom)
     f = parent_fragment(a)
@@ -60,6 +62,38 @@ function extract_element(pdb_element::String, atom_name::String)
     return element
 end
 
+
+"""
+    download_pdb(pdb_id::AbstractString; dir = tempdir(), overwrite = false) -> String
+
+Download a PDB structure file from RCSB
+(`https://files.rcsb.org/download/<ID>.pdb`) and return the local file path.
+
+`pdb_id` is the four-character PDB identifier (case-insensitive; normalised
+to upper case for the URL). The file is written to
+`joinpath(dir, "<ID>.pdb")`. If a file already exists at the target path,
+nothing is re-downloaded unless `overwrite = true`.
+
+# Example
+```julia-repl
+julia> path = download_pdb("2ptc")
+"/tmp/2PTC.pdb"
+
+julia> sys = load_pdb(path)
+```
+"""
+function download_pdb(pdb_id::AbstractString;
+                      dir::AbstractString = tempdir(),
+                      overwrite::Bool = false)
+    id = uppercase(strip(String(pdb_id)))
+    length(id) == 4 || throw(ArgumentError(
+        "PDB IDs are exactly 4 characters; got $(repr(pdb_id))"))
+    path = joinpath(dir, "$(id).pdb")
+    (overwrite || !isfile(path)) || return path
+    isdir(dir) || mkpath(dir)
+    Downloads.download("https://files.rcsb.org/download/$(id).pdb", path)
+    path
+end
 
 """
     load_pdb(io::IO, ::Type{T} = Float32) -> System{T}
