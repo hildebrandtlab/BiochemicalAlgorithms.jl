@@ -467,8 +467,10 @@ function _build_struct_conn_bonds!(sys, conns, fragment_cache)
             continue
         end
 
-        a1 = findfirst(a -> strip(a.name) == conn.atom1, atoms(f1))
-        a2 = findfirst(a -> strip(a.name) == conn.atom2, atoms(f2))
+        at1 = atoms(f1; frame_id = nothing)
+        at2 = atoms(f2; frame_id = nothing)
+        a1 = findfirst(a -> strip(a.name) == conn.atom1, at1)
+        a2 = findfirst(a -> strip(a.name) == conn.atom2, at2)
         if isnothing(a1) || isnothing(a2)
             @warn "mmCIF _struct_conn: atom not found ($(conn.atom1) in $(conn.res1.name)/$(conn.res1.number) or $(conn.atom2) in $(conn.res2.name)/$(conn.res2.number)); skipping $(conn.conn_type) bond"
             continue
@@ -482,7 +484,7 @@ function _build_struct_conn_bonds!(sys, conns, fragment_cache)
             props[:BOND_LENGTH] = conn.distance
         end
 
-        Bond(sys, atoms(f1)[a1].idx, atoms(f2)[a2].idx, order;
+        Bond(sys, at1[a1].idx, at2[a2].idx, order;
              flags = Flags((flag,)),
              properties = props)
     end
