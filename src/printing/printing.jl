@@ -699,6 +699,9 @@ function bond_cylinder_mesh(p1::AbstractVector{T}, p2::AbstractVector{T};
                             bond_radius::T = T(2.5),
                             peg_radius::T = T(2.5),
                             peg_length::T = T(8.0),
+                            peg_tip_clearance::T = T(0.08),
+                            peg_base_interference::T = T(0.05),
+                            rim_length::T = T(2.0),
                             order::Int = 1,
                             segments::Int = 24) where T<:Real
     p1v = Vec3{T}(p1...)
@@ -707,33 +710,37 @@ function bond_cylinder_mesh(p1::AbstractVector{T}, p2::AbstractVector{T};
     L = norm(axis)
     n, u, v = _ortho_frame(axis)
 
-    # Bond order is currently encoded by shaft radius (multi-cylinder
-    # "curved double bond" visuals are a known TODO; they require either
-    # CSG or curved-extrusion meshing that we haven't implemented yet).
+    # Bond order is currently encoded by shaft radius.
     shaft_r = bond_radius * (order == 1 ? T(1.0) : order == 2 ? T(1.15) : T(1.3))
 
-    # Uniform-diameter cylinder profile, matching commercial molecular kits
-    # (Molymod / HGS / Conatex): the peg is the same radius as the visible
-    # shaft, just the part inside the atom socket. Four ring profile (no
-    # chamfer): peg_tip_left, surface_left, surface_right, peg_tip_right.
-    # When peg_radius differs from bond_radius (uncommon), a short conic
-    # taper is inserted at each end of the visible bond.
-    chamfer = min(abs(shaft_r - peg_radius), L / T(3))
-    rings = if shaft_r == peg_radius || chamfer == 0
-        [
-            (-peg_length,    peg_radius),    # 1: left peg tip
-            (zero(T),        peg_radius),    # 2: enters atom A
-            (L,              peg_radius),    # 3: exits atom B's surface
-            (L + peg_length, peg_radius),    # 4: right peg tip
+    # Tapered peg: tip is slightly NARROWER than the socket (= peg_radius);
+    # base is slightly WIDER. This makes the peg slide in easily, wedge
+    # tight at insertion depth, and re-grip after the socket wears with
+    # repeated use — the standard friction-fit trick in commercial
+    # 3D-printed and injection-moulded kits.
+    peg_tip_r  = peg_radius - peg_tip_clearance
+    peg_base_r = peg_radius + peg_base_interference
+
+    # Conic rim profile: from base of peg, taper UP to shaft_r over
+    # `rim_length` mm. If the visible bond gap can't fit both rims plus
+    # a straight shaft section, fall back to a uniform-diameter profile.
+    have_rim = shaft_r > peg_base_r && 2 * rim_length < L
+    if have_rim
+        rings = [
+            (-peg_length,            peg_tip_r),     # 1: left peg tip
+            (zero(T),                peg_base_r),    # 2: peg base at atom surface
+            (rim_length,             shaft_r),       # 3: rim ends, shaft begins
+            (L - rim_length,         shaft_r),       # 4: shaft ends, rim begins
+            (L,                      peg_base_r),    # 5: peg base at far surface
+            (L + peg_length,         peg_tip_r),     # 6: right peg tip
         ]
     else
-        [
-            (-peg_length,    peg_radius),    # 1: left peg tip
-            (zero(T),        peg_radius),    # 2: peg ends at atom surface
-            (chamfer,        shaft_r),       # 3: taper ends, shaft begins
-            (L - chamfer,    shaft_r),       # 4: shaft ends, taper begins
-            (L,              peg_radius),    # 5: peg starts at far surface
-            (L + peg_length, peg_radius),    # 6: right peg tip
+        # No room for a rim — uniform-diameter profile, peg still tapered.
+        rings = [
+            (-peg_length,    peg_tip_r),
+            (zero(T),        peg_base_r),
+            (L,              peg_base_r),
+            (L + peg_length, peg_tip_r),
         ]
     end
 
@@ -895,6 +902,8 @@ function _curved_bond_mesh(p_a::Vec3{T}, t_a::Vec3{T},
                             peg_radius::T,
                             peg_length::T,
                             bond_radius::T,
+                            peg_tip_clearance::T = T(0.08),
+                            peg_base_interference::T = T(0.05),
                             n_arc::Int = 12,
                             segments::Int = 24) where T<:Real
     L = norm(p_b - p_a)
@@ -910,10 +919,15 @@ function _curved_bond_mesh(p_a::Vec3{T}, t_a::Vec3{T},
         v / norm(v)
     end
 
+    # Same tapered-peg geometry as the straight bond (see `bond_cylinder_mesh`).
+    peg_tip_r  = peg_radius - peg_tip_clearance
+    peg_base_r = peg_radius + peg_base_interference
+
     samples = Tuple{Vec3{T}, Vec3{T}, T}[]
-    # Peg at A: straight backwards from p_a along -t_a, then arrive at p_a.
-    push!(samples, (p_a - peg_length * t_a, t_a, peg_radius))
-    push!(samples, (p_a,                   t_a, peg_radius))
+    # Peg at A — tapered. Tip narrower than the socket (easy start), base
+    # wider (wedge fit at full insertion).
+    push!(samples, (p_a - peg_length * t_a, t_a, peg_tip_r))
+    push!(samples, (p_a,                   t_a, peg_base_r))
     # Short conic transition at the start of the visible curve.
     t0 = T(0.06); t1 = T(1) - t0
     push!(samples, (bezier(t0), bezier_tan(t0), bond_radius))
@@ -924,10 +938,9 @@ function _curved_bond_mesh(p_a::Vec3{T}, t_a::Vec3{T},
         push!(samples, (bezier(t), bezier_tan(t), bond_radius))
     end
     push!(samples, (bezier(t1), bezier_tan(t1), bond_radius))
-    # Peg at B. The tangent on the B side points INWARD into B (i.e. -t_b),
-    # since the path is travelling from A toward B's interior.
-    push!(samples, (p_b,                  -t_b, peg_radius))
-    push!(samples, (p_b - peg_length * t_b, -t_b, peg_radius))
+    # Peg at B — tapered (base near surface, tip far inside the socket).
+    push!(samples, (p_b,                  -t_b, peg_base_r))
+    push!(samples, (p_b - peg_length * t_b, -t_b, peg_tip_r))
     _sweep_tube_mesh(samples; segments)
 end
 
@@ -1092,8 +1105,14 @@ function construction_kit(ac::AbstractAtomContainer{T};
         end
         center_mm = Vector3{T}((s .* at.r[i])...)
         dirs = [d / norm(d) for d in nbrs[i] if norm(d) > eps(T)]
+        # Atom socket is 0.5 mm deeper than the bond peg so accumulated
+        # FDM material at the socket bottom (always over-extrudes a little
+        # on the last layer of a hole) doesn't prevent the peg from fully
+        # seating. Without this, the peg shoulder hangs off the atom by
+        # whatever debris depth the printer happens to leave.
+        socket_depth = pl + T(0.5)
         mesh = atom_sphere_mesh(center_mm, sphere_radius_mm, dirs;
-                                 peg_radius = pr, peg_length = pl,
+                                 peg_radius = pr, peg_length = socket_depth,
                                  subdivisions, segments)
         # Settle to z=0 + recentre, then sink by `flat_base_mm` so the bed
         # plane clips the part to a flat first-layer disk (sphere → point
