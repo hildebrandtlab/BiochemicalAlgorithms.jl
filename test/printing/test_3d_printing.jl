@@ -295,12 +295,14 @@ end
         end
         close(r)
         # The mesh's longest extent is slightly larger than the atom-bbox
-        # extent (the probe inflates the surface ~1.5 Å × scale on each side).
-        # max_size_mm is anchored to the atom bbox, not the mesh bbox, so we
-        # expect ~100 mm + 2 * 1.5 * (100/atom_extent) on the longest axis.
-        # Allow [95, 130] mm.
+        # extent (the probe inflates the surface ~1.5 Å × scale on each
+        # side). `max_size_mm` is anchored to the atom bbox, not the mesh
+        # bbox, so we expect ~100 mm + 2 · 1.5 · (100/atom_extent) on the
+        # longest axis. For AlaAla (atom extent ≈ 8.7 Å, scale ≈ 11.5 mm/Å)
+        # the upper bound is ≈ 134 mm; allow [95, 145] for headroom across
+        # Float32/Float64 and across Julia versions.
         max_ext = max(xmax - xmin, ymax - ymin, zmax - zmin)
-        @test 95 <= max_ext <= 130
+        @test 95 <= max_ext <= 145
     end
 end
 
