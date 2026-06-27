@@ -26,7 +26,8 @@ const pages = Any[
         "Internals" => Any[
             "Biomolecular systems" => "private/system.md",
             "Mappings" => "private/mappings.md",
-            "Molecular preprocessing" => "private/preprocessing.md"
+            "Molecular preprocessing" => "private/preprocessing.md",
+            "Structure analysis" => "private/structureanalysis.md"
         ]
     ]
 ]

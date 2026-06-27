@@ -613,7 +613,7 @@ end
 end
 
 @testitem "clean_ses! / split_spheric_faces!: idempotent on healthy SES" begin
-    using BiochemicalAlgorithms: Point3
+    using BiochemicalAlgorithms: Point3, split_spheric_faces!
     for T in [Float32, Float64]
         sys = load_pdb(ball_data_path("../test/data/bpti.pdb"), T)
         assign_radii!(sys)
@@ -632,6 +632,7 @@ end
 end
 
 @testitem "resolve_probe_intersections!: detects overlapping probes" begin
+    using BiochemicalAlgorithms: resolve_probe_intersections!
     for T in [Float32, Float64]
         sys = load_pdb(ball_data_path("../test/data/bpti.pdb"), T)
         assign_radii!(sys)
@@ -646,6 +647,7 @@ end
 end
 
 @testitem "compute_reduced_surface: detects spindle-torus singularities" begin
+    using BiochemicalAlgorithms: SESFaceType
     T = Float64
     sys = System{T}()
     mol = Molecule(sys); ch = Chain(mol); f = Fragment(ch, 1; name="X")
