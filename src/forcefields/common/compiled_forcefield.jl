@@ -1,7 +1,9 @@
 export
     CompiledForceField,
     compile,
-    rebuild_pairlist!
+    finalize_optimization!,
+    rebuild_pairlist!,
+    shuffle_interactions!
 
 # ============================================================================
 #  Cached, struct-of-arrays (SoA), index-based evaluator for a `ForceField`.
@@ -25,7 +27,7 @@ export
 
 # --- evaluation backends -----------------------------------------------------
 abstract type EvalBackend end
-struct SerialBackend   <: EvalBackend end
+struct SerialBackend <: EvalBackend end
 struct ThreadedBackend <: EvalBackend
     nthreads::Int
 end
@@ -85,7 +87,7 @@ end
 PairESArrays{Acc}() where Acc = PairESArrays{Acc}(Int32[], Int32[], Acc[], Acc[])
 
 # --- the compiled evaluator --------------------------------------------------
-mutable struct CompiledForceField{T, Acc, B <: EvalBackend}
+mutable struct CompiledForceField{T,Acc,B<:EvalBackend}
     ff::ForceField{T}
     backend::B
 
@@ -116,10 +118,10 @@ mutable struct CompiledForceField{T, Acc, B <: EvalBackend}
     e_threads::Vector{Acc}
 
     # per-category energies (keys match ForceField reference path)
-    energy::Dict{String, Acc}
+    energy::Dict{String,Acc}
 
     # idx <-> row bookkeeping
-    idx2row::Dict{Int, Int32}
+    idx2row::Dict{Int,Int32}
     natoms::Int
 
     # constrained atoms, as a per-row mask
@@ -138,9 +140,9 @@ mutable struct CompiledForceField{T, Acc, B <: EvalBackend}
     nl::Any
 end
 
-@inline accumulation_type(::CompiledForceField{T, Acc}) where {T, Acc} = Acc
+@inline accumulation_type(::CompiledForceField{T,Acc}) where {T,Acc} = Acc
 
-function Base.show(io::IO, cff::CompiledForceField{T, Acc, B}) where {T, Acc, B}
+function Base.show(io::IO, cff::CompiledForceField{T,Acc,B}) where {T,Acc,B}
     print(io, "CompiledForceField{$T, acc=$Acc, $(nameof(B))}: ",
         cff.natoms, " atoms, ",
         length(cff.stretch.k), " stretches, ",
@@ -166,16 +168,16 @@ The atom topology (and therefore row numbering) must not change for the lifetime
 of the returned object.
 """
 function compile(ff::ForceField{T};
-        acc::Type{Acc} = T,
-        backend::Symbol = :serial,
-        update_frequency::Integer = 0,
-        max_displacement::Real = -1) where {T, Acc <: Real}
+    acc::Type{Acc}=T,
+    backend::Symbol=:serial,
+    update_frequency::Integer=0,
+    max_displacement::Real=-1) where {T,Acc<:Real}
 
     b = _select_backend(Val(backend), ff, Acc)
 
     at = atoms(ff.system)
     natoms = length(at.idx)
-    idx2row = Dict{Int, Int32}(idx => Int32(k) for (k, idx) in enumerate(at.idx))
+    idx2row = Dict{Int,Int32}(idx => Int32(k) for (k, idx) in enumerate(at.idx))
 
     r = Vector{Vector3{Acc}}(undef, natoms)
     F = Vector{Vector3{Acc}}(undef, natoms)
@@ -193,7 +195,7 @@ function compile(ff::ForceField{T};
         end
     end
 
-    cff = CompiledForceField{T, Acc, typeof(b)}(
+    cff = CompiledForceField{T,Acc,typeof(b)}(
         ff, b,
         StretchArrays{Acc}(), BendArrays{Acc}(), TorsionArrays{Acc}(), TorsionArrays{Acc}(),
         PairLJArrays{Acc}(), PairLJArrays{Acc}(), PairESArrays{Acc}(),
@@ -201,7 +203,7 @@ function compile(ff::ForceField{T};
         CubicSwitchingFunction{Acc}(zero(Acc), zero(Acc)),
         Acc(ES_Prefactor), Acc(ES_Prefactor_force), false,
         r, F, F_threads, e_threads,
-        Dict{String, Acc}(),
+        Dict{String,Acc}(),
         idx2row, natoms,
         constrained_mask,
         Int(update_frequency), Acc(max_displacement),
@@ -213,7 +215,7 @@ function compile(ff::ForceField{T};
     # absent from the list was >= nonbonded_cutoff apart at build time; it can
     # only reach the (vdw/es) cutoff if atoms move > (nonbonded_cutoff-cutoff)/2.
     if max_displacement < 0
-        nb  = Acc(ff.options[:nonbonded_cutoff])
+        nb = Acc(ff.options[:nonbonded_cutoff])
         cut = max(Acc(ff.options[:vdw_cutoff]), Acc(ff.options[:electrostatic_cutoff]))
         cff.max_displacement = max(zero(Acc), (nb - cut) / 2)
     end
@@ -228,7 +230,7 @@ end
 _select_backend(::Val{:serial}, ::ForceField, ::Type) = SerialBackend()
 _select_backend(::Val{:threads}, ::ForceField, ::Type) = ThreadedBackend(Threads.nthreads())
 function _select_backend(::Val{:gpu}, ff::ForceField, ::Type{Acc}) where Acc
-    hasmethod(_make_gpu_backend, Tuple{ForceField, Type}) || throw(ArgumentError(
+    hasmethod(_make_gpu_backend, Tuple{ForceField,Type}) || throw(ArgumentError(
         "the :gpu backend needs `using KernelAbstractions` plus a device package " *
         "(`using Metal` on Apple Silicon, or `using CUDA`)"))
     _make_gpu_backend(ff, Acc)
@@ -250,7 +252,7 @@ Called by the Metal/CUDA package extensions on load to register a
 KernelAbstractions device for the `:gpu` backend.
 """
 function _register_gpu_device!(device; supports_f64::Bool)
-    _GPU_DEVICE[] = (device = device, f64 = supports_f64)
+    _GPU_DEVICE[] = (device=device, f64=supports_f64)
     nothing
 end
 
@@ -261,7 +263,7 @@ _backend_upload_pairs!(::CompiledForceField) = nothing # called at end of rebuil
 @inline _row(cff::CompiledForceField, atom) = cff.idx2row[atom.idx]
 
 # --- bonded lowering (done once) --------------------------------------------
-function _lower_bonded!(cff::CompiledForceField{T, Acc}) where {T, Acc}
+function _lower_bonded!(cff::CompiledForceField{T,Acc}) where {T,Acc}
     for c in cff.ff.components
         _lower_component!(cff, c)
     end
@@ -270,37 +272,46 @@ end
 
 _lower_component!(::CompiledForceField, ::AbstractForceFieldComponent) = nothing
 
-function _lower_component!(cff::CompiledForceField{T, Acc}, c::QuadraticStretchComponent{T}) where {T, Acc}
+function _lower_component!(cff::CompiledForceField{T,Acc}, c::QuadraticStretchComponent{T}) where {T,Acc}
     s = cff.stretch
     for qbs in c.stretches
-        push!(s.i, _row(cff, qbs.a1)); push!(s.j, _row(cff, qbs.a2))
-        push!(s.r0, Acc(qbs.r0));      push!(s.k, Acc(qbs.k))
+        push!(s.i, _row(cff, qbs.a1));
+        push!(s.j, _row(cff, qbs.a2))
+        push!(s.r0, Acc(qbs.r0));
+        push!(s.k, Acc(qbs.k))
     end
     nothing
 end
 
-function _lower_component!(cff::CompiledForceField{T, Acc}, c::QuadraticBendComponent{T}) where {T, Acc}
+function _lower_component!(cff::CompiledForceField{T,Acc}, c::QuadraticBendComponent{T}) where {T,Acc}
     b = cff.bend
     for qab in c.bends
-        push!(b.i, _row(cff, qab.a1)); push!(b.j, _row(cff, qab.a2)); push!(b.l, _row(cff, qab.a3))
-        push!(b.θ0, Acc(qab.θ₀));       push!(b.k, Acc(qab.k))
+        push!(b.i, _row(cff, qab.a1));
+        push!(b.j, _row(cff, qab.a2));
+        push!(b.l, _row(cff, qab.a3))
+        push!(b.θ0, Acc(qab.θ₀));
+        push!(b.k, Acc(qab.k))
     end
     nothing
 end
 
-function _lower_component!(cff::CompiledForceField{T, Acc}, c::TorsionComponent{T}) where {T, Acc}
+function _lower_component!(cff::CompiledForceField{T,Acc}, c::TorsionComponent{T}) where {T,Acc}
     _lower_torsions!(cff, cff.proper, c.proper_torsions)
     _lower_torsions!(cff, cff.improper, c.improper_torsions)
     nothing
 end
 
-function _lower_torsions!(cff::CompiledForceField{T, Acc}, t::TorsionArrays{Acc}, torsions) where {T, Acc}
+function _lower_torsions!(cff::CompiledForceField{T,Acc}, t::TorsionArrays{Acc}, torsions) where {T,Acc}
     for ct in torsions
-        push!(t.i, _row(cff, ct.a1)); push!(t.j, _row(cff, ct.a2))
-        push!(t.k, _row(cff, ct.a3)); push!(t.l, _row(cff, ct.a4))
+        push!(t.i, _row(cff, ct.a1));
+        push!(t.j, _row(cff, ct.a2))
+        push!(t.k, _row(cff, ct.a3));
+        push!(t.l, _row(cff, ct.a4))
         for n in eachindex(ct.V)
-            push!(t.V, Acc(ct.V[n])); push!(t.ϕ0, Acc(ct.ϕ₀[n]))
-            push!(t.f, Int32(ct.f[n])); push!(t.div, Int32(ct.div[n]))
+            push!(t.V, Acc(ct.V[n]));
+            push!(t.ϕ0, Acc(ct.ϕ₀[n]))
+            push!(t.f, Int32(ct.f[n]));
+            push!(t.div, Int32(ct.div[n]))
         end
         push!(t.term_offset, Int32(length(t.V) + 1))
     end
@@ -316,7 +327,7 @@ from the force field's current coordinates. This is the expensive operation;
 during minimization it is invoked only periodically (see `update_frequency` /
 `max_displacement`).
 """
-function rebuild_pairlist!(cff::CompiledForceField{T, Acc}) where {T, Acc}
+function rebuild_pairlist!(cff::CompiledForceField{T,Acc}) where {T,Acc}
     ff = cff.ff
     nbc = nothing
     for c in ff.components
@@ -325,7 +336,7 @@ function rebuild_pairlist!(cff::CompiledForceField{T, Acc}) where {T, Acc}
     nbc === nothing && return cff
 
     cff.vdw_sw = _convert_sw(Acc, nbc.cache.vdw_switching_function)
-    cff.es_sw  = _convert_sw(Acc, nbc.cache.es_switching_function)
+    cff.es_sw = _convert_sw(Acc, nbc.cache.es_switching_function)
     cff.distance_dependent_dielectric = ff.options[:distance_dependent_dielectric]::Bool
 
     # Build the SoA pair arrays directly from a cached in-place neighbor list,
@@ -346,7 +357,7 @@ function rebuild_pairlist!(cff::CompiledForceField{T, Acc}) where {T, Acc}
 end
 
 # largest atomic displacement since the last pair-list build
-function _max_displacement(cff::CompiledForceField{T, Acc}) where {T, Acc}
+function _max_displacement(cff::CompiledForceField{T,Acc}) where {T,Acc}
     maxd2 = zero(Acc)
     @inbounds for k in 1:cff.natoms
         d2 = squared_norm(cff.r[k] - cff.r_at_last_build[k])
@@ -363,7 +374,7 @@ Rebuild the nonbonded pair list if atoms have drifted past the Verlet skin
 every `update_frequency` calls. Returns `true` if a rebuild happened. This is
 the BALL-style decoupling of pair-list maintenance from per-evaluation cost.
 """
-function maybe_rebuild!(cff::CompiledForceField{T, Acc}) where {T, Acc}
+function maybe_rebuild!(cff::CompiledForceField{T,Acc}) where {T,Acc}
     need = _max_displacement(cff) > cff.max_displacement
     if cff.update_frequency > 0
         cff.iters_since_build += 1
@@ -472,7 +483,7 @@ end
 #  The hot loop never touches the table; these run only at sync points
 #  (notify callbacks, end of optimization).
 # ----------------------------------------------------------------------------
-function sync_positions_from_table!(cff::CompiledForceField{T, Acc}) where {T, Acc}
+function sync_positions_from_table!(cff::CompiledForceField{T,Acc}) where {T,Acc}
     at = atoms(cff.ff.system)
     @inbounds for k in 1:cff.natoms
         cff.r[k] = Vector3{Acc}(at.r[k])
@@ -487,7 +498,7 @@ Write the evaluator's coordinates (and, by default, forces) back into the
 canonical atom table so the rest of the library and any registered observables
 see consistent state.
 """
-function sync_to_table!(cff::CompiledForceField{T, Acc}; forces::Bool=true) where {T, Acc}
+function sync_to_table!(cff::CompiledForceField{T,Acc}; forces::Bool=true) where {T,Acc}
     at = atoms(cff.ff.system)
     @inbounds for k in 1:cff.natoms
         at.r[k] = Vector3{T}(cff.r[k])
@@ -501,7 +512,7 @@ function sync_to_table!(cff::CompiledForceField{T, Acc}; forces::Bool=true) wher
 end
 
 # pull positions from a flat optimizer vector (Float64) into the Acc SoA buffer
-function set_positions_flat!(cff::CompiledForceField{T, Acc}, r::AbstractVector) where {T, Acc}
+function set_positions_flat!(cff::CompiledForceField{T,Acc}, r::AbstractVector) where {T,Acc}
     @inbounds for k in 1:cff.natoms
         b = 3 * (k - 1)
         cff.r[k] = Vector3{Acc}(Acc(r[b+1]), Acc(r[b+2]), Acc(r[b+3]))
@@ -510,13 +521,146 @@ function set_positions_flat!(cff::CompiledForceField{T, Acc}, r::AbstractVector)
 end
 
 # write the negative force (= energy gradient) into a flat optimizer vector
-function gradient_flat!(grad::AbstractVector, cff::CompiledForceField{T, Acc}) where {T, Acc}
+function gradient_flat!(grad::AbstractVector, cff::CompiledForceField{T,Acc}) where {T,Acc}
     @inbounds for k in 1:cff.natoms
         b = 3 * (k - 1)
         Fk = cff.F[k]
-        grad[b+1] = -Fk[1]; grad[b+2] = -Fk[2]; grad[b+3] = -Fk[3]
+        grad[b+1] = -Fk[1];
+        grad[b+2] = -Fk[2];
+        grad[b+3] = -Fk[3]
     end
     grad
 end
 
+
+function _permute_rows!(v::AbstractVector, perm::AbstractVector{<:Integer})
+    n = length(v)
+    n == 0 && return v
+    newv = similar(v)
+    @inbounds for (dst, src) in enumerate(perm)
+        newv[dst] = v[src]
+    end
+    copyto!(v, newv)
+    v
+end
+
+function _permute_torsion_rows!(torsion::TorsionArrays{Acc}, perm::AbstractVector{<:Integer}) where {Acc}
+    n = length(torsion.i)
+    n == 0 && return torsion
+
+    _permute_rows!(torsion.i, perm)
+    _permute_rows!(torsion.j, perm)
+    _permute_rows!(torsion.k, perm)
+    _permute_rows!(torsion.l, perm)
+
+    new_offsets = Vector{Int32}(undef, n + 1)
+    new_offsets[1] = 1
+    @inbounds for dst in 1:n
+        src = Int(perm[dst])
+        start = Int(torsion.term_offset[src])
+        stop = Int(torsion.term_offset[src+1]) - 1
+        new_offsets[dst+1] = new_offsets[dst] + Int32(stop - start + 1)
+    end
+    copyto!(torsion.term_offset, new_offsets)
+
+    nterms = length(torsion.V)
+    new_V = similar(torsion.V, nterms)
+    new_ϕ0 = similar(torsion.ϕ0, nterms)
+    new_f = similar(torsion.f, nterms)
+    new_div = similar(torsion.div, nterms)
+
+    pos = 1
+    @inbounds for dst in 1:n
+        src = Int(perm[dst])
+        start = Int(torsion.term_offset[src])
+        stop = Int(torsion.term_offset[src+1]) - 1
+        len = stop - start + 1
+        if len > 0
+            copyto!(view(new_V, pos:(pos+len-1)), view(torsion.V, start:stop))
+            copyto!(view(new_ϕ0, pos:(pos+len-1)), view(torsion.ϕ0, start:stop))
+            copyto!(view(new_f, pos:(pos+len-1)), view(torsion.f, start:stop))
+            copyto!(view(new_div, pos:(pos+len-1)), view(torsion.div, start:stop))
+        end
+        pos += len
+    end
+
+    copyto!(torsion.V, new_V)
+    copyto!(torsion.ϕ0, new_ϕ0)
+    copyto!(torsion.f, new_f)
+    copyto!(torsion.div, new_div)
+
+    torsion
+end
+
+function shuffle_interactions!(cff::CompiledForceField{T,Acc}) where {T,Acc}
+    n = length(cff.stretch.i)
+    if n > 0
+        perm = randperm(n)
+        _permute_rows!(cff.stretch.i, perm)
+        _permute_rows!(cff.stretch.j, perm)
+        _permute_rows!(cff.stretch.r0, perm)
+        _permute_rows!(cff.stretch.k, perm)
+    end
+
+    n = length(cff.bend.i)
+    if n > 0
+        perm = randperm(n)
+        _permute_rows!(cff.bend.i, perm)
+        _permute_rows!(cff.bend.j, perm)
+        _permute_rows!(cff.bend.l, perm)
+        _permute_rows!(cff.bend.θ0, perm)
+        _permute_rows!(cff.bend.k, perm)
+    end
+
+    n = length(cff.proper.i)
+    if n > 0
+        perm = randperm(n)
+        _permute_torsion_rows!(cff.proper, perm)
+    end
+
+    n = length(cff.improper.i)
+    if n > 0
+        perm = randperm(n)
+        _permute_torsion_rows!(cff.improper, perm)
+    end
+
+    n = length(cff.lj.i)
+    if n > 0
+        perm = randperm(n)
+        _permute_rows!(cff.lj.i, perm)
+        _permute_rows!(cff.lj.j, perm)
+        _permute_rows!(cff.lj.A, perm)
+        _permute_rows!(cff.lj.B, perm)
+        _permute_rows!(cff.lj.scaling, perm)
+    end
+
+    n = length(cff.hb.i)
+    if n > 0
+        perm = randperm(n)
+        _permute_rows!(cff.hb.i, perm)
+        _permute_rows!(cff.hb.j, perm)
+        _permute_rows!(cff.hb.A, perm)
+        _permute_rows!(cff.hb.B, perm)
+        _permute_rows!(cff.hb.scaling, perm)
+    end
+
+    n = length(cff.es.i)
+    if n > 0
+        perm = randperm(n)
+        _permute_rows!(cff.es.i, perm)
+        _permute_rows!(cff.es.j, perm)
+        _permute_rows!(cff.es.q1q2, perm)
+        _permute_rows!(cff.es.scaling, perm)
+    end
+
+    cff
+end
+
+function finalize_optimization!(cff::CompiledForceField{T,Acc}, u::AbstractVector) where {T,Acc}
+    set_positions_flat!(cff, u)
+    rebuild_pairlist!(cff)
+    compute_forces!(cff)
+    sync_to_table!(cff; forces=true)
+    true
+end
 include("ff_kernels.jl")
