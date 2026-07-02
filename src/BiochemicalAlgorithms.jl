@@ -12,6 +12,7 @@ using Graphs
 using LinearAlgebra
 using Mendeleev
 using MetaGraphs
+using Random
 using Rotations
 using Statistics: mean
 using Unitful, UnitfulAtomic
@@ -22,6 +23,7 @@ import MolecularGraph
 import Observables
 import Optimization
 import OptimizationLBFGSB
+import OptimizationOptimisers
 import PrettyTables
 import StaticArrays
 import Tables, TableOperations
@@ -144,6 +146,7 @@ include("structureanalysis/surfaces/cleanup.jl")
 
 # optimization
 include("optimization/optimize_structure.jl")
+include("optimization/optimize_structure_sgd.jl")
 
 # precompilation directives
 include("precompile.jl")
