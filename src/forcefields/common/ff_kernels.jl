@@ -14,8 +14,9 @@
 # ---------------------------------------------------------------------------
 #  Bonded ENERGY (serial accumulation in Acc)
 # ---------------------------------------------------------------------------
-function _energy_stretch(cff::CompiledForceField{T, Acc}) where {T, Acc}
-    s = cff.stretch; r = cff.r
+function _energy_stretch(cff::CompiledForceField{T,Acc}) where {T,Acc}
+    s = cff.stretch;
+    r = cff.r
     e = zero(Acc)
     @inbounds for n in eachindex(s.k)
         d = norm(r[s.i[n]] - r[s.j[n]])
@@ -24,8 +25,9 @@ function _energy_stretch(cff::CompiledForceField{T, Acc}) where {T, Acc}
     e
 end
 
-function _energy_bend(cff::CompiledForceField{T, Acc}) where {T, Acc}
-    b = cff.bend; r = cff.r
+function _energy_bend(cff::CompiledForceField{T,Acc}) where {T,Acc}
+    b = cff.bend;
+    r = cff.r
     e = zero(Acc)
     @inbounds for n in eachindex(b.k)
         v1 = r[b.i[n]] - r[b.j[n]]
@@ -51,6 +53,120 @@ function _energy_torsion(cff::CompiledForceField{T, Acc}, t::TorsionArrays{Acc})
         e += _compute_torsion_energy(_torsion_terms(t, n)..., a21, a23, a34)
     end
     e
+end
+
+@inline function _sum_stretch(r, s::StretchArrays{Acc}, lo, hi) where Acc
+    e = zero(Acc)
+    @inbounds for n in lo:hi
+        d = norm(r[s.i[n]] - r[s.j[n]])
+        e += s.k[n] * (d - s.r0[n])^2
+    end
+    e
+end
+
+@inline function _sum_bend(r, b::BendArrays{Acc}, lo, hi) where Acc
+    e = zero(Acc)
+    @inbounds for n in lo:hi
+        v1 = r[b.i[n]] - r[b.j[n]]
+        v2 = r[b.l[n]] - r[b.j[n]]
+        e += _compute_bend_energy(b.k[n], b.θ0[n], v1, v2)
+    end
+    e
+end
+
+@inline function _sum_torsion(r, t::TorsionArrays{Acc}, lo, hi) where Acc
+    e = zero(Acc)
+    @inbounds for n in lo:hi
+        a23 = r[t.k[n]] - r[t.j[n]]
+        a34 = r[t.l[n]] - r[t.k[n]]
+        _, _, _, _, ok, cos_ϕ = _torsion_geometry(a21, a23, a34)
+        ok || continue
+        acϕ = acos(cos_ϕ)
+        lo_term = t.term_offset[n];
+        hi_term = t.term_offset[n+1] - one(Int32)
+        for m in lo_term:hi_term
+            e += t.V[m] / t.div[m] * (one(Acc) + cos(t.f[m] * acϕ - t.ϕ0[m]))
+        end
+    end
+    e
+end
+
+@inline function _accum_stretch!(F, r, s::StretchArrays{Acc}, lo, hi) where Acc
+    @inbounds for n in lo:hi
+        i = s.i[n];
+        j = s.j[n]
+        direction = r[i] - r[j]
+        d = norm(direction)
+        d == zero(Acc) && continue
+        direction *= 2 * s.k[n] * (d - s.r0[n]) / d
+        F[i] -= direction
+        F[j] += direction
+    end
+    nothing
+end
+
+@inline function _accum_bend!(F, r, b::BendArrays{Acc}, lo, hi) where Acc
+    @inbounds for n in lo:hi
+        i = b.i[n];
+        j = b.j[n];
+        l = b.l[n]
+        v1 = r[i] - r[j]
+        v2 = r[l] - r[j]
+        v1_length = norm(v1);
+        v2_length = norm(v2)
+        (v1_length == zero(Acc) || v2_length == zero(Acc)) && continue
+        v1 = v1 / v1_length
+        v2 = v2 / v2_length
+        cos_θ = dot(v1, v2)
+        θ = cos_θ > one(Acc) ? zero(Acc) : cos_θ < -one(Acc) ? Acc(π) : acos(cos_θ)
+        factor = 2 * b.k[n] * (θ - b.θ0[n])
+        crossv1v2 = normalize(cross(v1, v2))
+        isnan(crossv1v2[1]) && continue
+        n1 = cross(v1, crossv1v2) .* factor ./ v1_length
+        n2 = cross(v2, crossv1v2) .* factor ./ v2_length
+        F[i] -= n1
+        F[j] += n1
+        F[j] -= n2
+        F[l] += n2
+    end
+    nothing
+end
+
+@inline function _accum_torsion!(F, r, t::TorsionArrays{Acc}, lo, hi) where Acc
+    @inbounds for n in lo:hi
+        i = t.i[n];
+        j = t.j[n];
+        k = t.k[n];
+        l = t.l[n]
+        a21 = r[i] - r[j]
+        a23 = r[k] - r[j]
+        a34 = r[l] - r[k]
+        cross2321 = cross(a23, a21)
+        cross2334 = cross(a23, a34)
+        len1 = norm(cross2321);
+        len2 = norm(cross2334)
+        (len1 == zero(Acc) || len2 == zero(Acc)) && continue
+        cos_ϕ = clamp(dot(cross2321, cross2334) / (len1 * len2), -one(Acc), one(Acc))
+        acϕ = acos(cos_ϕ)
+        lo_term = t.term_offset[n];
+        hi_term = t.term_offset[n+1] - one(Int32)
+        ∂E∂ϕ = zero(Acc)
+        for m in lo_term:hi_term
+            ∂E∂ϕ += -t.V[m] / t.div[m] * t.f[m] * sin(t.f[m] * acϕ - t.ϕ0[m])
+        end
+        direction = dot(cross(cross2321, cross2334), a23)
+        direction > zero(Acc) && (∂E∂ϕ = -∂E∂ϕ)
+        a13 = r[k] - r[i]
+        a24 = r[l] - r[j]
+        na23 = norm(a23)
+        dEdt = (∂E∂ϕ / (len1^2 * na23)) * cross(cross2321, a23)
+        dEdu = -(∂E∂ϕ / (len2^2 * na23)) * cross(cross2334, a23)
+        F[i] += cross(dEdt, a23)
+        F[j] += cross(a13, dEdt) + cross(dEdu, a34)
+        F[k] += cross(a21, dEdt) + cross(a24, dEdu)
+        F[l] += cross(dEdu, a23)
+    end
+    nothing
 end
 
 # ---------------------------------------------------------------------------
@@ -90,7 +206,8 @@ end
 function _force_stretch!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
     s = cff.stretch; r = cff.r
     @inbounds for n in eachindex(s.k)
-        i = s.i[n]; j = s.j[n]
+        i = s.i[n];
+        j = s.j[n]
         direction = r[i] - r[j]
         d = norm(direction)
         force = _compute_stretch_force(s.k[n], s.r0[n], d, direction)
@@ -103,7 +220,9 @@ end
 function _force_bend!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
     b = cff.bend; r = cff.r
     @inbounds for n in eachindex(b.k)
-        i = b.i[n]; j = b.j[n]; l = b.l[n]
+        i = b.i[n];
+        j = b.j[n];
+        l = b.l[n]
         v1 = r[i] - r[j]
         v2 = r[l] - r[j]
         f1, f2, f3 = _compute_bend_force(b.k[n], b.θ0[n], v1, v2)
@@ -114,10 +233,13 @@ function _force_bend!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
     nothing
 end
 
-function _force_torsion!(F, cff::CompiledForceField{T, Acc}, t::TorsionArrays{Acc}) where {T, Acc}
+function _force_torsion!(F, cff::CompiledForceField{T,Acc}, t::TorsionArrays{Acc}) where {T,Acc}
     r = cff.r
     @inbounds for n in eachindex(t.i)
-        i = t.i[n]; j = t.j[n]; k = t.k[n]; l = t.l[n]
+        i = t.i[n];
+        j = t.j[n];
+        k = t.k[n];
+        l = t.l[n]
         a21 = r[i] - r[j]
         a23 = r[k] - r[j]
         a34 = r[l] - r[k]
@@ -183,7 +305,7 @@ end
 # ---------------------------------------------------------------------------
 #  Bonded energy/force convenience (shared by all backends)
 # ---------------------------------------------------------------------------
-function _energy_bonded(cff::CompiledForceField{T, Acc}) where {T, Acc}
+function _energy_bonded(cff::CompiledForceField{T,Acc}) where {T,Acc}
     _energy_stretch(cff), _energy_bend(cff),
     _energy_torsion(cff, cff.proper), _energy_torsion(cff, cff.improper)
 end
@@ -206,7 +328,7 @@ Evaluate the total energy at the evaluator's current coordinates, filling
 `cff.energy` with the per-category breakdown (same keys as the reference
 `ForceField` path).
 """
-function compute_energy!(cff::CompiledForceField{T, Acc, SerialBackend}) where {T, Acc}
+function compute_energy!(cff::CompiledForceField{T,Acc,SerialBackend}) where {T,Acc}
     r = cff.r
     nlj = length(cff.lj.i); nhb = length(cff.hb.i); nes = length(cff.es.i)
     vdw   = _sum_lj(r, cff.lj, cff.vdw_sw, cff.box, 1, nlj)
@@ -215,7 +337,7 @@ function compute_energy!(cff::CompiledForceField{T, Acc, SerialBackend}) where {
     _finish_energy!(cff, vdw, hbond, es)
 end
 
-function compute_energy!(cff::CompiledForceField{T, Acc, ThreadedBackend}) where {T, Acc}
+function compute_energy!(cff::CompiledForceField{T,Acc,ThreadedBackend}) where {T,Acc}
     r = cff.r
     nt = length(cff.F_threads)
     vdwp = zeros(Acc, nt); hbp = zeros(Acc, nt); esp = zeros(Acc, nt)
@@ -229,15 +351,15 @@ function compute_energy!(cff::CompiledForceField{T, Acc, ThreadedBackend}) where
     _finish_energy!(cff, sum(vdwp), sum(hbp), sum(esp))
 end
 
-function _finish_energy!(cff::CompiledForceField{T, Acc}, vdw, hbond, es) where {T, Acc}
+function _finish_energy!(cff::CompiledForceField{T,Acc}, vdw, hbond, es) where {T,Acc}
     stretch, bend, proper, improper = _energy_bonded(cff)
-    cff.energy["Bond Stretches"]   = stretch
-    cff.energy["Angle Bends"]      = bend
-    cff.energy["Proper Torsion"]   = proper
+    cff.energy["Bond Stretches"] = stretch
+    cff.energy["Angle Bends"] = bend
+    cff.energy["Proper Torsion"] = proper
     cff.energy["Improper Torsion"] = improper
-    cff.energy["Van der Waals"]    = vdw
-    cff.energy["Hydrogen Bonds"]   = hbond
-    cff.energy["Electrostatic"]    = es
+    cff.energy["Van der Waals"] = vdw
+    cff.energy["Hydrogen Bonds"] = hbond
+    cff.energy["Electrostatic"] = es
     stretch + bend + proper + improper + vdw + hbond + es
 end
 
@@ -247,7 +369,7 @@ end
 Zero and recompute forces at the current coordinates. Forces on constrained
 atoms are zeroed afterwards.
 """
-function compute_forces!(cff::CompiledForceField{T, Acc, SerialBackend}) where {T, Acc}
+function compute_forces!(cff::CompiledForceField{T,Acc,SerialBackend}) where {T,Acc}
     F = cff.F
     fill!(F, zero(Vector3{Acc}))
     _force_bonded!(F, cff)
@@ -259,7 +381,7 @@ function compute_forces!(cff::CompiledForceField{T, Acc, SerialBackend}) where {
     nothing
 end
 
-function compute_forces!(cff::CompiledForceField{T, Acc, ThreadedBackend}) where {T, Acc}
+function compute_forces!(cff::CompiledForceField{T,Acc,ThreadedBackend}) where {T,Acc}
     r = cff.r
     nt = length(cff.F_threads)
     nlj = length(cff.lj.i); nhb = length(cff.hb.i); nes = length(cff.es.i)
@@ -285,7 +407,7 @@ function compute_forces!(cff::CompiledForceField{T, Acc, ThreadedBackend}) where
     nothing
 end
 
-@inline function _apply_constraints!(cff::CompiledForceField{T, Acc}) where {T, Acc}
+@inline function _apply_constraints!(cff::CompiledForceField{T,Acc}) where {T,Acc}
     any(cff.constrained_mask) || return nothing
     @inbounds for k in 1:cff.natoms
         cff.constrained_mask[k] && (cff.F[k] = zero(Vector3{Acc}))
