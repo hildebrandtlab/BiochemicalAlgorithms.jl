@@ -198,7 +198,7 @@ function _compute_energy_loss(r::AbstractVector, p::MiniBatchParams{T,Acc}) wher
     total_energy = zero(eltype(r))
 
     r = p.cff.r
-    nt = length(p.cff.F_threads)
+    nt = Threads.nthreads()
     stretchp = zeros(Acc, nt)
     bendp = zeros(Acc, nt)
     properp = zeros(Acc, nt)
@@ -208,13 +208,40 @@ function _compute_energy_loss(r::AbstractVector, p::MiniBatchParams{T,Acc}) wher
     esp = zeros(Acc, nt)
 
     Threads.@threads :static for t in 1:nt
-        stretchp[t] = _sum_stretch(r, p.cff.stretch, batch.stretch_range.start, batch.stretch_range.stop)
-        bendp[t] = _sum_bend(r, p.cff.bend, batch.bend_range.start, batch.bend_range.stop)
-        properp[t] = _sum_torsion(r, p.cff.proper, batch.torsion_range.start, batch.torsion_range.stop)
-        improperp[t] = _sum_torsion(r, p.cff.improper, batch.improper_range.start, batch.improper_range.stop)
-        vdwp[t] = _sum_lj(r, p.cff.lj, p.cff.vdw_sw, batch.ljp_range.start, batch.ljp_range.stop)
-        hbp[t] = _sum_hb(r, p.cff.hb, p.cff.vdw_sw, batch.hb_range.start, batch.hb_range.stop)
-        esp[t] = _sum_es(r, p.cff.es, p.cff.es_sw, p.cff.distance_dependent_dielectric, p.cff.es_prefactor, batch.es_range.start, batch.es_range.stop)
+        sr = _chunk_range(batch.stretch_range, nt, t)
+        if !isempty(sr)
+            stretchp[t] = _sum_stretch(r, p.cff.stretch, first(sr), last(sr))
+        end
+
+        br = _chunk_range(batch.bend_range, nt, t)
+        if !isempty(br)
+            bendp[t] = _sum_bend(r, p.cff.bend, first(br), last(br))
+        end
+
+        pr = _chunk_range(batch.torsion_range, nt, t)
+        if !isempty(pr)
+            properp[t] = _sum_torsion(r, p.cff.proper, first(pr), last(pr))
+        end
+
+        ir = _chunk_range(batch.improper_range, nt, t)
+        if !isempty(ir)
+            improperp[t] = _sum_torsion(r, p.cff.improper, first(ir), last(ir))
+        end
+
+        vr = _chunk_range(batch.ljp_range, nt, t)
+        if !isempty(vr)
+            vdwp[t] = _sum_lj(r, p.cff.lj, p.cff.vdw_sw, first(vr), last(vr))
+        end
+
+        hr = _chunk_range(batch.hb_range, nt, t)
+        if !isempty(hr)
+            hbp[t] = _sum_hb(r, p.cff.hb, p.cff.vdw_sw, first(hr), last(hr))
+        end
+
+        er = _chunk_range(batch.es_range, nt, t)
+        if !isempty(er)
+            esp[t] = _sum_es(r, p.cff.es, p.cff.es_sw, p.cff.distance_dependent_dielectric, p.cff.es_prefactor, first(er), last(er))
+        end
     end
 
     total_energy = sum(stretchp) + sum(bendp) + sum(properp) + sum(improperp) + sum(vdwp) + sum(hbp) + sum(esp)
@@ -229,22 +256,46 @@ function _compute_grad!(grad::AbstractVector, r::AbstractVector, p::MiniBatchPar
     fill!(F, zero(Vector3{Acc}))
 
     r = p.cff.r
-    nt = length(p.cff.F_threads)
+    nt = Threads.nthreads()
     Threads.@threads :static for t in 1:nt
         Ft = p.cff.F_threads[t]
         fill!(Ft, zero(Vector3{Acc}))
 
-        _accum_stretch!(Ft, r, p.cff.stretch, batch.stretch_range.start, batch.stretch_range.stop)
-        _accum_bend!(Ft, r, p.cff.bend, batch.bend_range.start, batch.bend_range.stop)
-        _accum_torsion!(Ft, r, p.cff.proper, batch.torsion_range.start, batch.torsion_range.stop)
-        _accum_torsion!(Ft, r, p.cff.improper, batch.improper_range.start, batch.improper_range.stop)
+        sr = _chunk_range(batch.stretch_range, nt, t)
+        if !isempty(sr)
+            _accum_stretch!(Ft, r, p.cff.stretch, first(sr), last(sr))
+        end
 
-        _accum_lj!(Ft, r, p.cff.lj, p.cff.vdw_sw, batch.ljp_range.start, batch.ljp_range.stop)
+        br = _chunk_range(batch.bend_range, nt, t)
+        if !isempty(br)
+            _accum_bend!(Ft, r, p.cff.bend, first(br), last(br))
+        end
 
-        _accum_hb!(Ft, r, p.cff.hb, p.cff.vdw_sw, batch.hb_range.start, batch.hb_range.stop)
+        pr = _chunk_range(batch.torsion_range, nt, t)
+        if !isempty(pr)
+            _accum_torsion!(Ft, r, p.cff.proper, first(pr), last(pr))
+        end
 
-        _accum_es!(Ft, r, p.cff.es, p.cff.es_sw, p.cff.distance_dependent_dielectric,
-            p.cff.es_prefactor_force, batch.es_range.start, batch.es_range.stop)
+        ir = _chunk_range(batch.improper_range, nt, t)
+        if !isempty(ir)
+            _accum_torsion!(Ft, r, p.cff.improper, first(ir), last(ir))
+        end
+
+        vr = _chunk_range(batch.ljp_range, nt, t)
+        if !isempty(vr)
+            _accum_lj!(Ft, r, p.cff.lj, p.cff.vdw_sw, first(vr), last(vr))
+        end
+
+        hr = _chunk_range(batch.hb_range, nt, t)
+        if !isempty(hr)
+            _accum_hb!(Ft, r, p.cff.hb, p.cff.vdw_sw, first(hr), last(hr))
+        end
+
+        er = _chunk_range(batch.es_range, nt, t)
+        if !isempty(er)
+            _accum_es!(Ft, r, p.cff.es, p.cff.es_sw, p.cff.distance_dependent_dielectric,
+                p.cff.es_prefactor_force, first(er), last(er))
+        end
     end
 
     @inbounds for t in 1:nt
@@ -254,6 +305,14 @@ function _compute_grad!(grad::AbstractVector, r::AbstractVector, p::MiniBatchPar
         end
     end
 
-    gradient_flat!(grad, cff)
+    gradient_flat!(grad, p.cff)
     nothing
+end
+
+function _chunk_range(range::UnitRange{Int}, nt::Int, t::Int)
+    # Convert range x:y to 1:length, chunk it, then shift back
+    len = length(range)
+    chunk_1n = _chunk(len, nt, t)
+    isempty(chunk_1n) && return range.start:(range.start-1)  # empty range
+    return (range.start + first(chunk_1n) - 1):(range.start + last(chunk_1n) - 1)
 end
