@@ -29,7 +29,6 @@ function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=Optimizati
         grad=(g, r, p=nothing) -> begin
             p = p !== nothing ? p : state
             _compute_grad!(g, r, p)
-            gradient_flat!(g, cff)
         end
     )
 
@@ -38,8 +37,16 @@ function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=Optimizati
     iters_in_epoch = Ref(0)
     epoch_steps = Ref(max(1, length(ds.batches)))
     done_epochs = Ref(0)
+    last_r = Ref(copy(r0))  # ← Track last parameters seen
 
     combined_callback = (opt_state, l) -> begin
+        # Advance batch ONLY after we know both loss and grad have been computed
+        # (detected by state change)
+        if !isapprox(opt_state.u, last_r[])
+            last_r[] = copy(opt_state.u)
+            state.current_batch_idx = mod1(state.current_batch_idx + 1, length(state.batches))
+        end
+
         stop = _epoch_minibatch_callback(
             opt_state, l, state, iters_in_epoch, epoch_steps, done_epochs, epochs, batchsize
         )
@@ -186,20 +193,18 @@ function _epoch_minibatch_callback(
 end
 
 function _compute_energy_loss(r::AbstractVector, p::MiniBatchParams{T,Acc}) where {T,Acc}
-
     prepare_eval!(p.cff, r)
     batch = p.batches[p.current_batch_idx]
     total_energy = zero(eltype(r))
 
     r = p.cff.r
     nt = length(p.cff.F_threads)
-    stretchp = zeros(Acc, nt);
-    bendp = zeros(Acc, nt);
-    properp = zeros(Acc, nt);
-    improperp = zeros(Acc, nt);
-
-    vdwp = zeros(Acc, nt);
-    hbp = zeros(Acc, nt);
+    stretchp = zeros(Acc, nt)
+    bendp = zeros(Acc, nt)
+    properp = zeros(Acc, nt)
+    improperp = zeros(Acc, nt)
+    vdwp = zeros(Acc, nt)
+    hbp = zeros(Acc, nt)
     esp = zeros(Acc, nt)
 
     Threads.@threads :static for t in 1:nt
@@ -213,8 +218,6 @@ function _compute_energy_loss(r::AbstractVector, p::MiniBatchParams{T,Acc}) wher
     end
 
     total_energy = sum(stretchp) + sum(bendp) + sum(properp) + sum(improperp) + sum(vdwp) + sum(hbp) + sum(esp)
-    # Cycle to next batch
-    p.current_batch_idx = mod1(p.current_batch_idx + 1, length(p.batches))
     Float64(total_energy)
 end
 
@@ -251,5 +254,6 @@ function _compute_grad!(grad::AbstractVector, r::AbstractVector, p::MiniBatchPar
         end
     end
 
+    gradient_flat!(grad, cff)
     nothing
 end
