@@ -17,7 +17,7 @@ with the following default values:
 function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=OptimizationOptimisers.Adam(0.01), epochs::Int=10, batchsize::Int=10, callback=nothing, kwargs...) where {T,Acc}
     r0 = collect(Float64, Iterators.flatten(atoms(cff.ff.system).r))
 
-    ds = InteractionDataSet(cff)
+    ds = InteractionDataSet(cff, epochs, batchsize)
 
     state = MiniBatchParams(cff, ds.batches, 1)
 
@@ -40,12 +40,8 @@ function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=Optimizati
     last_r = Ref(copy(r0))  # ← Track last parameters seen
 
     combined_callback = (opt_state, l) -> begin
-        # Advance batch ONLY after we know both loss and grad have been computed
-        # (detected by state change)
-        if !isapprox(opt_state.u, last_r[])
-            last_r[] = copy(opt_state.u)
-            state.current_batch_idx = mod1(state.current_batch_idx + 1, length(state.batches))
-        end
+        # Advance batch
+        state.current_batch_idx = mod1(state.current_batch_idx + 1, length(state.batches))
 
         stop = _epoch_minibatch_callback(
             opt_state, l, state, iters_in_epoch, epoch_steps, done_epochs, epochs, batchsize
@@ -162,7 +158,7 @@ end
 function _refresh_minibatches!(p::MiniBatchParams{T,Acc}, r0; batchsize::Int, shuffle::Bool=true) where {T,Acc}
     prepare_eval!(p.cff, r0)
     shuffle_interactions!(p.cff)
-    ds = InteractionDataSet(p.cff)
+    ds = InteractionDataSet(p.cff, batchsize)
     p.batches = ds.batches
     p.current_batch_idx = 1
     return max(1, length(p.batches))
@@ -192,12 +188,34 @@ function _epoch_minibatch_callback(
     return false
 end
 
+
 function _compute_energy_loss(r::AbstractVector, p::MiniBatchParams{T,Acc}) where {T,Acc}
     prepare_eval!(p.cff, r)
     batch = p.batches[p.current_batch_idx]
-    total_energy = zero(eltype(r))
-
     r = p.cff.r
+
+    if p.cff.backend == BiochemicalAlgorithms.SerialBackend()
+        stretchp = zero(Acc)
+        bendp = zero(Acc)
+        properp = zero(Acc)
+        improperp = zero(Acc)
+        vdwp = zero(Acc)
+        hbp = zero(Acc)
+        esp = zero(Acc)
+
+        stretchp =  _sum_stretch(r, p.cff.stretch, first(batch.stretch_range), last(batch.stretch_range))
+        bendp = _sum_bend(r, p.cff.bend, first(batch.bend_range), last(batch.bend_range))
+        properp =_sum_torsion(r, p.cff.proper, first(batch.torsion_range), last(batch.torsion_range))
+        improperp =  _sum_torsion(r, p.cff.improper, first(batch.improper_range), last(batch.improper_range))
+        vdwp =_sum_lj(r, p.cff.lj, p.cff.vdw_sw, first(batch.ljp_range), last(batch.ljp_range))
+        hbp =_sum_hb(r, p.cff.hb, p.cff.vdw_sw, first(batch.hb_range), last(batch.hb_range))
+        esp =  _sum_es(r, p.cff.es, p.cff.es_sw, p.cff.distance_dependent_dielectric,
+                      p.cff.es_prefactor, first(batch.es_range), last(batch.es_range))
+
+
+        return sum(stretchp) + sum(bendp) + sum(properp) + sum(improperp) + sum(vdwp) + sum(hbp) + sum(esp)
+    end
+
     nt = Threads.nthreads()
     stretchp = zeros(Acc, nt)
     bendp = zeros(Acc, nt)
@@ -209,43 +227,37 @@ function _compute_energy_loss(r::AbstractVector, p::MiniBatchParams{T,Acc}) wher
 
     Threads.@threads :static for t in 1:nt
         sr = _chunk_range(batch.stretch_range, nt, t)
-        if !isempty(sr)
-            stretchp[t] = _sum_stretch(r, p.cff.stretch, first(sr), last(sr))
-        end
+        
+        stretchp[t] = _sum_stretch(r, p.cff.stretch, first(sr), last(sr))
+    
 
         br = _chunk_range(batch.bend_range, nt, t)
-        if !isempty(br)
-            bendp[t] = _sum_bend(r, p.cff.bend, first(br), last(br))
-        end
+        bendp[t] = _sum_bend(r, p.cff.bend, first(br), last(br))
+   
 
         pr = _chunk_range(batch.torsion_range, nt, t)
-        if !isempty(pr)
-            properp[t] = _sum_torsion(r, p.cff.proper, first(pr), last(pr))
-        end
+        properp[t] = _sum_torsion(r, p.cff.proper, first(pr), last(pr))
+       
 
         ir = _chunk_range(batch.improper_range, nt, t)
-        if !isempty(ir)
-            improperp[t] = _sum_torsion(r, p.cff.improper, first(ir), last(ir))
-        end
+        
+        improperp[t] = _sum_torsion(r, p.cff.improper, first(ir), last(ir))
+       
 
         vr = _chunk_range(batch.ljp_range, nt, t)
-        if !isempty(vr)
-            vdwp[t] = _sum_lj(r, p.cff.lj, p.cff.vdw_sw, first(vr), last(vr))
-        end
-
+        vdwp[t] = _sum_lj(r, p.cff.lj, p.cff.vdw_sw, first(vr), last(vr))
+        
         hr = _chunk_range(batch.hb_range, nt, t)
-        if !isempty(hr)
-            hbp[t] = _sum_hb(r, p.cff.hb, p.cff.vdw_sw, first(hr), last(hr))
-        end
+        hbp[t] = _sum_hb(r, p.cff.hb, p.cff.vdw_sw, first(hr), last(hr))
+        
 
         er = _chunk_range(batch.es_range, nt, t)
-        if !isempty(er)
-            esp[t] = _sum_es(r, p.cff.es, p.cff.es_sw, p.cff.distance_dependent_dielectric, p.cff.es_prefactor, first(er), last(er))
-        end
+        esp[t] = _sum_es(r, p.cff.es, p.cff.es_sw, p.cff.distance_dependent_dielectric,
+                             p.cff.es_prefactor, first(er), last(er))  
     end
-
-    total_energy = sum(stretchp) + sum(bendp) + sum(properp) + sum(improperp) + sum(vdwp) + sum(hbp) + sum(esp)
-    Float64(total_energy)
+   
+   
+    return  sum(stretchp) + sum(bendp) + sum(properp) + sum(improperp) + sum(vdwp) + sum(hbp) + sum(esp)
 end
 
 function _compute_grad!(grad::AbstractVector, r::AbstractVector, p::MiniBatchParams{T,Acc}) where {T,Acc}
@@ -256,52 +268,69 @@ function _compute_grad!(grad::AbstractVector, r::AbstractVector, p::MiniBatchPar
     fill!(F, zero(Vector3{Acc}))
 
     r = p.cff.r
-    nt = Threads.nthreads()
-    Threads.@threads :static for t in 1:nt
-        Ft = p.cff.F_threads[t]
-        fill!(Ft, zero(Vector3{Acc}))
 
-        sr = _chunk_range(batch.stretch_range, nt, t)
-        if !isempty(sr)
-            _accum_stretch!(Ft, r, p.cff.stretch, first(sr), last(sr))
-        end
+   if p.cff.backend == BiochemicalAlgorithms.SerialBackend()
+        _accum_stretch!(F, r, p.cff.stretch, batch.stretch_range.start, batch.stretch_range.stop)
+        _accum_bend!(F, r, p.cff.bend, batch.bend_range.start, batch.bend_range.stop)
+        _accum_torsion!(F, r, p.cff.proper, batch.torsion_range.start, batch.torsion_range.stop)
+        _accum_torsion!(F, r, p.cff.improper, batch.improper_range.start, batch.improper_range.stop)
+        _accum_lj!(F, r, p.cff.lj, p.cff.vdw_sw, batch.ljp_range.start, batch.ljp_range.stop)
+        _accum_hb!(F, r, p.cff.hb, p.cff.vdw_sw, batch.hb_range.start, batch.hb_range.stop)
+        _accum_es!(F, r, p.cff.es, p.cff.es_sw, p.cff.distance_dependent_dielectric,
+            p.cff.es_prefactor_force,
+            batch.es_range.start,
+            batch.es_range.stop
+        )
+    else
 
-        br = _chunk_range(batch.bend_range, nt, t)
-        if !isempty(br)
-            _accum_bend!(Ft, r, p.cff.bend, first(br), last(br))
-        end
+        nt = Threads.nthreads()
+            Threads.@threads :static for t in 1:nt
+            
+            Ft = p.cff.F_threads[t]
+            fill!(Ft, zero(Vector3{Acc}))
 
-        pr = _chunk_range(batch.torsion_range, nt, t)
-        if !isempty(pr)
-            _accum_torsion!(Ft, r, p.cff.proper, first(pr), last(pr))
-        end
+            sr = _chunk_range(batch.stretch_range, nt, t)
+            if !isempty(sr)
+                _accum_stretch!(Ft, r, p.cff.stretch, first(sr), last(sr))
+            end
 
-        ir = _chunk_range(batch.improper_range, nt, t)
-        if !isempty(ir)
-            _accum_torsion!(Ft, r, p.cff.improper, first(ir), last(ir))
-        end
+            br = _chunk_range(batch.bend_range, nt, t)
+            if !isempty(br)
+                _accum_bend!(Ft, r, p.cff.bend, first(br), last(br))
+            end
 
-        vr = _chunk_range(batch.ljp_range, nt, t)
-        if !isempty(vr)
-            _accum_lj!(Ft, r, p.cff.lj, p.cff.vdw_sw, first(vr), last(vr))
-        end
+            pr = _chunk_range(batch.torsion_range, nt, t)
+            if !isempty(pr)
+                _accum_torsion!(Ft, r, p.cff.proper, first(pr), last(pr))
+            end
 
-        hr = _chunk_range(batch.hb_range, nt, t)
-        if !isempty(hr)
-            _accum_hb!(Ft, r, p.cff.hb, p.cff.vdw_sw, first(hr), last(hr))
-        end
+            ir = _chunk_range(batch.improper_range, nt, t)
+            if !isempty(ir)
+                _accum_torsion!(Ft, r, p.cff.improper, first(ir), last(ir))
+            end
 
-        er = _chunk_range(batch.es_range, nt, t)
-        if !isempty(er)
-            _accum_es!(Ft, r, p.cff.es, p.cff.es_sw, p.cff.distance_dependent_dielectric,
-                p.cff.es_prefactor_force, first(er), last(er))
-        end
-    end
+            vr = _chunk_range(batch.ljp_range, nt, t)
+            if !isempty(vr)
+                _accum_lj!(Ft, r, p.cff.lj, p.cff.vdw_sw, first(vr), last(vr))
+            end
 
-    @inbounds for t in 1:nt
-        Ft = p.cff.F_threads[t]
-        for k in 1:p.cff.natoms
-            F[k] += Ft[k]
+            hr = _chunk_range(batch.hb_range, nt, t)
+            if !isempty(hr)
+                _accum_hb!(Ft, r, p.cff.hb, p.cff.vdw_sw, first(hr), last(hr))
+            end
+
+            er = _chunk_range(batch.es_range, nt, t)
+            if !isempty(er)
+                _accum_es!(Ft, r, p.cff.es, p.cff.es_sw, p.cff.distance_dependent_dielectric,
+                        p.cff.es_prefactor_force, first(er), last(er))
+            end
+
+            @inbounds for t in 1:nt
+                Ft = p.cff.F_threads[t]
+                for k in 1:p.cff.natoms
+                    F[k] += Ft[k]
+                end
+            end
         end
     end
 
@@ -310,9 +339,17 @@ function _compute_grad!(grad::AbstractVector, r::AbstractVector, p::MiniBatchPar
 end
 
 function _chunk_range(range::UnitRange{Int}, nt::Int, t::Int)
-    # Convert range x:y to 1:length, chunk it, then shift back
+    isempty(range) && return first(range):(first(range) - 1)
+    nt <= 1 && return range
+
     len = length(range)
-    chunk_1n = _chunk(len, nt, t)
-    isempty(chunk_1n) && return range.start:(range.start-1)  # empty range
-    return (range.start + first(chunk_1n) - 1):(range.start + last(chunk_1n) - 1)
+    base = div(len, nt)
+    rem = len % nt
+
+    offset = (t - 1) * base + min(t - 1, rem)
+    size = base + (t <= rem ? 1 : 0)
+
+    start = first(range) + offset
+    stop = start + size - 1
+    start:stop
 end
