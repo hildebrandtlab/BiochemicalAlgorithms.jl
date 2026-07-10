@@ -45,17 +45,10 @@ println("The system $(s.name) contains $(natoms(s)) atoms.")
 The data stored in many molecular file formats is incomplete, or needs to be normalized in certain ways. `PDB`-files, for instance, often omit hydrogen atoms, and don’t usually store bonds that can be inferred otherwise. `BiochemicalAlgorithms.jl` offers a number of methods that perform preparation steps that are common to most molecular modelling applications, such as normalizing atom- and fragment names, computing bonds, adding missing atoms from a library of templates (such as amino acids), or saturating a molecule with hydrogen atoms. The template information used by these methods is stored in the so-called `FragmentDB`. A common series of operations to prepare a system for further processing is as follows:
 
 ``` julia
-fdb = FragmentDB()
-normalize_names!(s, fdb)
-reconstruct_fragments!(s, fdb)
-build_bonds!(s, fdb)
+infer_topology!(s)
 ```
 
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for  CA:462
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
     [ Info: reconstruct_fragments!(): added 2346 atoms.
-    ┌ Warning: build_bonds!(): could not find reference fragment for  CA.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
     [ Info: build_bonds!(): built 4471 bonds
 
 ## How to go on?

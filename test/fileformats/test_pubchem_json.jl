@@ -7,12 +7,14 @@
 
         mol = molecules(sys)[1]
         @test mol isa Molecule{T}
-        @test mol.name == "aspirin_pug.json_2244"
+        @test mol.name == "CID 2244"
         @test length(mol.properties) == 3
 
         @test natoms(mol) == 21
         @test nbonds(mol) == 21
 
+        sys2 = open(io -> load_pubchem_json(io, T), ball_data_path("../test/data/aspirin_pug.json"))
+        @test sys == sys2
 
         # used for testing bond orders / file manually manipulated
         sys2 = load_pubchem_json(ball_data_path("../test/data/aspirin_pug_bonds.json"), T)

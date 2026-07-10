@@ -1,11 +1,4 @@
 @testitem "Read PDB" begin
-    using BioStructures:
-        PDBFormat,
-        countatoms,
-        countchains,
-        countresidues,
-        read
-
     for T in [Float32, Float64]
         sys = load_pdb(ball_data_path("../test/data/bpti.pdb"), T)
         @test sys isa System{T}
@@ -17,6 +10,9 @@
         @test nfragments(sys) == 58
         @test nnucleotides(sys) == 0
         @test nresidues(sys) == 58
+
+        sys2 = open(io -> load_pdb(io, T), ball_data_path("../test/data/bpti.pdb"))
+        @test sys == sys2
 
         sys = load_pdb(ball_data_path("../test/data/5PTI.pdb"), T)
         @test sys isa System{T}
@@ -55,6 +51,16 @@ end
         (fname, fh) = mktemp(; cleanup = true)
 
         write_pdb(fname, sys)
+        sys2 = load_pdb(fname, T)
+        @test sys2 isa System{T}
+        @test natoms(sys2) == 2
+        @test atoms(sys2).name == ["C", "O"]
+        @test nfragments(sys2) == 1
+        @test nchains(sys2) == 1
+        @test first(chains(sys2)).name == "A"
+        @test nmolecules(sys2) == 1
+
+        open(io -> write_pdb(io, sys), fname, "w")
         sys2 = load_pdb(fname, T)
         @test sys2 isa System{T}
         @test natoms(sys2) == 2
@@ -162,42 +168,4 @@ end
 
 @testitem "Read PDB/nonexistent" begin
     @test_throws SystemError load_pdb("nonexistent_file.pdb")
-end
-
-@testitem "Read PDBx/mmCIF" begin
-    for T in [Float32, Float64]
-        sys = load_mmcif(ball_data_path("../test/data/5pti.cif"), T)
-        @test sys isa System{T}
-        @test sys.name == "5pti.cif"
-        @test natoms(sys) == 1087
-        @test nbonds(sys) == 0
-        @test nmolecules(sys) == 1
-        @test nchains(sys) == 1
-        @test nfragments(sys) == 123
-        @test nnucleotides(sys) == 0
-        @test nresidues(sys) == 58
-    end
-end
-
-@testitem "Write PDBx/mmCIF" begin
-    for T in [Float32, Float64]
-        sys = System{T}()
-        mol = Molecule(sys)
-        chain = Chain(mol; name = "A")
-        frag = Fragment(chain, 1; name = "FRG1")
-        Atom(frag, 1, Elements.C; name = "C")
-        Atom(frag, 2, Elements.O; name = "O", r = ones(Vector3{T}))
-
-        (fname, fh) = mktemp(; cleanup = true)
-
-        write_mmcif(fname, sys)
-        sys2 = load_mmcif(fname, T)
-        @test sys2 isa System{T}
-        @test natoms(sys2) == 2
-        @test atoms(sys2).name == ["C", "O"]
-        @test nfragments(sys2) == 1
-        @test nchains(sys2) == 1
-        @test first(chains(sys2)).name == "A"
-        @test nmolecules(sys2) == 1
-    end
 end

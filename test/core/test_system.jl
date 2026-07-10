@@ -1,10 +1,7 @@
 @testitem "System" begin
     for T in [Float32, Float64]
         testsys = load_pdb(ball_data_path("../test/data/1tgh.pdb"), T)
-        fdb = FragmentDB{T}()
-        normalize_names!(testsys, fdb)
-        reconstruct_fragments!(testsys, fdb)
-        build_bonds!(testsys, fdb)
+        infer_topology!(testsys, FragmentDB{T}())
 
         @test natoms(testsys) == 3778
         @test nbonds(testsys) == 3839
@@ -14,8 +11,8 @@
         ct = chains(testsys)
         @test nfragments.(ct) == [12, 12, 180, 5, 1, 12]
         @test nfragments.(ct; variant = FragmentVariant.None) == [0, 0, 0, 5, 1, 12]
-        @test nnucleotides.(ct) == [0, 0, 0, 0, 0, 0]
-        @test nresidues.(ct) == [12, 12, 180, 0, 0, 0]
+        @test nnucleotides.(ct) == [12, 12, 0, 0, 0, 0]
+        @test nresidues.(ct) == [0, 0, 180, 0, 0, 0]
 
         # empty!
         sys = deepcopy(testsys)

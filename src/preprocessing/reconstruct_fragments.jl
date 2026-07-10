@@ -1,12 +1,11 @@
-using DataStructures: Stack, OrderedSet
-
-export reconstruct_fragments!
+export
+    reconstruct_fragments!
 
 # Identify two reference atoms.
 # Performs a breadth-first search for two additional heavy atoms
-# starting from the center atom. These atoms are used as 
+# starting from the center atom. These atoms are used as
 # anchor points for attaching the next atom.
-function _get_two_reference_atoms(ref_center_atom::DBAtom{T}, allowed::Set{DBAtom{T}}, ref::DBVariant{T}) where {T<:Real}
+function _get_two_reference_atoms(ref_center_atom::DBAtom{T}, allowed::Set{DBAtom{T}}, ref::DBFragmentVariant{T}) where T
     # a hash set to remember all those atoms we have already visited
     atom_list = OrderedSet{DBAtom{T}}()
     push!(atom_list, ref_center_atom)
@@ -26,7 +25,7 @@ function _get_two_reference_atoms(ref_center_atom::DBAtom{T}, allowed::Set{DBAto
                 end
             end
         end
-        
+
         # try the bonds of the next atom in the list
         isempty(atom_list_rest) && break
         (current, atom_list_rest) = Iterators.peel(atom_list_rest)
@@ -35,13 +34,13 @@ function _get_two_reference_atoms(ref_center_atom::DBAtom{T}, allowed::Set{DBAto
     atom_list = collect(atom_list)
 
     (
-        length(atom_list) == 3, 
-        length(atom_list) > 1 ? atom_list[2] : nothing, 
+        length(atom_list) == 3,
+        length(atom_list) > 1 ? atom_list[2] : nothing,
         length(atom_list) > 2 ? atom_list[3] : nothing
     )
 end
 
-function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:Real}
+function _reconstruct_fragment!(f::Fragment{T}, template::DBFragmentVariant{T}) where T
     num_inserted_atoms = 0
 
     # Get a copy of the atom names occurring in the current fragment....
@@ -56,14 +55,14 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
     for tpl_atom in template.atoms
         if haskey(name_to_atom, tpl_atom.name)
             # remember that the coordinates of this one are correct
-			res_atom = name_to_atom[tpl_atom.name]
+            res_atom = name_to_atom[tpl_atom.name]
             push!(transformed, tpl_atom)
             tpl_to_frag[tpl_atom] = res_atom
         else
             # We create a copy of the existing atom and insert it into
             # the residue. Coordinates are bogus, but we'll correct that
             # later on.
-			new_atom = Atom(
+            new_atom = Atom(
                 f,
                 maximum(atoms(parent_system(f)).number; init = 0)+1, # does this make sense?
                 tpl_atom.element;
@@ -78,12 +77,12 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
         end
     end
 
-    # We've now made sure that all atoms of the tplate exist in the 
+    # We've now made sure that all atoms of the tplate exist in the
     # reconstructed residue as well (careful, not the other way round!)
     # we can now start to adjust the atom coordinates.
 
     # If no atoms were in common, there's not much we can do...
-    # Trivial solution: no atoms are actually matched to each 
+    # Trivial solution: no atoms are actually matched to each
     # other, so we just leave the coordinates the way they
     # are (copy of the tpl coordinates) and return.
     if (!isempty(transformed))
@@ -101,10 +100,10 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
             @debug "Center is $(current.name) visited = " *
                 "$(current ∈ visited) transformed = $(current ∈ transformed)" *
                 " @ $(current.r)"
-                
+
             @debug "Residue atom is @ $(tpl_to_frag[current].r) (dist = " *
                 "$(norm(tpl_to_frag[current].r - current.r)))"
-        
+
 
             for bond in bonds(current, template)
                 next = get_partner(bond, current, template)
@@ -139,10 +138,10 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
                                 current.r, a1.r, a2.r,
                                 tpl_to_frag[current].r, tpl_to_frag[a1].r, tpl_to_frag[a2].r
                             )
-                        
+
                             translation, rotation
                         else
-                            # We could map the two center atoms only, which corresponds to 
+                            # We could map the two center atoms only, which corresponds to
                             # a simple translation by the difference of the two atom positions.
                             tpl_to_frag[current].r - current.r, T(1)I(3)
                         end
@@ -165,25 +164,46 @@ function reconstruct_fragment_!(f::Fragment{T}, template::DBVariant) where {T<:R
     num_inserted_atoms
 end
 
-function reconstruct_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB) where {T<:Real}
+"""
+    reconstruct_fragments!(::AbstractAtomContainer{Float32})
+    reconstruct_fragments!(::AbstractAtomContainer{T}, ::FragmentDB{T})
+
+Attempts to reconstruct all fragments in the given container according to the
+default/given fragment database and returns the number of inserted atoms.
+
+!!! note
+    This preprocessor expects fragment and atom names to be normalized and
+    fragment terminals to be labeled (cf. [`normalize_names!`](@ref) and
+    [`label_terminal_fragments!`](@ref)).
+"""
+function reconstruct_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     num_inserted_atoms = 0
 
     # iterate over all fragments
     for f in fragments(ac)
-            
+
         # check whether our DB knows the fragment and, if so, retrieve the template
         template = get_reference_fragment(f, fdb)
 
         if isnothing(template)
             @warn "reconstruct_fragments!(): could not find reference fragment for $(f.name):$(f.number)"
-
             continue
         end
 
-        num_inserted_atoms += reconstruct_fragment_!(f, template)
+        # set fragment variant type according to template
+        if f.variant != FragmentVariant.None && f.variant != template.type
+            @warn "reconstruct_fragments!(): replacing conflicting fragment variant type in $(f.name):$(f.number): $(template.type) (was $(f.variant))"
+        end
+        f.variant = template.type
+
+        num_inserted_atoms += _reconstruct_fragment!(f, template)
     end
 
     @info "reconstruct_fragments!(): added $(num_inserted_atoms) atoms."
-    
+
     num_inserted_atoms
+end
+
+@inline function reconstruct_fragments!(ac::AbstractAtomContainer{Float32})
+    reconstruct_fragments!(ac, default_fragmentdb())
 end

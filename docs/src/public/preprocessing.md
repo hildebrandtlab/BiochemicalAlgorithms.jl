@@ -7,6 +7,33 @@ CurrentModule = BiochemicalAlgorithms
 Pages = ["preprocessing.md"]
 ```
 
+## Fragment database
+```@docs
+FragmentDB
+default_fragmentdb
+infer_topology!
+```
+
+## Name normalization
+```@docs
+normalize_names!
+```
+
+## Fragment terminal labeling
+```@docs
+label_terminal_fragments!
+```
+
+## Fragment reconstruction
+```@docs
+reconstruct_fragments!
+```
+
+## Bond construction
+```@docs
+build_bonds!
+```
+
 ## Hydrogen bond prediction
 ```@docs
 predict_hbonds!

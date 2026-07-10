@@ -1,72 +1,13 @@
-using StructTypes
-using JSON3
-using AutoHashEquals
+export
+    FragmentDB,
+    default_fragmentdb,
+    infer_topology!,
+    label_terminal_fragments!
 
-import DataStructures: OrderedCollections.OrderedDict
-
-export FragmentDB, get_reference_fragment
-
-@auto_hash_equals struct DBNode
-    key::String
-    value::Union{AbstractArray{DBNode}, String}
-end
-StructTypes.StructType(::Type{DBNode}) = StructTypes.Struct()
-
-@auto_hash_equals struct DBAtom{T<:Real}
+@auto_hash_equals struct DBAtom{T <: Real}
     name::String
     element::ElementType
-    r::Vector3
-
-    function DBAtom{T}(name::String, element::ElementType, r::Vector3) where {T<:Real}
-        new(name, element, r)
-    end
-
-    function DBAtom{T}(n::DBNode) where {T<:Real}
-        name = n.key
-
-        raw_data = split(n.value)
-
-        if length(raw_data) == 4
-            element = parse(ElementType, raw_data[1])
-
-            r = Vector3(map(d -> parse(T, d), raw_data[2:4]))
-
-            return new(name, element, r)
-        end
-
-        throw(ArgumentError("DBAtom: invalid format!"))
-    end
-end
-StructTypes.StructType(::Type{DBAtom{T}}) where {T<:Real} = StructTypes.Struct()
-
-DBAtom(n::DBNode) = DBAtom{Float32}(n)
-
-function find_atom(name, atoms::Vector{DBAtom{T}}) where {T<:Real}
-    candidates = filter(a -> a.name == name, atoms)
-
-    if length(candidates) != 1
-        throw(ArgumentError("FragmentDB::find_atom: atom not found!"))
-    end
-
-    candidates[1]
-end
-
-function to_bond_order(s)
-    order = BondOrder.Unknown
-
-    if s == "s"
-        order = BondOrder.Single
-    elseif s == "d"
-        order = BondOrder.Double
-    elseif s == "t"
-        order = BondOrder.Triple
-    elseif s == "a"
-        order = BondOrder.Aromatic
-    else
-        throw(ArgumentError("DBBond: invalid format!"))
-    end
-
-    order
+    r::Vector3{T}
 end
 
 @auto_hash_equals struct DBBond
@@ -74,137 +15,139 @@ end
     a1::String
     a2::String
     order::BondOrderType
-
-    function DBBond(number::Int, a1::String, a2::String, order::BondOrderType)
-        new(number, a1, a2, order)
-    end
-
-    function DBBond(n::DBNode)
-        number = parse(Int, n.key)
-
-        raw_data = split(n.value)
-
-        a1 = raw_data[1]
-        a2 = raw_data[2]
-
-        order = to_bond_order(raw_data[3])
-
-        new(number, a1, a2, order)
-    end
 end
 
-@auto_hash_equals struct DBConnection{T<:Real}
+@auto_hash_equals struct DBConnection{T <: Real}
     name::String
     atom_name::String
     match_name::String
     order::BondOrderType
     distance::T
     tolerance::T
-
-    function DBConnection{T}(n::DBNode) where {T<:Real}
-        name = n.key
-
-        raw_data = split(n.value)
-
-        if length(raw_data) != 5
-            throw(ArgumentError("DBConnection: invalid format!"))
-        end
-
-        atom_name  = raw_data[1]
-        match_name = raw_data[2]
-        order      = to_bond_order(raw_data[3])
-
-        distance   = parse(T, raw_data[4])
-        tolerance  = parse(T, raw_data[5])
-
-        new(name, atom_name, match_name, order, distance, tolerance)
-    end
 end
 
-DBConnection(n::DBNode) = DBConnection{Float32}(n)
-
-@auto_hash_equals struct DBProperty
+@auto_hash_equals struct DBVariant
     name::String
-    value::Bool
-
-    function DBProperty(n::DBNode)
-        if startswith(n.key, "!")
-            return new(n.key[2:end], false)
-        else
-            return new(n.key, true)
-        end
-    end
+    delete::Union{Nothing, Set{String}}
+    rename::Union{Nothing, Dict{String, String}}
+    flags::Union{Nothing, Flags}
 end
 
-abstract type DBVariantAction end
-
-@auto_hash_equals struct DBVariantDelete <: DBVariantAction
-    atoms::Array{String}
-
-    function DBVariantDelete(n::DBNode)
-        new([a.key for a in n.value])
-    end
-end
-
-@auto_hash_equals struct DBVariantRename <: DBVariantAction
-    atoms::Dict{String, String}
-
-    function DBVariantRename(n::DBNode)
-        new(Dict(v.key => v.value for v in n.value))
-    end
-end
-
-@auto_hash_equals struct DBVariant{T<:Real}
+@auto_hash_equals struct DBFragment{T <: Real}
     name::String
+    names::Vector{String}
+    type::FragmentVariantType
+    atoms::Vector{DBAtom{T}}
+    bonds::Vector{DBBond}
+    connections::Union{Nothing, Vector{DBConnection{T}}}
+    variants::Union{Nothing, Vector{DBVariant}}
+end
 
-    atoms::Array{DBAtom{T}}
-    bonds::Array{DBBond}
+@auto_hash_equals struct DBFragmentVariant{T <: Real}
+    name::String
+    type::FragmentVariantType
+    atoms::Vector{DBAtom{T}}
+    bonds::Vector{DBBond}
+    flags::Union{Nothing, Flags}
 
-    actions::Array{DBVariantAction}
-    properties::Array{DBProperty}
+    function DBFragmentVariant{T}(frag::DBFragment{T}, var::DBVariant) where T
+        atoms = frag.atoms
+        bonds = frag.bonds
 
-    function DBVariant{T}(n::DBNode, atoms::Array{DBAtom{T}}, bonds::Array{DBBond}) where {T<:Real}
-        name = n.key
-        actions = []
-        properties = []
-
-        # variants can be of type delete or rename, and can carry properties
-        for child in n.value
-            if child.key == "Properties"
-                properties = map(DBProperty, child.value)
-            elseif child.key == "Delete"
-                db_delete = DBVariantDelete(child)
-
-                atoms = filter(a -> a.name ∉ db_delete.atoms, atoms)
-                bonds = filter(b -> b.a1 ∉ db_delete.atoms && b.a2 ∉ db_delete.atoms, bonds)
-
-                push!(actions, db_delete)
-            elseif child.key == "Rename"
-                db_rename = DBVariantRename(child)
-
-                atoms = map(
-                    a -> DBAtom{T}(get(db_rename.atoms, a.name, a.name), a.element, a.r), atoms)
-                bonds = map(
-                    b -> DBBond(b.number,
-                            get(db_rename.atoms, b.a1, b.a1),
-                            get(db_rename.atoms, b.a2, b.a2),
-                            b.order), bonds)
-
-                push!(actions, db_rename)
-            else
-                throw(ArgumentError("DBVariant: invalid format!"))
-            end
+        if !isnothing(var.delete)
+            atoms = filter(a -> a.name ∉ var.delete, atoms)
+            bonds = filter(b -> b.a1 ∉ var.delete && b.a2 ∉ var.delete, bonds)
         end
 
-        new(name, atoms, bonds, actions, properties)
+        if !isnothing(var.rename)
+            atoms = map(a -> DBAtom{T}(get(var.rename, a.name, a.name), a.element, a.r), atoms)
+            bonds = map(b -> DBBond(b.number, get(var.rename, b.a1, b.a1), get(var.rename, b.a2, b.a2), b.order), bonds)
+        end
+
+        new{T}(var.name, frag.type, atoms, bonds, var.flags)
+    end
+
+    @inline function DBFragmentVariant{T}(frag::DBFragment{T}) where T
+        new{T}(frag.name, frag.type, frag.atoms, frag.bonds, nothing)
     end
 end
 
-function bonds(a::DBAtom, var::DBVariant)
+@auto_hash_equals struct DBNameMapping
+    name::String
+    maps_to::String
+    mappings::Dict{String, String}
+end
+
+"""
+    $(TYPEDEF)
+
+Fragment database. Contains information about common biomolecule fragments such as amino acids
+and nucleotides that can be used to reconstruct incomplete systems.
+
+# Constructors
+    FragmentDB(path::AbstractString = ball_data_path("fragmentdb/FragmentDB.json"))
+
+Creates a new `FragmentDB{Float32}` from the given configuration file.
+
+    FragmentDB{T}(path::AbstractString = ball_data_path("fragmentdb/FragmentDB.json"))
+
+Creates a new `FragmentDB{T}` from the given configuration file.
+"""
+@auto_hash_equals struct FragmentDB{T <: Real}
+    fragments::OrderedDict{String, DBFragment{T}}
+    name_mappings::OrderedDict{String, DBNameMapping}
+    defaults::OrderedDict{String, String}
+
+    function FragmentDB{T}(path::AbstractString = ball_data_path("fragmentdb/FragmentDB.json")) where T
+        dir = dirname(path)
+        fdb = JSON.parse(read(path, String))
+        fragments = OrderedDict(
+            e.first => JSON.parse(read(joinpath(dir, e.second), String), DBFragment{T})
+            for e in fdb.fragments
+        )
+        name_mappings = OrderedDict(
+            e.first => JSON.parse(read(joinpath(dir, e.second), String), DBNameMapping)
+            for e in fdb.names
+        )
+        defaults = OrderedDict(e.first => e.second for e in fdb.defaults)
+        new{T}(fragments, name_mappings, defaults)
+    end
+end
+
+@inline function FragmentDB(path::AbstractString = ball_data_path("fragmentdb/FragmentDB.json"))
+    FragmentDB{Float32}(path)
+end
+
+"""
+    const _default_fragmentdb
+
+Global default fragment database.
+"""
+const _default_fragmentdb = FragmentDB()
+
+"""
+    $(TYPEDSIGNATURES)
+
+Returns the global default fragment database.
+"""
+@inline function default_fragmentdb()
+    _default_fragmentdb
+end
+
+@inline function Base.show(io::IO, fdb::FragmentDB)
+    print(io,
+        "FragmentDB with ",
+        length(fdb.fragments), " fragments, ",
+        length(fdb.name_mappings), " mappings, ",
+        length(fdb.defaults), " defaults."
+    )
+end
+
+@inline function bonds(a::DBAtom{T}, var::DBFragmentVariant{T}) where T
     filter(b -> a.name ∈ [b.a1, b.a2], var.bonds)
 end
 
-function get_partner(bond::DBBond, atom::DBAtom, var::DBVariant)
+@inline function get_partner(bond::DBBond, atom::DBAtom{T}, var::DBFragmentVariant{T}) where T
     if bond.a1 == atom.name
         return var.atoms[findfirst(a -> a.name == bond.a2, var.atoms)]
     elseif bond.a2 == atom.name
@@ -214,150 +157,53 @@ function get_partner(bond::DBBond, atom::DBAtom, var::DBVariant)
     end
 end
 
-@auto_hash_equals struct DBFragment{T<:Real}
-    name::String
-    path::String
+"""
+    label_terminal_fragments!(::AbstractAtomContainer{Float32})
+    label_terminal_fragments!(::AbstractAtomContainer{T}, ::FragmentDB{T})
 
-    names::Array{String}
-    atoms::Array{DBAtom{T}}
-    bonds::Array{DBBond}
-    connections::Array{DBConnection{T}}
-    properties::Array{DBProperty}
-    variants::Array{DBVariant{T}}
+Attempt to label terminal fragments, i.e., assign the `N_TERMINAL`/`C_TERMINAL` flag
+to the first/last fragment of all residue chains and the `5_PRIME`/`3_PRIME` flag to
+the first/last fragment of all nucleotide chains, respectively.
 
-    function DBFragment{T}(n::DBNode) where {T<:Real}
-        if startswith(n.key, "#include:")
-            name = split(n.key, ":")[2]
-            path = ball_data_path(split(n.value, ":")[1] * ".json")
-
-            raw_fragment_data = JSON3.read(read(path, String), Array{DBNode})
-
-            raw_names = filter(n -> n.key == "Names", raw_fragment_data)
-            names = length(raw_names) == 1 ? [n.key for n in raw_names[1].value] : []
-
-            raw_atoms = filter(n -> n.key == "Atoms", raw_fragment_data)
-            atoms = length(raw_atoms) == 1 ? map(DBAtom{T}, raw_atoms[1].value) : []
-
-            raw_bonds = filter(n -> n.key == "Bonds", raw_fragment_data)
-            bonds = length(raw_bonds) == 1 ? map(b -> DBBond(b), raw_bonds[1].value) : []
-
-            raw_connections = filter(n -> n.key == "Connections", raw_fragment_data)
-            connections = length(raw_connections) == 1 ? map(c -> DBConnection{T}(c), raw_connections[1].value) : []
-
-            raw_properties = filter(n -> n.key == "Properties", raw_fragment_data)
-            properties = length(raw_properties) == 1 ? map(DBProperty, raw_properties[1].value) : []
-
-            raw_variants = filter(n -> n.key == "Variants", raw_fragment_data)
-            variants = length(raw_variants) == 1 ? map(v-> DBVariant{T}(v, atoms, bonds), raw_variants[1].value) : []
-
-            return new(name, path, names, atoms, bonds, connections, properties, variants)
-        end
-
-        throw(ArgumentError("DBFragment: invalid format!"))
-    end
-end
-StructTypes.StructType(::Type{DBFragment}) = StructTypes.CustomStruct()
-
-DBFragment(n::DBNode) = DBFragment{Float32}(n)
-
-@auto_hash_equals struct DBNameMapping
-    name::String
-    maps_to::String
-
-    mappings::Dict{String, String}
-
-    function DBNameMapping(n::DBNode)
-        if !startswith(n.key, "#include:")
-            throw(ArgumentError("DBNameMapping: invalid format!"))
-        end
-
-        name = split(n.key, ":")[2]
-        path = ball_data_path(split(n.value, ":")[1] * ".json")
-
-        raw_mapping_data = JSON3.read(read(path, String), Array{DBNode})
-
-        # the first node in the value list contains the reference
-        if length(raw_mapping_data) == 0
-            throw(ArgumentError("DBNameMapping: invalid format!"))
-        end
-
-        maps_to = raw_mapping_data[1].key
-
-        mappings = Dict{String, String}(
-            n.key => n.value for n in raw_mapping_data[2:end]
-        )
-
-        new(name, maps_to, mappings)
-    end
-end
-
-@auto_hash_equals struct FragmentDB{T<:Real}
-    fragments::OrderedDict{String, DBFragment{T}}
-    name_mappings::OrderedDict{String, DBNameMapping}
-    defaults::OrderedDict{String, String}
-
-    function FragmentDB{T}(nodes::Vector{DBNode}) where {T<:Real}
-        if length(nodes) == 3
-            raw_fragments = filter(n -> n.key == "Fragments", nodes)
-            raw_names     = filter(n -> n.key == "Names",     nodes)
-            raw_defaults  = filter(n -> n.key == "Defaults",  nodes)
-
-            if length(raw_fragments) == length(raw_names) == length(raw_defaults) == 1
-                fragments = OrderedDict{String, DBFragment{T}}(
-                    f.name => f for f in map(DBFragment{T}, raw_fragments[1].value)
-                )
-
-                name_mappings = OrderedDict{String, DBNameMapping}(
-                    nm.name => nm for nm in map(DBNameMapping, raw_names[1].value)
-                )
-
-                defaults = OrderedDict{String, String}(
-                    d.key => d.value for d in raw_defaults[1].value
-                )
-
-                return new(fragments, name_mappings, defaults)
-            end
-        end
-
-        throw(ArgumentError("FragmentDB: invalid format!"))
-    end
-
-    function FragmentDB{T}(path::AbstractString = ball_data_path("fragments/Fragments.db.json")) where {T<:Real}
-        jstring = read(path, String)
-
-        JSON3.read(jstring, FragmentDB{T})
-    end
-end
-StructTypes.StructType(::Type{FragmentDB{T}}) where {T} = StructTypes.CustomStruct()
-StructTypes.lowertype(::Type{FragmentDB{T}}) where {T} = Array{DBNode}
-
-FragmentDB(path::AbstractString = ball_data_path("fragments/Fragments.db.json")) = FragmentDB{Float32}(path)
-
-function label_terminal_fragments!(ac::AbstractAtomContainer{T}) where {T<:Real}
+!!! note
+    This preprocessor expects fragment and atom names to be normalized (cf.
+    [`normalize_names!`](@ref)).
+"""
+function label_terminal_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     # iterate over all chains and label their terminals
     for chain in chains(ac)
-        if nfragments(chain) > 0
-            # first, the n- and c-terminals
-            amino_acids = filter(is_amino_acid, fragments(chain))
+        ft = fragments(chain)
+        length(ft) == 0 && continue
 
-            if length(amino_acids) > 0
-                set_flag!(first(amino_acids), :N_TERMINAL)
-                set_flag!(last(amino_acids),  :C_TERMINAL)
-            end
+        # fragment variants are possibly not assigned yet, so we rely
+        # on the FragmentDB
+        is_amino_acid = f -> haskey(fdb.fragments, f.name) &&
+            fdb.fragments[f.name].type == FragmentVariant.Residue
+        is_nucleotide = f -> haskey(fdb.fragments, f.name) &&
+            fdb.fragments[f.name].type == FragmentVariant.Nucleotide
 
-            # then, the 5'- and 3'-primes (nucleic acid chains run 5' → 3')
-            nucleotides = filter(is_nucleotide, fragments(chain))
+        # first, the n- and c-terminals
+        amino_acids = filter(is_amino_acid, ft)
+        if length(amino_acids) > 0
+            set_flag!(first(amino_acids), :N_TERMINAL)
+            set_flag!(last(amino_acids),  :C_TERMINAL)
+        end
 
-            if length(nucleotides) > 0
-                set_flag!(first(nucleotides), Symbol("5_PRIME"))
-                set_flag!(last(nucleotides),  Symbol("3_PRIME"))
-            end
-
+        # then, the 5'- and 3'-primes (nucleic acid chains run 5' → 3')
+        nucleotides = filter(is_nucleotide, ft)
+        if length(nucleotides) > 0
+            set_flag!(first(nucleotides), Symbol("5_PRIME"))
+            set_flag!(last(nucleotides),  Symbol("3_PRIME"))
         end
     end
+    nothing
 end
 
-function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB) where {T<:Real}
+@inline function label_terminal_fragments!(ac::AbstractAtomContainer{Float32})
+    label_terminal_fragments!(ac, default_fragmentdb())
+end
+
+function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB{T}) where T
     # first, try to find the fragment in the database
     if f.name ∉ keys(fdb.fragments)
         return nothing
@@ -365,38 +211,32 @@ function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB) where {T<:Real}
 
     db_fragment = fdb.fragments[f.name]
 
+    # fragments w/o declared variants, e.g., skeletons
+    if isnothing(db_fragment.variants)
+        return DBFragmentVariant{T}(db_fragment)
+    end
+
     # does the fragment have variants?
     if length(db_fragment.variants) == 1
-        return db_fragment.variants[1]
+        return DBFragmentVariant{T}(db_fragment, only(db_fragment.variants))
     end
 
     # now, find the variant that best matches the fragment
     # This returns N/C terminal variants for fragments that
-    # have the corresponding properties set or cystein variants
-    # without thiol hydrogen if the disulphide bond property
-    # is set
-
-    # the number of properties that matched
-    # the fragment with the largest number of matched
-    # properties is returned
+    # have the corresponding flags set or cysteine variants
+    # without thiol hydrogen if the `HAS_SSBOND` flag is set
     best_score = -1
     best_variant = nothing
 
-    # DBFragments don't know anything about flags, so we convert them to a common representation
-    # TODO The FragmentDB format technically supports negative properties (!prop), although this
-    #      is not currently used in the files provided by BiochemicalAlgorithms.jl Negative
-    #      flags cannot be matched with (system) fragment flags as they are always positive.
-    f_props = Dict{Symbol, Bool}(flag => true for flag in f.flags)
-
-    # iterate over all variants of the fragment and compare the properties
+    # iterate over all variants of the fragment and compare the flags
     for var in db_fragment.variants
-        var_props = Dict{Symbol, Bool}(Symbol(p.name) => p.value for p in var.properties)
+        vflags = isnothing(var.flags) ? Flags() : var.flags
 
-        # count the properties fragment and variant have in common
-        score = length(f_props ∩ var_props)
+        # count the flags fragment and variant have in common
+        score = length(f.flags ∩ vflags)
 
         # subtract the number of variant props that the fragment doesn't have
-        score -= length(setdiff(var_props, f_props))
+        score -= length(setdiff(vflags, f.flags))
 
         @debug "Considering variant $(var.name). # score: $score"
 
@@ -406,10 +246,51 @@ function get_reference_fragment(f::Fragment{T}, fdb::FragmentDB) where {T<:Real}
         end
     end
 
-    best_variant
+    if isnothing(best_variant)
+        return nothing
+    end
+
+    DBFragmentVariant{T}(db_fragment, best_variant)
 end
 
-Base.show(io::IO, fdb::FragmentDB) =
-    print(io,
-        "FragmentDB with $(length(fdb.fragments)) fragments, " *
-        "$(length(fdb.name_mappings)) mappings, $(length(fdb.defaults)) defaults.")
+@inline function get_reference_fragment(f::Fragment{Float32})
+    get_reference_fragment(f, default_fragmentdb())
+end
+
+"""
+    infer_topology!(::AbstractAtomContainer{Float32})
+    infer_topology!(::AbstractAtomContainer{T}, ::FragmentDB{T})
+
+Apply standard preprocessing functions to the given atom container, using the default/given
+fragment database. By default, this calls (in order): [`normalize_names!`](@ref),
+[`label_terminal_fragments!`](@ref), [`reconstruct_fragments!`](@ref), and [`build_bonds!`](@ref).
+
+# Supported keyword arguments
+ - `normalize_names::Bool = true`
+ - `label_terminal_fragments::Bool = true`
+ - `reconstruct_fragments::Bool = true`
+ - `build_bonds::Bool = true`
+All keyword arguments enable or disable the corresponding preprocessors.
+
+!!! warning
+    Caution is advised when partly enabling/disabling preprocessors, as they might depend on
+    each other. Please refer to the corresponding documentation.
+"""
+@inline function infer_topology!(
+    ac::AbstractAtomContainer{T},
+    fdb::FragmentDB{T};
+    normalize_names::Bool = true,
+    label_terminal_fragments::Bool = true,
+    reconstruct_fragments::Bool = true,
+    build_bonds::Bool = true
+) where T
+    normalize_names          && normalize_names!(ac, fdb)
+    label_terminal_fragments && label_terminal_fragments!(ac, fdb)
+    reconstruct_fragments    && reconstruct_fragments!(ac, fdb)
+    build_bonds              && build_bonds!(ac, fdb)
+    nothing
+end
+
+@inline function infer_topology!(ac::AbstractAtomContainer{Float32})
+    infer_topology!(ac, default_fragmentdb())
+end

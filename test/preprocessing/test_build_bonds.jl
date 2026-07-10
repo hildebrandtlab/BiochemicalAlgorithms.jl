@@ -5,28 +5,25 @@
         let sys = load_hinfile(ball_data_path("../test/data/AlaGlySer.hin"), T)
             empty!(sys._bonds)
 
-            normalize_names!(sys, fdb)
-            build_bonds!(sys, fdb)
+            # normalize_names! is still required for terminal labeling
+            infer_topology!(sys, fdb; reconstruct_fragments = false)
             @test nbonds.(fragments(sys)) == [12, 8, 12]
         end
 
         let sys = load_pdb(ball_data_path("../test/data/AmberFF_bench.pdb"), T)
             empty!(sys._bonds)
 
-            normalize_names!(sys, fdb)
-            build_bonds!(sys, fdb)
+            infer_topology!(sys, fdb; reconstruct_fragments = false)
             @test nbonds(sys) == 906
         end
 
         let sys = load_pdb(ball_data_path("../test/data/ACE_test_A.pdb"), T)
-            normalize_names!(sys, fdb)
-            build_bonds!(sys, fdb)
+            infer_topology!(sys, fdb; reconstruct_fragments = false)
             @test nbonds(sys) == 1666
         end
 
         let sys = load_pdb(ball_data_path("../test/data/ACE_test_B.pdb"), T)
-            normalize_names!(sys, fdb)
-            build_bonds!(sys, fdb)
+            infer_topology!(sys, fdb; reconstruct_fragments = false)
             @test nbonds(sys) == 468
 
             # verify disulfide bridges (BPTI has 3: CYS5-CYS55, CYS14-CYS38, CYS30-CYS51)
@@ -45,9 +42,7 @@
 
         # bond order verification on AlaAla dipeptide
         let sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), T)
-            normalize_names!(sys, fdb)
-            reconstruct_fragments!(sys, fdb)
-            build_bonds!(sys, fdb)
+            infer_topology!(sys, fdb)
 
             @test count(b -> b.order == BondOrder.Single, bonds(sys)) == 20
             @test count(b -> b.order == BondOrder.Double, bonds(sys)) == 2
@@ -64,9 +59,7 @@
 
         # idempotency: building bonds twice should not create duplicates
         let sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), T)
-            normalize_names!(sys, fdb)
-            reconstruct_fragments!(sys, fdb)
-            build_bonds!(sys, fdb)
+            infer_topology!(sys, fdb)
             n = nbonds(sys)
             @test n > 0
 

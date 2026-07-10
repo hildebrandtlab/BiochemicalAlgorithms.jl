@@ -20,6 +20,7 @@ write_hinfile
 
 ## PDB files
 ```@docs
+download_pdb
 load_pdb
 write_pdb
 ```

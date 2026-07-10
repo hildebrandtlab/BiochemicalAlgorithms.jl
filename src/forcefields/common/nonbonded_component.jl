@@ -371,8 +371,8 @@ function update!(nbc::NonBondedComponent{T}) where T
 
     atom_cache::AtomTable{T} = atoms(ff.system)
     neighbors::Vector{Tuple{Int, Int, T}} = ff.options[:periodic_boundary_conditions]::Bool ?
-        neighborlist(atom_cache.r, unitcell=periodic_box, nonbonded_cutoff) :
-        neighborlist(atom_cache.r, nonbonded_cutoff)
+        neighborlist(positions=atom_cache.r, cutoff=nonbonded_cutoff, unitcell=periodic_box) :
+        neighborlist(positions=atom_cache.r, cutoff=nonbonded_cutoff)
 
     distance_dependent_dielectric = ff.options[:distance_dependent_dielectric]::Bool
 

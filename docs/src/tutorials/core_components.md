@@ -187,10 +187,7 @@ ball_and_stick(s)
 Now, let’s create some bonds:
 
 ``` julia
-fdb = FragmentDB() # default FragmentDB
-normalize_names!(s, fdb) # in case our input PDB file uses a strange naming standard
-reconstruct_fragments!(s, fdb) # in case our input file misses some atoms
-build_bonds!(s, fdb) # create the bonds
+infer_topology!(s)
 # ball_and_stick(s) uncomment for visualization
 ```
 
@@ -288,8 +285,6 @@ println("The bond length is ", bond_length(bond))
 
     4
     The bond length is 1.0135294
-
-Sometimes it is necessary to discriminate between hydrogen and nonhydrogen_bonds. Since this a common use case, there are built in functionalities:
 
 ## Fragment
 
@@ -394,10 +389,7 @@ println("is_n_terminal(): ", is_n_terminal(res))
 Some functionality is only available after preprocessing through the FragmentDB:
 
 ``` julia
-fdb = FragmentDB()
-normalize_names!(s, fdb)
-reconstruct_fragments!(s, fdb)
-build_bonds!(s, fdb)
+infer_topology!(s)
 println("is_c_terminal(): ", is_c_terminal(res))
 println("is_n_terminal(): ", is_n_terminal(res))
 res2 = fragments(s)[2]
@@ -459,10 +451,7 @@ Molecules have a variant which is `MoleculareVariant.None` by default. Users can
 
 ``` julia
 println("is a protein: ", isprotein(m[1]))
-fdb = FragmentDB()
-normalize_names!(s, fdb)
-reconstruct_fragments!(s, fdb)
-build_bonds!(s, fdb)
+infer_topology!(s)
 
 println("is a protein: ", isprotein(m[1]))
 
@@ -472,11 +461,7 @@ println("is a protein: ", isprotein(m[1]))
 ```
 
     is a protein: false
-    ┌ Warning: reconstruct_fragments!(): could not find reference fragment for  CA:462
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/reconstruct_fragments.jl:177
     [ Info: reconstruct_fragments!(): added 2346 atoms.
-    ┌ Warning: build_bonds!(): could not find reference fragment for  CA.
-    └ @ BiochemicalAlgorithms ~/local/BiochemicalAlgorithms.jl/src/preprocessing/build_bonds.jl:14
     [ Info: build_bonds!(): built 4471 bonds
     is a protein: false
     is a protein: true
@@ -545,45 +530,47 @@ Now, that we learned about chains, we can take a look at the secondary structure
 s = System()
 chain = Chain(Molecule(s))
 ss1 = SecondaryStructure(
-    chain,
+    Residue(chain, 1),
+    Residue(chain, 2),
     1,
     SecondaryStructureElement.Helix;
     name="H1"
 )
 
 ss2 = SecondaryStructure(
-    chain,
+    Residue(chain, 3),
+    Residue(chain, 4),
     2,
     SecondaryStructureElement.Coil;
     name="C1"
 )
 
 ss3 = SecondaryStructure(
-    chain,
+    Residue(chain, 5),
+    Residue(chain, 6),
     3,
     SecondaryStructureElement.Strand;
     name="S1"
 )
 ss4 = SecondaryStructure(
-    chain,
+    Residue(chain, 7),
+    Residue(chain, 8),
     4,
     SecondaryStructureElement.Turn;
     name="T1"
 )
 
-ss3.type = SecondaryStructureElement.Helix
 println("Number of secondary structures: ", nsecondary_structures(s))
 
 # get all helices of the chain
-helices = (filter(sst -> sst.type == ss1.type, secondary_structures(chain)))
+filter(sst -> sst.type == SecondaryStructureElement.Helix, secondary_structures(chain))
 ```
 
     Number of secondary structures: 4
 
 | **\#** | **idx** | **number** | **type** | **name** |
 |-------:|:--------|:-----------|:---------|:---------|
-|      1 | 3       | 1          | Helix    | H1       |
-|      2 | 5       | 3          | Helix    | S1       |
+|      1 | 5       | 1          | Helix    | H1       |
 
 In addition, we can compute the secondary structures for an input file:
 
@@ -591,9 +578,7 @@ In addition, we can compute the secondary structures for an input file:
 s = load_pdb(ball_data_path("../test/data/bpti.pdb"))
 println(s)
 
-normalize_names!(s, fdb)
-reconstruct_fragments!(s, fdb)
-build_bonds!(s, fdb)
+infer_topology!(s)
 predict_hbonds!(s, :KABSCH_SANDER)
 predict_secondary_structure!(s)
 ```

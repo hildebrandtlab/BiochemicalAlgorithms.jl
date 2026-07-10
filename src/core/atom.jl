@@ -156,14 +156,6 @@ end
         chain_by_idx(atom._sys, atom.chain_idx)
 end
 
-@inline function parent_secondary_structure(atom::Atom)
-    pf = parent_fragment(atom)
-
-    isnothing(pf) || isnothing(pf.secondary_structure_idx) ?
-        nothing :
-        secondary_structure_by_idx(parent(atom), pf.secondary_structure_idx)
-end
-
 @inline function parent_fragment(atom::Atom)
     isnothing(atom.fragment_idx) ?
         nothing :
@@ -430,20 +422,18 @@ end
 Decides if two atoms are bound to each other.
 Hydrogen bonds (`has_flag(bond, :TYPE__HYDROGEN)`) are ignored.
 """
-function is_bound_to(a1::Atom, a2::Atom)
+function is_bound_to(a1::Atom{T}, a2::Atom{T}) where T
     s = parent(a1)
 
-    if s != parent(a2)
+    if s !== parent(a2)
         return false
     end
 
-    return !isnothing(
-        findfirst(
-            b ->
-                ((b.a1 == a1.idx) && (b.a2 == a2.idx)) ||
-                ((b.a1 == a2.idx) && (b.a2 == a1.idx)),
-            non_hydrogen_bonds(s)
-        )
+    return any(
+        b ->
+            ((b.a1 == a1.idx) && (b.a2 == a2.idx)) ||
+            ((b.a1 == a2.idx) && (b.a2 == a1.idx)),
+        non_hydrogen_bonds(s)
     )
 end
 
@@ -456,8 +446,8 @@ Two atoms are geminal if they do not share a common bond but both have a
 bond to a third atom. For example the two hydrogen atoms in water are geminal.
 Hydrogen bonds (`has_flag(bond, :TYPE__HYDROGEN)`) are ignored.
 """
-function is_geminal(a1::Atom, a2::Atom)
-    if a1 == a2
+function is_geminal(a1::Atom{T}, a2::Atom{T}) where T
+    if a1 === a2
         return false
     end
 
@@ -476,8 +466,8 @@ Decides if two atoms are vicinal.
 Two atoms are vicinal if they are separated by three bonds (1-4 position).
 Hydrogen bonds (`has_flag(bond, :TYPE__HYDROGEN)`) are ignored.
 """
-function is_vicinal(a1::Atom, a2::Atom)
-    if a1 == a2
+function is_vicinal(a1::Atom{T}, a2::Atom{T}) where T
+    if a1 === a2
         return false
     end
 

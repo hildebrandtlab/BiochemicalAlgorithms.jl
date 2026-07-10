@@ -1,0 +1,26 @@
+{
+  "name": "MG",
+  "names": [
+    "Magnesium ion",
+    "Mg2+"
+  ],
+  "type": "None",
+  "atoms": [
+    {
+      "name": "MG",
+      "element": "Mg",
+      "r": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "bonds": [],
+  "connections": [],
+  "variants": [
+    {
+      "name": "MG"
+    }
+  ]
+}

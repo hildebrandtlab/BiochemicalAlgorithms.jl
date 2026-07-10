@@ -7,15 +7,17 @@ using DataFrames
 using DataStructures
 using DocStringExtensions
 using EnumX
+using GeometryBasics: GeometryBasics, Point3, Vec3, TriangleFace, Sphere
 using Graphs
-using LinearAlgebra: Hermitian, eigen
+using LinearAlgebra
+using Mendeleev
 using MetaGraphs
-using Rotations: RotMatrix3
+using Rotations
 using Statistics: mean
 using Unitful, UnitfulAtomic
 using Quaternions: quat
 
-import JSON3
+import JSON
 import MolecularGraph
 import Observables
 import Optimization
@@ -23,6 +25,17 @@ import OptimizationLBFGSB
 import PrettyTables
 import StaticArrays
 import Tables, TableOperations
+
+export
+    ball_data_path
+
+"""
+    ball_data_path(parts...)
+
+Constructs an absolute path to a file or directory within the package's `data` folder.
+Accepts any number of path components as arguments and joins them appropriately.
+"""
+ball_data_path(parts...) = normpath(joinpath(@__DIR__, "..", "data", parts...))
 
 # core definitions
 include("core/exceptions.jl")
@@ -41,8 +54,8 @@ include("core/system_internals/_atom_table.jl")
 include("core/system_internals/_bond_table.jl")
 include("core/system_internals/_molecule_table.jl")
 include("core/system_internals/_chain_table.jl")
-include("core/system_internals/_secondary_structure_table.jl")
 include("core/system_internals/_fragment_table.jl")
+include("core/system_internals/_secondary_structure_table.jl")
 include("core/system.jl")
 
 # system components
@@ -51,8 +64,8 @@ include("core/atom.jl")
 include("core/bond.jl")
 include("core/molecule.jl")
 include("core/chain.jl")
-include("core/secondary_structure.jl")
 include("core/fragment.jl")
+include("core/secondary_structure.jl")
 
 # molgraph
 include("core/moleculargraph_wrapper.jl")
@@ -72,6 +85,13 @@ module PDBDetails
 include("fileformats/pdb/pdb_defs.jl")
 include("fileformats/pdb/pdb_general.jl")
 include("fileformats/pdb/pdb_writer.jl")
+end
+
+include("fileformats/cif.jl")
+
+module MMCIFDetails
+include("fileformats/mmcif/mmcif_reader.jl")
+include("fileformats/mmcif/mmcif_writer.jl")
 end
 
 include("fileformats/sdfile.jl")
@@ -103,19 +123,26 @@ include("preprocessing/reconstruct_fragments.jl")
 include("preprocessing/predict_hbonds.jl")
 include("preprocessing/predict_secondary_structure.jl")
 
+# structure analysis
+include("structureanalysis/bounding_box.jl")
+
+# molecular surfaces
+include("structureanalysis/surfaces/types.jl")
+include("structureanalysis/surfaces/geometry.jl")
+include("structureanalysis/surfaces/radii.jl")
+include("structureanalysis/surfaces/numerical_sas.jl")
+include("structureanalysis/surfaces/reduced_surface.jl")
+include("structureanalysis/surfaces/solvent_accessible_surface.jl")
+include("structureanalysis/surfaces/solvent_excluded_surface.jl")
+include("structureanalysis/surfaces/advancing_front.jl")
+include("structureanalysis/surfaces/triangulated_sas.jl")
+include("structureanalysis/surfaces/triangulated_ses.jl")
+include("structureanalysis/surfaces/ses_triangulator.jl")
+include("structureanalysis/surfaces/areas.jl")
+include("structureanalysis/surfaces/cleanup.jl")
+
 # optimization
 include("optimization/optimize_structure.jl")
-
-export
-    ball_data_path
-
-"""
-    ball_data_path(parts...)
-
-Constructs an absolute path to a file or directory within the package's `data` folder.
-Accepts any number of path components as arguments and joins them appropriately.
-"""
-ball_data_path(parts...) = normpath(joinpath(@__DIR__, "..", "data", parts...))
 
 # precompilation directives
 include("precompile.jl")

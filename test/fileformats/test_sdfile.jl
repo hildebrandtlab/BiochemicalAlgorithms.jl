@@ -23,6 +23,9 @@
         @test met["a_don"] == "3"
         @test met["logP(o/w)"] == "0.40906"
         @test met["SlogP"] == "1.1878"
+
+        sys2 = open(io -> load_sdfile(io, T), ball_data_path("../test/data/sdfile_test_1.sdf"))
+        @test sys == sys2
     end
 end
 
@@ -47,6 +50,11 @@ end
         (set_name, set_file) = mktemp(; cleanup = true)
 
         write_sdfile(set_name, sys)
+        ms_sd = molecules(load_sdfile(set_name, T))
+
+        @test all([_compare_without_system(ms_sd[i], mols[i]) for i in eachindex(ms_sd)])
+
+        open(io -> write_sdfile(io, sys), set_name, "w")
         ms_sd = molecules(load_sdfile(set_name, T))
 
         @test all([_compare_without_system(ms_sd[i], mols[i]) for i in eachindex(ms_sd)])

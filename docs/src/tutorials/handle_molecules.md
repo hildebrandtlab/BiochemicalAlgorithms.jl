@@ -13,7 +13,7 @@ h2o = Molecule(sys)
 # create system atoms
 o1 = Atom(h2o, 1, Elements.O) # o1.r = [0, 0, 0]  <-- this is the default value!
 h1 = Atom(h2o, 2, Elements.H, r=Vector3{Float32}(1,0,0))
-h2 = Atom(h2o, 3, Elements.H, r=Vector3{Float32}(cos(deg2rad(105)), sin(deg2rad(105)), 0)) 
+h2 = Atom(h2o, 3, Elements.H, r=Vector3{Float32}(cos(deg2rad(105)), sin(deg2rad(105)), 0))
 
 # add bonds
 Bond(h2o, o1.idx, h1.idx, BondOrder.Single)
@@ -249,29 +249,29 @@ using CellListMap
 
 sys = load_pdb(ball_data_path("../test/data/1tgh.pdb"))
 
-neighbors = neighborlist([a.r for a in atoms(sys)], 1.5)
+neighbors = neighborlist(positions=[a.r for a in atoms(sys)], cutoff=1.5)
 ```
 
     1693-element Vector{Tuple{Int64, Int64, Float64}}:
-     (1, 19, 0.9589779473125072)
-     (2, 1, 1.4388685066986233)
+     (1, 19, 0.9589779473125027)
+     (2, 1, 1.4388685066986193)
      (3, 4, 1.4438002160243146)
      (4, 8, 1.4110367235570076)
-     (5, 6, 1.423614076686212)
+     (5, 6, 1.4236140766862064)
      (8, 9, 1.4528402026870852)
      (9, 10, 1.3692218168573846)
-     (10, 11, 1.2292563742786062)
      (10, 12, 1.3467147068968133)
+     (10, 11, 1.2292563742786)
      (13, 12, 1.328092566103565)
      ⋮
-     (2344, 2345, 0.96483334318895)
      (2344, 2346, 0.9578454673076238)
-     (2347, 2348, 0.9646835173520671)
-     (2347, 2349, 0.9621348854276189)
+     (2344, 2345, 0.96483334318895)
+     (2347, 2348, 0.9646835173520685)
+     (2347, 2349, 0.9621348854276188)
      (2350, 2351, 0.9633766194458323)
-     (2352, 2350, 0.9584511836064512)
-     (2353, 2354, 0.9596359268143725)
-     (2353, 2355, 0.9774217099578173)
-     (2354, 2355, 1.4942598847835975)
+     (2352, 2350, 0.9584511836064477)
+     (2353, 2355, 0.9774217099578166)
+     (2354, 2353, 0.9596359268143725)
+     (2354, 2355, 1.4942598847835966)
 
 `neighborlist` returns a tuple consisting of indices for the neighbors and the computed distance between them. For more advanced use cases have a look at the [`CellListMap.jl` documentation](https://m3g.github.io/CellListMap.jl/stable/neighborlists/) .

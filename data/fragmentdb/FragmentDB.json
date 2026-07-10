@@ -1,0 +1,48 @@
+{
+  "fragments": {
+    "ALA": "fragments/ALA.json",
+    "ARG": "fragments/ARG.json",
+    "ASP": "fragments/ASP.json",
+    "ASN": "fragments/ASN.json",
+    "CYS": "fragments/CYS.json",
+    "GLN": "fragments/GLN.json",
+    "GLU": "fragments/GLU.json",
+    "GLY": "fragments/GLY.json",
+    "HIS": "fragments/HIS.json",
+    "ILE": "fragments/ILE.json",
+    "LEU": "fragments/LEU.json",
+    "LYS": "fragments/LYS.json",
+    "MET": "fragments/MET.json",
+    "MSE": "fragments/MSE.json",
+    "PHE": "fragments/PHE.json",
+    "PRO": "fragments/PRO.json",
+    "SER": "fragments/SER.json",
+    "THR": "fragments/THR.json",
+    "TRP": "fragments/TRP.json",
+    "TYR": "fragments/TYR.json",
+    "VAL": "fragments/VAL.json",
+    "PCA": "fragments/PCA.json",
+    "ACE": "fragments/ACE.json",
+    "NME": "fragments/NME.json",
+    "CA": "fragments/CA.json",
+    "MG": "fragments/MG.json",
+    "ZN": "fragments/ZN.json",
+    "HOH": "fragments/HOH.json",
+    "A": "fragments/A.json",
+    "C": "fragments/C.json",
+    "G": "fragments/G.json",
+    "T": "fragments/T.json",
+    "U": "fragments/U.json"
+  },
+  "names": {
+    "Discover": "names/Discover.json",
+    "Amber": "names/Amber.json",
+    "CHARMM": "names/CHARMM.json",
+    "XPLOR": "names/XPLOR.json",
+    "Star": "names/Star.json",
+    "DNA": "names/DNA.json"
+  },
+  "defaults": {
+    "Naming": "PDB"
+  }
+}

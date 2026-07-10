@@ -43,12 +43,12 @@ function Base.convert(
         on_init = MolecularGraph.sdf_on_init!,
         on_update = MolecularGraph.sdf_on_update!
     )
-    mg["atom_idx"] = JSON3.write(molgraph_atom_to_idx)
+    mg["atom_idx"] = JSON.json(molgraph_atom_to_idx)
     mg
 end
 
 @inline function _molgraph_atom_to_idx(mg::MolecularGraph.MolGraph)
-    JSON3.read(mg["atom_idx"], Dict{Int, Int})
+    Dict{Int, Int}(parse(Int, k) => v for (k, v) in pairs(JSON.parse(mg["atom_idx"])))
 end
 
 @inline function _molgraph_to_atom(mol::Molecule{T}, (i, a)::Pair{Int, MolecularGraph.SDFAtom}) where T

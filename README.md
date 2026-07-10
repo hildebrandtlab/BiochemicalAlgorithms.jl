@@ -29,11 +29,8 @@ sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
 println("Number of atoms: ", natoms(sys))
 println("Number of bonds: ", nbonds(sys))
 
-# Prepare molecule
-fdb = FragmentDB()
-normalize_names!(sys, fdb)
-reconstruct_fragments!(sys, fdb)
-build_bonds!(sys, fdb)
+# Normalize names, reconstruct fragments, build bonds
+infer_topology!(sys)
 println("Number of bonds: ", nbonds(sys))
 
 # Create Amber force field and compute the energy of the system

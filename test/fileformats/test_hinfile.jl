@@ -19,6 +19,9 @@
         @test get_property(sys, :periodic_box_height) ≈ 18.70136
         @test get_property(sys, :periodic_box_depth)  ≈ 18.70136
 
+        sys2 = open(io -> load_hinfile(io, T), ball_data_path("../test/data/hinfile_test.hin"))
+        @test sys == sys2
+
         sys = load_hinfile(ball_data_path("../test/data/AlaGlySer.hin"), T)
 
         @test natoms(sys) == 31
@@ -52,9 +55,11 @@ end
         first(atoms(sys)).name = "TEST NAME"
 
         write_hinfile(outfname, sys)
-
         sys2 = load_hinfile(outfname, T)
+        @test first(atoms(sys2)).name == "TEST"
 
+        open(io -> write_hinfile(io, sys), outfname, "w")
+        sys2 = load_hinfile(outfname, T)
         @test first(atoms(sys2)).name == "TEST"
     end
 end

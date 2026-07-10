@@ -1,0 +1,26 @@
+{
+  "name": "ZN",
+  "names": [
+    "Zinc ion",
+    "Zn2+"
+  ],
+  "type": "None",
+  "atoms": [
+    {
+      "name": "ZN",
+      "element": "Zn",
+      "r": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "bonds": [],
+  "connections": [],
+  "variants": [
+    {
+      "name": "ZN"
+    }
+  ]
+}

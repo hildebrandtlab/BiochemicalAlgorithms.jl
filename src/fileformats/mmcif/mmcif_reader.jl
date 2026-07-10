@@ -1,0 +1,669 @@
+using BiochemicalAlgorithms
+using BiochemicalAlgorithms: CIFFile, CIFDataBlock, CIFLoop, CIFParser,
+    parse_cif_file, parse_cif, parse_element_string, _fragment_variant
+import BiochemicalAlgorithms: PDBDetails
+using DataStructures: Deque
+
+# Read a PDBx/mmCIF file and return a System.
+#
+# Multi-model handling (A2): each row in _atom_site contributes one Atom whose
+# `frame_id` is set from `_atom_site.pdbx_PDB_model_num`. Chains and Fragments
+# are NOT replicated per model — atoms across all models share a single
+# fragment object identified by (chain, comp, seq, ins_code). This matches the
+# package's System-as-trajectory model. As a consequence, _struct_conn and
+# secondary-structure annotations are resolved against the shared fragments
+# (effectively against the last model's atoms when fragment-cache lookup is
+# needed) — which is fine for entries where bond topology and SS assignment
+# are constant across models, i.e. the typical NMR ensemble case.
+#
+# Only the first data block of a multi-block file is loaded.
+function read_mmcif(fname_io::Union{AbstractString, IO}, ::Type{T} = Float32;
+        create_coils::Bool = true) where {T <: Real}
+    cif = if fname_io isa AbstractString
+        parse_cif_file(fname_io)
+    else
+        parse_cif(fname_io)
+    end
+
+    if isempty(cif.blocks)
+        error("mmCIF file contains no data blocks")
+    end
+
+    block = first(values(cif.blocks))
+
+    sys = System{T}(block.name)
+    mol = Molecule(sys; name = block.name)
+
+    _extract_metadata!(sys, block)
+
+    # Parse _atom_site loop
+    atom_loop = _find_loop(block, "_atom_site.")
+    if isnothing(atom_loop)
+        return sys
+    end
+
+    _build_atoms!(sys, mol, atom_loop, T)
+
+    # Build fragment cache for postprocessing
+    fragment_cache = Dict{PDBDetails.UniqueResidueID, Fragment{T}}()
+    for f in fragments(sys)
+        fragment_cache[PDBDetails.UniqueResidueID(
+            f.name,
+            parent_chain(f).name,
+            f.number,
+            get_property(f, :insertion_code, " ")
+        )] = f
+    end
+
+    # Parse disulfide and other inter-residue bonds from _struct_conn
+    ssbonds, other_conns = _parse_struct_conn(block)
+    PDBDetails.postprocess_ssbonds_!(sys, ssbonds, fragment_cache)
+    _build_struct_conn_bonds!(sys, other_conns, fragment_cache)
+    _flag_disulphide_bonds_covalent!(sys)
+
+    # Parse secondary structure from _struct_conf and _struct_sheet_range
+    ss_records = _parse_secondary_structures(block)
+    PDBDetails.postprocess_secondary_structures_!(sys, ss_records, fragment_cache, create_coils)
+
+    sys
+end
+
+# ─── Helpers ──────────────────────────────────────────────────────────
+
+# Look up a single tag's value in the block. Tries the simple tag-value store
+# first, then scans single-row loops. Returns `nothing` if absent or the value
+# is the CIF "missing" sentinel (`?` or `.`).
+function _get_block_value(block::CIFDataBlock, tag::String)
+    if haskey(block.tags, tag)
+        v = block.tags[tag]
+        return (v == "?" || v == ".") ? nothing : v
+    end
+    for loop in block.loops
+        idx = findfirst(==(tag), loop.tags)
+        if !isnothing(idx) && !isempty(loop.rows)
+            v = loop.rows[1][idx]
+            return (v == "?" || v == ".") ? nothing : v
+        end
+    end
+    return nothing
+end
+
+# Set a string property on `sys` if `value` is a usable string.
+function _maybe_set!(sys, key::Symbol, value)
+    if !isnothing(value)
+        s = String(strip(value))
+        !isempty(s) && set_property!(sys, key, s)
+    end
+end
+
+# Set a numeric property on `sys` if `value` parses as a Float64.
+function _maybe_set_float!(sys, key::Symbol, value)
+    if !isnothing(value)
+        x = tryparse(Float64, strip(value))
+        !isnothing(x) && set_property!(sys, key, x)
+    end
+end
+
+# Extract commonly useful header metadata (title, experimental method,
+# resolution, deposition date, cell parameters, space group, keywords) from
+# the CIF data block onto the `System` as properties. Values are looked up in
+# the block's simple tag-value store first, then in any single-row loops.
+function _extract_metadata!(sys, block::CIFDataBlock)
+    _maybe_set!(sys, :entry_id,            _get_block_value(block, "_entry.id"))
+    _maybe_set!(sys, :title,               _get_block_value(block, "_struct.title"))
+    _maybe_set!(sys, :keywords,            _get_block_value(block, "_struct_keywords.pdbx_keywords"))
+    _maybe_set!(sys, :deposition_date,     _get_block_value(block, "_pdbx_database_status.recvd_initial_deposition_date"))
+    _maybe_set!(sys, :experimental_method, _get_block_value(block, "_exptl.method"))
+    _maybe_set!(sys, :space_group,         _get_block_value(block, "_symmetry.space_group_name_H-M"))
+
+    # Resolution: prefer `_refine.ls_d_res_high`, fall back to the reflns
+    # equivalent for entries without a refine block (e.g. some EM structures).
+    res = _get_block_value(block, "_refine.ls_d_res_high")
+    isnothing(res) && (res = _get_block_value(block, "_reflns.d_resolution_high"))
+    _maybe_set_float!(sys, :resolution, res)
+
+    for (k, tag) in (
+        :cell_a => "_cell.length_a", :cell_b => "_cell.length_b", :cell_c => "_cell.length_c",
+        :cell_alpha => "_cell.angle_alpha", :cell_beta => "_cell.angle_beta", :cell_gamma => "_cell.angle_gamma",
+    )
+        _maybe_set_float!(sys, k, _get_block_value(block, tag))
+    end
+end
+
+# Find a loop in the data block whose tags start with the given prefix.
+function _find_loop(block::CIFDataBlock, prefix::String)
+    for loop in block.loops
+        if !isempty(loop.tags) && startswith(loop.tags[1], prefix)
+            return loop
+        end
+    end
+    return nothing
+end
+
+# Build a tag→column-index map for a loop.
+@inline function _col_map(loop::CIFLoop)
+    Dict(tag => i for (i, tag) in enumerate(loop.tags))
+end
+
+# Get a value from a row, returning `nothing` for CIF missing values (? and .).
+@inline function _get(row::Vector{String}, col::Int)
+    v = row[col]
+    (v == "?" || v == ".") ? nothing : v
+end
+
+# Get a value with a default for missing.
+@inline function _get(row::Vector{String}, col::Int, default)
+    v = _get(row, col)
+    isnothing(v) ? default : v
+end
+
+# Get an optional column index, returning nothing if the tag is not present.
+@inline function _optcol(cols::Dict{String, Int}, tag::String)
+    get(cols, tag, nothing)
+end
+
+# Get a required column index, trying `primary` first then `fallback`. Returns
+# nothing if neither exists.
+@inline function _reqcol(cols::Dict{String, Int}, primary::String, fallback::String)
+    c = get(cols, primary, nothing)
+    isnothing(c) ? get(cols, fallback, nothing) : c
+end
+
+# Parse mmCIF formal charge string. Handles plain integers ("1", "-1") and
+# sign-suffixed ("1+", "2-").
+function _parse_formal_charge(s::Union{Nothing, String})
+    isnothing(s) && return Int(0)
+    s = strip(s)
+    isempty(s) && return Int(0)
+    # Try plain integer first
+    v = tryparse(Int, s)
+    !isnothing(v) && return v
+    # Try sign-suffixed format: "1+", "2-", etc.
+    if length(s) >= 2
+        sign_char = s[end]
+        num_part = s[1:end-1]
+        if sign_char == '+' || sign_char == '-'
+            n = tryparse(Int, num_part)
+            if !isnothing(n)
+                return sign_char == '-' ? -n : n
+            end
+        end
+    end
+    return Int(0)
+end
+
+# ─── Atom Site Parsing ────────────────────────────────────────────────
+
+function _build_atoms!(sys::System{T}, mol::Molecule{T}, loop::CIFLoop, ::Type{T}) where {T <: Real}
+    cols = _col_map(loop)
+
+    # Required columns
+    c_group     = cols["_atom_site.group_PDB"]
+    c_id        = cols["_atom_site.id"]
+    c_symbol    = cols["_atom_site.type_symbol"]
+    c_atom_name = cols["_atom_site.label_atom_id"]
+    c_alt_id    = cols["_atom_site.label_alt_id"]
+    c_comp_id   = cols["_atom_site.label_comp_id"]
+    c_asym_id   = cols["_atom_site.label_asym_id"]
+    c_seq_id    = cols["_atom_site.label_seq_id"]
+    c_x         = cols["_atom_site.Cartn_x"]
+    c_y         = cols["_atom_site.Cartn_y"]
+    c_z         = cols["_atom_site.Cartn_z"]
+
+    # Optional columns (use auth_* when available, fall back to label_*)
+    c_auth_asym  = _optcol(cols, "_atom_site.auth_asym_id")
+    c_auth_comp  = _optcol(cols, "_atom_site.auth_comp_id")
+    c_auth_seq   = _optcol(cols, "_atom_site.auth_seq_id")
+    c_auth_atom  = _optcol(cols, "_atom_site.auth_atom_id")
+    c_ins_code   = _optcol(cols, "_atom_site.pdbx_PDB_ins_code")
+    c_occupancy  = _optcol(cols, "_atom_site.occupancy")
+    c_bfactor    = _optcol(cols, "_atom_site.B_iso_or_equiv")
+    c_charge     = _optcol(cols, "_atom_site.pdbx_formal_charge")
+    c_model      = _optcol(cols, "_atom_site.pdbx_PDB_model_num")
+
+    current_chain::Union{Chain{T}, Nothing} = nothing
+    current_frag::Union{Fragment{T}, Nothing} = nothing
+    current_chain_id = ""
+    current_is_hetero = false
+    current_frag_key = ("", 0, "")  # (comp_id, seq_id, ins_code)
+
+    # Across-models fragment cache (keyed within the current chain). Multi-
+    # model files repeat the same residue with each model, but atoms should
+    # attach to a single shared Fragment with different `frame_id`s.
+    chain_fragments = Dict{Tuple{String, Int, String}, Fragment{T}}()
+
+    altloc_warning = false
+    first_altloc_id = Dict{Tuple{String, Int, String, String}, String}()  # (chain, seq, ins, atom_name) -> first altloc
+
+    for row in loop.rows
+        # Alternate location handling
+        alt_id_raw = row[c_alt_id]
+        alt_id = (alt_id_raw == "." || alt_id_raw == "?") ? nothing : alt_id_raw
+
+        # Use auth_* fields when available (matches PDB convention)
+        chain_id = isnothing(c_auth_asym) ? row[c_asym_id] : _get(row, c_auth_asym, row[c_asym_id])
+        comp_id  = isnothing(c_auth_comp) ? row[c_comp_id] : _get(row, c_auth_comp, row[c_comp_id])
+        atom_name = isnothing(c_auth_atom) ? row[c_atom_name] : _get(row, c_auth_atom, row[c_atom_name])
+
+        seq_id_str = isnothing(c_auth_seq) ? _get(row, c_seq_id, "0") : _get(row, c_auth_seq, _get(row, c_seq_id, "0"))
+        seq_id = tryparse(Int, seq_id_str)
+        if isnothing(seq_id)
+            seq_id = 0
+        end
+
+        ins_code = isnothing(c_ins_code) ? " " : _get(row, c_ins_code, " ")
+
+        # Skip alternate locations beyond the first
+        if !isnothing(alt_id)
+            key = (chain_id, seq_id, ins_code, atom_name)
+            existing = get(first_altloc_id, key, nothing)
+            if isnothing(existing)
+                first_altloc_id[key] = alt_id
+            elseif alt_id != existing
+                if !altloc_warning
+                    @warn "load_mmcif: alternate locations other than $(existing) are currently not supported. Affected records have been ignored!"
+                    altloc_warning = true
+                end
+                continue
+            end
+        end
+
+        is_hetero = strip(row[c_group]) == "HETATM"
+
+        # Chain — split on chain_id change OR on ATOM↔HETATM transition within
+        # the same chain_id, mirroring the PDB reader's TER-based behavior.
+        if isnothing(current_chain) ||
+                chain_id != current_chain_id ||
+                is_hetero != current_is_hetero
+            current_chain = Chain(mol; name = chain_id)
+            current_chain_id = chain_id
+            current_is_hetero = is_hetero
+            current_frag = nothing
+            current_frag_key = ("", 0, "")
+            empty!(chain_fragments)
+        end
+
+        # Fragment — shared across models. The fast path checks the just-seen
+        # fragment; otherwise we look up in the chain-scoped cache before
+        # creating a new one. This is what makes a 10-model NMR ensemble end
+        # up with N residues, not 10×N.
+        frag_key = (comp_id, seq_id, ins_code)
+        if isnothing(current_frag) || frag_key != current_frag_key
+            cached = get(chain_fragments, frag_key, nothing)
+            current_frag = if !isnothing(cached)
+                cached
+            else
+                f = Fragment(current_chain, seq_id;
+                    name = comp_id,
+                    variant = _fragment_variant(comp_id),
+                    properties = Properties([
+                        :is_hetero_fragment => is_hetero,
+                        :insertion_code => ins_code
+                    ])
+                )
+                chain_fragments[frag_key] = f
+                f
+            end
+            current_frag_key = frag_key
+        end
+
+        # Atom
+        serial = parse(Int, row[c_id])
+        element = parse_element_string(strip(row[c_symbol]))
+
+        x = parse(T, row[c_x])
+        y = parse(T, row[c_y])
+        z = parse(T, row[c_z])
+
+        occupancy = isnothing(c_occupancy) ? T(1.0) : T(parse(Float64, _get(row, c_occupancy, "1.0")))
+        tempfactor = isnothing(c_bfactor) ? T(0.0) : T(parse(Float64, _get(row, c_bfactor, "0.0")))
+
+        charge_str = isnothing(c_charge) ? nothing : _get(row, c_charge)
+        formal_charge = _parse_formal_charge(charge_str)
+
+        model_num = isnothing(c_model) ? 1 : parse(Int, _get(row, c_model, "1"))
+
+        is_deuterium = strip(row[c_symbol]) == "D"
+
+        flags = Flags()
+        is_hetero && push!(flags, :is_hetero_atom)
+        is_deuterium && push!(flags, :is_deuterium)
+
+        Atom(current_frag, serial, element;
+            name = atom_name,
+            r = Vector3{T}(x, y, z),
+            formal_charge = formal_charge,
+            properties = Properties([
+                :tempfactor => tempfactor,
+                :occupancy => occupancy,
+                :is_hetero_atom => is_hetero,
+                :insertion_code => ins_code
+            ]),
+            flags = flags,
+            frame_id = model_num
+        )
+    end
+end
+
+# ─── _struct_conn Parsing ────────────────────────────────────────────
+
+# Connection record for non-disulphide bonds (covale / metalc / hydrog / saltbr).
+# Disulphides are kept in the existing SSBondRecord path so they reuse
+# PDBDetails.postprocess_ssbonds_!.
+struct StructConnRecord
+    conn_type::String
+    res1::PDBDetails.UniqueResidueID
+    atom1::String
+    res2::PDBDetails.UniqueResidueID
+    atom2::String
+    distance::Float64
+    order::String  # raw _struct_conn.pdbx_value_order — "sing", "doub", "trip", "quad", or ""
+end
+
+# Map _struct_conn.conn_type_id values to the BiochemicalAlgorithms bond flag.
+const _CONN_TYPE_FLAGS = Dict(
+    "covale" => :TYPE__COVALENT,
+    "metalc" => :TYPE__COVALENT,  # BA.jl has no separate metal-coordination flag
+    "hydrog" => :TYPE__HYDROGEN,
+    "saltbr" => :TYPE__SALT_BRIDGE,
+)
+
+# Map mmCIF `pdbx_value_order` strings to BondOrder.
+const _BOND_ORDER_FROM_CIF = Dict(
+    "sing" => BondOrder.Single,
+    "doub" => BondOrder.Double,
+    "trip" => BondOrder.Triple,
+    "quad" => BondOrder.Quadruple,
+    "arom" => BondOrder.Aromatic,
+)
+
+function _parse_struct_conn(block::CIFDataBlock)
+    ssbonds = Deque{PDBDetails.SSBondRecord}()
+    others = StructConnRecord[]
+    loop = _find_loop(block, "_struct_conn.")
+    isnothing(loop) && return ssbonds, others
+
+    cols = _col_map(loop)
+
+    c_type = get(cols, "_struct_conn.conn_type_id", nothing)
+    isnothing(c_type) && return ssbonds, others
+
+    # Use auth fields for residue identification, fall back to label
+    c_p1_asym = _reqcol(cols, "_struct_conn.ptnr1_auth_asym_id", "_struct_conn.ptnr1_label_asym_id")
+    c_p1_comp = _reqcol(cols, "_struct_conn.ptnr1_auth_comp_id", "_struct_conn.ptnr1_label_comp_id")
+    c_p1_seq  = _reqcol(cols, "_struct_conn.ptnr1_auth_seq_id", "_struct_conn.ptnr1_label_seq_id")
+    c_p2_asym = _reqcol(cols, "_struct_conn.ptnr2_auth_asym_id", "_struct_conn.ptnr2_label_asym_id")
+    c_p2_comp = _reqcol(cols, "_struct_conn.ptnr2_auth_comp_id", "_struct_conn.ptnr2_label_comp_id")
+    c_p2_seq  = _reqcol(cols, "_struct_conn.ptnr2_auth_seq_id", "_struct_conn.ptnr2_label_seq_id")
+
+    # All partner residue columns are required
+    if any(isnothing, (c_p1_asym, c_p1_comp, c_p1_seq, c_p2_asym, c_p2_comp, c_p2_seq))
+        @warn "mmCIF _struct_conn loop is missing required partner columns; skipping connection parsing"
+        return ssbonds, others
+    end
+
+    # Atom-name columns (required only for non-disulphide types where the
+    # specific atoms matter; for disulphides we look up the S atom of the CYS).
+    c_p1_atom = _reqcol(cols, "_struct_conn.ptnr1_auth_atom_id", "_struct_conn.ptnr1_label_atom_id")
+    c_p2_atom = _reqcol(cols, "_struct_conn.ptnr2_auth_atom_id", "_struct_conn.ptnr2_label_atom_id")
+
+    c_p1_ins  = _optcol(cols, "_struct_conn.pdbx_ptnr1_PDB_ins_code")
+    c_p2_ins  = _optcol(cols, "_struct_conn.pdbx_ptnr2_PDB_ins_code")
+    c_sym1    = _optcol(cols, "_struct_conn.ptnr1_symmetry")
+    c_sym2    = _optcol(cols, "_struct_conn.ptnr2_symmetry")
+    c_dist    = _optcol(cols, "_struct_conn.pdbx_dist_value")
+    c_order   = _optcol(cols, "_struct_conn.pdbx_value_order")
+
+    n_ss = 0
+    for row in loop.rows
+        ctype = strip(row[c_type])
+
+        p1_ins = isnothing(c_p1_ins) ? " " : _get(row, c_p1_ins, " ")
+        p2_ins = isnothing(c_p2_ins) ? " " : _get(row, c_p2_ins, " ")
+        first_res = PDBDetails.UniqueResidueID(
+            strip(row[c_p1_comp]),
+            strip(row[c_p1_asym]),
+            parse(Int, strip(row[c_p1_seq])),
+            p1_ins,
+        )
+        second_res = PDBDetails.UniqueResidueID(
+            strip(row[c_p2_comp]),
+            strip(row[c_p2_asym]),
+            parse(Int, strip(row[c_p2_seq])),
+            p2_ins,
+        )
+        dist = isnothing(c_dist) ? 0.0 : parse(Float64, _get(row, c_dist, "0.0"))
+        order_str = isnothing(c_order) ? "" : something(_get(row, c_order), "")
+
+        if ctype == "disulf"
+            sym1 = isnothing(c_sym1) ? 0 : _parse_symmetry_operator(_get(row, c_sym1, "0"))
+            sym2 = isnothing(c_sym2) ? 0 : _parse_symmetry_operator(_get(row, c_sym2, "0"))
+            n_ss += 1
+            push!(ssbonds, PDBDetails.SSBondRecord(n_ss, first_res, second_res, sym1, sym2, dist))
+        elseif haskey(_CONN_TYPE_FLAGS, ctype)
+            if isnothing(c_p1_atom) || isnothing(c_p2_atom)
+                @warn "mmCIF _struct_conn loop is missing atom-name columns; skipping $ctype rows"
+                continue
+            end
+            a1_name = strip(row[c_p1_atom])
+            a2_name = strip(row[c_p2_atom])
+            push!(others, StructConnRecord(ctype, first_res, a1_name, second_res, a2_name, dist, order_str))
+        end
+    end
+
+    return ssbonds, others
+end
+
+# Build bonds for non-disulphide _struct_conn entries (covale, metalc, hydrog,
+# saltbr) by resolving each partner's atom via the fragment cache. Stores the
+# original `conn_type_id` as `:CIF_CONN_TYPE` on the bond so the writer can
+# distinguish e.g. covale from metalc on round-trip (both share TYPE__COVALENT).
+function _build_struct_conn_bonds!(sys, conns, fragment_cache)
+    for conn in conns
+        f1 = get(fragment_cache, conn.res1, nothing)
+        f2 = get(fragment_cache, conn.res2, nothing)
+        if isnothing(f1) || isnothing(f2)
+            @warn "mmCIF _struct_conn: residue not found, skipping $(conn.conn_type) bond"
+            continue
+        end
+
+        at1 = atoms(f1; frame_id = nothing)
+        at2 = atoms(f2; frame_id = nothing)
+        a1 = findfirst(a -> strip(a.name) == conn.atom1, at1)
+        a2 = findfirst(a -> strip(a.name) == conn.atom2, at2)
+        if isnothing(a1) || isnothing(a2)
+            @warn "mmCIF _struct_conn: atom not found ($(conn.atom1) in $(conn.res1.name)/$(conn.res1.number) or $(conn.atom2) in $(conn.res2.name)/$(conn.res2.number)); skipping $(conn.conn_type) bond"
+            continue
+        end
+
+        flag = _CONN_TYPE_FLAGS[conn.conn_type]
+        order = get(_BOND_ORDER_FROM_CIF, conn.order, BondOrder.Single)
+
+        props = Properties(:CIF_CONN_TYPE => conn.conn_type)
+        if conn.distance != 0.0
+            props[:BOND_LENGTH] = conn.distance
+        end
+
+        Bond(sys, at1[a1].idx, at2[a2].idx, order;
+             flags = Flags((flag,)),
+             properties = props)
+    end
+end
+
+# After PDBDetails.postprocess_ssbonds_!, also set :TYPE__COVALENT on every
+# disulphide bond and tag them as `disulf` for the writer round-trip.
+function _flag_disulphide_bonds_covalent!(sys)
+    for b in bonds(sys)
+        if has_flag(b, :TYPE__DISULPHIDE_BOND)
+            set_flag!(b, :TYPE__COVALENT)
+            set_property!(b, :CIF_CONN_TYPE, "disulf")
+        end
+    end
+end
+
+# Parse CIF symmetry operator string like '1_555' into an integer.
+function _parse_symmetry_operator(s::String)
+    s = strip(s)
+    (s == "?" || s == "." || isempty(s)) && return 0
+    # Try parsing as integer directly
+    v = tryparse(Int, replace(s, "_" => ""))
+    isnothing(v) ? 0 : v
+end
+
+# ─── Secondary Structure Parsing ─────────────────────────────────────
+
+function _parse_secondary_structures(block::CIFDataBlock)
+    records = Deque{Union{PDBDetails.HelixRecord, PDBDetails.SheetRecord, PDBDetails.TurnRecord}}()
+
+    _parse_helices!(records, block)
+    _parse_sheets!(records, block)
+
+    return records
+end
+
+function _parse_helices!(records, block::CIFDataBlock)
+    loop = _find_loop(block, "_struct_conf.")
+    isnothing(loop) && return
+
+    cols = _col_map(loop)
+
+    c_id = get(cols, "_struct_conf.id", nothing)
+    isnothing(c_id) && return
+
+    # Use auth fields when available, fall back to label
+    c_beg_comp = _reqcol(cols, "_struct_conf.beg_auth_comp_id", "_struct_conf.beg_label_comp_id")
+    c_beg_asym = _reqcol(cols, "_struct_conf.beg_auth_asym_id", "_struct_conf.beg_label_asym_id")
+    c_beg_seq  = _reqcol(cols, "_struct_conf.beg_auth_seq_id", "_struct_conf.beg_label_seq_id")
+    c_end_comp = _reqcol(cols, "_struct_conf.end_auth_comp_id", "_struct_conf.end_label_comp_id")
+    c_end_asym = _reqcol(cols, "_struct_conf.end_auth_asym_id", "_struct_conf.end_label_asym_id")
+    c_end_seq  = _reqcol(cols, "_struct_conf.end_auth_seq_id", "_struct_conf.end_label_seq_id")
+
+    # All residue columns are required
+    if any(isnothing, (c_beg_comp, c_beg_asym, c_beg_seq, c_end_comp, c_end_asym, c_end_seq))
+        @warn "mmCIF _struct_conf loop is missing required residue columns; skipping helix parsing"
+        return
+    end
+
+    c_helix_id    = _optcol(cols, "_struct_conf.pdbx_PDB_helix_id")
+    c_helix_class = _optcol(cols, "_struct_conf.pdbx_PDB_helix_class")
+    c_details     = _optcol(cols, "_struct_conf.details")
+    c_beg_ins     = _optcol(cols, "_struct_conf.pdbx_beg_PDB_ins_code")
+    c_end_ins     = _optcol(cols, "_struct_conf.pdbx_end_PDB_ins_code")
+
+    n = 0
+    for row in loop.rows
+        n += 1
+
+        helix_name = isnothing(c_helix_id) ? _get(row, c_id, "H$n") : _get(row, c_helix_id, "H$n")
+        beg_ins = isnothing(c_beg_ins) ? " " : _get(row, c_beg_ins, " ")
+        end_ins = isnothing(c_end_ins) ? " " : _get(row, c_end_ins, " ")
+
+        initial = PDBDetails.UniqueResidueID(
+            strip(row[c_beg_comp]),
+            strip(row[c_beg_asym]),
+            parse(Int, strip(row[c_beg_seq])),
+            beg_ins
+        )
+        terminal = PDBDetails.UniqueResidueID(
+            strip(row[c_end_comp]),
+            strip(row[c_end_asym]),
+            parse(Int, strip(row[c_end_seq])),
+            end_ins
+        )
+
+        helix_class = if isnothing(c_helix_class)
+            1
+        else
+            v = tryparse(Int, _get(row, c_helix_class, "1"))
+            isnothing(v) ? 1 : v
+        end
+        details = isnothing(c_details) ? "" : _get(row, c_details, "")
+
+        push!(records, PDBDetails.HelixRecord(n, helix_name, initial, terminal, helix_class, details))
+    end
+end
+
+function _parse_sheets!(records, block::CIFDataBlock)
+    loop = _find_loop(block, "_struct_sheet_range.")
+    isnothing(loop) && return
+
+    cols = _col_map(loop)
+
+    c_sheet_id = get(cols, "_struct_sheet_range.sheet_id", nothing)
+    c_range_id = get(cols, "_struct_sheet_range.id", nothing)
+    if isnothing(c_sheet_id) || isnothing(c_range_id)
+        @warn "mmCIF _struct_sheet_range loop is missing sheet_id or id columns; skipping sheet parsing"
+        return
+    end
+
+    # Use auth fields when available, fall back to label
+    c_beg_comp = _reqcol(cols, "_struct_sheet_range.beg_auth_comp_id", "_struct_sheet_range.beg_label_comp_id")
+    c_beg_asym = _reqcol(cols, "_struct_sheet_range.beg_auth_asym_id", "_struct_sheet_range.beg_label_asym_id")
+    c_beg_seq  = _reqcol(cols, "_struct_sheet_range.beg_auth_seq_id", "_struct_sheet_range.beg_label_seq_id")
+    c_end_comp = _reqcol(cols, "_struct_sheet_range.end_auth_comp_id", "_struct_sheet_range.end_label_comp_id")
+    c_end_asym = _reqcol(cols, "_struct_sheet_range.end_auth_asym_id", "_struct_sheet_range.end_label_asym_id")
+    c_end_seq  = _reqcol(cols, "_struct_sheet_range.end_auth_seq_id", "_struct_sheet_range.end_label_seq_id")
+
+    # All residue columns are required
+    if any(isnothing, (c_beg_comp, c_beg_asym, c_beg_seq, c_end_comp, c_end_asym, c_end_seq))
+        @warn "mmCIF _struct_sheet_range loop is missing required residue columns; skipping sheet parsing"
+        return
+    end
+
+    c_beg_ins = _optcol(cols, "_struct_sheet_range.pdbx_beg_PDB_ins_code")
+    c_end_ins = _optcol(cols, "_struct_sheet_range.pdbx_end_PDB_ins_code")
+
+    # Try to get sense from _struct_sheet_order
+    sense_map = _parse_sheet_order_sense(block)
+
+    for row in loop.rows
+        sheet_id = strip(row[c_sheet_id])
+        range_id = parse(Int, strip(row[c_range_id]))
+
+        beg_ins = isnothing(c_beg_ins) ? " " : _get(row, c_beg_ins, " ")
+        end_ins = isnothing(c_end_ins) ? " " : _get(row, c_end_ins, " ")
+
+        initial = PDBDetails.UniqueResidueID(
+            strip(row[c_beg_comp]),
+            strip(row[c_beg_asym]),
+            parse(Int, strip(row[c_beg_seq])),
+            beg_ins
+        )
+        terminal = PDBDetails.UniqueResidueID(
+            strip(row[c_end_comp]),
+            strip(row[c_end_asym]),
+            parse(Int, strip(row[c_end_seq])),
+            end_ins
+        )
+
+        sense = get(sense_map, (sheet_id, range_id), 0)
+
+        push!(records, PDBDetails.SheetRecord(range_id, sheet_id, initial, terminal, sense))
+    end
+end
+
+# Parse _struct_sheet_order to get sense values for each sheet range.
+function _parse_sheet_order_sense(block::CIFDataBlock)
+    sense_map = Dict{Tuple{String, Int}, Int}()
+    loop = _find_loop(block, "_struct_sheet_order.")
+    isnothing(loop) && return sense_map
+
+    cols = _col_map(loop)
+    c_sheet = _optcol(cols, "_struct_sheet_order.sheet_id")
+    c_range2 = _optcol(cols, "_struct_sheet_order.range_id_2")
+    c_sense = _optcol(cols, "_struct_sheet_order.sense")
+
+    if isnothing(c_sheet) || isnothing(c_range2) || isnothing(c_sense)
+        return sense_map
+    end
+
+    for row in loop.rows
+        sheet_id = strip(row[c_sheet])
+        range_id = parse(Int, strip(row[c_range2]))
+        sense_str = _get(row, c_sense, "parallel")
+        sense = sense_str == "anti-parallel" ? -1 : (sense_str == "parallel" ? 1 : 0)
+        sense_map[(sheet_id, range_id)] = sense
+    end
+
+    return sense_map
+end
