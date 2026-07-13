@@ -547,7 +547,9 @@ function _permute_torsion_rows!(torsion::TorsionArrays{Acc}, perm::AbstractVecto
     torsion
 end
 
-function shuffle_interactions!(cff::CompiledForceField{T,Acc}) where {T,Acc}
+function shuffle_interactions!(cff::CompiledForceField{T,Acc}; seed::Int=42) where {T,Acc}
+    
+    Random.seed!(seed)
     n = length(cff.stretch.i)
     if n > 0
         perm = randperm(n)
