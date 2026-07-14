@@ -13,6 +13,11 @@
 #  serial.
 # ============================================================================
 
+
+
+
+
+
 # ---------------------------------------------------------------------------
 #  Bonded ENERGY (serial accumulation in Acc)
 # ---------------------------------------------------------------------------
@@ -21,7 +26,7 @@ function _energy_stretch(cff::CompiledForceField{T, Acc}) where {T, Acc}
     e = zero(Acc)
     @inbounds for n in eachindex(s.k)
         d = norm(r[s.i[n]] - r[s.j[n]])
-        e += s.k[n] * (d - s.r0[n])^2
+        e += _compute_stretch_energy(s.k[n], s.r0[n], d)
     end
     e
 end
@@ -32,11 +37,7 @@ function _energy_bend(cff::CompiledForceField{T, Acc}) where {T, Acc}
     @inbounds for n in eachindex(b.k)
         v1 = r[b.i[n]] - r[b.j[n]]
         v2 = r[b.l[n]] - r[b.j[n]]
-        sq_length = squared_norm(v1) * squared_norm(v2)
-        iszero(sq_length) && continue
-        cos_θ = dot(v1, v2) / sqrt(sq_length)
-        θ = cos_θ > one(Acc) ? zero(Acc) : cos_θ < -one(Acc) ? Acc(π) : acos(cos_θ)
-        e += b.k[n] * (θ - b.θ0[n])^2
+        e += _compute_bend_energy(b.k[n], b.θ0[n], v1, v2)
     end
     e
 end
@@ -45,14 +46,14 @@ function _energy_torsion(cff::CompiledForceField{T, Acc}, t::TorsionArrays{Acc})
     r = cff.r
     e = zero(Acc)
     @inbounds for n in eachindex(t.i)
+        a21 = r[t.i[n]] - r[t.j[n]]
         a23 = r[t.k[n]] - r[t.j[n]]
-        cross2321 = normalize(cross(a23, r[t.i[n]] - r[t.j[n]]))
-        cross2334 = normalize(cross(a23, r[t.l[n]] - r[t.k[n]]))
-        (isnan(cross2321[1]) || isnan(cross2334[1])) && continue
-        cos_ϕ = clamp(dot(cross2321, cross2334), -one(Acc), one(Acc))
+        a34 = r[t.l[n]] - r[t.k[n]]
+        _, _, _, _, ok, cos_ϕ = _torsion_geometry(a21, a23, a34)
+        ok || continue
         acϕ = acos(cos_ϕ)
         lo = t.term_offset[n]; hi = t.term_offset[n+1] - one(Int32)
-        for m in lo:hi
+        @inbounds for m in lo:hi
             e += t.V[m] / t.div[m] * (one(Acc) + cos(t.f[m] * acϕ - t.ϕ0[m]))
         end
     end
@@ -164,10 +165,9 @@ function _force_stretch!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
         i = s.i[n]; j = s.j[n]
         direction = r[i] - r[j]
         d = norm(direction)
-        d == zero(Acc) && continue
-        direction *= 2 * s.k[n] * (d - s.r0[n]) / d
-        F[i] -= direction
-        F[j] += direction
+        force = _compute_stretch_force(s.k[n], s.r0[n], d, direction)
+        F[i] -= force
+        F[j] += force
     end
     nothing
 end
@@ -178,21 +178,10 @@ function _force_bend!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
         i = b.i[n]; j = b.j[n]; l = b.l[n]
         v1 = r[i] - r[j]
         v2 = r[l] - r[j]
-        v1_length = norm(v1); v2_length = norm(v2)
-        (v1_length == zero(Acc) || v2_length == zero(Acc)) && continue
-        v1 = v1 / v1_length
-        v2 = v2 / v2_length
-        cos_θ = dot(v1, v2)
-        θ = cos_θ > one(Acc) ? zero(Acc) : cos_θ < -one(Acc) ? Acc(π) : acos(cos_θ)
-        factor = 2 * b.k[n] * (θ - b.θ0[n])
-        crossv1v2 = normalize(cross(v1, v2))
-        isnan(crossv1v2[1]) && continue
-        n1 = cross(v1, crossv1v2) .* factor ./ v1_length
-        n2 = cross(v2, crossv1v2) .* factor ./ v2_length
-        F[i] -= n1
-        F[j] += n1
-        F[j] -= n2
-        F[l] += n2
+        f1, f2, f3 = _compute_bend_force(b.k[n], b.θ0[n], v1, v2)
+        F[i] += f1
+        F[j] += f2
+        F[l] += f3
     end
     nothing
 end
@@ -204,15 +193,12 @@ function _force_torsion!(F, cff::CompiledForceField{T, Acc}, t::TorsionArrays{Ac
         a21 = r[i] - r[j]
         a23 = r[k] - r[j]
         a34 = r[l] - r[k]
-        cross2321 = cross(a23, a21)
-        cross2334 = cross(a23, a34)
-        len1 = norm(cross2321); len2 = norm(cross2334)
-        (len1 == zero(Acc) || len2 == zero(Acc)) && continue
-        cos_ϕ = clamp(dot(cross2321, cross2334) / (len1 * len2), -one(Acc), one(Acc))
+        cross2321, cross2334, len1, len2, ok, cos_ϕ = _torsion_geometry(a21, a23, a34)
+        ok || continue
         acϕ = acos(cos_ϕ)
         lo = t.term_offset[n]; hi = t.term_offset[n+1] - one(Int32)
         ∂E∂ϕ = zero(Acc)
-        for m in lo:hi
+        @inbounds for m in lo:hi
             ∂E∂ϕ += -t.V[m] / t.div[m] * t.f[m] * sin(t.f[m] * acϕ - t.ϕ0[m])
         end
         direction = dot(cross(cross2321, cross2334), a23)
@@ -392,3 +378,4 @@ end
     end
     nothing
 end
+

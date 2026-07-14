@@ -1,4 +1,6 @@
 export
+    compute_stretch_energy,
+    compute_stretch_force,
     QuadraticBondStretch,
     QuadraticStretchComponent
 
@@ -97,10 +99,20 @@ function update!(qsc::QuadraticStretchComponent)
     nothing
 end
 
-@inline function compute_energy(qbs::QuadraticBondStretch{T})::T where T
-    d = distance(qbs.a1.r, qbs.a2.r)
+@inline function compute_stretch_energy(k::T, r0::T, distance::T)::T where T
+    k * (distance - r0)^2
+end
 
-    qbs.k * (d - qbs.r0)^2
+@inline function compute_stretch_force(k::T, r0::T, distance::T, direction::Vector3{T})::Vector3{T} where T
+    if distance == zero(T)
+        return zero(direction)
+    end
+    (2 * k * (distance - r0) / distance) * direction
+end
+
+@inline function compute_energy(qbs::QuadraticBondStretch{T})::T where T
+    d = norm(qbs.a1.r .- qbs.a2.r)
+    _compute_stretch_energy(qbs.k, qbs.r0, d)
 end
 
 function compute_energy!(qsc::QuadraticStretchComponent{T})::T where T
@@ -115,18 +127,10 @@ end
 
 function compute_forces!(qbs::QuadraticBondStretch{T}) where T
     direction = qbs.a1.r .- qbs.a2.r
-    distance = norm(direction)
-
-    if distance == zero(T)
-        return
-    end
-
-    direction *= 2 * qbs.k * (distance - qbs.r0) / distance
-
-    #@info "$(get_full_name(qbs.a1))<->$(get_full_name(qbs.a2)) $(direction)"
-
-    qbs.a1.F -= direction
-    qbs.a2.F += direction
+    d = norm(direction)
+    force = _compute_stretch_force(qbs.k, qbs.r0, d, direction)
+    qbs.a1.F -= force
+    qbs.a2.F += force
 end
 
 function compute_forces!(qsc::QuadraticStretchComponent)
