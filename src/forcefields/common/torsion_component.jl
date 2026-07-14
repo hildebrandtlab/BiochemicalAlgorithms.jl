@@ -257,26 +257,10 @@ function update!(::TorsionComponent)
 end
 
 @inline function compute_energy(pt::CosineTorsion{T})::T where T
-    energy = zero(T)
-
+    a21 = pt.a1.r .- pt.a2.r
     a23 = pt.a3.r .- pt.a2.r
-
-    cross2321 = normalize(cross(a23, pt.a1.r .- pt.a2.r))
-    cross2334 = normalize(cross(a23, pt.a4.r .- pt.a3.r))
-
-    if !isnan(cross2321[1]) && !isnan(cross2334[1])
-        cos_ϕ = clamp(dot(cross2321, cross2334), -one(T), one(T))
-
-        terms = pt.V ./ pt.div .* (Ref(1) .+ cos.(pt.f .* Ref(acos(cos_ϕ)) .- pt.ϕ₀))
-
-        @debug "$(get_full_name(pt.a1))-$(get_full_name(pt.a2))-" *
-               "$(get_full_name(pt.a3))-$(get_full_name(pt.a4)) " *
-               "$(cos_ϕ) terms: $(terms)"
-
-        energy = sum(terms)
-    end
-
-    energy
+    a34 = pt.a4.r .- pt.a3.r
+    _compute_torsion_energy(pt.V, pt.ϕ₀, pt.f, pt.div, a21, a23, a34)
 end
 
 function compute_energy!(tc::TorsionComponent{T})::T where T
@@ -297,47 +281,12 @@ function compute_forces!(ct::CosineTorsion{T}) where T
     a23 = ct.a3.r .- ct.a2.r
     a34 = ct.a4.r .- ct.a3.r
 
-    cross2321 = cross(a23, a21)
-    cross2334 = cross(a23, a34)
+    f1, f2, f3, f4 = _compute_torsion_force(ct.V, ct.ϕ₀, ct.f, ct.div, a21, a23, a34)
 
-    length_cross2321 = norm(cross2321)
-    length_cross2334 = norm(cross2334)
-
-    if length_cross2321 ≠ zero(T) && length_cross2334 ≠ zero(T)
-        cos_ϕ = clamp(dot(cross2321, cross2334) / (length_cross2321 * length_cross2334), -one(T), one(T))
-
-        terms = -ct.V./ct.div .* ct.f .* (sin.(ct.f .* Ref(acos(cos_ϕ)) .- ct.ϕ₀))
-
-        # multiply with the barrier height and the factor for unit conversion
-        # from kJ/(mol A) -> J/(mol m) -> N
-        ∂E∂ϕ = sum(terms)
-
-        @debug "$(get_full_name(ct.a1))-$(get_full_name(ct.a2))-" *
-               "$(get_full_name(ct.a3))-$(get_full_name(ct.a4)) " *
-               "$(cos_ϕ) terms: $(terms) $(∂E∂ϕ)"
-
-        direction = dot(cross(cross2321, cross2334), a23)
-
-        if direction > zero(T)
-            ∂E∂ϕ *= -1
-        end
-
-        a13 = ct.a3.r .- ct.a1.r
-        a24 = ct.a4.r .- ct.a2.r
-
-        dEdt =  (∂E∂ϕ / (length_cross2321^2 * norm(a23)) * cross(cross2321, a23))
-        dEdu = -(∂E∂ϕ / (length_cross2334^2 * norm(a23)) * cross(cross2334, a23))
-
-        @debug "$(get_full_name(ct.a1))<->$(get_full_name(ct.a2))<->" *
-              "$(get_full_name(ct.a3))<->$(get_full_name(ct.a4)) "   *
-              "$(cross(dEdt, a23)); $(cross(a13, dEdt) + cross(dEdu, a34));" *
-              "$(cross(a21, dEdt) + cross(a24, dEdu)); $(cross(dEdu, a23))"
-
-        ct.a1.F += cross(dEdt, a23)
-        ct.a2.F += cross(a13, dEdt) + cross(dEdu, a34)
-        ct.a3.F += cross(a21, dEdt) + cross(a24, dEdu)
-        ct.a4.F += cross(dEdu, a23)
-    end
+    ct.a1.F += f1
+    ct.a2.F += f2
+    ct.a3.F += f3
+    ct.a4.F += f4
 end
 
 function compute_forces!(tc::TorsionComponent)
@@ -370,3 +319,4 @@ function print_warnings(tc::TorsionComponent)
             "$(get_full_name(a4, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID)))"
     end
 end
+
