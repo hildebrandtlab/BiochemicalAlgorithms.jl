@@ -45,6 +45,6 @@
     "Star": "names/Star.json"
   },
   "defaults": {
-    "Naming": "PDB"
+    "Naming": "BALL"
   }
 }

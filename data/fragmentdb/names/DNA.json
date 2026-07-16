@@ -1,6 +1,6 @@
 {
   "name": "DNA",
-  "maps_to": "PDB",
+  "maps_to": "BALL",
   "mappings": {
     "C:P": "C:P",
     "DC:OP1": "C:O1P",

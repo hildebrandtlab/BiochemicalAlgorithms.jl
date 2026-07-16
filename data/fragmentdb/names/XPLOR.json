@@ -1,6 +1,6 @@
 {
   "name": "XPLOR",
-  "maps_to": "PDB",
+  "maps_to": "BALL",
   "mappings": {
     "*:H1": "*:1H",
     "*:H2": "*:2H",

@@ -18,7 +18,7 @@
         @test length(fdb.name_mappings) == 6
         for scheme in ["Discover", "Amber", "CHARMM", "XPLOR", "Star", "DNA"]
             @test haskey(fdb.name_mappings, scheme)
-            @test fdb.name_mappings[scheme].maps_to == "PDB"
+            @test fdb.name_mappings[scheme].maps_to == "BALL"
         end
     end
 end

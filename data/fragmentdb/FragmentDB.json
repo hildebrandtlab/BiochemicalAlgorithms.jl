@@ -44,6 +44,6 @@
     "DNA": "names/DNA.json"
   },
   "defaults": {
-    "Naming": "PDB"
+    "Naming": "BALL"
   }
 }

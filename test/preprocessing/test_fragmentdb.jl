@@ -5,7 +5,7 @@
         @test length(fdb.fragments) == 34
         @test length(fdb.name_mappings) == 6
         @test length(fdb.defaults) == 1
-        @test fdb.defaults["Naming"] == "PDB"
+        @test fdb.defaults["Naming"] == "BALL"
     end
 
     for T in [Float32, Float64]
