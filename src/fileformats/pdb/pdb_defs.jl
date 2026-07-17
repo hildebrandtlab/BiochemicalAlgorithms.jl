@@ -41,6 +41,7 @@ export PDBInfo
     RECORD_TYPE__KEYWDS,
     RECORD_TYPE__LINK,
     RECORD_TYPE__MASTER,
+    RECORD_TYPE__MDLTYP,
     RECORD_TYPE__MODEL,
     RECORD_TYPE__MODRES,
     RECORD_TYPE__MTRIX1,
@@ -215,6 +216,7 @@ const FORMAT_JRNL             = "      %67.67s"
 const FORMAT_KEYWDS           = "  %2.2s%-69.69s"
 const FORMAT_LINK             = "      %4.4s%1.1s%3.3s %1.1s%4ld%1.1s               %4.4s%1.1s%3.3s %1.1s%4ld%1.1s  %6ld %6ld"
 const FORMAT_MASTER           = "    %5d%5d%5d%5d%5d%5d%5d%5d%5d%5d%5d%5d"
+const FORMAT_MDLTYP           = "  %2.2s%-70.70s"
 const FORMAT_MODEL            = "    %4ld"
 const FORMAT_MODRES           = " %3.3s %3.3s %1.1s %4ld%1.1s %3.3s  %41.41s"
 const FORMAT_MTRIX1           = " %3ld%10.6f%10.6f%10.6f     %10.5f    %1ld"
@@ -276,6 +278,7 @@ const RECORD_TAG_JRNL    = "JRNL  "
 const RECORD_TAG_KEYWDS  = "KEYWDS"
 const RECORD_TAG_LINK    = "LINK  "
 const RECORD_TAG_MASTER  = "MASTER"
+const RECORD_TAG_MDLTYP  = "MDLTYP"
 const RECORD_TAG_MODEL   = "MODEL "
 const RECORD_TAG_MODRES  = "MODRES"
 const RECORD_TAG_MTRIX1  = "MTRIX1"
@@ -338,6 +341,7 @@ const RECORD_TYPE_FORMAT = [
     RecordTypeFormat(RECORD_TYPE__KEYWDS,  RECORD_TAG_KEYWDS,  FORMAT_KEYWDS),
     RecordTypeFormat(RECORD_TYPE__LINK,    RECORD_TAG_LINK,    FORMAT_LINK),
     RecordTypeFormat(RECORD_TYPE__MASTER,  RECORD_TAG_MASTER,  FORMAT_MASTER),
+    RecordTypeFormat(RECORD_TYPE__MDLTYP,  RECORD_TAG_MDLTYP,  FORMAT_MDLTYP),
     RecordTypeFormat(RECORD_TYPE__MODEL,   RECORD_TAG_MODEL,   FORMAT_MODEL),
     RecordTypeFormat(RECORD_TYPE__MODRES,  RECORD_TAG_MODRES,  FORMAT_MODRES),
     RecordTypeFormat(RECORD_TYPE__MTRIX1,  RECORD_TAG_MTRIX1,  FORMAT_MTRIX1),
