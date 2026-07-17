@@ -193,7 +193,7 @@ res1.variant # 1 = unknown, 2 = residue, 3 = nucleotide
 Alternatively, it is also possible to check if this is a nucleotide:
 
 ```{julia}
-println(is_nucleotide(res1))
+println(isnucleotide(res1))
 
 println("Number of fragments before push: ", nfragments(s))
 push!(chain_by_idx(s, 2), res1)
@@ -223,7 +223,7 @@ As described in the Fragments section, [`Residue`](@ref) is a Fragment with `Fra
 ```{julia}
 s = load_pdb(ball_data_path("../test/data/AlaAla.pdb")) # restore original data
 res = fragments(s)[1]
-println("is_amino_acid(): ", is_amino_acid(res))
+println("isresidue():     ", isresidue(res))
 println("is_c_terminal(): ", is_c_terminal(res))
 println("is_n_terminal(): ", is_n_terminal(res))
 ```
@@ -375,6 +375,3 @@ infer_topology!(s)
 predict_hbonds!(s, :KABSCH_SANDER)
 predict_secondary_structure!(s)
 ```
-
-## Congratulation
-You are now familiar with the most important core entities of BiochemicalAlgorithms.jl
