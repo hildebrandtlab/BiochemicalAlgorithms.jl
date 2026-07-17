@@ -36,6 +36,32 @@
         @test nfragments.(chains(sys)) == [223, 58, 123, 35]
         @test nnucleotides.(chains(sys)) == [0, 0, 0, 0]
         @test nresidues.(chains(sys)) == [223, 58, 0, 0]
+
+        # multi-model systems
+        sys = load_pdb(ball_data_path("../test/data/1l2y_short.pdb"), T)
+        @test sys isa System{T}
+        @test sys.name == "DE NOVO PROTEIN"
+        @test natoms(sys) == 304
+        @test natoms(sys; frame_id = 1) == 304
+        @test natoms(sys; frame_id = 2) == 304
+        @test natoms(sys; frame_id = nothing) == 608
+        @test nbonds(sys) == 0
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 1
+        @test nfragments(sys) == 20
+        @test nsecondary_structures(sys) == 3
+
+        sys = load_pdb(ball_data_path("../test/data/1l2y_short.pdb"), T; selected_model = 2)
+        @test sys isa System{T}
+        @test sys.name == "DE NOVO PROTEIN"
+        @test natoms(sys) == 0
+        @test natoms(sys; frame_id = 2) == 304
+        @test natoms(sys; frame_id = nothing) == 304
+        @test nbonds(sys) == 0
+        @test nmolecules(sys) == 1
+        @test nchains(sys) == 1
+        @test nfragments(sys) == 20
+        @test nsecondary_structures(sys) == 3
     end
 end
 
