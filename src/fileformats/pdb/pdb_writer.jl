@@ -194,9 +194,21 @@ function write_title_section(io::IO, pdb_info::PDBInfo)
     write_records(io, pdb_info, Val(RECORD_TYPE__REMARK))
 end
 
+function write_dbref12_section(io::IO, pdb_info::PDBInfo)
+    dbref1 = extract_records(Val(RECORD_TYPE__DBREF1), pdb_info)
+    dbref2 = extract_records(Val(RECORD_TYPE__DBREF2), pdb_info)
+
+    for (db1, db2) in zip(dbref1, dbref2)
+        write_record(io, pdb_info, db1)
+        write_record(io, pdb_info, db2)
+    end
+end
+
 function write_primary_structure_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}) where {T <:Real}
     # --- DBREF ---
     write_records(io, pdb_info, Val(RECORD_TYPE__DBREF))
+    # --- DBREF1/2 ---
+    write_dbref12_section(io, pdb_info)
     # --- SEQADV ---
     write_records(io, pdb_info, Val(RECORD_TYPE__SEQADV))
     # --- SEQRES ---
