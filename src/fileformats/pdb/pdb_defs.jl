@@ -25,6 +25,8 @@ export PDBInfo
     RECORD_TYPE__CON064,
     RECORD_TYPE__CRYST1,
     RECORD_TYPE__DBREF,
+    RECORD_TYPE__DBREF1,
+    RECORD_TYPE__DBREF2,
     RECORD_TYPE__END,
     RECORD_TYPE__ENDMDL,
     RECORD_TYPE__EXPDTA,
@@ -200,6 +202,8 @@ const FORMAT_CON064           = "%5ld%5ld%5ld%5ld"
 const FORMAT_CONECT           = "%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld%5ld"
 const FORMAT_CRYST1           = "%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f %-11.11s%4ld"
 const FORMAT_DBREF            = " %4.4s %1.1s %4ld%1.1s %4ld%1.1s %6.6s %8.8s %12.12s %5ld%1.1s %5ld%1.1s"
+const FORMAT_DBREF1           = " %4.4s %1.1s %4ld%1.1s %4ld%1.1s %6.6s               %20.20s"
+const FORMAT_DBREF2           = " %4.4s %1.1s     %-22.22s     %10ld  %10ld"
 const FORMAT_END              = ""
 const FORMAT_ENDMDL           = ""
 const FORMAT_EXPDTA           = "  %2.2s%-69.69s"
@@ -262,6 +266,8 @@ const RECORD_TAG_CON06   = "CONECT"
 const RECORD_TAG_CONECT  = "CONECT"
 const RECORD_TAG_CRYST1  = "CRYST1"
 const RECORD_TAG_DBREF   = "DBREF "
+const RECORD_TAG_DBREF1  = "DBREF1"
+const RECORD_TAG_DBREF2  = "DBREF2"
 const RECORD_TAG_END     = "END   "
 const RECORD_TAG_ENDMDL  = "ENDMDL"
 const RECORD_TAG_EXPDTA  = "EXPDTA"
@@ -325,6 +331,8 @@ const RECORD_TYPE_FORMAT = [
     RecordTypeFormat(RECORD_TYPE__CONECT,  RECORD_TAG_CONECT,  FORMAT_CONECT),
     RecordTypeFormat(RECORD_TYPE__CRYST1,  RECORD_TAG_CRYST1,  FORMAT_CRYST1),
     RecordTypeFormat(RECORD_TYPE__DBREF,   RECORD_TAG_DBREF,   FORMAT_DBREF),
+    RecordTypeFormat(RECORD_TYPE__DBREF1,  RECORD_TAG_DBREF1,  FORMAT_DBREF1),
+    RecordTypeFormat(RECORD_TYPE__DBREF2,  RECORD_TAG_DBREF2,  FORMAT_DBREF2),
     RecordTypeFormat(RECORD_TYPE__END,     RECORD_TAG_END,     FORMAT_END),
     RecordTypeFormat(RECORD_TYPE__ENDMDL,  RECORD_TAG_ENDMDL,  FORMAT_ENDMDL),
     RecordTypeFormat(RECORD_TYPE__EXPDTA,  RECORD_TAG_EXPDTA,  FORMAT_EXPDTA),
