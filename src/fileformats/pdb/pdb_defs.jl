@@ -46,6 +46,7 @@ export PDBInfo
     RECORD_TYPE__MTRIX1,
     RECORD_TYPE__MTRIX2,
     RECORD_TYPE__MTRIX3,
+    RECORD_TYPE__NUMMDL,
     RECORD_TYPE__OBSLTE,
     RECORD_TYPE__ORIGX1,
     RECORD_TYPE__ORIGX2,
@@ -219,6 +220,7 @@ const FORMAT_MODRES           = " %3.3s %3.3s %1.1s %4ld%1.1s %3.3s  %41.41s"
 const FORMAT_MTRIX1           = " %3ld%10.6f%10.6f%10.6f     %10.5f    %1ld"
 const FORMAT_MTRIX2           = " %3ld%10.6f%10.6f%10.6f     %10.5f    %1ld"
 const FORMAT_MTRIX3           = " %3ld%10.6f%10.6f%10.6f     %10.5f    %1ld"
+const FORMAT_NUMMDL           = "    %-4ld"
 const FORMAT_OBSLTE           = "  %2.2s %9.9s %4.4s      %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s"
 const FORMAT_ORIGX1           = "    %10.6f%10.6f%10.6f     %10.5f"
 const FORMAT_ORIGX2           = "    %10.6f%10.6f%10.6f     %10.5f"
@@ -279,6 +281,7 @@ const RECORD_TAG_MODRES  = "MODRES"
 const RECORD_TAG_MTRIX1  = "MTRIX1"
 const RECORD_TAG_MTRIX2  = "MTRIX2"
 const RECORD_TAG_MTRIX3  = "MTRIX3"
+const RECORD_TAG_NUMMDL  = "NUMMDL"
 const RECORD_TAG_OBSLTE  = "OBSLTE"
 const RECORD_TAG_ORIGX1  = "ORIGX1"
 const RECORD_TAG_ORIGX2  = "ORIGX2"
@@ -340,6 +343,7 @@ const RECORD_TYPE_FORMAT = [
     RecordTypeFormat(RECORD_TYPE__MTRIX1,  RECORD_TAG_MTRIX1,  FORMAT_MTRIX1),
     RecordTypeFormat(RECORD_TYPE__MTRIX2,  RECORD_TAG_MTRIX2,  FORMAT_MTRIX2),
     RecordTypeFormat(RECORD_TYPE__MTRIX3,  RECORD_TAG_MTRIX3,  FORMAT_MTRIX3),
+    RecordTypeFormat(RECORD_TYPE__NUMMDL,  RECORD_TAG_NUMMDL,  FORMAT_NUMMDL),
     RecordTypeFormat(RECORD_TYPE__OBSLTE,  RECORD_TAG_OBSLTE,  FORMAT_OBSLTE),
     RecordTypeFormat(RECORD_TYPE__ORIGX1,  RECORD_TAG_ORIGX1,  FORMAT_ORIGX1),
     RecordTypeFormat(RECORD_TYPE__ORIGX2,  RECORD_TAG_ORIGX2,  FORMAT_ORIGX2),
