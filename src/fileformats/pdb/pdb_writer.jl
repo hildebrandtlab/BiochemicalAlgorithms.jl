@@ -180,6 +180,8 @@ function write_title_section(io::IO, pdb_info::PDBInfo)
     write_records(io, pdb_info, Val(RECORD_TYPE__EXPDTA))
     # --- NUMMDL ---
     write_records(io, pdb_info, Val(RECORD_TYPE__NUMMDL))
+    # --- MDLTYP ---
+    write_records(io, pdb_info, Val(RECORD_TYPE__MDLTYP))
     # --- AUTHOR ---
     write_records(io, pdb_info, Val(RECORD_TYPE__AUTHOR))
     # --- REVDAT ---
