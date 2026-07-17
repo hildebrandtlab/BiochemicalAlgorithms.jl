@@ -1,6 +1,5 @@
 export
     AminoAcid,
-    is_amino_acid,
     name,
     one_letter_code,
     three_letter_code
