@@ -54,7 +54,7 @@ function break_into_continuation_lines(line::String, c::Int = 1)
     end
 end
 
-function write_record(io::IO, pdb_info::PDBInfo, tag_name::String, args...)
+function write_record(io::IO, pdb_info::PDBInfo, tag_name::String, args...; model_number::Int = 1)
     type = RECORD_MAP[tag_name]
     
     # CONECT-records are handled differently
@@ -76,9 +76,9 @@ function write_record(io::IO, pdb_info::PDBInfo, tag_name::String, args...)
             RECORD_TYPE__MTRIX1, RECORD_TYPE__MTRIX2, RECORD_TYPE__MTRIX3    
         ]
         pdb_info.writer_stats.coordinate_transformation_records += 1
-    elseif type.record_type in [RECORD_TYPE__ATOM, RECORD_TYPE__HETATM]
+    elseif type.record_type in [RECORD_TYPE__ATOM, RECORD_TYPE__HETATM] && model_number == 1
         pdb_info.writer_stats.atomic_coordinate_records += 1
-    elseif type.record_type == RECORD_TYPE__TER
+    elseif type.record_type == RECORD_TYPE__TER && model_number == 1
         pdb_info.writer_stats.ter_records += 1
     elseif type.record_type == RECORD_TYPE__SEQRES
         pdb_info.writer_stats.seqres_records += 1
@@ -178,6 +178,8 @@ function write_title_section(io::IO, pdb_info::PDBInfo)
     write_records(io, pdb_info, Val(RECORD_TYPE__KEYWDS))
     # --- EXPDTA ---
     write_records(io, pdb_info, Val(RECORD_TYPE__EXPDTA))
+    # --- NUMMDL ---
+    write_records(io, pdb_info, Val(RECORD_TYPE__NUMMDL))
     # --- AUTHOR ---
     write_records(io, pdb_info, Val(RECORD_TYPE__AUTHOR))
     # --- REVDAT ---
@@ -372,13 +374,13 @@ function write_crystallographic_section(io::IO, pdb_info::PDBInfo)
     write_records(io, pdb_info, Val(RECORD_TYPE__TVECT))
 end
 
-function write_atom_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}) where {T <:Real}
+function write_atom_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}; model_number::Int = 1) where {T <:Real}
  # we iterate over all atoms and decide if we have to write an ATOM, HETATM, or TER record
 
         last_atom = nothing
         atom_number = 1
 
-        for atom in atoms(ac)
+        for atom in atoms(ac; frame_id = model_number)
             # if the last atom was in a different chain, we have to write a TER record
             if !isnothing(last_atom) && (parent_chain(last_atom) !== parent_chain(atom))
                 write_record(io, pdb_info, RECORD_TAG_TER, atom_number, atom_details(last_atom)...)        
@@ -405,15 +407,16 @@ function write_atom_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer
                   atom_details(atom)..., atom.r...,
                   get_property(atom, :occupancy, 1.0),
                   get_property(atom, :tempfactor, 0.0),
-                  "", element_symbol, atom.formal_charge > 0 ? string(atom.formal_charge) : "")
+                  "", element_symbol, atom.formal_charge > 0 ? string(atom.formal_charge) : "";
+                  model_number)
 
             atom_number += 1
             last_atom = atom
         end
 
         # if there were any atoms, write the final TER record
-        if natoms(ac) > 0
-            write_record(io, pdb_info, RECORD_TAG_TER, atom_number, atom_details(atoms(ac)[end])...)
+        if natoms(ac; frame_id = model_number) > 0
+            write_record(io, pdb_info, RECORD_TAG_TER, atom_number, atom_details(last(atoms(ac; frame_id = model_number)))...; model_number)
         end
 end
 
@@ -437,10 +440,10 @@ function write_coordinate_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomCon
     for model in models
         if multiple_models
             # write a models record
-            write_record(io, pdb_info, RECORD_TAG_MODEL, pdb_info.selected_model)
+            write_record(io, pdb_info, RECORD_TAG_MODEL, model)
         end
 
-        write_atom_section(io, pdb_info, ac)
+        write_atom_section(io, pdb_info, ac; model_number = model)
 
         if multiple_models
             # write a model record
