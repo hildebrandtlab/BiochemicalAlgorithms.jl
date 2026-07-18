@@ -217,7 +217,19 @@ function interpret_record(
                 ])
             )
         else
-            pdb_info.current_residue = only(filter(f -> f.number == residue_sequence_number, fragments(sys)))
+            ft = filter(f ->
+                f.number == residue_sequence_number &&
+                f.name == residue_name &&
+                get_property(f, :insertion_code) == residue_insertion_code &&
+                get_property(f, :alternate_location_id) == alternate_location_identifier &&
+                parent_chain(f).name == chain_id,
+                fragments(sys)
+            )
+            if isempty(ft)
+                @warn "load_pdb: model $(pdb_info.current_model) tried to add additional fragment ($residue_sequence_number/$residue_name/$chain_id)... skipping record"
+                return
+            end
+            pdb_info.current_residue = only(ft)
             pdb_info.current_chain = parent_chain(pdb_info.current_residue)
         end
     end
@@ -289,6 +301,10 @@ function interpret_record(
         x, y, z, occupancy, temperature_factor, segment_id,
         element_symbol, charge;
         sys=sys, pdb_info=pdb_info, is_hetero_atom=true, kwargs...)
+
+    if isnothing(pdb_info.current_residue)
+        return
+    end
 
     # ensure the residue is marked as a hetero fragement, even if the
     # first atom was a regular one
