@@ -80,7 +80,7 @@ function write_record(io::IO, pdb_info::PDBInfo, tag_name::String, args...)
         pdb_info.writer_stats.atomic_coordinate_records += 1
     elseif type.record_type == RECORD_TYPE__TER
         pdb_info.writer_stats.ter_records += 1
-    else type.record_type == RECORD_TYPE__SEQRES
+    elseif type.record_type == RECORD_TYPE__SEQRES
         pdb_info.writer_stats.seqres_records += 1
     end
 
