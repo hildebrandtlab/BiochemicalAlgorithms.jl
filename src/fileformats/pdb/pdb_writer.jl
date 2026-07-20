@@ -147,7 +147,7 @@ function write_seqres(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}) w
 
     # iterate over all chains
     for chain in chains(ac)
-        res = fragments(chain)
+        res = residues(chain)
         nres = length(res)
         # each chain is stored in groups of 13 residues
         for (i, rs) in enumerate(Iterators.partition(res, 13))
