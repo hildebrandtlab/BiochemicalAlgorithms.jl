@@ -114,6 +114,10 @@ function parse_record(line, record_type; sys::System{T}, pdb_info::PDBInfo{T}, k
     interpret_record(Val(record_type.record_type), record_type.record_type, results...; sys=sys, pdb_info, kwargs...)
 end
 
+function interpret_record(::Val{RECORD_TYPE__MODEL}, tag, modelno; sys, pdb_info, kwargs...)
+    pdb_info.current_model = modelno
+end
+
 function interpret_record(::Val{RECORD_TYPE__HEADER}, tag, classification, deposition_date, id; sys, pdb_info, kwargs...)
     pdb_info.name = classification
     pdb_info.deposition_date = deposition_date
@@ -185,7 +189,11 @@ function interpret_record(
     if (isnothing(pdb_info.current_chain)
         ||
         chain_id != pdb_info.current_chain.name)
-        pdb_info.current_chain = Chain(molecules(sys)[1]; name=chain_id)
+
+        if pdb_info.current_model == 1 || pdb_info.selected_model != -1
+            pdb_info.current_chain = Chain(molecules(sys)[1]; name=chain_id)
+        end # else case is handled below
+
         pdb_info.current_residue = nothing
     end
 
@@ -195,18 +203,35 @@ function interpret_record(
         || residue_name != pdb_info.current_residue.name
         || residue_insertion_code != get(pdb_info.current_residue.properties, :insertion_code, ""))
 
-        # TODO: we should handle nucleotides correctly here
-        pdb_info.current_residue = Fragment(
-            pdb_info.current_chain,
-            residue_sequence_number;
-            name=residue_name,
-            variant=is_hetero_atom ? FragmentVariant.None : FragmentVariant.Residue,
-            properties=Properties([
-                :is_hetero_fragment => is_hetero_atom,
-                :insertion_code => residue_insertion_code,
-                :alternate_location_id => alternate_location_identifier
-            ])
-        )
+        if (pdb_info.current_model == 1 || pdb_info.selected_model != -1)
+            # TODO: we should handle nucleotides correctly here
+            pdb_info.current_residue = Fragment(
+                pdb_info.current_chain,
+                residue_sequence_number;
+                name=residue_name,
+                variant=is_hetero_atom ? FragmentVariant.None : FragmentVariant.Residue,
+                properties=Properties([
+                    :is_hetero_fragment => is_hetero_atom,
+                    :insertion_code => residue_insertion_code,
+                    :alternate_location_id => alternate_location_identifier
+                ])
+            )
+        else
+            ft = filter(f ->
+                f.number == residue_sequence_number &&
+                f.name == residue_name &&
+                get_property(f, :insertion_code) == residue_insertion_code &&
+                get_property(f, :alternate_location_id) == alternate_location_identifier &&
+                parent_chain(f).name == chain_id,
+                fragments(sys)
+            )
+            if isempty(ft)
+                @warn "load_pdb: model $(pdb_info.current_model) tried to add additional fragment ($residue_sequence_number/$residue_name/$chain_id)... skipping record"
+                return
+            end
+            pdb_info.current_residue = only(ft)
+            pdb_info.current_chain = parent_chain(pdb_info.current_residue)
+        end
     end
 
     # finally, create the atom
@@ -276,6 +301,10 @@ function interpret_record(
         x, y, z, occupancy, temperature_factor, segment_id,
         element_symbol, charge;
         sys=sys, pdb_info=pdb_info, is_hetero_atom=true, kwargs...)
+
+    if isnothing(pdb_info.current_residue)
+        return
+    end
 
     # ensure the residue is marked as a hetero fragement, even if the
     # first atom was a regular one
