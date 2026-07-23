@@ -397,7 +397,7 @@ function write_atom_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer
                   atom_details(atom)..., atom.r...,
                   get_property(atom, :occupancy, 1.0),
                   get_property(atom, :tempfactor, 0.0),
-                  "", element_symbol, atom.formal_charge > 0 ? string(atom.formal_charge) : "";
+                  element_symbol, atom.formal_charge > 0 ? string(atom.formal_charge) : "";
                   model_number)
 
             atom_number += 1

@@ -155,7 +155,6 @@ function interpret_record(
     z,
     occupancy,
     temperature_factor,
-    segment_id,
     element_symbol,
     charge;
     sys::System{T},
@@ -273,7 +272,6 @@ function interpret_record(
     z,
     occupancy,
     temperature_factor,
-    segment_id,
     element_symbol,
     charge;
     sys::System{T},
@@ -298,7 +296,7 @@ function interpret_record(
     interpret_record(Val(RECORD_TYPE__ATOM), tag, serial_number,
         atom_name, alternate_location_identifier, residue_name,
         chain_id, residue_sequence_number, residue_insertion_code,
-        x, y, z, occupancy, temperature_factor, segment_id,
+        x, y, z, occupancy, temperature_factor,
         element_symbol, charge;
         sys=sys, pdb_info=pdb_info, is_hetero_atom=true, kwargs...)
 
