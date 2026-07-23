@@ -189,7 +189,6 @@ end
 const FORMAT_UNKNOWN          = ""
 const FORMAT_ANISOU           = "%5ld %-4.4s%1.1s%3.3s %1.1s%4ld%1.1s %7ld%7ld%7ld%7ld%7ld%7ld      %2.2s%2.2s"
 const FORMAT_ATOM             = "%5ld %-4.4s%1.1s%3.3s %1.1s%4ld%1.1s   %8.3f%8.3f%8.3f%6.2f%6.2f          %2.2s%2.2s"
-const FORMAT_ATOM_PARTIAL_CRG = "%5ld %-4.4s%1.1s%3.3s %1.1s%4ld%1.1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %4.4s%4.4s"
 const FORMAT_AUTHOR           = "  %2.2s%-69.69s"
 const FORMAT_CAVEAT           = "  %2.2s %4.4s    %-60.60s"
 const FORMAT_CISPEP           = " %3ld %3.3s %1.1s %4ld%1.1s   %3.3s %1.1s %4ld%1.1s       %3ld       %6.2f"
