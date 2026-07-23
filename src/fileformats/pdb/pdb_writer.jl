@@ -285,29 +285,11 @@ function write_sheet_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContaine
     end
 end
 
-function write_turn_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}) where {T <:Real}
-    turns = filter(
-        ss -> ss.type == SecondaryStructureElement.Turn,
-        secondary_structures(ac)
-    )
-
-    for (turn_number, turn) in enumerate(turns)
-        write(io, pdb_info, RECORD_TAG_TURN,
-            turn_number, turn.name,
-            residue_details(first(turn))...,
-            residue_details(last(turn))...,
-            get_property(turn, :COMMENT, "")
-        )
-    end
-end
-
 function write_secondary_structure_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}) where {T <:Real}
     # --- HELIX ---
     write_helix_section(io, pdb_info, ac)
     # --- SHEET ---
     write_sheet_section(io, pdb_info, ac)
-    # --- TURN ---
-    write_turn_section(io, pdb_info, ac)
 end
 
 function write_ssbond_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}) where {T <:Real}
@@ -336,10 +318,6 @@ function write_connectivity_annotation_section(io::IO, pdb_info::PDBInfo, ac::Ab
     write_ssbond_section(io, pdb_info, ac)
     # --- LINK ---
     write_records(io, pdb_info, Val(RECORD_TYPE__LINK))
-    # --- HYDBND ---
-    write_records(io, pdb_info, Val(RECORD_TYPE__HYDBND))
-    # --- SLTBRG ---
-    write_records(io, pdb_info, Val(RECORD_TYPE__SLTBRG))
     # --- CISPEP ---
     write_records(io, pdb_info, Val(RECORD_TYPE__CISPEP))
 end
@@ -370,8 +348,6 @@ function write_crystallographic_section(io::IO, pdb_info::PDBInfo)
     write_records(io, pdb_info, Val(RECORD_TYPE__MTRIX2))
     # --- MTRIX3 ---
     write_records(io, pdb_info, Val(RECORD_TYPE__MTRIX3))
-    # --- TVECT ---
-    write_records(io, pdb_info, Val(RECORD_TYPE__TVECT))
 end
 
 function write_atom_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}; model_number::Int = 1) where {T <:Real}
