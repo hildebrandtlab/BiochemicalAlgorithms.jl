@@ -147,8 +147,12 @@ function write_seqres(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}) w
 
     # iterate over all chains
     for chain in chains(ac)
-        res = residues(chain)
+        res = fragments(chain)
         nres = length(res)
+
+        # chain needs at least one residue
+        nresidues(chain) == 0 && continue
+
         # each chain is stored in groups of 13 residues
         for (i, rs) in enumerate(Iterators.partition(res, 13))
             rs = vcat(map(r -> fix_nucleotide_name(r.name), rs), repeat([""], 13 - length(rs)))
