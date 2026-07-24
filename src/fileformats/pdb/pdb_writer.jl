@@ -147,8 +147,12 @@ function write_seqres(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}) w
 
     # iterate over all chains
     for chain in chains(ac)
-        res = residues(chain)
+        res = fragments(chain)
         nres = length(res)
+
+        # chain needs at least one residue
+        nresidues(chain) == 0 && continue
+
         # each chain is stored in groups of 13 residues
         for (i, rs) in enumerate(Iterators.partition(res, 13))
             rs = vcat(map(r -> fix_nucleotide_name(r.name), rs), repeat([""], 13 - length(rs)))
@@ -180,6 +184,8 @@ function write_title_section(io::IO, pdb_info::PDBInfo)
     write_records(io, pdb_info, Val(RECORD_TYPE__EXPDTA))
     # --- NUMMDL ---
     write_records(io, pdb_info, Val(RECORD_TYPE__NUMMDL))
+    # --- MDLTYP ---
+    write_records(io, pdb_info, Val(RECORD_TYPE__MDLTYP))
     # --- AUTHOR ---
     write_records(io, pdb_info, Val(RECORD_TYPE__AUTHOR))
     # --- REVDAT ---
@@ -192,9 +198,21 @@ function write_title_section(io::IO, pdb_info::PDBInfo)
     write_records(io, pdb_info, Val(RECORD_TYPE__REMARK))
 end
 
+function write_dbref12_section(io::IO, pdb_info::PDBInfo)
+    dbref1 = extract_records(Val(RECORD_TYPE__DBREF1), pdb_info)
+    dbref2 = extract_records(Val(RECORD_TYPE__DBREF2), pdb_info)
+
+    for (db1, db2) in zip(dbref1, dbref2)
+        write_record(io, pdb_info, db1)
+        write_record(io, pdb_info, db2)
+    end
+end
+
 function write_primary_structure_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}) where {T <:Real}
     # --- DBREF ---
     write_records(io, pdb_info, Val(RECORD_TYPE__DBREF))
+    # --- DBREF1/2 ---
+    write_dbref12_section(io, pdb_info)
     # --- SEQADV ---
     write_records(io, pdb_info, Val(RECORD_TYPE__SEQADV))
     # --- SEQRES ---
@@ -285,29 +303,11 @@ function write_sheet_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContaine
     end
 end
 
-function write_turn_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}) where {T <:Real}
-    turns = filter(
-        ss -> ss.type == SecondaryStructureElement.Turn, 
-        secondary_structures(ac)
-    )
-
-    for (turn_number, turn) in enumerate(turns)
-        write(io, pdb_info, RECORD_TAG_TURN, 
-            turn_number, turn.name,
-            residue_details(first(turn))...,
-            residue_details(last(turn))...,
-            get_property(turn, :COMMENT, "")
-        )
-    end
-end
-
 function write_secondary_structure_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}) where {T <:Real}
     # --- HELIX ---
     write_helix_section(io, pdb_info, ac)
     # --- SHEET ---
     write_sheet_section(io, pdb_info, ac)
-    # --- TURN ---
-    write_turn_section(io, pdb_info, ac)
 end
 
 function write_ssbond_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}) where {T <:Real}
@@ -336,10 +336,6 @@ function write_connectivity_annotation_section(io::IO, pdb_info::PDBInfo, ac::Ab
     write_ssbond_section(io, pdb_info, ac)
     # --- LINK ---
     write_records(io, pdb_info, Val(RECORD_TYPE__LINK))
-    # --- HYDBND ---
-    write_records(io, pdb_info, Val(RECORD_TYPE__HYDBND))
-    # --- SLTBRG ---
-    write_records(io, pdb_info, Val(RECORD_TYPE__SLTBRG))
     # --- CISPEP ---
     write_records(io, pdb_info, Val(RECORD_TYPE__CISPEP))
 end
@@ -370,8 +366,6 @@ function write_crystallographic_section(io::IO, pdb_info::PDBInfo)
     write_records(io, pdb_info, Val(RECORD_TYPE__MTRIX2))
     # --- MTRIX3 ---
     write_records(io, pdb_info, Val(RECORD_TYPE__MTRIX3))
-    # --- TVECT ---
-    write_records(io, pdb_info, Val(RECORD_TYPE__TVECT))
 end
 
 function write_atom_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContainer{T}; model_number::Int = 1) where {T <:Real}
