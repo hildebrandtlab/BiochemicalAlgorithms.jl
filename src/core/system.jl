@@ -117,7 +117,7 @@ Creates a new and empty `System{T}`.
     _chains::_ChainTable
     _secondary_structures::_SecondaryStructureTable
     _fragments::_FragmentTable
-    _curr_idx::Int
+    _current_idx::Int
 
     function System{T}(
         name::AbstractString = "",
@@ -167,7 +167,7 @@ end
 Returns the next available `idx` for the given system.
 """
 @inline function _next_idx!(sys::System{T}) where T
-    sys._curr_idx += 1
+    sys._current_idx += 1
 end
 
 @inline function _offset_atom_indices!(sys::System, by::Int)
@@ -224,7 +224,7 @@ function _offset_indices!(sys::System, by::Int)
     _offset_chain_indices!(sys, by)
     _offset_secondary_structure_indices!(sys, by)
     _offset_fragment_indices!(sys, by)
-    sys._curr_idx += by
+    sys._current_idx += by
     sys
 end
 
@@ -239,15 +239,15 @@ Copies all system components from `others` to `sys`.
 """
 function Base.append!(sys::System{T}, others::System{T}...) where T
     for other in others
-        offset = other._curr_idx
-        other = _offset_indices!(deepcopy(other), sys._curr_idx)
+        offset = other._current_idx
+        other = _offset_indices!(deepcopy(other), sys._current_idx)
         append!(sys._atoms, other._atoms)
         append!(sys._bonds, other._bonds)
         append!(sys._molecules, other._molecules)
         append!(sys._chains, other._chains)
         append!(sys._secondary_structures, other._secondary_structures)
         append!(sys._fragments, other._fragments)
-        sys._curr_idx += offset
+        sys._current_idx += offset
     end
     sys
 end
