@@ -53,7 +53,7 @@ Atom(
     radius::T = zero(T),
     properties::Properties = Properties(),
     flags::Flags = Flags(),
-    frame_id::Int = 1
+    frame_id::Int = selected_frame(ac),
     molecule_idx::MaybeInt = nothing,
     chain_idx::MaybeInt = nothing,
     fragment_idx::MaybeInt = nothing
@@ -76,7 +76,7 @@ const Atom{T} = SystemComponent{T, :Atom}
     sys::System{T},
     number::Int,
     element::ElementType;
-    frame_id::Int = 1,
+    frame_id::Int = selected_frame(sys),
     molecule_idx::MaybeInt = nothing,
     chain_idx::MaybeInt = nothing,
     fragment_idx::MaybeInt = nothing,
@@ -190,13 +190,13 @@ Returns the first `Atom{T}` associated with the given `name` in `ac`. Returns no
 atom exists.
 
 # Supported keyword arguments
- - `frame_id::MaybeInt = 1`: \
+ - `frame_id::MaybeInt = selected_frame(ac)`: \
 Any value other than `nothing` limits the result to atoms matching this frame ID.
 """
 @inline function atom_by_name(
     ac::AbstractAtomContainer{T},
     name::AbstractString;
-    frame_id::MaybeInt = 1
+    frame_id::MaybeInt = selected_frame(parent(ac))
 ) where T
     idx = filter(atom -> atom.name == name, atoms(ac; frame_id = frame_id)).idx
     isempty(idx) ? nothing : atom_by_idx(parent(ac), first(idx))
@@ -207,16 +207,16 @@ end
 end
 
 """
-    atoms(::Bond)
-    atoms(::Chain)
-    atoms(::Fragment)
-    atoms(::Molecule)
-    atoms(::System = default_system())
+    atoms(ac::Bond)
+    atoms(ac::Chain)
+    atoms(ac::Fragment)
+    atoms(ac::Molecule)
+    atoms(ac::System = default_system())
 
 Returns an `AtomTable{T}` containing all atoms of the given atom container.
 
 # Supported keyword arguments
- - `frame_id::MaybeInt = 1`
+ - `frame_id::MaybeInt = selected_frame(ac)`
  - `molecule_idx::Union{MaybeInt, Some{Nothing}} = nothing`
  - `chain_idx::Union{MaybeInt, Some{Nothing}} = nothing`
  - `fragment_idx::Union{MaybeInt, Some{Nothing}} = nothing`
@@ -224,7 +224,7 @@ All keyword arguments limit the results to atoms matching the given IDs. Keyword
 `nothing` are ignored. You can use `Some(nothing)` to explicitly filter for ID values of `nothing`.
 """
 @inline function atoms(sys::System{T} = default_system();
-    frame_id::MaybeInt = 1,
+    frame_id::MaybeInt = selected_frame(sys),
     molecule_idx::Union{MaybeInt, Some{Nothing}} = nothing,
     chain_idx::Union{MaybeInt, Some{Nothing}} = nothing,
     fragment_idx::Union{MaybeInt, Some{Nothing}} = nothing
@@ -348,11 +348,16 @@ assigned a new `idx`.
 See [`atoms`](@ref)
 """
 @inline function Base.push!(sys::System{T}, atom::Atom{T};
-    frame_id::Int = 1,
+    frame_id::Int = selected_frame(sys),
     molecule_idx::MaybeInt = nothing,
     chain_idx::MaybeInt = nothing,
     fragment_idx::MaybeInt = nothing
 ) where T
+    _copy!(atom; sys, frame_id, molecule_idx, chain_idx, fragment_idx)
+    sys
+end
+
+@inline function _copy!(atom::Atom{T}; sys::System{T} = parent(atom), kwargs...) where T
     Atom(sys, atom.number, atom.element;
         name = atom.name,
         atom_type = atom.atom_type,
@@ -364,12 +369,12 @@ See [`atoms`](@ref)
         radius = atom.radius,
         properties = atom.properties,
         flags = atom.flags,
-        frame_id = frame_id,
-        molecule_idx = molecule_idx,
-        chain_idx = chain_idx,
-        fragment_idx = fragment_idx
+        frame_id = atom.frame_id,
+        molecule_idx = atom.molecule_idx,
+        chain_idx = atom.chain_idx,
+        fragment_idx = atom.fragment_idx,
+        kwargs...
     )
-    sys
 end
 
 @enumx FullNameType begin

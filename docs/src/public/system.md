@@ -25,11 +25,16 @@ AbstractSystemComponent
 AbstractSystemComponentTable
 SystemComponentTable
 SystemComponentTableCol
+copy_frame!
+frame_ids
 full_table
 get_property
 has_flag
 has_property
+nframes
 revalidate_indices!
+select_frame!
+selected_frame
 set_flag!
 set_property!
 unset_flag!

@@ -45,6 +45,7 @@ end
 function Base.copy(substruct::Substructure{T}) where T
     sys = System{T}(substruct.name)
     sys._current_idx = parent(substruct)._current_idx
+    sys._current_frame = parent(substruct)._current_frame
 
     sys.properties = copy(substruct.properties)
     sys.flags      = copy(substruct.parent.flags)
@@ -68,7 +69,7 @@ Returns an `AtomTable` for all of the given system's atoms matching the given cr
 private atom fields.
 """
 @inline function atoms(substruct::Substructure{T};
-    frame_id::MaybeInt = 1,
+    frame_id::MaybeInt = selected_frame(parent(substruct)),
     molecule_idx::Union{MaybeInt, Some{Nothing}} = nothing,
     chain_idx::Union{MaybeInt, Some{Nothing}} = nothing,
     fragment_idx::Union{MaybeInt, Some{Nothing}} = nothing
