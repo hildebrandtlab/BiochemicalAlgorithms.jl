@@ -196,6 +196,10 @@ function get_partner(bond, atom)
     end
 end
 
+@inline function atoms(bond::Bond{T}; kwargs...) where T
+    filter(a -> a.idx == bond.atom1_idx || a.idx == bond.atom2_idx, atoms(parent(bond); kwargs...))
+end
+
 function get_partners(bond)
     s = parent(bond)
     atom_by_idx(s, bond.atom1_idx), atom_by_idx(s, bond.atom2_idx)

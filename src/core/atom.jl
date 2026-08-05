@@ -207,6 +207,7 @@ end
 end
 
 """
+    atoms(::Bond)
     atoms(::Chain)
     atoms(::Fragment)
     atoms(::Molecule)
