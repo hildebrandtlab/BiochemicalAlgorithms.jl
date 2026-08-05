@@ -44,7 +44,7 @@ end
 
 function Base.copy(substruct::Substructure{T}) where T
     sys = System{T}(substruct.name)
-    sys._curr_idx = sys._curr_idx
+    sys._curr_idx = parent(substruct)._curr_idx
 
     sys.properties = copy(substruct.properties)
     sys.flags      = copy(substruct.parent.flags)
