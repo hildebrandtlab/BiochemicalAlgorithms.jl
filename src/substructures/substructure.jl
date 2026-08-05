@@ -37,7 +37,7 @@ function filter_atoms(fn, mol::AbstractAtomContainer; name::AbstractString="", a
     bond_view = filter(row ->
         adjacent_bonds ? row.a1 ∈ idxset || row.a2 ∈ idxset
                         : row.a1 ∈ idxset && row.a2 ∈ idxset,
-        bonds(mol)
+        bonds(parent(mol))
     )
     Substructure(name, mol, atom_view, bond_view)
 end
