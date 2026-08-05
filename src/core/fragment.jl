@@ -67,20 +67,6 @@ Fragment(
 )
 ```
 Creates a new `Fragment{T}` in the given chain.
-
-```julia
-Fragment(
-    secondary_structure::SecondaryStructure{T},
-    number::Int;
-    # keyword arguments
-    name::AbstractString = "",
-    variant::FragmentVariantType = FragmentVariant.None,
-    properties::Properties = Properties(),
-    flags::Flags = Flags()
-)
-```
-Creates a new `Fragment{T}` in the given secondary structure.
-
 """
 const Fragment{T} = AtomContainer{T, :Fragment}
 
