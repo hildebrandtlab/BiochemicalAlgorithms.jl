@@ -525,5 +525,37 @@ end
         sys2 = System{T}()
         @test nframes(sys2) == 0
         @test isempty(frame_ids(sys2))
+
+        # multi-model system
+        sys = load_pdb(ball_data_path("../test/data/1X0I.pdb"), T)
+        @test nframes(sys) == 2
+        @test frame_ids(sys) == [1, 2]
+        @test natoms(sys) == 1824
+        @test natoms(sys; frame_id = 1) == 1824
+        @test natoms(sys; frame_id = 2) == 1824
+        @test nbonds(sys) == 129
+        @test nbonds(sys; frame_id = 1) == 129
+        @test nbonds(sys; frame_id = 2) == 0   # https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/issues/343
+
+        select_frame!(sys, 2)
+        fdb = FragmentDB{T}()
+        infer_topology!(sys, fdb)
+        @test natoms(sys) == 3603
+        @test natoms(sys; frame_id = 1) == 1824
+        @test natoms(sys; frame_id = 2) == 3603
+        @test nbonds(sys) == 3490
+        @test nbonds(sys; frame_id = 1) == 129
+        @test nbonds(sys; frame_id = 2) == 3490
+
+        select_frame!(sys, 1)
+        copy_frame!(sys, 3)
+        @test natoms(sys) == 1824
+        @test natoms(sys; frame_id = 1) == 1824
+        @test natoms(sys; frame_id = 2) == 3603
+        @test natoms(sys; frame_id = 3) == 1824
+        @test nbonds(sys) == 129
+        @test nbonds(sys; frame_id = 1) == 129
+        @test nbonds(sys; frame_id = 2) == 3490
+        @test nbonds(sys; frame_id = 3) == 129
     end
 end
