@@ -238,7 +238,7 @@ function interpret_record(
     formal_charge = tryparse(Int, charge)
     formal_charge = isnothing(formal_charge) ? 0 : formal_charge
 
-    pdb_info.atom_cache[serial_number] = Atom(
+    a = Atom(
         pdb_info.current_residue,
         serial_number,
         parse_element_string(strip(element_symbol), atom_name);
@@ -255,6 +255,12 @@ function interpret_record(
         flags=Flags(),
         frame_id=pdb_info.current_model
     )
+
+    if (pdb_info.current_model == 1 || pdb_info.selected_model != -1)
+        pdb_info.atom_cache[serial_number] = a
+    end
+
+    a
 end
 
 
