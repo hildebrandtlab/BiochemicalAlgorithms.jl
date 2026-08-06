@@ -164,7 +164,7 @@ end
 
 Computes the rotation matrix by solving the eigenvalue problem given as the correlation matrix `C`.
 Uses all resulting eigenvalues and eigenvectors.
-Warns if the correlation matrix is not positive definit (contains negative eigenvalues or eigenvalues equal to 0)
+Warns if the correlation matrix is not positive definite (contains negative eigenvalues or eigenvalues equal to 0)
 and uses the alternative approch [`RMSDMinimizerCoutsias`](@ref) instead.
 Returns a `RotMatrix3`.
 """
@@ -173,7 +173,7 @@ function _compute_rotation(R::Matrix3{T}, ::Type{RMSDMinimizerKabsch}) where {T<
     μ, a = eigen(C)
 
     if minimum(μ) <= 0
-        @warn("Correlation matrix is not positive definit! Computing rotation through `RMSDMinimizerCoutsias` instead!")
+        @warn("Correlation matrix is not positive definite! Computing rotation through `RMSDMinimizerCoutsias` instead!")
         return _compute_rotation(R, RMSDMinimizerCoutsias)
     end
 
