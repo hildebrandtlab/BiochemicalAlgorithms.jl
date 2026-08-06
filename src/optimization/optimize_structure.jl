@@ -33,11 +33,27 @@ function optimize_structure!(ff::ForceField{T};
         max_displacement::Real = -1,
         callback = nothing,
         kwargs...) where T
-
+    
     cff = compile(ff; acc=accumulation, backend=backend,
                   update_frequency=update_frequency, max_displacement=max_displacement)
 
-    r0 = collect(Float64, Iterators.flatten(atoms(ff.system).r))
+    _optimize_structure!(cff; alg=alg, callback=callback, kwargs...)
+end
+
+function optimize_structure!(cff::CompiledForceField{T};
+        alg = OptimizationLBFGSB.LBFGSB(),
+        callback = nothing,
+        kwargs...) where T
+
+    _optimize_structure!(cff; alg=alg, callback=callback, kwargs...)
+end
+
+function _optimize_structure!(cff::CompiledForceField{T};
+        alg = OptimizationLBFGSB.LBFGSB(),
+        callback = nothing,
+        kwargs...) where T
+
+    r0 = collect(Float64, Iterators.flatten(atoms(cff.ff.system).r))
 
     optf = Optimization.OptimizationFunction(
         (r, _ = nothing) -> begin
