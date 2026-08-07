@@ -172,6 +172,8 @@ function write_title_section(io::IO, pdb_info::PDBInfo)
     write_records(io, pdb_info, Val(RECORD_TYPE__OBSLTE))
     # --- TITLE ---
     write_records(io, pdb_info, Val(RECORD_TYPE__TITLE))
+    # --- SPLIT ---
+    write_records(io, pdb_info, Val(RECORD_TYPE__SPLIT))
     # --- CAVEAT ---
     write_records(io, pdb_info, Val(RECORD_TYPE__CAVEAT))
     # --- COMPND ---

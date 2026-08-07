@@ -67,6 +67,7 @@ export PDBInfo
     RECORD_TYPE__SITE,
     RECORD_TYPE__SLTBRG,
     RECORD_TYPE__SOURCE,
+    RECORD_TYPE__SPLIT,
     RECORD_TYPE__SPRSDE,
     RECORD_TYPE__SSBOND,
     RECORD_TYPE__TER,
@@ -244,6 +245,7 @@ const FORMAT_SIGUIJ           = "%5ld %-4.4s%1.1s%3.3s %1.1s%4ld%1.1s %7ld%7ld%7
 const FORMAT_SITE             = " %3ld %3.3s %2ld %3.3s %1.1s%4.4s%1.1s %3.3s %1.1s%4.4s%1.1s %3.3s %1.1s%4.4s%1.1s %3.3s %1.1s%4.4s%1.1s                   "
 const FORMAT_SLTBRG           = "      %4.4s%1.1s%3.3s %1.1s%4ld%1.1s               %4.4s%1.1s%3.3s %1.1s%4ld%1.1s  %6ld%6ld"
 const FORMAT_SOURCE           = " %3.3s%-69.69s "
+const FORMAT_SPLIT            = "  %2.2s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s"
 const FORMAT_SPRSDE           = "  %2.2s %9.9s %4.4s      %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s %4.4s     "
 const FORMAT_SSBOND           = " %3ld %3.3s %1.1s %4ld%1.1s   %3.3s %1.1s %4ld%1.1s                       %6ld %6ld %5.2f  "
 const FORMAT_TER              = "%5ld      %3.3s %1.1s%4ld%1.1s                                                     "
@@ -308,6 +310,7 @@ const RECORD_TAG_SIGUIJ  = "SIGUIJ"
 const RECORD_TAG_SITE    = "SITE  "
 const RECORD_TAG_SLTBRG  = "SLTBRG"
 const RECORD_TAG_SOURCE  = "SOURCE"
+const RECORD_TAG_SPLIT   = "SPLIT "
 const RECORD_TAG_SPRSDE  = "SPRSDE"
 const RECORD_TAG_SSBOND  = "SSBOND"
 const RECORD_TAG_TER     = "TER   "
@@ -373,6 +376,7 @@ const RECORD_TYPE_FORMAT = [
     RecordTypeFormat(RECORD_TYPE__SITE,    RECORD_TAG_SITE,    FORMAT_SITE),
     RecordTypeFormat(RECORD_TYPE__SLTBRG,  RECORD_TAG_SLTBRG,  FORMAT_SLTBRG),
     RecordTypeFormat(RECORD_TYPE__SOURCE,  RECORD_TAG_SOURCE,  FORMAT_SOURCE),
+    RecordTypeFormat(RECORD_TYPE__SPLIT,   RECORD_TAG_SPLIT,   FORMAT_SPLIT),
     RecordTypeFormat(RECORD_TYPE__SPRSDE,  RECORD_TAG_SPRSDE,  FORMAT_SPRSDE),
     RecordTypeFormat(RECORD_TYPE__SSBOND,  RECORD_TAG_SSBOND,  FORMAT_SSBOND),
     RecordTypeFormat(RECORD_TYPE__TER,     RECORD_TAG_TER,     FORMAT_TER),
