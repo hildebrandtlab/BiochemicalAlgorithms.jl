@@ -116,6 +116,17 @@ end
 
 function interpret_record(::Val{RECORD_TYPE__MODEL}, tag, modelno; sys, pdb_info, kwargs...)
     pdb_info.current_model = modelno
+    if pdb_info.first_model == -1
+        pdb_info.first_model = modelno
+    end
+end
+
+@inline function _skip_model(pdb_info)
+    pdb_info.selected_model != -1 && pdb_info.selected_model != pdb_info.current_model
+end
+
+@inline function _is_first_model(pdb_info)
+    pdb_info.selected_model != -1 || pdb_info.first_model == -1 || pdb_info.current_model == pdb_info.first_model
 end
 
 function interpret_record(::Val{RECORD_TYPE__HEADER}, tag, classification, deposition_date, id; sys, pdb_info, kwargs...)
@@ -132,7 +143,7 @@ function interpret_record(::Val{RECORD_TYPE__TER}, tag, serial_number, residue_n
     residue_number, residue_insertion_code; sys, pdb_info, kwargs...)
 
     # should we skip this model?
-    if ((pdb_info.selected_model != -1) && (pdb_info.selected_model != pdb_info.current_model))
+    if _skip_model(pdb_info)
         return
     end
 
@@ -164,7 +175,7 @@ function interpret_record(
     kwargs...) where {T}
 
     # should we skip this model?
-    if ((pdb_info.selected_model != -1) && (pdb_info.selected_model != pdb_info.current_model))
+    if _skip_model(pdb_info)
         return
     end
 
@@ -189,7 +200,7 @@ function interpret_record(
         ||
         chain_id != pdb_info.current_chain.name)
 
-        if pdb_info.current_model == 1 || pdb_info.selected_model != -1
+        if _is_first_model(pdb_info)
             pdb_info.current_chain = Chain(molecules(sys)[1]; name=chain_id)
         end # else case is handled below
 
@@ -202,7 +213,7 @@ function interpret_record(
         || residue_name != pdb_info.current_residue.name
         || residue_insertion_code != get(pdb_info.current_residue.properties, :insertion_code, ""))
 
-        if (pdb_info.current_model == 1 || pdb_info.selected_model != -1)
+        if _is_first_model(pdb_info)
             # TODO: we should handle nucleotides correctly here
             pdb_info.current_residue = Fragment(
                 pdb_info.current_chain,
@@ -255,7 +266,7 @@ function interpret_record(
         frame_id=pdb_info.current_model
     )
 
-    if (pdb_info.current_model == 1 || pdb_info.selected_model != -1)
+    if _is_first_model(pdb_info)
         pdb_info.atom_cache[serial_number] = a
     end
 
@@ -285,7 +296,7 @@ function interpret_record(
     kwargs...) where {T}
 
     # should we skip this model?
-    if ((pdb_info.selected_model != -1) && (pdb_info.selected_model != pdb_info.current_model))
+    if _skip_model(pdb_info)
         return
     end
 

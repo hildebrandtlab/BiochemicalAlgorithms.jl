@@ -164,6 +164,7 @@ end
 
     selected_model::Int
     current_model::Int
+    first_model::Int
 
     current_chain::Union{Chain{T}, Nothing}
     current_residue::Union{Fragment{T}, Nothing}
@@ -180,7 +181,7 @@ end
     function PDBInfo{T}(selected_model=-1) where {T}
         new("", "", "", "", Deque{PDBRecord}(), Deque{SSBondRecord}(),
             Deque{Union{HelixRecord, SheetRecord, TurnRecord}}(), selected_model,
-            1, nothing, nothing, "A", false, Dict{Int, Atom{T}}(), Set{Tuple{Int, Int}}(),
+            1, -1, nothing, nothing, "A", false, Dict{Int, Atom{T}}(), Set{Tuple{Int, Int}}(),
             PDBWriterStats())
     end
 end
