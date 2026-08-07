@@ -365,6 +365,13 @@ function _lower_torsions!(cff::CompiledForceField{T,Acc}, t::TorsionArrays{Acc},
 end
 
 # --- nonbonded lowering (rebuilt on demand) ---------------------------------
+# Diagnostic: how many full pair-list rebuilds have happened. Rebuilds are serial
+# and O(#pairs), so a high count during minimization explains poor thread-scaling
+# (each `prepare_eval!` past the Verlet skin triggers one). Reset/read around a run.
+const _REBUILD_COUNT = Ref(0)
+reset_rebuild_count!() = (_REBUILD_COUNT[] = 0; nothing)
+rebuild_count() = _REBUILD_COUNT[]
+
 """
     rebuild_pairlist!(cff::CompiledForceField)
 
@@ -374,6 +381,7 @@ the expensive operation; during minimization it is invoked only periodically
 (see `update_frequency` / `max_displacement`).
 """
 function rebuild_pairlist!(cff::CompiledForceField{T, Acc}) where {T, Acc}
+    _REBUILD_COUNT[] += 1
     # snapshot positions for the displacement check
     resize!(cff.r_at_last_build, cff.natoms)
     @inbounds for k in 1:cff.natoms
