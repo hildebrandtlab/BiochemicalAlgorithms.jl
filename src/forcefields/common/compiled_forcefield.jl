@@ -324,7 +324,15 @@ from the force field's current coordinates. This is the expensive operation;
 during minimization it is invoked only periodically (see `update_frequency` /
 `max_displacement`).
 """
+# Diagnostic: how many full pair-list rebuilds have happened. Rebuilds are serial
+# and O(#pairs), so a high count during minimization explains poor thread-scaling
+# (each `prepare_eval!` past the Verlet skin triggers one). Reset/read around a run.
+const _REBUILD_COUNT = Ref(0)
+reset_rebuild_count!() = (_REBUILD_COUNT[] = 0; nothing)
+rebuild_count() = _REBUILD_COUNT[]
+
 function rebuild_pairlist!(cff::CompiledForceField{T,Acc}) where {T,Acc}
+    _REBUILD_COUNT[] += 1
     ff = cff.ff
     nbc = nothing
     for c in ff.components
