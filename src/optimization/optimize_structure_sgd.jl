@@ -194,7 +194,12 @@ function _refresh_minibatches!(p::MiniBatchParams{T,Acc}, r0; batchsize::Int , s
 end
 
 function _compute_energy_loss(r::AbstractVector, p::MiniBatchParams{T,Acc}) where {T,Acc}
-    prepare_eval!(p.cff, r)
+    # Load coordinates ONLY -- never rebuild the pair list mid-epoch. A rebuild
+    # re-lowers lj/hb/es in reference order without re-shuffling/re-partitioning,
+    # which corrupts this epoch's batch ranges (and is serial O(#pairs), killing
+    # thread-scaling). The rebuild+shuffle+repartition happens once per epoch in
+    # _refresh_minibatches!.
+    set_positions_flat!(p.cff, r)
     batch = p.batches[p.current_batch_idx]
     r_coords = p.cff.r  
 
@@ -261,7 +266,8 @@ function _compute_energy_loss(r::AbstractVector, p::MiniBatchParams{T,Acc}) wher
 end
 
 function _compute_grad!(grad::AbstractVector, r::AbstractVector, p::MiniBatchParams{T,Acc}) where {T,Acc}
-    prepare_eval!(p.cff, r)
+    # load coordinates only; see _compute_energy_loss -- no mid-epoch rebuild
+    set_positions_flat!(p.cff, r)
     batch = p.batches[p.current_batch_idx]
 
     F = p.cff.F
