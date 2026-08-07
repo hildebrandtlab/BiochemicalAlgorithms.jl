@@ -274,6 +274,8 @@ function write_sheet_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContaine
         secondary_structures(ac)
     )
 
+    records = []
+    strands_per_sheet   = Dict{SubString{String}, Int}()
     for strand in strands
         rs = fragments(strand)
 
@@ -289,15 +291,21 @@ function write_sheet_section(io::IO, pdb_info::PDBInfo, ac::AbstractAtomContaine
                     1
                 end
             end
-        strand_name = name_parts[1]
+        sheet_name = name_parts[1]
+        strands_per_sheet[sheet_name] = max(strand_number, get(strands_per_sheet, sheet_name, 1))
 
         strand_start = first(rs)
         strand_end   =  last(rs)
 
         strand_sense = get_property(strand, :STRAND_SENSE, 0)
 
+        push!(records, (strand_number, sheet_name, strand_start, strand_end, strand_sense))
+    end
+
+    sort!(records; by = t -> (t[2], t[1]))
+    for (strand_number, sheet_name, strand_start, strand_end, strand_sense) in records
         write_record(io, pdb_info, Val(RECORD_TYPE__SHEET),
-            strand_number, strand_name, length(strands),
+            strand_number, sheet_name, strands_per_sheet[sheet_name],
             residue_details(strand_start)...,
             residue_details(strand_end)...,
             strand_sense
