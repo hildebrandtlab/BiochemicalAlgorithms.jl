@@ -1,5 +1,5 @@
 using BiochemicalAlgorithms
-using Documenter
+using Documenter, DocumenterCodeBlocks
 
 DocMeta.setdocmeta!(BiochemicalAlgorithms, :DocTestSetup, :(using BiochemicalAlgorithms); recursive=true)
 
@@ -43,6 +43,7 @@ makedocs(;
         assets=String[],
     ),
     pages = pages,
+    plugins = [CodeBlocks()],
 )
 
 deploydocs(;
