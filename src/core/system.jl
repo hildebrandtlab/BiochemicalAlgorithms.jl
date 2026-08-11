@@ -98,12 +98,22 @@ Mutable representation of a biomolecular system.
  - `flags::Flags`
 
 # Constructors
-    System(name::AbstractString = "", properties::Properties = Properties(), flags::Flags = Flags())
-
+```julia
+System(
+    name::AbstractString = "",
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+)
+```
 Creates a new and empty `System{Float32}`.
 
-    System{T}(name::AbstractString = "", properties::Properties = Properties(), flags::Flags = Flags())
-
+```julia
+System{T}(
+    name::AbstractString = "",
+    properties::Properties = Properties(),
+    flags::Flags = Flags()
+)
+```
 Creates a new and empty `System{T}`.
 """
 @auto_hash_equals mutable struct System{T} <: AbstractAtomContainer{T}

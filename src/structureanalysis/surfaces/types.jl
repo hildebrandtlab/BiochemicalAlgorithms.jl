@@ -318,7 +318,7 @@ function weld_close_vertices(m::GeometryBasics.Mesh; tol::Real = 1e-3)
 end
 
 """
-    $(TYPEDSIGNATURES)
+    icosphere(::Type{T<:Real}, subdivisions::Int = 0) -> GeometryBasics.Mesh
 
 Generate a geodesic unit sphere by `subdivisions` rounds of icosahedral
 midpoint refinement.
@@ -402,7 +402,11 @@ function icosphere(::Type{T}, subdivisions::Int=0) where {T<:Real}
 end
 
 """
-    $(TYPEDSIGNATURES)
+    read_msms(
+        ::Type{T<:Real},
+        vert_path::AbstractString,
+        face_path::AbstractString
+    ) -> GeometryBasics.Mesh
 
 Read a triangulated surface from a pair of MSMS files (Sanner et al.).
 
