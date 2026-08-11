@@ -5,15 +5,16 @@
 
 ``` julia
 # create a system first
-sys = System{Float32}() # this system will be of single precision, i.e., atom positions, velocities...
+sys = System{Float32}() # given type affects floating point fields, e.g., atom positions
 
 # as well as a molecule
 h2o = Molecule(sys)
 
 # create system atoms
+θ  = deg2rad(104.5) # bond angle
 o1 = Atom(h2o, 1, Elements.O) # o1.r = [0, 0, 0]  <-- this is the default value!
-h1 = Atom(h2o, 2, Elements.H, r=Vector3{Float32}(1,0,0))
-h2 = Atom(h2o, 3, Elements.H, r=Vector3{Float32}(cos(deg2rad(105)), sin(deg2rad(105)), 0))
+h1 = Atom(h2o, 2, Elements.H; r=Vector3{Float32}(0.9584,0,0))
+h2 = Atom(h2o, 3, Elements.H; r=Vector3{Float32}(cos(θ), sin(θ), 0))
 
 # add bonds
 Bond(o1, h1, BondOrder.Single)
@@ -30,9 +31,9 @@ atoms(sys)
 
 | **\#** | **idx** | **number** | **element** | **name** | **atom_type** | **r** | **v** | **F** | **formal_charge** | **charge** | **radius** |
 |---:|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|
-| 1 | 2 | 1 | O |  |  | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
-| 2 | 3 | 2 | H |  |  | Float32\[1.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
-| 3 | 4 | 3 | H |  |  | Float32\[-0.258819, 0.965926, 0.0\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
+| **1** | 2 | 1 | O |  |  | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
+| **2** | 3 | 2 | H |  |  | Float32\[0.9584, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
+| **3** | 4 | 3 | H |  |  | Float32\[-0.25038, 0.968148, 0.0\] | Float32\[0.0, 0.0, 0.0\] | Float32\[0.0, 0.0, 0.0\] | 0 | 0.0 | 0.0 |
 
 ## How can I determine the element of an atom (C, N, …)?
 
@@ -167,10 +168,10 @@ all_chains = chains(sys)
 
 | **\#** | **idx** | **name** |
 |-------:|:--------|:---------|
-|      1 | 2       | E        |
-|      2 | 1855    | I        |
-|      3 | 2368    | E        |
-|      4 | 2615    | I        |
+|  **1** | 2       | E        |
+|  **2** | 1855    | I        |
+|  **3** | 2368    | E        |
+|  **4** | 2615    | I        |
 
 This snippet will create separate PDB files for the two chains of the system:
 
@@ -212,7 +213,7 @@ sys = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
 mol = first(molecules(sys))
 
 v = Vector3{Float32}(0, 0, 0) # no translation
-m = Matrix3{Float32}(1, 0, 0, 0, 0, -1, 0, 1, 0) # counter clockwise rotation by 90 degree
+m = Matrix3{Float32}(1, 0, 0, 0, 0, -1, 0, 1, 0) # counterclockwise rotation by 90 degree
 r = RigidTransform(m, v)
 
 # perform the transformation
@@ -253,24 +254,25 @@ neighbors = neighborlist(positions=[a.r for a in atoms(sys)], cutoff=1.5)
 ```
 
     1693-element Vector{Tuple{Int64, Int64, Float64}}:
-     (1, 19, 0.9589779473125027)
-     (2, 1, 1.4388685066986193)
-     (3, 4, 1.4438002160243146)
-     (4, 8, 1.4110367235570076)
-     (5, 6, 1.4236140766862064)
-     (8, 9, 1.4528402026870852)
-     (9, 10, 1.3692218168573846)
-     (10, 12, 1.3467147068968133)
-     (10, 11, 1.2292563742786)
-     (13, 12, 1.328092566103565)
+     (717, 718, 1.2521647681995551)
+     (242, 244, 1.4919346471327457)
+     (1401, 1402, 1.4647544499290925)
+     (744, 743, 1.4412549790843607)
+     (1397, 1387, 1.3651616320650524)
+     (1391, 1393, 1.394573898496876)
+     (1393, 1395, 1.3927181138442184)
+     (874, 868, 1.4645312170660074)
+     (257, 259, 1.390400650431827)
+     (1406, 1407, 1.2304231787229225)
      ⋮
-     (2344, 2345, 0.96483334318895)
-     (2347, 2348, 0.9646835173520685)
-     (2347, 2349, 0.9621348854276188)
-     (2350, 2351, 0.9633766194458323)
-     (2352, 2350, 0.9584511836064477)
-     (2353, 2355, 0.9774217099578166)
-     (2354, 2353, 0.9596359268143725)
-     (2354, 2355, 1.4942598847835966)
+     (1735, 1737, 0.9607088710693553)
+     (1663, 1664, 1.4529310962703)
+     (1663, 1671, 0.9803463372761602)
+     (1997, 1996, 1.4405440996938426)
+     (2217, 2218, 1.2199624184746933)
+     (1572, 1576, 1.0481480198378843)
+     (535, 541, 0.9940323443328362)
+     (535, 536, 1.4672199002531094)
+     (2282, 2293, 1.3268926649254955)
 
 `neighborlist` returns a tuple consisting of indices for the neighbors and the computed distance between them. For more advanced use cases have a look at the [`CellListMap.jl` documentation](https://m3g.github.io/CellListMap.jl/stable/neighborlists/) .

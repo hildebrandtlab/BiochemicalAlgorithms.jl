@@ -42,7 +42,6 @@ println()
 n1 = atom_by_name(s, "N")
 
 println(n1.idx)
-
 ```
 
 We can access an atom by its name, which will return the first atom matching the given name. If there are more atoms with the same name and we are not interested in the first one, we can access the atom by the atom index.
@@ -55,7 +54,6 @@ for a in sys_atms
 end
 
 n2 = atom_by_idx(s, 17)
-
 ```
 
 [`Atom`](@ref) features the atom number as well. The atom number does NOT have to be unique inside the system!
@@ -172,7 +170,6 @@ end
 n2 = atom_by_idx(s, 5)
 
 println("The N atom belongs to residue: ", n2.fragment_idx)
-
 ```
 
 We can get the fragment as well directly:
@@ -236,7 +233,6 @@ println("is_c_terminal(): ", is_c_terminal(res))
 println("is_n_terminal(): ", is_n_terminal(res))
 res2 = fragments(s)[2]
 println("is_c_terminal(): ", is_c_terminal(res2))
-
 ```
 
 ## Nucleotide
@@ -255,13 +251,12 @@ n2 = Nucleotide(chain, 2)
 
 
 ## Molecule
-Molecules are used to distinguish between proteins and non-proteins (see [`Molecules`](@ref)
+[`Molecules`](@ref) are used to distinguish between proteins and non-proteins
 
 
 ```{julia}
 s = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
 m = molecules(s)
-m
 ```
 
 Like in the other cases before, we get a table of molecules. Which we can access similarly to atoms and bonds:
@@ -285,7 +280,6 @@ println("is a protein: ", isprotein(m[1]))
 m[1].variant = MoleculeVariant.Protein
 
 println("is a protein: ", isprotein(m[1]))
-
 ```
 
 Similar to molecules we can access proteins:
@@ -299,14 +293,12 @@ A very useful functionality is the access the parent molecule or protein a speci
 ```{julia}
 atom = atom_by_idx(s, 5)
 println("This atom belongs to protein: ", parent_protein(atom))
-
 ```
 
 ## Chains
 
 Chains can be considered as an aggregation of fragments (either residues or nucleotides).
 ```{julia}
-
 s = load_pdb(ball_data_path("../test/data/4hhb.pdb"))
 
 println("Number of chains in the system: ", nchains(s))

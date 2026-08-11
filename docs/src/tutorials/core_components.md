@@ -215,28 +215,28 @@ bonds(s)
 
 | **\#** | **idx** | **order** |
 |-------:|:--------|:----------|
-|      1 | 29      | Single    |
-|      2 | 30      | Single    |
-|      3 | 31      | Single    |
-|      4 | 32      | Single    |
-|      5 | 33      | Single    |
-|      6 | 34      | Single    |
-|      7 | 35      | Single    |
-|      8 | 36      | Double    |
-|      9 | 37      | Single    |
-|     10 | 38      | Single    |
-|     11 | 39      | Single    |
-|     12 | 40      | Single    |
-|     13 | 41      | Single    |
-|     14 | 42      | Single    |
-|     15 | 43      | Single    |
-|     16 | 44      | Single    |
-|     17 | 45      | Double    |
-|     18 | 46      | Single    |
-|     19 | 47      | Single    |
-|     20 | 48      | Single    |
-|     21 | 49      | Single    |
-|     22 | 50      | Single    |
+|  **1** | 29      | Single    |
+|  **2** | 30      | Single    |
+|  **3** | 31      | Single    |
+|  **4** | 32      | Single    |
+|  **5** | 33      | Single    |
+|  **6** | 34      | Single    |
+|  **7** | 35      | Single    |
+|  **8** | 36      | Double    |
+|  **9** | 37      | Single    |
+| **10** | 38      | Single    |
+| **11** | 39      | Single    |
+| **12** | 40      | Single    |
+| **13** | 41      | Single    |
+| **14** | 42      | Single    |
+| **15** | 43      | Single    |
+| **16** | 44      | Single    |
+| **17** | 45      | Double    |
+| **18** | 46      | Single    |
+| **19** | 47      | Single    |
+| **20** | 48      | Single    |
+| **21** | 49      | Single    |
+| **22** | 50      | Single    |
 
 Bonds can be accessed via their respective index, deleted, and be put in the system
 
@@ -418,17 +418,16 @@ n2 = Nucleotide(chain, 2)
 
 ## Molecule
 
-Molecules are used to distinguish between proteins and non-proteins (see [`Molecules`](@ref)
+[`Molecules`](@ref) are used to distinguish between proteins and non-proteins
 
 ``` julia
 s = load_pdb(ball_data_path("../test/data/2ptc.pdb"))
 m = molecules(s)
-m
 ```
 
 | **\#** | **idx** | **name**                       |
 |-------:|:--------|:-------------------------------|
-|      1 | 1       | COMPLEX (PROTEINASE/INHIBITOR) |
+|  **1** | 1       | COMPLEX (PROTEINASE/INHIBITOR) |
 
 Like in the other cases before, we get a table of molecules. Which we can access similarly to atoms and bonds:
 
@@ -488,7 +487,6 @@ println("This atom belongs to protein: ", parent_protein(atom))
 Chains can be considered as an aggregation of fragments (either residues or nucleotides).
 
 ``` julia
-
 s = load_pdb(ball_data_path("../test/data/4hhb.pdb"))
 
 println("Number of chains in the system: ", nchains(s))
@@ -567,7 +565,7 @@ filter(sst -> sst.type == SecondaryStructureElement.Helix, secondary_structures(
 
 | **\#** | **idx** | **number** | **type** | **name** |
 |-------:|:--------|:-----------|:---------|:---------|
-|      1 | 5       | 1          | Helix    | H1       |
+|  **1** | 5       | 1          | Helix    | H1       |
 
 In addition, we can compute the secondary structures for an input file:
 

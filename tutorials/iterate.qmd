@@ -102,7 +102,8 @@ nbonds(sys)
 ```
 
 ```{julia}
-# use the fragment database for normalizing naming schemas between molecular file formats, reconstruction of missing parts of the structure and building the bonds
+# use the fragment database for normalizing naming schemas between molecular file
+# formats, reconstruction of missing parts of the structure and building the bonds
 infer_topology!(sys)
 nbonds(sys)
 ```

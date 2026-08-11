@@ -60,26 +60,26 @@ atoms(sys).F   # or, equivalently, atoms(ff.system).F
 ```
 
     23-element SystemComponentTableCol{StaticArraysCore.SVector{3, Float32}}:
-     [-53.629234, -22.412619, 24.928682]
-     [46.985428, 3.0840526, -2.7236192]
-     [128.1008, 45.797974, -103.76107]
-     [3828.1062, 2481.3315, -8883.52]
-     [-3.9139192, -5.606783, 3.236692]
-     [2.53753, -4.523301, 6.5197163]
-     [0.52676713, -4.1225967, 4.9825106]
-     [4.2090273, 0.87796724, -1.8575672]
-     [-11.800568, -6.840048, -6.6562223]
-     [4.375335, 2.908515, -2.6804132]
+     [-53.62923, -22.412622, 24.928682]
+     [46.985413, 3.084029, -2.7235892]
+     [128.1008, 45.79798, -103.76105]
+     [3828.1062, 2481.3313, -8883.522]
+     [-3.913918, -5.6067834, 3.236691]
+     [2.5375295, -4.5233026, 6.519717]
+     [0.52676797, -4.122597, 4.9825106]
+     [4.2090273, 0.8779677, -1.8575673]
+     [-11.800568, -6.8400474, -6.6562233]
+     [4.3753576, 2.9085383, -2.680446]
      ⋮
-     [14.85136, -70.92931, 156.84335]
-     [49.850376, -32.66954, 52.788876]
-     [2.0185974, -8.8306465, 1.9078683]
-     [2.5104997, 0.34557226, 6.3368053]
-     [4.279133, -4.6336436, 8.192726]
+     [14.851358, -70.929306, 156.84334]
+     [49.850372, -32.669544, 52.788876]
+     [2.0185974, -8.830647, 1.9078674]
+     [2.5105, 0.34557325, 6.336806]
+     [4.2791333, -4.6336436, 8.192725]
      [-27.39077, 46.13508, -41.05185]
-     [0.59128666, -16.231728, 13.140886]
+     [0.5912861, -16.231726, 13.140887]
      [-3896.7554, -2587.3542, 8858.033]
-     [-12.687141, 7.244336, -14.078792]
+     [-12.687143, 7.2443376, -14.0787945]
 
 The force vectors are given in units of kJ/(mol·Å). Before BiochemicalAlgorithms.jl v0.6, forces were computed in Newton.
 
@@ -91,7 +91,7 @@ Similarly, potential energies can be computed via `compute_energy!`:
 compute_energy!(ff)
 ```
 
-    1425.599f0
+    1425.6053f0
 
 This will return the total energy of the system (in kJ/mol). Additionally, the force field object keeps track of individual contributions of force field components, which can be queried like this:
 
@@ -117,7 +117,7 @@ optimize_structure!(ff)
 compute_energy!(ff)
 ```
 
-    -374.3113f0
+    -374.31473f0
 
 The opmitization function also updates the atom positions correspondingly such that the structure can be visualized in its optimized state, e.g., through [BiochemicalVisualization.jl](https://github.com/hildebrandtlab/BiochemicalVisualization.jl).
 
