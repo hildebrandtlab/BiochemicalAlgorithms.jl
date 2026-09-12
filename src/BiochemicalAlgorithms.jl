@@ -141,6 +141,9 @@ include("structureanalysis/surfaces/ses_triangulator.jl")
 include("structureanalysis/surfaces/areas.jl")
 include("structureanalysis/surfaces/cleanup.jl")
 
+# 3D printing
+include("printing/printing.jl")
+
 # optimization
 include("optimization/optimize_structure.jl")
 

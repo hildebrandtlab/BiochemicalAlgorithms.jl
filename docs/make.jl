@@ -13,6 +13,7 @@ const pages = Any[
         "How to handle molecules" =>"tutorials/handle_molecules.md",
         "How to read and write" => "tutorials/read_and_write.md",
         "Molecular surfaces" => "tutorials/surfaces.md",
+        "3D-printing molecules" => "tutorials/printing.md",
 
     ],
     "Library" => Any[
@@ -22,6 +23,7 @@ const pages = Any[
         "Mappings" => "public/mappings.md",
         "Molecular preprocessing" => "public/preprocessing.md",
         "Structure analysis" => "public/structureanalysis.md",
+        "3D printing" => "public/printing.md",
         "Utility functions" => "public/utils.md",
         "Internals" => Any[
             "Biomolecular systems" => "private/system.md",

@@ -357,15 +357,18 @@ function icosphere(::Type{T}, subdivisions::Int=0) where {T<:Real}
         Point3{T}( 0.0     ,  0.0     , -1.0      ),
     ]
     vertices = [v / norm(v) for v in raw]
-    # Triangles derived from BALL's `triangles_tmp` definitions (each row
-    # references three of the 30 edges; we materialise the three vertex
-    # indices). 1-based; orientation chosen so the outward normal matches
-    # the cross product order (CCW from outside).
+    # Triangles derived from BALL's `triangles_tmp` definitions. Each row is
+    # a CCW-from-outside triple of vertex indices (1-based) so the cross
+    # product `(b-a) × (c-a)` of the triangle (a, b, c) gives an outward
+    # normal. The BALL list had 9 of the 20 base triangles wound CW (mostly
+    # the lower-middle band and the bottom cap); we corrected those by
+    # swapping the last two indices so signed-volume of the icosphere
+    # comes out positive (~ 4π/3 for the unit sphere).
     faces = TriangleFace{Int}[
         ( 1,  2,  3), ( 1,  3,  4), ( 1,  4,  5), ( 1,  5,  6), ( 1,  6,  2),
-        ( 2,  3,  7), ( 3,  7,  8), ( 3,  4,  8), ( 4,  8,  9), ( 4,  5,  9),
-        ( 5,  9, 10), ( 5,  6, 10), ( 6, 10, 11), ( 2,  7, 11), ( 2,  6, 11),
-        ( 7,  8, 12), ( 8,  9, 12), ( 9, 10, 12), (10, 11, 12), ( 7, 11, 12),
+        ( 2,  7,  3), ( 3,  7,  8), ( 3,  8,  4), ( 4,  8,  9), ( 4,  9,  5),
+        ( 5,  9, 10), ( 5, 10,  6), ( 6, 10, 11), ( 2, 11,  7), ( 2,  6, 11),
+        ( 7, 12,  8), ( 8, 12,  9), ( 9, 12, 10), (10, 12, 11), ( 7, 11, 12),
     ]
 
     for _ in 1:subdivisions
