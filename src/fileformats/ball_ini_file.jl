@@ -80,7 +80,7 @@ function read_ball_ini_file(fname::AbstractString, ::Type{T} = Float32; cleanup_
                 ignoreemptyrows=true,
                 delim=" ",
                 ignorerepeated=true,
-                silencewarnings=true
+                on_error=:collect
             )
 
             # now, change all Float64? columns to T? columns;
