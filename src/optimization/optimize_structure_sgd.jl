@@ -12,7 +12,24 @@ struct InteractionBatch
     ljp_range::UnitRange{Int}
     es_range::UnitRange{Int}
     hb_range::UnitRange{Int}
+    count::Int  # total interactions in this batch
 end
+
+function InteractionBatch(
+    stretch_range::UnitRange{Int},
+    bend_range::UnitRange{Int},
+    torsion_range::UnitRange{Int},
+    improper_range::UnitRange{Int},
+    ljp_range::UnitRange{Int},
+    es_range::UnitRange{Int},
+    hb_range::UnitRange{Int}
+)
+    count = length(stretch_range) + length(bend_range) + length(torsion_range) + 
+            length(improper_range) + length(ljp_range) + length(es_range) + length(hb_range)
+    return InteractionBatch(stretch_range, bend_range, torsion_range, improper_range, 
+                           ljp_range, es_range, hb_range, count)
+end
+
 
 """Mutable container for tracking batch index during minibatch optimization."""
 mutable struct MiniBatchParams{T,Acc}
