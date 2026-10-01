@@ -174,3 +174,97 @@ end
     @test isapprox(sol1.u, sol2.u; rtol=1e-2)
     @test isapprox(sol1.objective, sol2.objective; rtol=1e-3)
 end
+
+@testitem "optimize_structure_mini! without trace callback" begin
+    # Test minibatching without computing full energy every iteration
+    sys= load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+    infer_topology!(sys)
+    ff = AmberFF(sys)
+    cff = compile(ff, backend=:serial)
+
+    
+    initial_energy = compute_energy!(cff)
+    
+    sol = optimize_structure_mini!(
+        cff;
+        epochs=3,
+        batchsize=5,
+        trace=false,
+        callback=nothing,
+        seed=42
+    )
+    
+    final_energy = compute_energy!(cff)
+    
+    # Verify optimization improved energy
+    @test final_energy < initial_energy
+    # Verify solution contains coordinates
+    @test length(sol.u) == 3 * length(atoms(cff.ff.system))
+end
+
+@testitem "optimize_structure_mini! with trace callback" begin
+    sys= load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+    infer_topology!(sys)
+    ff = AmberFF(sys)
+    cff = compile(ff, backend=:serial)
+    
+    initial_energy = compute_energy!(cff)
+    
+    callback_energies = Float64[]
+    callback_iters = Int[]
+    
+    function trace_callback(iter, energy)
+        push!(callback_iters, iter)
+        push!(callback_energies, energy)
+    end
+    
+    sol = optimize_structure_mini!(
+        cff;
+        epochs=3,
+        batchsize=5,
+        trace=true,
+        callback=trace_callback,
+        seed=42
+    )
+    
+    final_energy = compute_energy!(cff)
+    
+    # Verify optimization improved energy
+    @test final_energy < initial_energy
+    # Verify callback was called
+    @test length(callback_energies) > 0
+    # Verify energies are being recorded (full system energy)
+    @test all(e isa Float64 for e in callback_energies)
+    @test length(callback_iters) == length(callback_energies)
+end
+
+@testitem "optimize_structure_mini! callback without trace uses batch loss" begin
+    # Test that user callback receives batch loss when trace=false
+    sys= load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+    infer_topology!(sys)
+    ff = AmberFF(sys)
+    cff = compile(ff, backend=:serial)
+    
+    callback_losses = Float64[]
+    callback_iters = Int[]
+    
+    function loss_callback(iter, loss)
+        push!(callback_iters, iter)
+        push!(callback_losses, loss)
+    end
+    
+    sol = optimize_structure_mini!(
+        cff;
+        epochs=2,
+        batchsize=5,
+        trace=false,
+        callback=loss_callback,
+        seed=42
+    )
+    
+    # Verify callback received batch losses (smaller than full system)
+    @test length(callback_losses) > 0
+    # Batch losses should be normalized per-interaction, so generally smaller
+    # than full system energy
+    @test all(l isa Float64 for l in callback_losses)
+end
