@@ -100,7 +100,7 @@ This function passes all keyword arguments to
 with the following default values:
  - `alg = ()`
 """
-function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=OptimizationOptimisers.Adam(0.01), epochs::Int=10, batchsize::Int=10, callback=nothing, seed::Int=42, kwargs...) where {T,Acc}
+function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=OptimizationOptimisers.Adam(0.01), epochs::Int=10, batchsize::Int=10, callback=nothing, trace::Bool=false, seed::Int=42, kwargs...) where {T,Acc}
     r0 = collect(Float64, Iterators.flatten(atoms(cff.ff.system).r))
 
     ds = InteractionDataSet(cff; batchsize=batchsize, seed=seed)
@@ -131,10 +131,16 @@ function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=Optimizati
         stop = _epoch_minibatch_callback(
             opt_state, l, state, iters_in_epoch, epoch_steps, done_epochs, epochs, batchsize, base_seed
         )
-        if callback !== nothing
+        
+        # Only compute full energy if trace is enabled and user provided a callback
+        if trace && callback !== nothing
             e = compute_energy!(cff)
             callback(opt_state.iter, e)
+        elseif callback !== nothing && !trace
+            # User callback without tracing full energy (user responsible for logging)
+            callback(opt_state.iter, l)
         end
+        
         return stop
     end
 
