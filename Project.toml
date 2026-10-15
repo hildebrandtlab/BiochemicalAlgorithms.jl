@@ -1,6 +1,6 @@
 name = "BiochemicalAlgorithms"
 uuid = "9d651bdf-8945-47d1-9188-34e269d8f7b5"
-version = "0.7.3"
+version = "0.7.4"
 authors = ["Andreas Hildebrandt <andreas.hildebrandt@uni-mainz.de> and contributors"]
 
 [deps]
@@ -55,7 +55,7 @@ JSON = "1.5.1"
 LinearAlgebra = "1.10"
 Mendeleev = "1"
 MetaGraphs = "0.8, 0.9"
-MolecularGraph = "0.22"
+MolecularGraph = "0.22, 0.23"
 Observables = "0.5.5"
 Optimization = "5.1"
 OptimizationLBFGSB = "1.1.0"
