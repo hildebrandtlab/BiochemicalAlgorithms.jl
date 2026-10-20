@@ -85,6 +85,12 @@ end
 PairESArrays{Acc}() where Acc = PairESArrays{Acc}(Int32[], Int32[], Acc[], Acc[])
 
 # --- the compiled evaluator --------------------------------------------------
+"""
+    CompiledForceField{T, Acc, B}
+
+Flattened, allocation-free representation of a `ForceField` produced by
+[`compile`](@ref), used for fast energy and force evaluation.
+"""
 mutable struct CompiledForceField{T, Acc, B <: EvalBackend}
     ff::ForceField{T}
     backend::B

@@ -32,8 +32,10 @@ const ES_Prefactor_force = ustrip(Constants.N_A * Constants.e₀^2 / (4.0 * π *
         inverse_distance_off_on_3 = (sq_cutoff - sq_cuton)^3
 
         if (inverse_distance_off_on_3 <= zero(T))
-            @warn "NonBondedComponent(): cuton value should be smaller than cutoff -- " *
+            if sq_cuton > sq_cutoff
+                @warn "NonBondedComponent(): cuton value should be smaller than cutoff -- " *
                     "switching function disabled."
+            end
 
             inverse_distance_off_on_3 = zero(T)
         else
