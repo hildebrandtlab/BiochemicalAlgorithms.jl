@@ -1,5 +1,6 @@
 @testitem "CompiledForceField" begin
-    using BiochemicalAlgorithms: compile, compute_energy!, compute_forces!, rebuild_pairlist!
+    using BiochemicalAlgorithms: compile, compute_energy!, compute_forces!,
+        prepare_eval!, rebuild_pairlist!, sync_to_table!
 
     maxabs(x) = isempty(x) ? 0.0 : maximum(abs, x)
 
@@ -66,6 +67,57 @@
         # full rebuild at the same coordinates -> identical energy
         rebuild_pairlist!(cff)
         @test compute_energy!(cff) ≈ E0
+    end
+
+    # Moving coordinates past the Verlet skin rebuilds the pair list and still
+    # agrees with the reference force field at the new geometry.
+    let
+        fdb = FragmentDB{Float64}()
+        sys = load_hinfile(ball_data_path("../test/data/AlaGlySer.hin"), Float64)
+        normalize_names!(sys, fdb); label_terminal_fragments!(sys, fdb)
+        ff = AmberFF(sys, ball_data_path("forcefields/AMBER/amber96.ini"))
+        cff = compile(ff; max_displacement = 0.01)
+        r = collect(Float64, Iterators.flatten(atoms(sys).r))
+        r[1] += 0.25
+
+        prepare_eval!(cff, r)
+        @test cff.r_at_last_build == cff.r
+        @test cff.iters_since_build == 0
+
+        compute_energy!(cff)
+        compute_forces!(cff)
+        compiled_energy = sum(values(cff.energy))
+        compiled_forces = copy(cff.F)
+
+        sync_to_table!(cff; forces = false)
+        update!(ff)
+        reference_energy = compute_energy!(ff)
+        compute_forces!(ff)
+
+        @test isapprox(compiled_energy, reference_energy; atol = 1e-8, rtol = 1e-8)
+        for k in eachindex(compiled_forces)
+            @test isapprox(compiled_forces[k], atoms(sys).F[k]; atol = 1e-6, rtol = 1e-6)
+        end
+    end
+
+    # Explicit synchronization copies compiled coordinates to AmberFF. The
+    # forces=false option leaves the canonical force table untouched.
+    let p = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+        infer_topology!(p)
+        ff = AmberFF(p)
+        cff = compile(ff)
+        at = atoms(p)
+        forces_before = copy(at.F)
+        cff.r[1] += Vector3{Float64}(0.25, -0.5, 1.0)
+
+        sync_to_table!(cff; forces = false)
+        @test at.r[1] == cff.r[1]
+        @test at.F == forces_before
+
+        fill!(cff.F, zero(Vector3{Float64}))
+        cff.F[1] = Vector3{Float64}(1.0, 2.0, 3.0)
+        sync_to_table!(cff; forces = true)
+        @test at.F[1] == cff.F[1]
     end
 
     # Threaded backend must agree with serial (deterministic per-thread buffers;

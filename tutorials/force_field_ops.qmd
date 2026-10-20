@@ -89,3 +89,123 @@ We provide a variant of the optimization function above to only optimize the pos
 
 optimize_hydrogen_positions!(ff)
 ```
+
+
+## Compiled force fields
+
+`AmberFF` is the *reference* implementation: it is easy to inspect and always consistent with the underlying `System`. Its components refer to `Atom`s of the system, and every call to `update!` rebuilds the nonbonded interaction list from scratch. This is fine for single evaluations. Workloads that evaluate the same force field many times for slightly different coordinates are better served by a `CompiledForceField`, which
+
+- flattens all interactions into contiguous arrays that refer to atoms by row number,
+- evaluates energies and forces on private coordinate and force buffers instead of the atom table,
+- rebuilds the nonbonded pair list only when needed, i.e., when atoms have moved far enough (a *Verlet skin*), at a fixed evaluation interval, or on explicit request, and
+- optionally uses multiple threads (or a GPU) and a different accumulation precision.
+
+It computes the same energy terms and forces as the reference implementation. It is purely an evaluator: parameter assignment and topology handling are still done by `AmberFF`.
+
+### Compiling a force field
+
+Compiling an existing force field is a single call:
+
+```{julia}
+cff = compile(ff)
+```
+
+`compile` calls `update!` on `ff` once and lowers the resulting interactions, so it reflects the atom positions at the time of the call.
+
+!!! warning
+    The atom topology (and with it the numbering of atoms) must not change during the lifetime of a compiled force field. If atoms or bonds are added or removed, create a new `AmberFF` and compile it again.
+
+Energies and forces are computed just like for `AmberFF`:
+
+```{julia}
+compute_energy!(cff)
+```
+
+```{julia}
+compute_forces!(cff)
+```
+
+In contrast to `AmberFF`, results are **not** written to the system. Forces live in the compiled force field's own buffer, and the energy contributions of the individual components are kept in a dictionary:
+
+```{julia}
+cff.energy
+```
+
+```{julia}
+cff.F
+```
+
+Both implementations agree on the total energy:
+
+```{julia}
+compute_energy!(ff) ≈ compute_energy!(cff)
+```
+
+### Synchronizing with the system
+
+The atom table is only updated on request:
+
+```{julia}
+BiochemicalAlgorithms.sync_to_table!(cff)
+
+atoms(sys).F
+```
+
+Use `sync_to_table!(cff; forces=false)` to copy only the coordinates. Conversely, changes made to atom positions in the system are *not* picked up automatically; positions are read when the force field is compiled, so recompile after modifying the system by hand.
+
+### Evaluation options
+
+`compile` accepts a few keyword arguments:
+
+```{julia}
+#| output: false
+
+# use all available threads for energy and force evaluation
+cff_threads = compile(ff; backend=:threads)
+
+# accumulate energies and forces in double precision
+cff_64 = compile(ff; acc=Float64)
+```
+
+- `backend`: `:serial` (default), `:threads`, or `:gpu`. The GPU backend requires `using KernelAbstractions` and a device package such as `Metal` or `CUDA`.
+- `acc`: the floating point type used for accumulation (`Float32` or `Float64`).
+- `max_displacement`: size of the Verlet skin in Å. The nonbonded pair list is rebuilt once an atom has moved further than this from its position at the last build. By default, a safe value is derived from the force field's cutoffs.
+- `update_frequency`: additionally forces a pair list rebuild every given number of evaluations (`0`, the default, disables this).
+
+A rebuild can also be triggered manually at any time, e.g., after changing `cff.r` yourself:
+
+```{julia}
+#| output: false
+
+rebuild_pairlist!(cff)
+```
+
+### Structure optimization
+
+`optimize_structure!` uses a compiled force field internally, and forwards `backend`, `max_displacement`, and `update_frequency` to `compile` (and `accumulation` as `acc`):
+
+```{julia}
+#| output: false
+
+optimize_structure!(ff; accumulation=Float64)
+```
+
+If you need more control, e.g., for your own optimizer or a dynamics loop, drive a compiled force field directly. `prepare_eval!` loads a flat coordinate vector (x₁, y₁, z₁, x₂, …) and refreshes the pair list if needed:
+
+```{julia}
+r = collect(Float64, Iterators.flatten(atoms(sys).r))
+
+BiochemicalAlgorithms.prepare_eval!(cff, r)
+compute_energy!(cff)
+```
+
+### When to use which
+
+| | `AmberFF` | `CompiledForceField` |
+|---|---|---|
+| Setup | `AmberFF(sys)` | `compile(ff)` on top of an `AmberFF` |
+| Results | written to the system | kept in own buffers; `sync_to_table!` on demand |
+| Changes to the system | `update!(ff)` | recompile |
+| Nonbonded pair list | rebuilt by `update!` | rebuilt when atoms leave the Verlet skin, every `update_frequency` evaluations if set, or manually via `rebuild_pairlist!(cff)` |
+| Parallelism, precision | serial, system precision | threads/GPU, selectable accumulation type |
+| Best for | single evaluations, inspecting individual interactions | repeated evaluations: optimization, sampling |

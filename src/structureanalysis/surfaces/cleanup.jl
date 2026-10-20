@@ -292,6 +292,8 @@ end
 """
     resolve_probe_intersections!(ses) -> Int
 
+Resolve intersecting probe spheres of adjacent RS faces.
+
 For every pair of adjacent RS faces (sharing an RS edge) whose probe spheres
 overlap, materialise the two intersection-circle endpoints as additional
 SES vertices and register them on both spheric faces' vertex lists. Returns
