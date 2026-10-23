@@ -1,0 +1,568 @@
+export
+    CompiledForceField,
+    compile,
+    rebuild_pairlist!
+
+# ============================================================================
+#  Cached, struct-of-arrays (SoA), index-based evaluator for a `ForceField`.
+#
+#  Rationale: the reference path in `optimize_structure!` rebuilds
+#  the entire nonbonded interaction list on *every* energy evaluation and
+#  accesses atom coordinates/forces through `Atom{T}` row-views (each a
+#  `Dict{Int,Int}` lookup). This evaluator lowers the already-correct output of
+#  `setup!`/`update!` into flat arrays indexed by *row number* into contiguous
+#  coordinate/force buffers, so per-evaluation cost is a tight allocation-free
+#  loop. The pair list is rebuilt only on demand (BALL-style), not every eval.
+#
+#  The existing per-component `compute_energy!`/`compute_forces!`/`update!`
+#  remain the slow *reference* path and are untouched; this is purely additive.
+#
+#  All energy/force formulas below are transcribed VERBATIM from
+#  stretch_component.jl / bend_component.jl / torsion_component.jl /
+#  nonbonded_component.jl so results match the reference path bit-for-bit when
+#  the accumulation type `Acc` equals the storage type `T`.
+# ============================================================================
+
+# --- evaluation backends -----------------------------------------------------
+abstract type EvalBackend end
+struct SerialBackend   <: EvalBackend end
+struct ThreadedBackend <: EvalBackend
+    nthreads::Int
+end
+
+# --- per-component SoA payloads (row numbers into r/F buffers) ---------------
+struct StretchArrays{Acc}
+    i::Vector{Int32}
+    j::Vector{Int32}
+    r0::Vector{Acc}
+    k::Vector{Acc}
+end
+StretchArrays{Acc}() where Acc = StretchArrays{Acc}(Int32[], Int32[], Acc[], Acc[])
+
+struct BendArrays{Acc}
+    i::Vector{Int32}   # a1
+    j::Vector{Int32}   # a2 (center)
+    l::Vector{Int32}   # a3
+    θ0::Vector{Acc}
+    k::Vector{Acc}
+end
+BendArrays{Acc}() where Acc = BendArrays{Acc}(Int32[], Int32[], Int32[], Acc[], Acc[])
+
+# Torsions have a variable number of Fourier terms; store CSR-flattened.
+struct TorsionArrays{Acc}
+    i::Vector{Int32}
+    j::Vector{Int32}
+    k::Vector{Int32}
+    l::Vector{Int32}
+    term_offset::Vector{Int32}   # length nt+1, CSR offsets into V/ϕ0/f/div
+    V::Vector{Acc}
+    ϕ0::Vector{Acc}
+    f::Vector{Int32}
+    div::Vector{Int32}
+end
+TorsionArrays{Acc}() where Acc =
+    TorsionArrays{Acc}(Int32[], Int32[], Int32[], Int32[], Int32[1], Acc[], Acc[], Int32[], Int32[])
+
+# vdW (12-6) and hydrogen bonds (12-10) share this layout; `es_*` carries the
+# matching electrostatic contribution so a pair contributes both in one pass is
+# *not* assumed here — electrostatics are kept in their own array to mirror the
+# reference exactly.
+struct PairLJArrays{Acc}
+    i::Vector{Int32}
+    j::Vector{Int32}
+    A::Vector{Acc}
+    B::Vector{Acc}
+    scaling::Vector{Acc}
+end
+PairLJArrays{Acc}() where Acc = PairLJArrays{Acc}(Int32[], Int32[], Acc[], Acc[], Acc[])
+
+struct PairESArrays{Acc}
+    i::Vector{Int32}
+    j::Vector{Int32}
+    q1q2::Vector{Acc}
+    scaling::Vector{Acc}
+end
+PairESArrays{Acc}() where Acc = PairESArrays{Acc}(Int32[], Int32[], Acc[], Acc[])
+
+# --- the compiled evaluator --------------------------------------------------
+"""
+    CompiledForceField{T, Acc, B}
+
+Flattened, allocation-free representation of a `ForceField` produced by
+[`compile`](@ref), used for fast energy and force evaluation.
+"""
+mutable struct CompiledForceField{T, Acc, B <: EvalBackend}
+    ff::ForceField{T}
+    backend::B
+
+    # bonded (never rebuilt during minimization)
+    stretch::StretchArrays{Acc}
+    bend::BendArrays{Acc}
+    proper::TorsionArrays{Acc}
+    improper::TorsionArrays{Acc}
+
+    # nonbonded (rebuilt on demand)
+    lj::PairLJArrays{Acc}
+    hb::PairLJArrays{Acc}
+    es::PairESArrays{Acc}
+
+    # cached nonbonded scalars
+    vdw_sw::CubicSwitchingFunction{Acc}
+    es_sw::CubicSwitchingFunction{Acc}
+    es_prefactor::Acc
+    es_prefactor_force::Acc
+    distance_dependent_dielectric::Bool
+
+    # coordinate / force scratch (row-indexed, Acc precision)
+    r::Vector{Vector3{Acc}}
+    F::Vector{Vector3{Acc}}
+
+    # per-thread scratch for the ThreadedBackend (empty for SerialBackend)
+    F_threads::Vector{Vector{Vector3{Acc}}}
+    e_threads::Vector{Acc}
+
+    # per-category energies (keys match ForceField reference path)
+    energy::Dict{String, Acc}
+
+    # idx <-> row bookkeeping
+    idx2row::Dict{Int, Int32}
+    natoms::Int
+
+    # constrained atoms, as a per-row mask
+    constrained_mask::Vector{Bool}
+
+    # BALL-style pair-list rebuild policy
+    update_frequency::Int
+    max_displacement::Acc
+    r_at_last_build::Vector{Vector3{Acc}}
+    iters_since_build::Int
+
+    # device-resident state for the GPU backend (nothing for CPU backends)
+    gpu::Any
+
+    # cached CellListMap in-place neighbor list (built once, updated in place)
+    nl::Any
+
+    # orthorhombic periodic box side lengths for minimum-image pair
+    # displacements; zeros when the system is not periodic
+    box::Vector3{Acc}
+end
+
+@inline accumulation_type(::CompiledForceField{T, Acc}) where {T, Acc} = Acc
+
+function Base.show(io::IO, cff::CompiledForceField{T, Acc, B}) where {T, Acc, B}
+    print(io, "CompiledForceField{$T, acc=$Acc, $(nameof(B))}: ",
+        cff.natoms, " atoms, ",
+        length(cff.stretch.k), " stretches, ",
+        length(cff.bend.k), " bends, ",
+        length(cff.proper.i), "+", length(cff.improper.i), " torsions, ",
+        length(cff.lj.i), " vdW / ", length(cff.hb.i), " hbond / ",
+        length(cff.es.i), " electrostatic pairs")
+end
+
+# ----------------------------------------------------------------------------
+#  Compilation: lower the reference components into SoA arrays.
+# ----------------------------------------------------------------------------
+"""
+    compile(ff::ForceField{T}; acc=T, backend=:serial, update_frequency=0, max_displacement=-1)
+
+Build a [`CompiledForceField`](@ref) from `ff`: a cached, struct-of-arrays
+evaluator suitable for repeated energy/force evaluation (e.g. inside
+`optimize_structure!`). `acc` selects the accumulation precision (`Float32` or
+`Float64`); `backend` selects `:serial` (more backends added in later stages).
+
+Calls `update!(ff)` once to obtain the correct interaction list, then lowers it.
+The atom topology (and therefore row numbering) must not change for the lifetime
+of the returned object.
+
+`max_displacement` is the largest per-atom move (Å) tolerated before the pair
+list is rebuilt. The default (`-1`) derives the safe value
+`(nonbonded_cutoff - max(vdw_cutoff, electrostatic_cutoff)) / 2`; larger explicit
+values would let pairs enter the interaction range unnoticed and throw an
+`ArgumentError`.
+"""
+function compile(ff::ForceField{T};
+        acc::Type{Acc} = T,
+        backend::Symbol = :serial,
+        update_frequency::Integer = 0,
+        max_displacement::Real = -1) where {T, Acc <: Real}
+
+    b = _select_backend(Val(backend), ff, Acc)
+
+    at = atoms(ff.system)
+    natoms = length(at.idx)
+    idx2row = Dict{Int, Int32}(idx => Int32(k) for (k, idx) in enumerate(at.idx))
+
+    r = Vector{Vector3{Acc}}(undef, natoms)
+    F = Vector{Vector3{Acc}}(undef, natoms)
+
+    nthreads = b isa ThreadedBackend ? b.nthreads : 0
+    F_threads = [Vector{Vector3{Acc}}(undef, natoms) for _ in 1:nthreads]
+    e_threads = zeros(Acc, nthreads)
+
+    constrained_mask = falses(natoms)
+    for a in ff.constrained_atoms
+        # `constrained_atoms` holds row positions into atoms(system); mirror the
+        # reference path which indexes atoms(ff.system)[constrained_atoms].
+        if 1 <= a <= natoms
+            constrained_mask[a] = true
+        end
+    end
+
+    cff = CompiledForceField{T, Acc, typeof(b)}(
+        ff, b,
+        StretchArrays{Acc}(), BendArrays{Acc}(), TorsionArrays{Acc}(), TorsionArrays{Acc}(),
+        PairLJArrays{Acc}(), PairLJArrays{Acc}(), PairESArrays{Acc}(),
+        CubicSwitchingFunction{Acc}(zero(Acc), zero(Acc)),
+        CubicSwitchingFunction{Acc}(zero(Acc), zero(Acc)),
+        Acc(ES_Prefactor), Acc(ES_Prefactor_force), false,
+        r, F, F_threads, e_threads,
+        Dict{String, Acc}(),
+        idx2row, natoms,
+        constrained_mask,
+        Int(update_frequency), Acc(max_displacement),
+        Vector{Vector3{Acc}}(undef, natoms), 0,
+        nothing, nothing, zero(Vector3{Acc}),
+    )
+
+    # Safe Verlet skin: a pair absent from the list was >= nonbonded_cutoff apart
+    # at build time; it can only reach the (vdw/es) cutoff if atoms move more than
+    # (nonbonded_cutoff - cutoff) / 2. An explicit threshold may not exceed it.
+    nb  = Acc(ff.options[:nonbonded_cutoff])
+    cut = max(Acc(ff.options[:vdw_cutoff]), Acc(ff.options[:electrostatic_cutoff]))
+    safe = max(zero(Acc), (nb - cut) / 2)
+    if max_displacement < 0
+        cff.max_displacement = safe
+    elseif Acc(max_displacement) > safe
+        throw(ArgumentError(
+            "max_displacement=$max_displacement exceeds the safe Verlet skin of $safe Å " *
+            "(half the gap between nonbonded_cutoff=$nb and the largest interaction " *
+            "cutoff=$cut); pairs outside the neighbor list could move into range " *
+            "without a rebuild. Use a smaller value or increase nonbonded_cutoff."))
+    end
+
+    _lower_bonded!(cff)
+    sync_positions_from_table!(cff)   # fill cff.r from the table FIRST
+    rebuild_pairlist!(cff)            # then lower nonbonded + snapshot positions
+    _backend_init!(cff)               # GPU extensions allocate/upload device state here
+    cff
+end
+
+_select_backend(::Val{:serial}, ::ForceField, ::Type) = SerialBackend()
+_select_backend(::Val{:threads}, ::ForceField, ::Type) = ThreadedBackend(Threads.nthreads())
+function _select_backend(::Val{:gpu}, ff::ForceField, ::Type{Acc}) where Acc
+    hasmethod(_make_gpu_backend, Tuple{ForceField, Type}) || throw(ArgumentError(
+        "the :gpu backend needs `using KernelAbstractions` plus a device package " *
+        "(`using Metal` on Apple Silicon, or `using CUDA`)"))
+    _make_gpu_backend(ff, Acc)
+end
+_select_backend(::Val{B}, ::ForceField, ::Type) where B =
+    throw(ArgumentError("unknown backend :$B (available: :serial, :threads, :gpu)"))
+
+# Implemented by the KernelAbstractions extension (BiochemicalAlgorithmsGPUExt).
+function _make_gpu_backend end
+
+# GPU device registry. Filled by the Metal/CUDA package extensions when loaded;
+# the device-agnostic KernelAbstractions kernels live in the GPU extension.
+const _GPU_DEVICE = Ref{Any}(nothing)
+
+"""
+    _register_gpu_device!(device; supports_f64)
+
+Called by the Metal/CUDA package extensions on load to register a
+KernelAbstractions device for the `:gpu` backend.
+"""
+function _register_gpu_device!(device; supports_f64::Bool)
+    _GPU_DEVICE[] = (device = device, f64 = supports_f64)
+    nothing
+end
+
+# Hooks specialized for the GPU backend in ff_gpu.jl (no-ops for CPU backends).
+_backend_init!(::CompiledForceField) = nothing        # called at end of compile
+_backend_upload_pairs!(::CompiledForceField) = nothing # called at end of rebuild_pairlist!
+
+@inline _row(cff::CompiledForceField, atom) = cff.idx2row[atom.idx]
+
+# --- bonded lowering (done once) --------------------------------------------
+function _lower_bonded!(cff::CompiledForceField{T, Acc}) where {T, Acc}
+    for c in cff.ff.components
+        _lower_component!(cff, c)
+    end
+    cff
+end
+
+_lower_component!(::CompiledForceField, c::AbstractForceFieldComponent) =
+    throw(ArgumentError("unsupported force field component: $(typeof(c))"))
+
+# lowered separately by `_build_nonbonded_soa!` (pair lists are rebuilt on demand)
+_lower_component!(::CompiledForceField, ::NonBondedComponent) = nothing
+
+function _lower_component!(cff::CompiledForceField{T, Acc}, c::QuadraticStretchComponent{T}) where {T, Acc}
+    s = cff.stretch
+    for qbs in c.stretches
+        push!(s.i, _row(cff, qbs.a1)); push!(s.j, _row(cff, qbs.a2))
+        push!(s.r0, Acc(qbs.r0));      push!(s.k, Acc(qbs.k))
+    end
+    nothing
+end
+
+function _lower_component!(cff::CompiledForceField{T, Acc}, c::QuadraticBendComponent{T}) where {T, Acc}
+    b = cff.bend
+    for qab in c.bends
+        push!(b.i, _row(cff, qab.a1)); push!(b.j, _row(cff, qab.a2)); push!(b.l, _row(cff, qab.a3))
+        push!(b.θ0, Acc(qab.θ₀));       push!(b.k, Acc(qab.k))
+    end
+    nothing
+end
+
+function _lower_component!(cff::CompiledForceField{T, Acc}, c::TorsionComponent{T}) where {T, Acc}
+    _lower_torsions!(cff, cff.proper, c.proper_torsions)
+    _lower_torsions!(cff, cff.improper, c.improper_torsions)
+    nothing
+end
+
+function _lower_torsions!(cff::CompiledForceField{T, Acc}, t::TorsionArrays{Acc}, torsions) where {T, Acc}
+    for ct in torsions
+        push!(t.i, _row(cff, ct.a1)); push!(t.j, _row(cff, ct.a2))
+        push!(t.k, _row(cff, ct.a3)); push!(t.l, _row(cff, ct.a4))
+        for n in eachindex(ct.V)
+            push!(t.V, Acc(ct.V[n])); push!(t.ϕ0, Acc(ct.ϕ₀[n]))
+            push!(t.f, Int32(ct.f[n])); push!(t.div, Int32(ct.div[n]))
+        end
+        push!(t.term_offset, Int32(length(t.V) + 1))
+    end
+    nothing
+end
+
+# --- nonbonded lowering (rebuilt on demand) ---------------------------------
+"""
+    rebuild_pairlist!(cff::CompiledForceField)
+
+Recompute the cached nonbonded pair list (vdW / hydrogen-bond / electrostatic)
+from the force field's current coordinates. This is the expensive operation;
+during minimization it is invoked only periodically (see `update_frequency` /
+`max_displacement`).
+"""
+function rebuild_pairlist!(cff::CompiledForceField{T, Acc}) where {T, Acc}
+    ff = cff.ff
+    nbc = nothing
+    for c in ff.components
+        c isa NonBondedComponent && (nbc = c)
+    end
+    nbc === nothing && return cff
+
+    cff.vdw_sw = _convert_sw(Acc, nbc.cache.vdw_switching_function)
+    cff.es_sw  = _convert_sw(Acc, nbc.cache.es_switching_function)
+    cff.distance_dependent_dielectric = ff.options[:distance_dependent_dielectric]::Bool
+
+    # Build the SoA pair arrays directly from a cached in-place neighbor list,
+    # reusing the exclusion/classification caches that `setup!(nbc)` produced.
+    # This avoids the reference `update!`'s fresh `neighborlist` allocation and
+    # its Deque-of-row-view reconstruction. `setup!` (run by the AmberFF
+    # constructor) must have populated `nbc.cache`.
+    _build_nonbonded_soa!(cff, nbc)
+
+    # snapshot positions for the displacement check
+    resize!(cff.r_at_last_build, cff.natoms)
+    @inbounds for k in 1:cff.natoms
+        cff.r_at_last_build[k] = cff.r[k]
+    end
+    cff.iters_since_build = 0
+    _backend_upload_pairs!(cff)   # GPU extensions re-upload the new pair arrays
+    cff
+end
+
+# largest atomic displacement since the last pair-list build
+function _max_displacement(cff::CompiledForceField{T, Acc}) where {T, Acc}
+    maxd2 = zero(Acc)
+    @inbounds for k in 1:cff.natoms
+        d2 = squared_norm(cff.r[k] - cff.r_at_last_build[k])
+        d2 > maxd2 && (maxd2 = d2)
+    end
+    sqrt(maxd2)
+end
+
+"""
+    maybe_rebuild!(cff::CompiledForceField) -> Bool
+
+Rebuild the nonbonded pair list if atoms have drifted past the Verlet skin
+(`max_displacement`) since the last build, or — when `update_frequency > 0` —
+every `update_frequency` calls. Returns `true` if a rebuild happened. This is
+the BALL-style decoupling of pair-list maintenance from per-evaluation cost.
+"""
+function maybe_rebuild!(cff::CompiledForceField{T, Acc}) where {T, Acc}
+    need = _max_displacement(cff) > cff.max_displacement
+    if cff.update_frequency > 0
+        cff.iters_since_build += 1
+        need |= cff.iters_since_build >= cff.update_frequency
+    end
+    need && rebuild_pairlist!(cff)
+    need
+end
+
+"""
+    prepare_eval!(cff, r)
+
+Load the flat optimizer coordinate vector `r` into the evaluator and refresh the
+pair list if necessary. Call before `compute_energy!`/`compute_forces!`.
+"""
+@inline function prepare_eval!(cff::CompiledForceField, r::AbstractVector)
+    set_positions_flat!(cff, r)
+    maybe_rebuild!(cff)
+    cff
+end
+
+# Mirrors the missing-parameter branch of `_try_assign_vdw!` (nonbonded_component.jl).
+function _record_unassigned_lj!(nbc::NonBondedComponent{T}, at::AtomTable{T}, i::Int, j::Int) where T
+    ff = nbc.ff
+    a1 = at[i]; a2 = at[j]
+    push!(nbc.unassigned_lj_interactions, (a1, a2))
+    push!(ff.unassigned_atoms, a1)
+    push!(ff.unassigned_atoms, a2)
+    if length(ff.unassigned_atoms) > ff.options[:max_number_of_unassigned_atoms]::Int32
+        throw(TooManyErrors())
+    end
+    nothing
+end
+
+_convert_sw(::Type{Acc}, sw::CubicSwitchingFunction) where Acc =
+    CubicSwitchingFunction{Acc}(Acc(sw.cutoff), Acc(sw.cuton))
+
+# Build the vdW / hydrogen-bond / electrostatic SoA arrays directly from a
+# cached in-place neighbor list. This is a faithful port of `update!(nbc)`
+# (nonbonded_component.jl): same exclusions (bond/geminal), same HB-vs-vdW
+# classification, same 1-4 scaling — but it emits the row-indexed SoA arrays
+# directly and reuses the neighbor list across rebuilds. The neighbor search
+# runs on `cff.r` (no atom-table round-trip). Validated against the reference
+# Deque path by test_compiled_amberff.jl.
+function _build_nonbonded_soa!(cff::CompiledForceField{T, Acc}, nbc::NonBondedComponent{T}) where {T, Acc}
+    ff = cff.ff
+    c  = nbc.cache
+    cutoff = Acc(c.nonbonded_cutoff)
+    pbc = ff.options[:periodic_boundary_conditions]::Bool
+
+    cff.box = pbc ? Vector3{Acc}(c.periodic_box) : zero(Vector3{Acc})
+    if cff.nl === nothing
+        cff.nl = pbc ?
+            CellListMap.InPlaceNeighborList(positions=cff.r, cutoff=cutoff, unitcell=Acc.(c.periodic_box)) :
+            CellListMap.InPlaceNeighborList(positions=cff.r, cutoff=cutoff)
+    elseif pbc
+        CellListMap.update!(cff.nl; positions=cff.r, unitcell=Acc.(c.periodic_box))
+    else
+        CellListMap.update!(cff.nl; positions=cff.r)
+    end
+    # concrete type annotations: cff.nl is stored as Any and atoms(...) is not
+    # inferred, so without these the 634k-iteration loop boxes every access.
+    pairs::Vector{Tuple{Int, Int, Acc}} = CellListMap.neighborlist!(cff.nl)
+
+    at    = atoms(ff.system)::AtomTable{T}
+    idxc  = at.idx
+    chgc  = at.charge
+    typc  = at.atom_type
+    bond  = c.bond_cache; gem = c.geminal_cache; vic = c.vicinal_cache
+    ljc   = c.lj_combinations; hbc = c.hydrogen_bond_combinations
+    s_es  = Acc(c.scaling_es_1_4)
+    s_vdw = Acc(c.scaling_vdw_1_4)
+
+    lj = cff.lj; hb = cff.hb; es = cff.es
+    empty!(lj.i); empty!(lj.j); empty!(lj.A); empty!(lj.B); empty!(lj.scaling)
+    empty!(hb.i); empty!(hb.j); empty!(hb.A); empty!(hb.B); empty!(hb.scaling)
+    empty!(es.i); empty!(es.j); empty!(es.q1q2); empty!(es.scaling)
+    empty!(nbc.unassigned_lj_interactions)
+
+    @inbounds for cand in pairs
+        i = cand[1]::Int; j = cand[2]::Int
+        ii = idxc[i]; jj = idxc[j]
+        # exclude 1-2 (bond) and 1-3 (geminal) interactions
+        ((ii => jj) in bond || (ii => jj) in gem) && continue
+        vicinal = (ii => jj) in vic
+
+        q1q2 = Acc(chgc[i]) * Acc(chgc[j])
+        if q1q2 != zero(Acc)
+            push!(es.i, Int32(i)); push!(es.j, Int32(j))
+            push!(es.q1q2, q1q2); push!(es.scaling, vicinal ? s_es : one(Acc))
+        end
+
+        t1 = typc[i]; t2 = typc[j]
+        if !vicinal
+            h = get(hbc, (I=t1, J=t2), missing)
+            ismissing(h) && (h = get(hbc, (I=t2, J=t1), missing))
+            if !ismissing(h)
+                push!(hb.i, Int32(i)); push!(hb.j, Int32(j))
+                push!(hb.A, Acc(only(h.A))); push!(hb.B, Acc(only(h.B))); push!(hb.scaling, one(Acc))
+            else
+                p = get(ljc, (I=t1, J=t2), missing)
+                if !ismissing(p)
+                    push!(lj.i, Int32(i)); push!(lj.j, Int32(j))
+                    push!(lj.A, Acc(p.A_ij)); push!(lj.B, Acc(p.B_ij)); push!(lj.scaling, one(Acc))
+                else
+                    _record_unassigned_lj!(nbc, at, i, j)
+                end
+            end
+        else
+            # 1-4 (torsion) pair: scaled vdW
+            p = get(ljc, (I=t1, J=t2), missing)
+            if !ismissing(p)
+                push!(lj.i, Int32(i)); push!(lj.j, Int32(j))
+                push!(lj.A, Acc(p.A_ij)); push!(lj.B, Acc(p.B_ij)); push!(lj.scaling, s_vdw)
+            else
+                _record_unassigned_lj!(nbc, at, i, j)
+            end
+        end
+    end
+    nothing
+end
+
+# ----------------------------------------------------------------------------
+#  Coordinate / force synchronisation with the canonical atom table.
+#  The hot loop never touches the table; these run only at sync points
+#  (notify callbacks, end of optimization).
+# ----------------------------------------------------------------------------
+function sync_positions_from_table!(cff::CompiledForceField{T, Acc}) where {T, Acc}
+    at = atoms(cff.ff.system)
+    @inbounds for k in 1:cff.natoms
+        cff.r[k] = Vector3{Acc}(at.r[k])
+    end
+    cff
+end
+
+"""
+    sync_to_table!(cff; forces=true)
+
+Write the evaluator's coordinates (and, by default, forces) back into the
+canonical atom table so the rest of the library and any registered observables
+see consistent state.
+"""
+function sync_to_table!(cff::CompiledForceField{T, Acc}; forces::Bool=true) where {T, Acc}
+    at = atoms(cff.ff.system)
+    @inbounds for k in 1:cff.natoms
+        at.r[k] = Vector3{T}(cff.r[k])
+    end
+    if forces
+        @inbounds for k in 1:cff.natoms
+            at.F[k] = Vector3{T}(cff.F[k])
+        end
+    end
+    cff
+end
+
+# pull positions from a flat optimizer vector (Float64) into the Acc SoA buffer
+function set_positions_flat!(cff::CompiledForceField{T, Acc}, r::AbstractVector) where {T, Acc}
+    @inbounds for k in 1:cff.natoms
+        b = 3 * (k - 1)
+        cff.r[k] = Vector3{Acc}(Acc(r[b+1]), Acc(r[b+2]), Acc(r[b+3]))
+    end
+    cff
+end
+
+# write the negative force (= energy gradient) into a flat optimizer vector
+function gradient_flat!(grad::AbstractVector, cff::CompiledForceField{T, Acc}) where {T, Acc}
+    @inbounds for k in 1:cff.natoms
+        b = 3 * (k - 1)
+        Fk = cff.F[k]
+        grad[b+1] = -Fk[1]; grad[b+2] = -Fk[2]; grad[b+3] = -Fk[3]
+    end
+    grad
+end
+
+include("ff_kernels.jl")
