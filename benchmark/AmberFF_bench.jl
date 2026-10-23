@@ -52,10 +52,9 @@ cff_suite["_energy_bend"] = @benchmarkable BiochemicalAlgorithms._energy_bend($c
 cff_suite["_energy_torsion"] = @benchmarkable BiochemicalAlgorithms._energy_torsion($cff, $cff.proper)
 cff_suite["_energy_improper"] = @benchmarkable BiochemicalAlgorithms._energy_torsion($cff, $cff.improper)
 
-cff_suite["_sum_lj"] = @benchmarkable BiochemicalAlgorithms._sum_lj($cff.r, $cff.lj, $cff.vdw_sw, 1, length($cff.lj.i))
-cff_suite["_sum_hb"] = @benchmarkable BiochemicalAlgorithms._sum_hb($cff.r, $cff.hb, $cff.vdw_sw, 1, length($cff.hb.i))
-cff_suite["_sum_es"] = @benchmarkable BiochemicalAlgorithms. _sum_es($cff.r, $cff.es, $cff.es_sw, $cff.distance_dependent_dielectric, $cff.es_prefactor, 1, length($cff.es.i))
-
+ cff_suite["_sum_lj"] = @benchmarkable BiochemicalAlgorithms._sum_lj($cff.r, $cff.lj, $cff.vdw_sw, $cff.box, 1, length($cff.lj.i))
+ cff_suite["_sum_hb"] = @benchmarkable BiochemicalAlgorithms._sum_hb($cff.r, $cff.hb, $cff.vdw_sw, $cff.box, 1, length($cff.hb.i))
+ cff_suite["_sum_es"] = @benchmarkable BiochemicalAlgorithms._sum_es($cff.r, $cff.es, $cff.es_sw, $cff.distance_dependent_dielectric, $cff.es_prefactor, $cff.box, 1, length($cff.es.i))
 
 # Comparison benchmarks: reference vs compiled (Float32 acc)
 comparison_suite = SUITE["ForceFields"]["Comparison"]
