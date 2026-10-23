@@ -33,6 +33,45 @@
         check_against_reference(ff, Float64; etol = 1e-2, ftol = 1e-1)
     end
 
+    # periodic minimum image: shifting atoms by a whole box length must not
+    # change the compiled nonbonded energies or forces
+    let p = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+        infer_topology!(p)
+        ff = AmberFF(p; periodic_boundary_conditions = true)
+        L = ff.options[:periodic_box_width]
+        cff0 = compile(ff)
+        compute_energy!(cff0); compute_forces!(cff0)
+        e0 = copy(cff0.energy); F0 = copy(cff0.F)
+
+        at = atoms(p)
+        for k in 1:2:length(at.idx)
+            at.r[k] = at.r[k] + Vector3{Float32}(L, 0, 0)
+        end
+        cff1 = compile(ff)
+        compute_energy!(cff1); compute_forces!(cff1)
+        for key in ("Van der Waals", "Hydrogen Bonds", "Electrostatic")
+            @test isapprox(cff1.energy[key], e0[key]; rtol = 1e-3, atol = 1e-3)
+        end
+        @test sum(abs, cff0.box) > 0
+    end
+
+    # unsupported components must be rejected, not silently dropped
+    let p = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+        infer_topology!(p)
+        ff = AmberFF(p)
+        struct DummyComponent{T} <: BiochemicalAlgorithms.AbstractForceFieldComponent{T} end
+        push!(ff.components, DummyComponent{Float32}())
+        @test_throws ArgumentError compile(ff)
+    end
+
+    # a skin larger than half the cutoff gap could miss interacting pairs
+    let p = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+        infer_topology!(p)
+        ff = AmberFF(p)
+        @test_throws ArgumentError compile(ff; max_displacement = 8)
+        @test compile(ff; max_displacement = 2.5) isa BiochemicalAlgorithms.CompiledForceField
+    end
+
     # BALL .hin systems, both storage precisions, acc == T -> exact match
     for T in (Float32, Float64)
         fdb = FragmentDB{T}()
