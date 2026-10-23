@@ -15,6 +15,19 @@ is kept current at every pair-list rebuild and fully synchronized when the
 optimization finishes, so the rest of the library and any registered observables
 see consistent state.
 
+# Callbacks
+Before a callback fires, `atoms(system).r`/`.F` are refreshed from the compiled
+evaluator, and `loss` is the current total energy.
+
+!!! warning
+    Do **not** call `compute_energy!(ff)` or `compute_forces!(ff)` inside a
+    callback (or any observer) to track energies during the optimization. The
+    optimization evaluates the compiled copy of `ff`; the reference nonbonded
+    caches of `ff` (stored pair distances) are not updated between iterations,
+    so these calls would combine current bonded terms with stale nonbonded terms
+    and return a wrong energy. Read `loss` instead. The reference
+    force field is made consistent again once `optimize_structure!` returns.
+
 # Supported keyword arguments
  - `alg = OptimizationLBFGSB.LBFGSB()`
  - `accumulation::Type = T` — accumulation precision (`Float32`/`Float64`)
