@@ -75,8 +75,7 @@ end
 end
 
 @inline function _e_hb_pair(sq::Acc, A, B, scaling, sw::CubicSwitchingFunction{Acc}) where Acc
-    # precedence transcribed verbatim: scaling/switching multiply 2nd term only
-    sq^-6 * A - sq^-5 * B * scaling * switching_function(sw, sq)
+    (sq^-6 * A - sq^-5 * B) * scaling * switching_function(sw, sq)
 end
 
 @inline function _e_es_pair(sq::Acc, q1q2, scaling, sw::CubicSwitchingFunction{Acc},
@@ -125,32 +124,39 @@ end
     factor
 end
 
+# Minimum-image displacement for an orthorhombic box of side lengths `L`
+# (valid for cutoff < L/2). `L[1] <= 0` marks a non-periodic system.
+@inline function _disp(a::Vector3{Acc}, b::Vector3{Acc}, L::Vector3{Acc}) where Acc
+    d = a - b
+    L[1] > zero(Acc) ? d - L .* round.(d ./ L) : d
+end
+
 # ---------------------------------------------------------------------------
 #  Nonbonded ENERGY over a pair-index range [lo, hi] (returns Acc partial sum)
 # ---------------------------------------------------------------------------
-@inline function _sum_lj(r, p::PairLJArrays{Acc}, sw::CubicSwitchingFunction{Acc}, lo, hi) where Acc
+@inline function _sum_lj(r, p::PairLJArrays{Acc}, sw::CubicSwitchingFunction{Acc}, L::Vector3{Acc}, lo, hi) where Acc
     e = zero(Acc)
     @inbounds for n in lo:hi
-        sq = squared_norm(r[p.i[n]] - r[p.j[n]])
+        sq = squared_norm(_disp(r[p.i[n]], r[p.j[n]], L))
         e += _e_lj_pair(sq, p.A[n], p.B[n], p.scaling[n], sw)
     end
     e
 end
 
-@inline function _sum_hb(r, p::PairLJArrays{Acc}, sw::CubicSwitchingFunction{Acc}, lo, hi) where Acc
+@inline function _sum_hb(r, p::PairLJArrays{Acc}, sw::CubicSwitchingFunction{Acc}, L::Vector3{Acc}, lo, hi) where Acc
     e = zero(Acc)
     @inbounds for n in lo:hi
-        sq = squared_norm(r[p.i[n]] - r[p.j[n]])
+        sq = squared_norm(_disp(r[p.i[n]], r[p.j[n]], L))
         e += _e_hb_pair(sq, p.A[n], p.B[n], p.scaling[n], sw)
     end
     e
 end
 
 @inline function _sum_es(r, p::PairESArrays{Acc}, sw::CubicSwitchingFunction{Acc},
-                         ddd::Bool, pref::Acc, lo, hi) where Acc
+                         ddd::Bool, pref::Acc, L::Vector3{Acc}, lo, hi) where Acc
     e = zero(Acc)
     @inbounds for n in lo:hi
-        sq = squared_norm(r[p.i[n]] - r[p.j[n]])
+        sq = squared_norm(_disp(r[p.i[n]], r[p.j[n]], L))
         e += _e_es_pair(sq, p.q1q2[n], p.scaling[n], sw, ddd, pref)
     end
     e
@@ -219,10 +225,10 @@ end
 # ---------------------------------------------------------------------------
 #  Nonbonded FORCES over a pair-index range [lo, hi] into buffer F
 # ---------------------------------------------------------------------------
-@inline function _accum_lj!(F, r, p::PairLJArrays{Acc}, sw::CubicSwitchingFunction{Acc}, lo, hi) where Acc
+@inline function _accum_lj!(F, r, p::PairLJArrays{Acc}, sw::CubicSwitchingFunction{Acc}, L::Vector3{Acc}, lo, hi) where Acc
     @inbounds for n in lo:hi
         i = p.i[n]; j = p.j[n]
-        direction = r[i] - r[j]
+        direction = _disp(r[i], r[j], L)
         factor = _f_lj_factor(squared_norm(direction), p.A[n], p.B[n], p.scaling[n], sw)
         iszero(factor) && continue          # skip the (zero) force write for out-of-cutoff pairs
         force = factor * direction
@@ -232,10 +238,10 @@ end
     nothing
 end
 
-@inline function _accum_hb!(F, r, p::PairLJArrays{Acc}, sw::CubicSwitchingFunction{Acc}, lo, hi) where Acc
+@inline function _accum_hb!(F, r, p::PairLJArrays{Acc}, sw::CubicSwitchingFunction{Acc}, L::Vector3{Acc}, lo, hi) where Acc
     @inbounds for n in lo:hi
         i = p.i[n]; j = p.j[n]
-        direction = r[i] - r[j]
+        direction = _disp(r[i], r[j], L)
         factor = _f_hb_factor(squared_norm(direction), p.A[n], p.B[n], p.scaling[n], sw)
         iszero(factor) && continue
         force = factor * direction
@@ -246,10 +252,10 @@ end
 end
 
 @inline function _accum_es!(F, r, p::PairESArrays{Acc}, sw::CubicSwitchingFunction{Acc},
-                            ddd::Bool, pref::Acc, lo, hi) where Acc
+                            ddd::Bool, pref::Acc, L::Vector3{Acc}, lo, hi) where Acc
     @inbounds for n in lo:hi
         i = p.i[n]; j = p.j[n]
-        direction = r[i] - r[j]
+        direction = _disp(r[i], r[j], L)
         factor = _f_es_factor(squared_norm(direction), p.q1q2[n], p.scaling[n], sw, ddd, pref)
         iszero(factor) && continue
         force = factor * direction
@@ -295,9 +301,9 @@ Evaluate the total energy at the evaluator's current coordinates, filling
 function compute_energy!(cff::CompiledForceField{T, Acc, SerialBackend}) where {T, Acc}
     r = cff.r
     nlj = length(cff.lj.i); nhb = length(cff.hb.i); nes = length(cff.es.i)
-    vdw   = _sum_lj(r, cff.lj, cff.vdw_sw, 1, nlj)
-    hbond = _sum_hb(r, cff.hb, cff.vdw_sw, 1, nhb)
-    es    = _sum_es(r, cff.es, cff.es_sw, cff.distance_dependent_dielectric, cff.es_prefactor, 1, nes)
+    vdw   = _sum_lj(r, cff.lj, cff.vdw_sw, cff.box, 1, nlj)
+    hbond = _sum_hb(r, cff.hb, cff.vdw_sw, cff.box, 1, nhb)
+    es    = _sum_es(r, cff.es, cff.es_sw, cff.distance_dependent_dielectric, cff.es_prefactor, cff.box, 1, nes)
     _finish_energy!(cff, vdw, hbond, es)
 end
 
@@ -307,10 +313,10 @@ function compute_energy!(cff::CompiledForceField{T, Acc, ThreadedBackend}) where
     vdwp = zeros(Acc, nt); hbp = zeros(Acc, nt); esp = zeros(Acc, nt)
     nlj = length(cff.lj.i); nhb = length(cff.hb.i); nes = length(cff.es.i)
     Threads.@threads :static for t in 1:nt
-        lo, hi = _chunk(nlj, nt, t); vdwp[t] = _sum_lj(r, cff.lj, cff.vdw_sw, lo, hi)
-        lo, hi = _chunk(nhb, nt, t); hbp[t]  = _sum_hb(r, cff.hb, cff.vdw_sw, lo, hi)
+        lo, hi = _chunk(nlj, nt, t); vdwp[t] = _sum_lj(r, cff.lj, cff.vdw_sw, cff.box, lo, hi)
+        lo, hi = _chunk(nhb, nt, t); hbp[t]  = _sum_hb(r, cff.hb, cff.vdw_sw, cff.box, lo, hi)
         lo, hi = _chunk(nes, nt, t); esp[t]  = _sum_es(r, cff.es, cff.es_sw,
-            cff.distance_dependent_dielectric, cff.es_prefactor, lo, hi)
+            cff.distance_dependent_dielectric, cff.es_prefactor, cff.box, lo, hi)
     end
     _finish_energy!(cff, sum(vdwp), sum(hbp), sum(esp))
 end
@@ -337,10 +343,10 @@ function compute_forces!(cff::CompiledForceField{T, Acc, SerialBackend}) where {
     F = cff.F
     fill!(F, zero(Vector3{Acc}))
     _force_bonded!(F, cff)
-    _accum_lj!(F, cff.r, cff.lj, cff.vdw_sw, 1, length(cff.lj.i))
-    _accum_hb!(F, cff.r, cff.hb, cff.vdw_sw, 1, length(cff.hb.i))
+    _accum_lj!(F, cff.r, cff.lj, cff.vdw_sw, cff.box, 1, length(cff.lj.i))
+    _accum_hb!(F, cff.r, cff.hb, cff.vdw_sw, cff.box, 1, length(cff.hb.i))
     _accum_es!(F, cff.r, cff.es, cff.es_sw, cff.distance_dependent_dielectric,
-               cff.es_prefactor_force, 1, length(cff.es.i))
+               cff.es_prefactor_force, cff.box, 1, length(cff.es.i))
     _apply_constraints!(cff)
     nothing
 end
@@ -352,10 +358,10 @@ function compute_forces!(cff::CompiledForceField{T, Acc, ThreadedBackend}) where
     Threads.@threads :static for t in 1:nt
         Ft = cff.F_threads[t]
         fill!(Ft, zero(Vector3{Acc}))
-        lo, hi = _chunk(nlj, nt, t); _accum_lj!(Ft, r, cff.lj, cff.vdw_sw, lo, hi)
-        lo, hi = _chunk(nhb, nt, t); _accum_hb!(Ft, r, cff.hb, cff.vdw_sw, lo, hi)
+        lo, hi = _chunk(nlj, nt, t); _accum_lj!(Ft, r, cff.lj, cff.vdw_sw, cff.box, lo, hi)
+        lo, hi = _chunk(nhb, nt, t); _accum_hb!(Ft, r, cff.hb, cff.vdw_sw, cff.box, lo, hi)
         lo, hi = _chunk(nes, nt, t); _accum_es!(Ft, r, cff.es, cff.es_sw,
-            cff.distance_dependent_dielectric, cff.es_prefactor_force, lo, hi)
+            cff.distance_dependent_dielectric, cff.es_prefactor_force, cff.box, lo, hi)
     end
     # bonded into the main buffer, then reduce the per-thread nonbonded buffers
     F = cff.F

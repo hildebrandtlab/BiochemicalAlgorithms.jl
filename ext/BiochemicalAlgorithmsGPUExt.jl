@@ -109,13 +109,18 @@ end
 # ---------------------------------------------------------------------------
 #  Kernels (one source; per-pair math shared with the CPU loops)
 # ---------------------------------------------------------------------------
+@inline function _kdisp(dx, dy, dz, Lx, Ly, Lz)
+    Lx > zero(Lx) || return (dx, dy, dz)
+    (dx - Lx * round(dx / Lx), dy - Ly * round(dy / Ly), dz - Lz * round(dz / Lz))
+end
+
 @kernel function _k_force_lj!(Fx, Fy, Fz, @Const(rx), @Const(ry), @Const(rz),
-        @Const(I), @Const(J), @Const(A), @Const(B), @Const(S), sw, N)
+        @Const(I), @Const(J), @Const(A), @Const(B), @Const(S), sw, Lx, Ly, Lz, N)
     n = @index(Global)
     if n <= N
         @inbounds begin
             i = I[n]; j = J[n]
-            dx = rx[i] - rx[j]; dy = ry[i] - ry[j]; dz = rz[i] - rz[j]
+            dx, dy, dz = _kdisp(rx[i] - rx[j], ry[i] - ry[j], rz[i] - rz[j], Lx, Ly, Lz)
             factor = _f_lj_factor(dx*dx + dy*dy + dz*dz, A[n], B[n], S[n], sw)
             fx = factor*dx; fy = factor*dy; fz = factor*dz
             Atomix.@atomic Fx[i] += fx; Atomix.@atomic Fy[i] += fy; Atomix.@atomic Fz[i] += fz
@@ -125,12 +130,12 @@ end
 end
 
 @kernel function _k_force_hb!(Fx, Fy, Fz, @Const(rx), @Const(ry), @Const(rz),
-        @Const(I), @Const(J), @Const(A), @Const(B), @Const(S), sw, N)
+        @Const(I), @Const(J), @Const(A), @Const(B), @Const(S), sw, Lx, Ly, Lz, N)
     n = @index(Global)
     if n <= N
         @inbounds begin
             i = I[n]; j = J[n]
-            dx = rx[i] - rx[j]; dy = ry[i] - ry[j]; dz = rz[i] - rz[j]
+            dx, dy, dz = _kdisp(rx[i] - rx[j], ry[i] - ry[j], rz[i] - rz[j], Lx, Ly, Lz)
             factor = _f_hb_factor(dx*dx + dy*dy + dz*dz, A[n], B[n], S[n], sw)
             fx = factor*dx; fy = factor*dy; fz = factor*dz
             Atomix.@atomic Fx[i] += fx; Atomix.@atomic Fy[i] += fy; Atomix.@atomic Fz[i] += fz
@@ -140,12 +145,12 @@ end
 end
 
 @kernel function _k_force_es!(Fx, Fy, Fz, @Const(rx), @Const(ry), @Const(rz),
-        @Const(I), @Const(J), @Const(Q), @Const(S), sw, ddd, pref, N)
+        @Const(I), @Const(J), @Const(Q), @Const(S), sw, ddd, pref, Lx, Ly, Lz, N)
     n = @index(Global)
     if n <= N
         @inbounds begin
             i = I[n]; j = J[n]
-            dx = rx[i] - rx[j]; dy = ry[i] - ry[j]; dz = rz[i] - rz[j]
+            dx, dy, dz = _kdisp(rx[i] - rx[j], ry[i] - ry[j], rz[i] - rz[j], Lx, Ly, Lz)
             factor = _f_es_factor(dx*dx + dy*dy + dz*dz, Q[n], S[n], sw, ddd, pref)
             fx = factor*dx; fy = factor*dy; fz = factor*dz
             Atomix.@atomic Fx[i] += fx; Atomix.@atomic Fy[i] += fy; Atomix.@atomic Fz[i] += fz
@@ -155,36 +160,36 @@ end
 end
 
 @kernel function _k_energy_lj!(E, @Const(rx), @Const(ry), @Const(rz),
-        @Const(I), @Const(J), @Const(A), @Const(B), @Const(S), sw, N)
+        @Const(I), @Const(J), @Const(A), @Const(B), @Const(S), sw, Lx, Ly, Lz, N)
     n = @index(Global)
     if n <= N
         @inbounds begin
             i = I[n]; j = J[n]
-            dx = rx[i] - rx[j]; dy = ry[i] - ry[j]; dz = rz[i] - rz[j]
+            dx, dy, dz = _kdisp(rx[i] - rx[j], ry[i] - ry[j], rz[i] - rz[j], Lx, Ly, Lz)
             E[n] = _e_lj_pair(dx*dx + dy*dy + dz*dz, A[n], B[n], S[n], sw)
         end
     end
 end
 
 @kernel function _k_energy_hb!(E, @Const(rx), @Const(ry), @Const(rz),
-        @Const(I), @Const(J), @Const(A), @Const(B), @Const(S), sw, N)
+        @Const(I), @Const(J), @Const(A), @Const(B), @Const(S), sw, Lx, Ly, Lz, N)
     n = @index(Global)
     if n <= N
         @inbounds begin
             i = I[n]; j = J[n]
-            dx = rx[i] - rx[j]; dy = ry[i] - ry[j]; dz = rz[i] - rz[j]
+            dx, dy, dz = _kdisp(rx[i] - rx[j], ry[i] - ry[j], rz[i] - rz[j], Lx, Ly, Lz)
             E[n] = _e_hb_pair(dx*dx + dy*dy + dz*dz, A[n], B[n], S[n], sw)
         end
     end
 end
 
 @kernel function _k_energy_es!(E, @Const(rx), @Const(ry), @Const(rz),
-        @Const(I), @Const(J), @Const(Q), @Const(S), sw, ddd, pref, N)
+        @Const(I), @Const(J), @Const(Q), @Const(S), sw, ddd, pref, Lx, Ly, Lz, N)
     n = @index(Global)
     if n <= N
         @inbounds begin
             i = I[n]; j = J[n]
-            dx = rx[i] - rx[j]; dy = ry[i] - ry[j]; dz = rz[i] - rz[j]
+            dx, dy, dz = _kdisp(rx[i] - rx[j], ry[i] - ry[j], rz[i] - rz[j], Lx, Ly, Lz)
             E[n] = _e_es_pair(dx*dx + dy*dy + dz*dz, Q[n], S[n], sw, ddd, pref)
         end
     end
@@ -197,9 +202,9 @@ function compute_energy!(cff::CompiledForceField{T, Acc, <:KAGPUBackend}) where 
     dev = _dev(cff); wg = _wg(cff); g = cff.gpu::GPUState
     _upload_positions!(cff)
     nlj = length(cff.lj.i); nhb = length(cff.hb.i); nes = length(cff.es.i)
-    nlj > 0 && _k_energy_lj!(dev, wg)(g.lj_e, g.rx, g.ry, g.rz, g.lj_i, g.lj_j, g.lj_A, g.lj_B, g.lj_s, cff.vdw_sw, nlj; ndrange=nlj)
-    nhb > 0 && _k_energy_hb!(dev, wg)(g.hb_e, g.rx, g.ry, g.rz, g.hb_i, g.hb_j, g.hb_A, g.hb_B, g.hb_s, cff.vdw_sw, nhb; ndrange=nhb)
-    nes > 0 && _k_energy_es!(dev, wg)(g.es_e, g.rx, g.ry, g.rz, g.es_i, g.es_j, g.es_q, g.es_s, cff.es_sw, cff.distance_dependent_dielectric, cff.es_prefactor, nes; ndrange=nes)
+    nlj > 0 && _k_energy_lj!(dev, wg)(g.lj_e, g.rx, g.ry, g.rz, g.lj_i, g.lj_j, g.lj_A, g.lj_B, g.lj_s, cff.vdw_sw, cff.box[1], cff.box[2], cff.box[3], nlj; ndrange=nlj)
+    nhb > 0 && _k_energy_hb!(dev, wg)(g.hb_e, g.rx, g.ry, g.rz, g.hb_i, g.hb_j, g.hb_A, g.hb_B, g.hb_s, cff.vdw_sw, cff.box[1], cff.box[2], cff.box[3], nhb; ndrange=nhb)
+    nes > 0 && _k_energy_es!(dev, wg)(g.es_e, g.rx, g.ry, g.rz, g.es_i, g.es_j, g.es_q, g.es_s, cff.es_sw, cff.distance_dependent_dielectric, cff.es_prefactor, cff.box[1], cff.box[2], cff.box[3], nes; ndrange=nes)
     _KA.synchronize(dev)
     vdw   = nlj > 0 ? Acc(sum(g.lj_e)) : zero(Acc)
     hbond = nhb > 0 ? Acc(sum(g.hb_e)) : zero(Acc)
@@ -212,9 +217,9 @@ function compute_forces!(cff::CompiledForceField{T, Acc, <:KAGPUBackend}) where 
     _upload_positions!(cff)
     fill!(g.Fx, zero(Acc)); fill!(g.Fy, zero(Acc)); fill!(g.Fz, zero(Acc))
     nlj = length(cff.lj.i); nhb = length(cff.hb.i); nes = length(cff.es.i)
-    nlj > 0 && _k_force_lj!(dev, wg)(g.Fx, g.Fy, g.Fz, g.rx, g.ry, g.rz, g.lj_i, g.lj_j, g.lj_A, g.lj_B, g.lj_s, cff.vdw_sw, nlj; ndrange=nlj)
-    nhb > 0 && _k_force_hb!(dev, wg)(g.Fx, g.Fy, g.Fz, g.rx, g.ry, g.rz, g.hb_i, g.hb_j, g.hb_A, g.hb_B, g.hb_s, cff.vdw_sw, nhb; ndrange=nhb)
-    nes > 0 && _k_force_es!(dev, wg)(g.Fx, g.Fy, g.Fz, g.rx, g.ry, g.rz, g.es_i, g.es_j, g.es_q, g.es_s, cff.es_sw, cff.distance_dependent_dielectric, cff.es_prefactor_force, nes; ndrange=nes)
+    nlj > 0 && _k_force_lj!(dev, wg)(g.Fx, g.Fy, g.Fz, g.rx, g.ry, g.rz, g.lj_i, g.lj_j, g.lj_A, g.lj_B, g.lj_s, cff.vdw_sw, cff.box[1], cff.box[2], cff.box[3], nlj; ndrange=nlj)
+    nhb > 0 && _k_force_hb!(dev, wg)(g.Fx, g.Fy, g.Fz, g.rx, g.ry, g.rz, g.hb_i, g.hb_j, g.hb_A, g.hb_B, g.hb_s, cff.vdw_sw, cff.box[1], cff.box[2], cff.box[3], nhb; ndrange=nhb)
+    nes > 0 && _k_force_es!(dev, wg)(g.Fx, g.Fy, g.Fz, g.rx, g.ry, g.rz, g.es_i, g.es_j, g.es_q, g.es_s, cff.es_sw, cff.distance_dependent_dielectric, cff.es_prefactor_force, cff.box[1], cff.box[2], cff.box[3], nes; ndrange=nes)
     _KA.synchronize(dev)
     copyto!(g.hFx, g.Fx); copyto!(g.hFy, g.Fy); copyto!(g.hFz, g.Fz)
     F = cff.F

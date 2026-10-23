@@ -142,6 +142,10 @@ mutable struct CompiledForceField{T, Acc, B <: EvalBackend}
 
     # cached CellListMap in-place neighbor list (built once, updated in place)
     nl::Any
+
+    # orthorhombic periodic box side lengths for minimum-image pair
+    # displacements; zeros when the system is not periodic
+    box::Vector3{Acc}
 end
 
 @inline accumulation_type(::CompiledForceField{T, Acc}) where {T, Acc} = Acc
@@ -160,7 +164,7 @@ end
 #  Compilation: lower the reference components into SoA arrays.
 # ----------------------------------------------------------------------------
 """
-    compile(ff::ForceField{T}; acc=T, backend=:serial, update_frequency=1, max_displacement=8)
+    compile(ff::ForceField{T}; acc=T, backend=:serial, update_frequency=0, max_displacement=-1)
 
 Build a [`CompiledForceField`](@ref) from `ff`: a cached, struct-of-arrays
 evaluator suitable for repeated energy/force evaluation (e.g. inside
@@ -170,6 +174,12 @@ evaluator suitable for repeated energy/force evaluation (e.g. inside
 Calls `update!(ff)` once to obtain the correct interaction list, then lowers it.
 The atom topology (and therefore row numbering) must not change for the lifetime
 of the returned object.
+
+`max_displacement` is the largest per-atom move (Å) tolerated before the pair
+list is rebuilt. The default (`-1`) derives the safe value
+`(nonbonded_cutoff - max(vdw_cutoff, electrostatic_cutoff)) / 2`; larger explicit
+values would let pairs enter the interaction range unnoticed and throw an
+`ArgumentError`.
 """
 function compile(ff::ForceField{T};
         acc::Type{Acc} = T,
@@ -212,16 +222,23 @@ function compile(ff::ForceField{T};
         constrained_mask,
         Int(update_frequency), Acc(max_displacement),
         Vector{Vector3{Acc}}(undef, natoms), 0,
-        nothing, nothing,
+        nothing, nothing, zero(Vector3{Acc}),
     )
 
-    # auto-derive a safe Verlet skin from the cutoffs unless overridden: a pair
-    # absent from the list was >= nonbonded_cutoff apart at build time; it can
-    # only reach the (vdw/es) cutoff if atoms move > (nonbonded_cutoff-cutoff)/2.
+    # Safe Verlet skin: a pair absent from the list was >= nonbonded_cutoff apart
+    # at build time; it can only reach the (vdw/es) cutoff if atoms move more than
+    # (nonbonded_cutoff - cutoff) / 2. An explicit threshold may not exceed it.
+    nb  = Acc(ff.options[:nonbonded_cutoff])
+    cut = max(Acc(ff.options[:vdw_cutoff]), Acc(ff.options[:electrostatic_cutoff]))
+    safe = max(zero(Acc), (nb - cut) / 2)
     if max_displacement < 0
-        nb  = Acc(ff.options[:nonbonded_cutoff])
-        cut = max(Acc(ff.options[:vdw_cutoff]), Acc(ff.options[:electrostatic_cutoff]))
-        cff.max_displacement = max(zero(Acc), (nb - cut) / 2)
+        cff.max_displacement = safe
+    elseif Acc(max_displacement) > safe
+        throw(ArgumentError(
+            "max_displacement=$max_displacement exceeds the safe Verlet skin of $safe Å " *
+            "(half the gap between nonbonded_cutoff=$nb and the largest interaction " *
+            "cutoff=$cut); pairs outside the neighbor list could move into range " *
+            "without a rebuild. Use a smaller value or increase nonbonded_cutoff."))
     end
 
     _lower_bonded!(cff)
@@ -274,7 +291,11 @@ function _lower_bonded!(cff::CompiledForceField{T, Acc}) where {T, Acc}
     cff
 end
 
-_lower_component!(::CompiledForceField, ::AbstractForceFieldComponent) = nothing
+_lower_component!(::CompiledForceField, c::AbstractForceFieldComponent) =
+    throw(ArgumentError("unsupported force field component: $(typeof(c))"))
+
+# lowered separately by `_build_nonbonded_soa!` (pair lists are rebuilt on demand)
+_lower_component!(::CompiledForceField, ::NonBondedComponent) = nothing
 
 function _lower_component!(cff::CompiledForceField{T, Acc}, c::QuadraticStretchComponent{T}) where {T, Acc}
     s = cff.stretch
@@ -407,6 +428,7 @@ function _build_nonbonded_soa!(cff::CompiledForceField{T, Acc}, nbc::NonBondedCo
     cutoff = Acc(c.nonbonded_cutoff)
     pbc = ff.options[:periodic_boundary_conditions]::Bool
 
+    cff.box = pbc ? Vector3{Acc}(c.periodic_box) : zero(Vector3{Acc})
     if cff.nl === nothing
         cff.nl = pbc ?
             CellListMap.InPlaceNeighborList(positions=cff.r, cutoff=cutoff, unitcell=Acc.(c.periodic_box)) :
