@@ -89,7 +89,8 @@ function optimize_structure!(ff::ForceField{T};
     # `compute_energy!(ff)` / `compute_forces!(ff)` report the minimized state.
     update!(ff)
     compute_forces!(ff)
-
+    compute_energy!(ff)  # ensure the final energy is up-to-date
+  
     solution
 end
 
