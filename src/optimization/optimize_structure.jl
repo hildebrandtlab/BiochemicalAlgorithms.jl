@@ -87,9 +87,10 @@ function optimize_structure!(ff::ForceField{T};
     # nonbonded interaction list stores per-pair distances), and
     # `compute_forces!` repopulates `atoms(system).F`. After this, the usual
     # `compute_energy!(ff)` / `compute_forces!(ff)` report the minimized state.
-    update!(ff)
-    compute_forces!(ff)
-
+    update!(cff.ff)
+    compute_forces!(cff.ff)
+    compute_energy!(cff.ff)  # ensure the final energy is up-to-date
+  
     solution
 end
 
