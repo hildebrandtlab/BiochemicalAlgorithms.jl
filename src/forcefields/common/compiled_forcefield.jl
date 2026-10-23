@@ -412,6 +412,19 @@ pair list if necessary. Call before `compute_energy!`/`compute_forces!`.
     cff
 end
 
+# Mirrors the missing-parameter branch of `_try_assign_vdw!` (nonbonded_component.jl).
+function _record_unassigned_lj!(nbc::NonBondedComponent{T}, at::AtomTable{T}, i::Int, j::Int) where T
+    ff = nbc.ff
+    a1 = at[i]; a2 = at[j]
+    push!(nbc.unassigned_lj_interactions, (a1, a2))
+    push!(ff.unassigned_atoms, a1)
+    push!(ff.unassigned_atoms, a2)
+    if length(ff.unassigned_atoms) > ff.options[:max_number_of_unassigned_atoms]::Int32
+        throw(TooManyErrors())
+    end
+    nothing
+end
+
 _convert_sw(::Type{Acc}, sw::CubicSwitchingFunction) where Acc =
     CubicSwitchingFunction{Acc}(Acc(sw.cutoff), Acc(sw.cuton))
 
@@ -455,6 +468,7 @@ function _build_nonbonded_soa!(cff::CompiledForceField{T, Acc}, nbc::NonBondedCo
     empty!(lj.i); empty!(lj.j); empty!(lj.A); empty!(lj.B); empty!(lj.scaling)
     empty!(hb.i); empty!(hb.j); empty!(hb.A); empty!(hb.B); empty!(hb.scaling)
     empty!(es.i); empty!(es.j); empty!(es.q1q2); empty!(es.scaling)
+    empty!(nbc.unassigned_lj_interactions)
 
     @inbounds for cand in pairs
         i = cand[1]::Int; j = cand[2]::Int
@@ -481,6 +495,8 @@ function _build_nonbonded_soa!(cff::CompiledForceField{T, Acc}, nbc::NonBondedCo
                 if !ismissing(p)
                     push!(lj.i, Int32(i)); push!(lj.j, Int32(j))
                     push!(lj.A, Acc(p.A_ij)); push!(lj.B, Acc(p.B_ij)); push!(lj.scaling, one(Acc))
+                else
+                    _record_unassigned_lj!(nbc, at, i, j)
                 end
             end
         else
@@ -489,6 +505,8 @@ function _build_nonbonded_soa!(cff::CompiledForceField{T, Acc}, nbc::NonBondedCo
             if !ismissing(p)
                 push!(lj.i, Int32(i)); push!(lj.j, Int32(j))
                 push!(lj.A, Acc(p.A_ij)); push!(lj.B, Acc(p.B_ij)); push!(lj.scaling, s_vdw)
+            else
+                _record_unassigned_lj!(nbc, at, i, j)
             end
         end
     end
