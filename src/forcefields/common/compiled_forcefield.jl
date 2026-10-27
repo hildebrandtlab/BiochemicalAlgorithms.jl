@@ -612,12 +612,13 @@ function _permute_torsion_rows!(torsion::TorsionArrays{Acc}, perm::AbstractVecto
     _permute_rows!(torsion.k, perm)
     _permute_rows!(torsion.l, perm)
 
+    old_offsets = copy(torsion.term_offset)
     new_offsets = Vector{Int32}(undef, n + 1)
     new_offsets[1] = 1
     @inbounds for dst in 1:n
         src = Int(perm[dst])
-        start = Int(torsion.term_offset[src])
-        stop = Int(torsion.term_offset[src+1]) - 1
+        start = Int(old_offsets[src])
+        stop = Int(old_offsets[src+1]) - 1
         new_offsets[dst+1] = new_offsets[dst] + Int32(stop - start + 1)
     end
     copyto!(torsion.term_offset, new_offsets)
@@ -631,8 +632,8 @@ function _permute_torsion_rows!(torsion::TorsionArrays{Acc}, perm::AbstractVecto
     pos = 1
     @inbounds for dst in 1:n
         src = Int(perm[dst])
-        start = Int(torsion.term_offset[src])
-        stop = Int(torsion.term_offset[src+1]) - 1
+        start = Int(old_offsets[src])
+        stop = Int(old_offsets[src+1]) - 1
         len = stop - start + 1
         if len > 0
             copyto!(view(new_V, pos:(pos+len-1)), view(torsion.V, start:stop))
@@ -722,6 +723,7 @@ function finalize_optimization!(cff::CompiledForceField{T,Acc}, u::AbstractVecto
     rebuild_pairlist!(cff)
     compute_forces!(cff)
     sync_to_table!(cff; forces=true)
+    update!(cff.ff)
     true
 end
 include("ff_kernels.jl")
