@@ -77,6 +77,7 @@ end
 @inline function _sum_torsion(r, t::TorsionArrays{Acc}, lo, hi) where Acc
     e = zero(Acc)
     @inbounds for n in lo:hi
+        a21 = r[t.i[n]] - r[t.j[n]]
         a23 = r[t.k[n]] - r[t.j[n]]
         a34 = r[t.l[n]] - r[t.k[n]]
         _, _, _, _, ok, cos_ϕ = _torsion_geometry(a21, a23, a34)
@@ -199,6 +200,7 @@ end
     end
     e
 end
+
 
 # ---------------------------------------------------------------------------
 #  Bonded FORCES (serial accumulation into a row-indexed buffer F)
@@ -414,4 +416,3 @@ end
     end
     nothing
 end
-
