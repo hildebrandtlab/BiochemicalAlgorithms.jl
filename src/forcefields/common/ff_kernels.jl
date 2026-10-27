@@ -92,6 +92,7 @@ end
 @inline function _sum_torsion(r, t::TorsionArrays{Acc}, lo, hi) where Acc
     e = zero(Acc)
     @inbounds for n in lo:hi
+        a21 = r[t.i[n]] - r[t.j[n]]
         a23 = r[t.k[n]] - r[t.j[n]]
         a34 = r[t.l[n]] - r[t.k[n]]
         _, _, _, _, ok, cos_ϕ = _torsion_geometry(a21, a23, a34)
@@ -286,12 +287,11 @@ end
     e
 end
 
+
 # ---------------------------------------------------------------------------
 #  Bonded FORCES (serial accumulation into a row-indexed buffer F)
-#  Bonded FORCES (serial accumulation into a row-indexed buffer F)
 # ---------------------------------------------------------------------------
-function _force_stretch!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
-    s = cff.stretch; r = cff.r
+
 function _force_stretch!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
     s = cff.stretch; r = cff.r
     @inbounds for n in eachindex(s.k)
@@ -306,8 +306,7 @@ function _force_stretch!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
     nothing
 end
 
-function _force_bend!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
-    b = cff.bend; r = cff.r
+
 function _force_bend!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
     b = cff.bend; r = cff.r
     @inbounds for n in eachindex(b.k)
@@ -528,4 +527,3 @@ end
     end
     nothing
 end
-

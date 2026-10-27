@@ -31,29 +31,7 @@ All other keyword arguments are forwarded to
 All other keyword arguments are forwarded to
 [Optimization.solve](https://docs.sciml.ai/Optimization/stable/API/solve/).
 """
-function optimize_structure!(ff::ForceField{T};
-        alg = OptimizationLBFGSB.LBFGSB(),
-        accumulation::Type = T,
-        backend::Symbol = :serial,
-        update_frequency::Integer = 0,
-        max_displacement::Real = -1,
-        callback = nothing,
-        kwargs...) where T
 
-    cff = compile(ff; acc=accumulation, backend=backend,
-                  update_frequency=update_frequency, max_displacement=max_displacement)
-
-function optimize_structure!(ff::ForceField{T};
-        alg = OptimizationLBFGSB.LBFGSB(),
-        accumulation::Type = T,
-        backend::Symbol = :serial,
-        update_frequency::Integer = 0,
-        max_displacement::Real = -1,
-        callback = nothing,
-        kwargs...) where T
-
-    cff = compile(ff; acc=accumulation, backend=backend,
-                  update_frequency=update_frequency, max_displacement=max_displacement)
 
 function optimize_structure!(ff::ForceField{T};
         alg = OptimizationLBFGSB.LBFGSB(),

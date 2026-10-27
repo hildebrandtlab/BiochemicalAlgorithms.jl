@@ -28,9 +28,7 @@ export
 # --- evaluation backends -----------------------------------------------------
 abstract type EvalBackend end
 struct SerialBackend   <: EvalBackend end
-struct ThreadedBackend <: EvalBackend
-    nthreads::Int
-end
+
 struct ThreadedBackend <: EvalBackend
     nthreads::Int
 end
@@ -122,9 +120,6 @@ mutable struct CompiledForceField{T, Acc, B <: EvalBackend}
     r::Vector{Vector3{Acc}}
     F::Vector{Vector3{Acc}}
 
-    # per-thread scratch for the ThreadedBackend (empty for SerialBackend)
-    F_threads::Vector{Vector{Vector3{Acc}}}
-    e_threads::Vector{Acc}
 
     # per-thread scratch for the ThreadedBackend (empty for SerialBackend)
     F_threads::Vector{Vector{Vector3{Acc}}}
@@ -208,10 +203,6 @@ function compile(ff::ForceField{T};
     F_threads = [Vector{Vector3{Acc}}(undef, natoms) for _ in 1:nthreads]
     e_threads = zeros(Acc, nthreads)
 
-    nthreads = b isa ThreadedBackend ? b.nthreads : 0
-    F_threads = [Vector{Vector3{Acc}}(undef, natoms) for _ in 1:nthreads]
-    e_threads = zeros(Acc, nthreads)
-
     constrained_mask = falses(natoms)
     for a in ff.constrained_atoms
         # `constrained_atoms` holds row positions into atoms(system); mirror the
@@ -228,8 +219,6 @@ function compile(ff::ForceField{T};
         CubicSwitchingFunction{Acc}(zero(Acc), zero(Acc)),
         CubicSwitchingFunction{Acc}(zero(Acc), zero(Acc)),
         Acc(ES_Prefactor), Acc(ES_Prefactor_force), false,
-        r, F, F_threads, e_threads,
-        r, F, F_threads, e_threads,
         r, F, F_threads, e_threads,
         Dict{String,Acc}(), 
         idx2row, natoms,
@@ -271,18 +260,8 @@ function _select_backend(::Val{:gpu}, ff::ForceField, ::Type{Acc}) where Acc
         "(`using Metal` on Apple Silicon, or `using CUDA`)"))
     _make_gpu_backend(ff, Acc)
 end
-function _select_backend(::Val{:gpu}, ff::ForceField, ::Type{Acc}) where Acc
-    hasmethod(_make_gpu_backend, Tuple{ForceField, Type}) || throw(ArgumentError(
-        "the :gpu backend needs `using KernelAbstractions` plus a device package " *
-        "(`using Metal` on Apple Silicon, or `using CUDA`)"))
-    _make_gpu_backend(ff, Acc)
-end
-function _select_backend(::Val{:gpu}, ff::ForceField, ::Type{Acc}) where Acc
-    hasmethod(_make_gpu_backend, Tuple{ForceField,Type}) || throw(ArgumentError(
-        "the :gpu backend needs `using KernelAbstractions` plus a device package " *
-        "(`using Metal` on Apple Silicon, or `using CUDA`)"))
-    _make_gpu_backend(ff, Acc)
-end
+
+
 _select_backend(::Val{B}, ::ForceField, ::Type) where B =
     throw(ArgumentError("unknown backend :$B (available: :serial, :threads, :gpu)"))
 
