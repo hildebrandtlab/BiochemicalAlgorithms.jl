@@ -231,9 +231,9 @@ function _compute_energy_loss(r::AbstractVector, p::MiniBatchParams{T,Acc}) wher
         bendp = isempty(batch.bend_range) ? zero(Acc) : _sum_bend(r_coords, p.cff.bend, first(batch.bend_range), last(batch.bend_range))
         properp = isempty(batch.torsion_range) ? zero(Acc) : _sum_torsion(r_coords, p.cff.proper, first(batch.torsion_range), last(batch.torsion_range))
         improperp = isempty(batch.improper_range) ? zero(Acc) : _sum_torsion(r_coords, p.cff.improper, first(batch.improper_range), last(batch.improper_range))
-        vdwp = isempty(batch.ljp_range) ? zero(Acc) : _sum_lj(r_coords, p.cff.lj, p.cff.vdw_sw, first(batch.ljp_range), last(batch.ljp_range))
-        hbp = isempty(batch.hb_range) ? zero(Acc) : _sum_hb(r_coords, p.cff.hb, p.cff.vdw_sw, first(batch.hb_range), last(batch.hb_range))
-        esp = isempty(batch.es_range) ? zero(Acc) : _sum_es(r_coords, p.cff.es, p.cff.es_sw, p.cff.distance_dependent_dielectric, p.cff.es_prefactor, first(batch.es_range), last(batch.es_range))
+        vdwp = isempty(batch.ljp_range) ? zero(Acc) : _sum_lj(r_coords, p.cff.lj, p.cff.vdw_sw, p.cff.box, first(batch.ljp_range), last(batch.ljp_range))
+        hbp = isempty(batch.hb_range) ? zero(Acc) : _sum_hb(r_coords, p.cff.hb, p.cff.vdw_sw, p.cff.box, first(batch.hb_range), last(batch.hb_range))
+        esp = isempty(batch.es_range) ? zero(Acc) : _sum_es(r_coords, p.cff.es, p.cff.es_sw, p.cff.distance_dependent_dielectric, p.cff.es_prefactor, p.cff.box, first(batch.es_range), last(batch.es_range))
 
         return Float64(stretchp + bendp + properp + improperp + vdwp + hbp + esp)
     end
@@ -270,18 +270,18 @@ function _compute_energy_loss(r::AbstractVector, p::MiniBatchParams{T,Acc}) wher
 
         vr = _chunk_range(batch.ljp_range, nt, t)
         if !isempty(vr)
-            vdwp[t] = _sum_lj(r_coords, p.cff.lj, p.cff.vdw_sw, first(vr), last(vr))
+            vdwp[t] = _sum_lj(r_coords, p.cff.lj, p.cff.vdw_sw, p.cff.box, first(vr), last(vr))
         end
 
         hr = _chunk_range(batch.hb_range, nt, t)
         if !isempty(hr)
-            hbp[t] = _sum_hb(r_coords, p.cff.hb, p.cff.vdw_sw, first(hr), last(hr))
+            hbp[t] = _sum_hb(r_coords, p.cff.hb, p.cff.vdw_sw, p.cff.box, first(hr), last(hr))
         end
 
         er = _chunk_range(batch.es_range, nt, t)
         if !isempty(er)
             esp[t] = _sum_es(r_coords, p.cff.es, p.cff.es_sw, p.cff.distance_dependent_dielectric,
-                p.cff.es_prefactor, first(er), last(er))
+                p.cff.es_prefactor, p.cff.box, first(er), last(er))
         end
     end
 
@@ -311,14 +311,14 @@ function _compute_grad!(grad::AbstractVector, r::AbstractVector, p::MiniBatchPar
             _accum_torsion!(F, r, p.cff.improper, first(batch.improper_range), last(batch.improper_range))
         end
         if !isempty(batch.ljp_range)
-            _accum_lj!(F, r, p.cff.lj, p.cff.vdw_sw, first(batch.ljp_range), last(batch.ljp_range))
+            _accum_lj!(F, r, p.cff.lj, p.cff.vdw_sw, p.cff.box, first(batch.ljp_range), last(batch.ljp_range))
         end
         if !isempty(batch.hb_range)
-            _accum_hb!(F, r, p.cff.hb, p.cff.vdw_sw, first(batch.hb_range), last(batch.hb_range))
+            _accum_hb!(F, r, p.cff.hb, p.cff.vdw_sw, p.cff.box, first(batch.hb_range), last(batch.hb_range))
         end
         if !isempty(batch.es_range)
             _accum_es!(F, r, p.cff.es, p.cff.es_sw, p.cff.distance_dependent_dielectric,
-                p.cff.es_prefactor_force, first(batch.es_range), last(batch.es_range))  
+                p.cff.es_prefactor_force, p.cff.box, first(batch.es_range), last(batch.es_range))
         end
     else
         nt = Threads.nthreads()
@@ -348,18 +348,18 @@ function _compute_grad!(grad::AbstractVector, r::AbstractVector, p::MiniBatchPar
 
             vr = _chunk_range(batch.ljp_range, nt, t)
             if !isempty(vr)
-                _accum_lj!(Ft, r, p.cff.lj, p.cff.vdw_sw, first(vr), last(vr))
+                _accum_lj!(Ft, r, p.cff.lj, p.cff.vdw_sw, p.cff.box, first(vr), last(vr))
             end
 
             hr = _chunk_range(batch.hb_range, nt, t)
             if !isempty(hr)
-                _accum_hb!(Ft, r, p.cff.hb, p.cff.vdw_sw, first(hr), last(hr))
+                _accum_hb!(Ft, r, p.cff.hb, p.cff.vdw_sw, p.cff.box, first(hr), last(hr))
             end
 
             er = _chunk_range(batch.es_range, nt, t)
             if !isempty(er)
                 _accum_es!(Ft, r, p.cff.es, p.cff.es_sw, p.cff.distance_dependent_dielectric,
-                    p.cff.es_prefactor_force, first(er), last(er))
+                    p.cff.es_prefactor_force, p.cff.box, first(er), last(er))
             end
         end
 
