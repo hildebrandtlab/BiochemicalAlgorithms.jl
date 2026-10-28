@@ -259,3 +259,4 @@ end
     "$(ff.name) for $(natoms(ff.system)) atoms with $(nbonds(ff.system)) bonds.")
 @inline Base.show(io::IO, ff::ForceField) = println(io,
     "$(ff.name) for $(natoms(ff.system)) atoms with $(nbonds(ff.system)) bonds.")
+
