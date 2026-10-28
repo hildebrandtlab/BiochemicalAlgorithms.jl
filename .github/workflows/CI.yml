@@ -31,12 +31,16 @@ jobs:
         version:
           - 'lts'
           - '1.13'
+          - 'pre'
         os:
           - ubuntu-latest
         arch:
           - x64
           # Broken by dependency, cf. https://github.com/BioJulia/IndexableBitVectors.jl/issues/9
           # - x86
+        include:
+          - version: 'pre'
+            experimental: true
     steps:
       - uses: actions/checkout@v7
       - uses: julia-actions/setup-julia@v3
