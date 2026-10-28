@@ -94,12 +94,13 @@ end
 
     # ===== PART 2: Verify batch creation matches =====
     Random.seed!(1234)
-    ds1 = InteractionDataSet(cff1; batchsize=100)
+  
+    ds1 = BiochemicalAlgorithms.create_interaction_batches!(cff1, 100)
     Random.seed!(1234)
-    ds2 = InteractionDataSet(cff2; batchsize=100)
+    ds2 = BiochemicalAlgorithms.create_interaction_batches!(cff2, 100)
 
-    b1 = ds1.batches[1]
-    b2 = ds2.batches[1]
+    b1 = ds1[1]
+    b2 = ds2[1]
 
     @test b1.stretch_range == b2.stretch_range
     @test b1.bend_range == b2.bend_range
@@ -108,9 +109,9 @@ end
     @test b1.es_range == b2.es_range
 
     # ===== PART 3: Verify _chunk_range partitioning =====
-    for i in 1:length(ds1.batches)
-        batch1 = ds1.batches[i]
-        batch2 = ds2.batches[i]
+    for i in eachindex(ds1)
+        batch1 = ds1[i]
+        batch2 = ds2[i]
 
         for t in 1:Threads.nthreads()
             sr1 = BiochemicalAlgorithms._chunk_range(batch1.stretch_range, Threads.nthreads(), t)
@@ -136,7 +137,7 @@ end
     end
 
     # Verify all indices are covered exactly once
-    batch = ds1.batches[1]
+    batch = ds1[1]
     nt = Threads.nthreads()
     all_threaded_stretch = Int[]
     for t in 1:nt
@@ -153,8 +154,8 @@ end
     @test r1 == r2
 
     # ===== PART 5: Verify energy computation matches =====
-    p1 = BiochemicalAlgorithms.MiniBatchParams(cff1, ds1.batches, 1)
-    p2 = BiochemicalAlgorithms.MiniBatchParams(cff2, ds2.batches, 1)
+    p1 = BiochemicalAlgorithms.MiniBatchParams(cff1, ds1, 1)
+    p2 = BiochemicalAlgorithms.MiniBatchParams(cff2, ds2, 1)
 
     e1_serial = BiochemicalAlgorithms._compute_energy_loss(r1, p1)
     e2_serial = BiochemicalAlgorithms._compute_energy_loss(r2, p2)

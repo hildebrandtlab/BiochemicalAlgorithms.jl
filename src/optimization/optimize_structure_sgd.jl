@@ -1,6 +1,4 @@
 export
-    InteractionBatch,
-    InteractionDataSet,
     optimize_structure_mini!
 
 
@@ -15,6 +13,7 @@ struct InteractionBatch
     count::Int  # total interactions in this batch
 end
 
+
 function InteractionBatch(
     stretch_range::UnitRange{Int},
     bend_range::UnitRange{Int},
@@ -24,10 +23,10 @@ function InteractionBatch(
     es_range::UnitRange{Int},
     hb_range::UnitRange{Int}
 )
-    count = length(stretch_range) + length(bend_range) + length(torsion_range) + 
+    count = length(stretch_range) + length(bend_range) + length(torsion_range) +
             length(improper_range) + length(ljp_range) + length(es_range) + length(hb_range)
-    return InteractionBatch(stretch_range, bend_range, torsion_range, improper_range, 
-                           ljp_range, es_range, hb_range, count)
+    return InteractionBatch(stretch_range, bend_range, torsion_range, improper_range,
+        ljp_range, es_range, hb_range, count)
 end
 
 
@@ -39,55 +38,40 @@ mutable struct MiniBatchParams{T,Acc}
 end
 
 
-struct InteractionDataSet{T,Acc}
-    cff::CompiledForceField{T,Acc}
-    batchsize::Int
-    batches::Vector{InteractionBatch}
-    ninteractions::Int
-    counts
-    function InteractionDataSet{T,Acc}(cff::CompiledForceField{T,Acc}, batchsize::Integer=10; seed::Int=42) where {T,Acc}
+function create_interaction_batches!(cff::CompiledForceField{T,Acc}, batchsize::Integer=10; seed::Int=42) where {T,Acc}
 
-        # generate a new permutation of the interactions
-        shuffle_interactions!(cff; seed)
+    # generate a new permutation of the interactions
+    shuffle_interactions!(cff; seed)
 
-        counts = (
-            stretch=length(cff.stretch.i),
-            bend=length(cff.bend.i),
-            torsion=length(cff.proper.i),
-            improper=length(cff.improper.i),
-            ljp=length(cff.lj.i),
-            es=length(cff.es.i),
-            hb=length(cff.hb.i),
+    counts = (
+        stretch=length(cff.stretch.i),
+        bend=length(cff.bend.i),
+        torsion=length(cff.proper.i),
+        improper=length(cff.improper.i),
+        ljp=length(cff.lj.i),
+        es=length(cff.es.i),
+        hb=length(cff.hb.i),
+    )
+
+    ninteractions = sum(counts)
+    nbatches = max(1, cld(ninteractions, batchsize))
+    batches = Vector{InteractionBatch}(undef, nbatches)
+
+    for b in 1:nbatches
+        batches[b] = InteractionBatch(
+            _partition_range(counts.stretch, nbatches, b),
+            _partition_range(counts.bend, nbatches, b),
+            _partition_range(counts.torsion, nbatches, b),
+            _partition_range(counts.improper, nbatches, b),
+            _partition_range(counts.ljp, nbatches, b),
+            _partition_range(counts.es, nbatches, b),
+            _partition_range(counts.hb, nbatches, b),
         )
-
-        ninteractions = sum(counts)
-        nbatches = max(1, cld(ninteractions, batchsize))
-        batches = Vector{InteractionBatch}(undef, nbatches)
-
-        for b in 1:nbatches
-            batches[b] = InteractionBatch(
-                _partition_range(counts.stretch, nbatches, b),
-                _partition_range(counts.bend, nbatches, b),
-                _partition_range(counts.torsion, nbatches, b),
-                _partition_range(counts.improper, nbatches, b),
-                _partition_range(counts.ljp, nbatches, b),
-                _partition_range(counts.es, nbatches, b),
-                _partition_range(counts.hb, nbatches, b),
-            )
-        end
-
-        new{T,Acc}(cff, Int(batchsize), batches, ninteractions, counts)
     end
+
+    batches
 end
 
-InteractionDataSet(cff::CompiledForceField{T,Acc}; batchsize::Integer=10, seed::Int=42) where {T,Acc} =
-    InteractionDataSet{T,Acc}(cff, batchsize; seed=seed)
-InteractionDataSet(ff::ForceField{T}; batchsize::Integer=10, seed::Int=42) where {T} =
-    InteractionDataSet(compile(ff), batchsize; seed=seed)
-
-Base.length(d::InteractionDataSet) = d.ninteractions
-Base.getindex(d::InteractionDataSet, i::Int) = d.batches[i]
-Base.getindex(d::InteractionDataSet, idxs::AbstractVector) = [getindex(d, i) for i in idxs]
 
 """
     optimize_structure!(ff::ForceField)
@@ -103,9 +87,9 @@ with the following default values:
 function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=OptimizationOptimisers.Adam(0.01), epochs::Int=10, batchsize::Int=10, callback=nothing, trace::Bool=false, seed::Int=42, kwargs...) where {T,Acc}
     r0 = collect(Float64, Iterators.flatten(atoms(cff.ff.system).r))
 
-    ds = InteractionDataSet(cff; batchsize=batchsize, seed=seed)
+    batches = create_interaction_batches!(cff, batchsize; seed=seed)
 
-    state = MiniBatchParams(cff, ds.batches, 1)
+    state = MiniBatchParams(cff, batches, 1)
 
     optf = Optimization.OptimizationFunction(
         (r, p=nothing) -> begin
@@ -121,7 +105,7 @@ function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=Optimizati
     prob = Optimization.OptimizationProblem(optf, r0, state)
 
     iters_in_epoch = Ref(0)
-    epoch_steps = Ref(max(1, length(ds.batches)))
+    epoch_steps = Ref(max(1, length(batches)))
     done_epochs = Ref(0)
     base_seed = Ref(seed)
 
@@ -131,7 +115,7 @@ function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=Optimizati
         stop = _epoch_minibatch_callback(
             opt_state, l, state, iters_in_epoch, epoch_steps, done_epochs, epochs, batchsize, base_seed
         )
-        
+
         # Only compute full energy if trace is enabled and user provided a callback
         if trace && callback !== nothing
             e = compute_energy!(cff)
@@ -140,7 +124,7 @@ function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=Optimizati
             # User callback without tracing full energy (user responsible for logging)
             callback(opt_state.iter, l)
         end
-        
+
         return stop
     end
 
@@ -155,6 +139,7 @@ function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=Optimizati
     finalize_optimization!(cff, sol.u)
     sol
 end
+
 
 function _epoch_minibatch_callback(
     opt_state,
@@ -184,8 +169,6 @@ function _epoch_minibatch_callback(
 end
 
 
-
-
 function _partition_range(count::Integer, nbatches::Integer, batch::Integer)
     count <= 0 && return 1:0
     nbatches <= 1 && return 1:count
@@ -204,17 +187,13 @@ function _partition_range(count::Integer, nbatches::Integer, batch::Integer)
 end
 
 
-
-
-
-function _refresh_minibatches!(p::MiniBatchParams{T,Acc}, r0; batchsize::Int , seed::Int=42) where {T,Acc}
+function _refresh_minibatches!(p::MiniBatchParams{T,Acc}, r0; batchsize::Int, seed::Int=42) where {T,Acc}
     prepare_eval!(p.cff, r0)
-    
-    ds = InteractionDataSet(p.cff; batchsize, seed)
-    p.batches = ds.batches
+    p.batches = create_interaction_batches!(p.cff, batchsize; seed)
     p.current_batch_idx = 1
     return max(1, length(p.batches))
 end
+
 
 function _compute_energy_loss(r::AbstractVector, p::MiniBatchParams{T,Acc}) where {T,Acc}
     # Load coordinates ONLY -- never rebuild the pair list mid-epoch. A rebuild
@@ -224,7 +203,7 @@ function _compute_energy_loss(r::AbstractVector, p::MiniBatchParams{T,Acc}) wher
     # _refresh_minibatches!.
     set_positions_flat!(p.cff, r)
     batch = p.batches[p.current_batch_idx]
-    r_coords = p.cff.r  
+    r_coords = p.cff.r
 
     if p.cff.backend == BiochemicalAlgorithms.SerialBackend()
         stretchp = isempty(batch.stretch_range) ? zero(Acc) : _sum_stretch(r_coords, p.cff.stretch, first(batch.stretch_range), last(batch.stretch_range))
@@ -287,6 +266,7 @@ function _compute_energy_loss(r::AbstractVector, p::MiniBatchParams{T,Acc}) wher
 
     return Float64(sum(stretchp) + sum(bendp) + sum(properp) + sum(improperp) + sum(vdwp) + sum(hbp) + sum(esp))
 end
+
 
 function _compute_grad!(grad::AbstractVector, r::AbstractVector, p::MiniBatchParams{T,Acc}) where {T,Acc}
     # load coordinates only; see _compute_energy_loss -- no mid-epoch rebuild
@@ -374,6 +354,7 @@ function _compute_grad!(grad::AbstractVector, r::AbstractVector, p::MiniBatchPar
     gradient_flat!(grad, p.cff)
     nothing
 end
+
 
 function _chunk_range(range::UnitRange{Int}, nt::Int, t::Int)
     isempty(range) && return 1:0
