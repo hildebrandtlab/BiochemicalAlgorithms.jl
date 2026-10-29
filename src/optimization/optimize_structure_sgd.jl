@@ -83,8 +83,21 @@ This function passes all keyword arguments to
 [Optimization.solve](https://docs.sciml.ai/Optimization/stable/API/solve/),
 with the following default values:
  - `alg = ()`
+
+# Learning rate scheduling
+ - `lr_schedule = nothing` — callable `t -> η` returning the learning rate for step `t`
+   (1-based), e.g. any schedule from ParameterSchedulers.jl such as `Exp(0.01, 0.9)`.
+   Overrides the learning rate of `alg`.
+ - `lr_schedule_unit::Symbol = :epoch` — whether `t` counts epochs (`:epoch`) or
+   solver iterations (`:iteration`)
+
+The learning rate is applied through [`set_learning_rate!`](@ref), which currently
+supports Optimisers.jl rules (`OptimizationOptimisers`).
 """
-function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=OptimizationOptimisers.Adam(0.01), epochs::Int=10, batchsize::Int=10, callback=nothing, trace::Bool=false, seed::Int=42, kwargs...) where {T,Acc}
+function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=OptimizationOptimisers.Adam(0.01), epochs::Int=10, batchsize::Int=10, callback=nothing, trace::Bool=false, seed::Int=42, lr_schedule=nothing, lr_schedule_unit::Symbol=:epoch, kwargs...) where {T,Acc}
+    lr_schedule_unit in (:epoch, :iteration) ||
+        throw(ArgumentError("lr_schedule_unit must be :epoch or :iteration, got :$lr_schedule_unit"))
+
     r0 = collect(Float64, Iterators.flatten(atoms(cff.ff.system).r))
 
     batches = create_interaction_batches!(cff, batchsize; seed=seed)
@@ -110,8 +123,17 @@ function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=Optimizati
     base_seed = Ref(seed)
 
     combined_callback = (opt_state, l) -> begin
+        # Update the current batch index for the next iteration
         state.current_batch_idx = mod1(state.current_batch_idx + 1, length(state.batches))
 
+        # update learning rate; must happen before the epoch bookkeeping below,
+        # since the solver applies this iteration's update after the callback returns
+        if lr_schedule !== nothing
+            t = lr_schedule_unit === :epoch ? done_epochs[] + 1 : opt_state.iter
+            set_learning_rate!(opt_state.original, lr_schedule(t))
+        end
+
+        # did we complete an epoch?
         stop = _epoch_minibatch_callback(
             opt_state, l, state, iters_in_epoch, epoch_steps, done_epochs, epochs, batchsize, base_seed
         )
@@ -139,6 +161,23 @@ function optimize_structure_mini!(cff::CompiledForceField{T,Acc}; alg=Optimizati
     finalize_optimization!(cff, sol.u)
     sol
 end
+
+
+"""
+    set_learning_rate!(solver_state, η)
+
+Set the learning rate of a running optimizer to `η`. `solver_state` is the
+solver-specific state passed to the callback as `opt_state.original`.
+
+To use `lr_schedule` with another solver, add a method for that solver's state type.
+"""
+set_learning_rate!(solver_state, η) = throw(ArgumentError(
+    "learning rate scheduling is not supported for solver state of type $(typeof(solver_state)); " *
+    "add a method BiochemicalAlgorithms.set_learning_rate!(::$(typeof(solver_state)), η)"))
+
+# Optimisers.jl: the state tree is mutable and the update happens after the callback
+set_learning_rate!(solver_state::OptimizationOptimisers.Optimisers.Leaf, η) =
+    OptimizationOptimisers.Optimisers.adjust!(solver_state, η)
 
 
 function _epoch_minibatch_callback(
