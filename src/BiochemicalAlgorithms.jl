@@ -12,6 +12,7 @@ using Graphs
 using LinearAlgebra
 using Mendeleev
 using MetaGraphs
+using ParameterSchedulers
 using Random
 using Rotations
 using Statistics: mean

@@ -269,3 +269,51 @@ end
     # than full system energy
     @test all(l isa Float64 for l in callback_losses)
 end
+
+@testitem "optimize_structure_mini! learning rate schedule" begin
+    using ParameterSchedulers
+
+    function make_cff()
+        sys = load_pdb(ball_data_path("../test/data/AlaAla.pdb"), Float64)
+        infer_topology!(sys, FragmentDB{Float64}())
+        compile(AmberFF(sys))
+    end
+
+    r0 = collect(Float64, Iterators.flatten(atoms(make_cff().ff.system).r))
+    sol_ref = optimize_structure_mini!(make_cff(); epochs=3, batchsize=8)
+
+    @testset "constant schedule matches fixed learning rate" begin
+        sol = optimize_structure_mini!(make_cff(); epochs=3, batchsize=8, lr_schedule=t -> 0.01)
+        @test sol.u == sol_ref.u
+    end
+
+    @testset "zero learning rate leaves coordinates unchanged" begin
+        sol = optimize_structure_mini!(make_cff(); epochs=3, batchsize=8, lr_schedule=t -> 0.0)
+        @test sol.u == r0
+    end
+
+    @testset "epoch-wise schedule" begin
+        ts = Int[]
+        sched = Exp(0.01, 0.5)
+        sol = optimize_structure_mini!(make_cff(); epochs=3, batchsize=8,
+            lr_schedule=t -> (push!(ts, t); sched(t)))
+        @test unique(ts) == [1, 2, 3]
+        @test issorted(ts)
+        @test sol.u != sol_ref.u
+    end
+
+    @testset "iteration-wise schedule" begin
+        ts = Int[]
+        sol = optimize_structure_mini!(make_cff(); epochs=2, batchsize=8,
+            lr_schedule=t -> (push!(ts, t); 0.01), lr_schedule_unit=:iteration)
+        @test ts == collect(1:length(ts))
+        @test length(ts) == sol.stats.iterations
+    end
+
+    @testset "invalid arguments" begin
+        @test_throws ArgumentError optimize_structure_mini!(make_cff(); epochs=1,
+            lr_schedule=t -> 0.01, lr_schedule_unit=:step)
+        # solvers without a set_learning_rate! method
+        @test_throws ArgumentError BiochemicalAlgorithms.set_learning_rate!(nothing, 0.01)
+    end
+end
