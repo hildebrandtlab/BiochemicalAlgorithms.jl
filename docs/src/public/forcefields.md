@@ -9,6 +9,7 @@ Pages = ["forcefields.md"]
 
 ```@docs
 AmberFF
+CharmmFF
 optimize_hydrogen_positions!
 optimize_structure!
 update!

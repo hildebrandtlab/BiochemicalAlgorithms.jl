@@ -89,3 +89,40 @@ We provide a variant of the optimization function above to only optimize the pos
 
 optimize_hydrogen_positions!(ff)
 ```
+
+
+## CHARMM force field
+
+Besides `AmberFF`, BiochemicalAlgorithms.jl provides the CHARMM force field via `CharmmFF`, which supports the same operations as shown above. By default, the united-atom parameter set PARAM19 is used together with the EEF1 implicit solvation model. Since united atoms represent nonpolar hydrogens implicitly, `CharmmFF` **deletes** all hydrogen atoms bound to such atoms from the system.
+
+Please note that force fields do not overwrite atom types already assigned to a system by default. We thus prepare a fresh system rather than reusing the one from above, which already carries AMBER atom types:
+
+```{julia}
+sys_charmm = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+infer_topology!(sys_charmm)
+
+ff_charmm = CharmmFF(sys_charmm)
+```
+
+Hydrogen removal can be disabled by passing `remove_extended_hydrogens = false` to the constructor. The energy contributions now also include the EEF1 solvation term:
+
+```{julia}
+compute_energy!(ff_charmm)
+ff_charmm.energy
+```
+
+Alternatively, the all-atom parameter set PARAM22 can be selected by passing the corresponding parameter file. PARAM22 uses CHARMM atom names for backbone amide hydrogens (`HN` instead of `H`), so these need to be renamed first. Please note that this parameter set does not contain improper torsions.
+
+```{julia}
+sys_param22 = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+infer_topology!(sys_param22)
+
+for atom in atoms(sys_param22)
+    if atom.name == "H"
+        atom.name = "HN"
+    end
+end
+
+ff_param22 = CharmmFF(sys_param22, ball_data_path("forcefields/CHARMM/param22.ini"))
+compute_energy!(ff_param22)
+```

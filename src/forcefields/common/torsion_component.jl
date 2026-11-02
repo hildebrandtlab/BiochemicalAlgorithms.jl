@@ -50,8 +50,21 @@ function _get_torsion_data(ff::ForceField{T}, section::String)::Tuple{T, T, Grou
     V_factor, ϕ₀_factor, torsion_combinations
 end
 
+# the type combinations (in order of preference) used to look up torsion parameters
+_torsion_candidate_keys(t1::String, t2::String, t3::String, t4::String) = (
+    (t1,  t2,  t3,  t4 ),
+    (t4,  t3,  t2,  t1 ),
+    ("*", t2,  t3,  t4 ),
+    ("*", t3,  t2,  t1 ),
+    (t1,  t2,  t3,  "*"),
+    (t4,  t3,  t2,  "*"),
+    ("*", t2,  t3,  "*"),
+    ("*", t3,  t2,  "*"),
+    ("*", "*", t3,  t4 )
+)
+
 function _try_assign_torsion!(
-    tc::TorsionComponent{T},
+    tc::AbstractForceFieldComponent{T},
     torsions::Vector{CosineTorsion{T}},
     torsion_combinations::Dict{K, V},
     a1::Atom{T},
@@ -60,7 +73,8 @@ function _try_assign_torsion!(
     a4::Atom{T},
     V_factor::T,
     ϕ₀_factor::T,
-    is_proper::Bool
+    is_proper::Bool;
+    candidate_keys::Function = _torsion_candidate_keys
 ) where {T, K, V}
 
     ff = tc.ff
@@ -71,17 +85,11 @@ function _try_assign_torsion!(
     type_a4::String = a4.atom_type
 
     # now, search torsion parameters for (a1, a2, a3, a4)
-    pt = @coalesce(
-        get(torsion_combinations, (type_a1, type_a2, type_a3, type_a4,), missing),
-        get(torsion_combinations, (type_a4, type_a3, type_a2, type_a1,), missing),
-        get(torsion_combinations, ("*",     type_a2, type_a3, type_a4,), missing),
-        get(torsion_combinations, ("*",     type_a3, type_a2, type_a1,), missing),
-        get(torsion_combinations, (type_a1, type_a2, type_a3, "*",    ), missing),
-        get(torsion_combinations, (type_a4, type_a3, type_a2, "*",    ), missing),
-        get(torsion_combinations, ("*",     type_a2, type_a3, "*"    ,), missing),
-        get(torsion_combinations, ("*",     type_a3, type_a2, "*"    ,), missing),
-        get(torsion_combinations, ("*",     "*",     type_a3, type_a4,), missing)
-    )
+    pt = missing
+    for key in candidate_keys(type_a1, type_a2, type_a3, type_a4)
+        pt = get(torsion_combinations, key, missing)
+        ismissing(pt) || break
+    end
 
     if ismissing(pt)
         push!(tc.unassigned_torsions, (a1, a2, a3, a4, is_proper))
@@ -195,7 +203,24 @@ function _setup_proper_torsions!(tc::TorsionComponent{T}) where T
 
     proper_torsions = Vector{CosineTorsion{T}}()
 
-    for atom::Atom{T} in atoms(ff.system)
+    _foreach_proper_torsion(ff.system) do a1, a2, a3, a4
+        _try_assign_torsion!(
+            tc,
+            proper_torsions,
+            torsion_dict,
+            a1, a2, a3, a4,
+            V_factor,
+            ϕ₀_factor,
+            true
+        )
+    end
+
+    tc.proper_torsions = proper_torsions
+end
+
+# calls f(a1, a2, a3, a4) for each proper torsion a1-a2-a3-a4 in the given system
+function _foreach_proper_torsion(f::Function, ac::AbstractAtomContainer{T}) where T
+    for atom::Atom{T} in atoms(ac)
         bs = bonds(atom)
 
         for bond_1 in bs
@@ -234,22 +259,12 @@ function _setup_proper_torsions!(tc::TorsionComponent{T}) where T
                         a4::Atom{T} = ((bond_3.atom1_idx == a3.idx) ? atom_by_idx(parent_system(atom), bond_3.atom2_idx)
                                                              : atom_by_idx(parent_system(atom), bond_3.atom1_idx))
 
-                        _try_assign_torsion!(
-                            tc,
-                            proper_torsions,
-                            torsion_dict,
-                            a1, a2, a3, a4,
-                            V_factor,
-                            ϕ₀_factor,
-                            true
-                        )
+                        f(a1, a2, a3, a4)
                     end
                 end
             end
         end
     end
-
-    tc.proper_torsions = proper_torsions
 end
 
 function update!(::TorsionComponent)

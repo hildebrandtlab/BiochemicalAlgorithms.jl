@@ -31,8 +31,15 @@ Read a file in BALL's old Ini file format and return it as a BALLIniFile.
 # Supported keyword arguments
  - `cleanup_keys::Bool = true` simplifies colon-separated key names
    (e.g., `ver:version` becomes `version`, `key:I` becomes `I`, etc.)
+ - `blank_lines_end_sections::Bool = true` ends each section at the first empty line;
+   otherwise, sections extend to the next section header and empty lines are skipped
 """
-function read_ball_ini_file(fname::AbstractString, ::Type{T} = Float32; cleanup_keys::Bool = true) where {T <: Real}
+function read_ball_ini_file(
+    fname::AbstractString,
+    ::Type{T} = Float32;
+    cleanup_keys::Bool = true,
+    blank_lines_end_sections::Bool = true
+) where {T <: Real}
     result = BALLIniFile()
 
     open(fname) do paramfile
@@ -55,8 +62,8 @@ function read_ball_ini_file(fname::AbstractString, ::Type{T} = Float32; cleanup_
                 continue
             end
 
-            # and read until the next empty line
-            to = match(r"^\s*$"m, params_string, from.offset+1)
+            # and read until the next empty line (or the next section)
+            to = match(blank_lines_end_sections ? r"^\s*$"m : r"^\[.*\]"m, params_string, from.offset+1)
 
             data = params_string[from.offset+1:(isnothing(to) ? end : to.offset-1)]
 
@@ -72,6 +79,9 @@ function read_ball_ini_file(fname::AbstractString, ::Type{T} = Float32; cleanup_
 
             # filter out property lines
             data = join(filter(l -> !startswith(strip(l), "@"), split(data, "\n")), "\n")
+
+            # columns are separated by blanks, but some files also use tabs
+            data = replace(data, '\t' => ' ')
 
             s_df = CSV.read(
                 IOBuffer(data), DataFrame;

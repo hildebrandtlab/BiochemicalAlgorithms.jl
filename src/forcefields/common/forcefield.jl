@@ -184,7 +184,7 @@ function compute_energy!(ff::ForceField{T}; verbose::Bool=false)::T where T
     end
 
     if verbose
-        @info "AMBER Energy:"
+        @info "$(ff.name) Energy:"
 
         max_length = maximum([length(k) for (k, _) in ff.energy])
         f_string = Printf.Format("%-$(max_length)s: %.9g kJ/mol")

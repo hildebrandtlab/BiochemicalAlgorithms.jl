@@ -112,6 +112,12 @@ include("forcefields/common/nonbonded_component.jl")
 include("forcefields/AMBER/amberff_parameters.jl")
 include("forcefields/AMBER/amberff.jl")
 
+include("forcefields/CHARMM/charmmff_parameters.jl")
+include("forcefields/CHARMM/charmm_torsion_component.jl")
+include("forcefields/CHARMM/charmm_improper_component.jl")
+include("forcefields/CHARMM/charmm_nonbonded_component.jl")
+include("forcefields/CHARMM/charmmff.jl")
+
 include("forcefields/MMFF94/mmff94_parameters.jl")
 
 # preprocessing

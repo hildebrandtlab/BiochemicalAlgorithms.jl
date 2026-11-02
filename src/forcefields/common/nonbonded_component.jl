@@ -135,7 +135,7 @@ end
 end
 
 @inline function _try_assign_vdw!(
-    nbc::NonBondedComponent{T},
+    nbc::AbstractForceFieldComponent{T},
     atom_1::Atom{T},
     type_atom_1::String,
     atom_2::Atom{T},
@@ -176,10 +176,14 @@ end
     end
 end
 
-function _setup_vdw!(nbc::NonBondedComponent{T}) where T
-    # extract the parameter section for quadratic angle bends
-    lj_section = extract_section(nbc.ff.parameters, "LennardJones")
-    lj_df = lj_section.data
+# computes the A/B - parameters for all pairs of atom types in the given (R/epsilon - format)
+# Lennard-Jones section; if `types` is given, only rows for these atom types are considered
+function _lj_combinations(
+    lj_section::BALLIniFileSection,
+    ::Type{T};
+    types::Union{Nothing, AbstractVector{<:AbstractString}} = nothing
+) where T
+    lj_df = isnothing(types) ? lj_section.data : filter(r -> r.I ∈ types, lj_section.data)
 
     unit_R = get(lj_section.properties, "unit_R",       "angstrom")
     unit_ϵ = get(lj_section.properties, "unit_epsilon", "kcal/mol")
@@ -194,7 +198,8 @@ function _setup_vdw!(nbc::NonBondedComponent{T}) where T
 
     lj_minimal_df = lj_df[:, [:I, :R, :epsilon]]
     lj_minimal_df.R *= R_factor
-    lj_minimal_df.epsilon *= ϵ_factor
+    # CHARMM stores the well depth as a negative number (Emin)
+    lj_minimal_df.epsilon = abs.(lj_minimal_df.epsilon) .* ϵ_factor
 
     lj_combinations = crossjoin(lj_minimal_df, lj_minimal_df; makeunique=true)
     rename!(lj_combinations,
@@ -220,10 +225,14 @@ function _setup_vdw!(nbc::NonBondedComponent{T}) where T
     lj_combinations.A_ij = ϵ .* r_6.^2
     lj_combinations.B_ij = T(2) * ϵ .* r_6
 
-    lj_combinations_cache = Dict{@NamedTuple{I::String, J::String}, @NamedTuple{A_ij::T, B_ij::T}}(
+    Dict{@NamedTuple{I::String, J::String}, @NamedTuple{A_ij::T, B_ij::T}}(
         (I=r.I, J=r.J) => (A_ij=r.A_ij, B_ij=r.B_ij)
         for r in eachrow(lj_combinations)
     )
+end
+
+function _setup_vdw!(nbc::NonBondedComponent{T}) where T
+    lj_combinations_cache = _lj_combinations(extract_section(nbc.ff.parameters, "LennardJones"), T)
 
     vdw_cutoff::T = nbc.ff.options[:vdw_cutoff]
     vdw_cuton::T  = nbc.ff.options[:vdw_cuton]
@@ -312,7 +321,21 @@ function setup!(nbc::NonBondedComponent{T}) where T
     ]
 
     # cache the is_bound_to-, geminal-, and vicinal-relationships
-    nhbs = non_hydrogen_bonds(nbc.ff.system)
+    bond_cache, geminal_cache, vicinal_cache = _bonded_neighbourhood_caches(nbc.ff.system)
+
+    # remember those parts that stay constant when only the system is updated
+    nbc.cache.nonbonded_cutoff = nonbonded_cutoff
+    nbc.cache.periodic_box     = periodic_box
+
+    nbc.cache.bond_cache    = bond_cache
+    nbc.cache.geminal_cache = geminal_cache
+    nbc.cache.vicinal_cache = vicinal_cache
+end
+
+# computes the sets of atom index pairs that are 1-2 (bonded), 1-3 (geminal),
+# and 1-4 (vicinal) neighbours in the given system
+function _bonded_neighbourhood_caches(ac::AbstractAtomContainer)
+    nhbs = non_hydrogen_bonds(ac)
     nodes = Dict(name => nodeno for (nodeno, name) in enumerate(sort!(unique!([nhbs.atom1_idx; nhbs.atom2_idx]))))
     mg = MetaGraph(length(nodes))
     for nhb in nhbs
@@ -336,13 +359,7 @@ function setup!(nbc::NonBondedComponent{T}) where T
     nh_2 = compute_neighborhood(2)
     nh_3 = compute_neighborhood(3)
 
-    # remember those parts that stay constant when only the system is updated
-    nbc.cache.nonbonded_cutoff = nonbonded_cutoff
-    nbc.cache.periodic_box     = periodic_box
-
-    nbc.cache.bond_cache    = to_set(setdiff.(nh_1, nh_0))
-    nbc.cache.geminal_cache = to_set(setdiff.(nh_2, nh_1))
-    nbc.cache.vicinal_cache = to_set(setdiff.(nh_3, nh_2))
+    to_set(setdiff.(nh_1, nh_0)), to_set(setdiff.(nh_2, nh_1)), to_set(setdiff.(nh_3, nh_2))
 end
 
 function update!(nbc::NonBondedComponent{T}) where T

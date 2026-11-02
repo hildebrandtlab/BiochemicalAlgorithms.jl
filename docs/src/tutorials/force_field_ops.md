@@ -35,7 +35,7 @@ ff = AmberFF(sys)
     ┌ Warning: 2 warnings occurred during setup that were suppressed:
     │  - Torsion: 2 warnings
     │ Use print_warnings(ff) to display them.
-    └ @ BiochemicalAlgorithms ~/git/ball.jl/src/forcefields/common/forcefield.jl:231
+    └ @ BiochemicalAlgorithms ~/research/BiochemicalAlgorithms.jl/src/forcefields/common/forcefield.jl:231
 
     AmberFF for 23 atoms with 22 bonds.
 
@@ -61,7 +61,7 @@ atoms(sys).F   # or, equivalently, atoms(ff.system).F
 
     23-element SystemComponentTableCol{StaticArraysCore.SVector{3, Float32}}:
      [-53.62923, -22.412622, 24.928682]
-     [46.985413, 3.084029, -2.7235892]
+     [46.985428, 3.0840538, -2.7236197]
      [128.1008, 45.79798, -103.76105]
      [3828.1062, 2481.3313, -8883.522]
      [-3.913918, -5.6067834, 3.236691]
@@ -69,7 +69,7 @@ atoms(sys).F   # or, equivalently, atoms(ff.system).F
      [0.52676797, -4.122597, 4.9825106]
      [4.2090273, 0.8779677, -1.8575673]
      [-11.800568, -6.8400474, -6.6562233]
-     [4.3753576, 2.9085383, -2.680446]
+     [4.3753357, 2.908515, -2.680413]
      ⋮
      [14.851358, -70.929306, 156.84334]
      [49.850372, -32.669544, 52.788876]
@@ -117,7 +117,7 @@ optimize_structure!(ff)
 compute_energy!(ff)
 ```
 
-    -374.31473f0
+    -374.31445f0
 
 The opmitization function also updates the atom positions correspondingly such that the structure can be visualized in its optimized state, e.g., through [BiochemicalVisualization.jl](https://github.com/hildebrandtlab/BiochemicalVisualization.jl).
 
@@ -126,3 +126,63 @@ We provide a variant of the optimization function above to only optimize the pos
 ``` julia
 optimize_hydrogen_positions!(ff)
 ```
+
+## CHARMM force field
+
+Besides `AmberFF`, BiochemicalAlgorithms.jl provides the CHARMM force field via `CharmmFF`, which supports the same operations as shown above. By default, the united-atom parameter set PARAM19 is used together with the EEF1 implicit solvation model. Since united atoms represent nonpolar hydrogens implicitly, `CharmmFF` **deletes** all hydrogen atoms bound to such atoms from the system.
+
+Please note that force fields do not overwrite atom types already assigned to a system by default. We thus prepare a fresh system rather than reusing the one from above, which already carries AMBER atom types:
+
+``` julia
+sys_charmm = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+infer_topology!(sys_charmm)
+
+ff_charmm = CharmmFF(sys_charmm)
+```
+
+    [ Info: reconstruct_fragments!(): added 0 atoms.
+    [ Info: build_bonds!(): built 22 bonds
+    [ Info: CharmmFF: deleted 8 hydrogen atoms (using CHARMM united atoms instead).
+
+    CharmmFF for 15 atoms with 14 bonds.
+
+Hydrogen removal can be disabled by passing `remove_extended_hydrogens = false` to the constructor. The energy contributions now also include the EEF1 solvation term:
+
+``` julia
+compute_energy!(ff_charmm)
+ff_charmm.energy
+```
+
+    Dict{String, Float32} with 7 entries:
+      "Solvation"        => -177.829
+      "Angle Bends"      => 10.2346
+      "Bond Stretches"   => 9.84327
+      "Van der Waals"    => 1572.59
+      "Improper Torsion" => 11.4636
+      "Electrostatic"    => -47.2151
+      "Proper Torsion"   => 2.7089
+
+Alternatively, the all-atom parameter set PARAM22 can be selected by passing the corresponding parameter file. PARAM22 uses CHARMM atom names for backbone amide hydrogens (`HN` instead of `H`), so these need to be renamed first. Please note that this parameter set does not contain improper torsions.
+
+``` julia
+sys_param22 = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
+infer_topology!(sys_param22)
+
+for atom in atoms(sys_param22)
+    if atom.name == "H"
+        atom.name = "HN"
+    end
+end
+
+ff_param22 = CharmmFF(sys_param22, ball_data_path("forcefields/CHARMM/param22.ini"))
+compute_energy!(ff_param22)
+```
+
+    [ Info: reconstruct_fragments!(): added 0 atoms.
+    [ Info: build_bonds!(): built 22 bonds
+    ┌ Warning: 1 warnings occurred during setup that were suppressed:
+    │  - GeneralSetup: 1 warnings
+    │ Use print_warnings(ff) to display them.
+    └ @ BiochemicalAlgorithms ~/research/BiochemicalAlgorithms.jl/src/forcefields/common/forcefield.jl:231
+
+    1302.7731f0

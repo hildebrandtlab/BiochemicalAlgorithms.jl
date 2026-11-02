@@ -20,7 +20,7 @@ pkg> add BiochemicalAlgorithms
 ## Usage
 
 Here is a simple impression of what you can do with BiochemicalAlgorithms.jl.
-Central to every application is a `System`, which is filled with structures by reading in atom coordinates from PDB or PubChem JSON files. The system is preprocessed by the `FragmentDB` performing three steps: name normalization, reconstruction of missing atoms, and the construction of atomic bonds. The energy of the structure is evaluated using Amber forcefield.  With the help of [BiochemicalVisualization.jl](https://github.com/hildebrandtlab/BiochemicalVisualization.jl) the structure can be visualized as a ball-and-stick model.
+Central to every application is a `System`, which is filled with structures by reading in atom coordinates from PDB or PubChem JSON files. The system is preprocessed by the `FragmentDB` performing three steps: name normalization, reconstruction of missing atoms, and the construction of atomic bonds. The energy of the structure is evaluated using the Amber or CHARMM force field.  With the help of [BiochemicalVisualization.jl](https://github.com/hildebrandtlab/BiochemicalVisualization.jl) the structure can be visualized as a ball-and-stick model.
 
 ```julia
 using BiochemicalAlgorithms

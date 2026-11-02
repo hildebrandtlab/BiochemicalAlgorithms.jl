@@ -978,6 +978,9 @@ end
     nothing
 end
 
+# the file readers set :HAS_SSBOND, BALL used :PROPERTY__HAS_SSBOND
+@inline _has_ssbond(f::Fragment) = has_flag(f, :HAS_SSBOND) || has_flag(f, :PROPERTY__HAS_SSBOND)
+
 function get_full_name(
         f::Fragment{T},
         type::FullNameType.T = FullNameType.ADD_VARIANT_EXTENSIONS) where T
@@ -1001,7 +1004,7 @@ function get_full_name(
             suffix = "-M"
         end
 
-        if (has_flag(f, :PROPERTY__HAS_SSBOND))
+        if (_has_ssbond(f))
             suffix *= "S"
         end
 
