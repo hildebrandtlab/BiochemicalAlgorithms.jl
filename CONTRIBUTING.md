@@ -44,4 +44,18 @@ All contributions to this project need to be in agreement with the Developer Cer
 ```
 Signed-off-by: Name <E-mail>
 ```
-You can use the `--signoff` (or `-s`) option of the `git commit` command to facilitate this process.
+You can use the `--signoff` (or `-s`) option of the `git commit` command to facilitate this process. Commits created automatically by Dependabot are exempt from this requirement.
+
+## Usage of AI agents
+
+You may use AI agents and similar tools for your contributions, under the following conditions:
+
+ - You are responsible for your contribution, regardless of how it was created. Make sure that you have read and understood all of it, and that you can answer questions about it during the review.
+ - The `Signed-off-by` line certifies the Developer Certificate of Origin on behalf of a human. It must always name you, never an AI agent, and only you can decide to add it.
+ - Commits created with the help of an agent must include an `Assisted-by` line in their commit message, naming both the tool and the model behind it, instead of listing the tool as an author:
+   ```
+   Assisted-by: Tool (Model)
+   ```
+ - Agents may only open pull requests or post comments once you have explicitly allowed them to.
+
+Instructions for the agents themselves, including how to run the tests and how to write commit messages and pull requests, can be found in [`AGENTS.md`](https://github.com/hildebrandtlab/BiochemicalAlgorithms.jl/blob/develop/AGENTS.md).
