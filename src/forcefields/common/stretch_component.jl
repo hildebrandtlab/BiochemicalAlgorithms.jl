@@ -1,6 +1,4 @@
 export
-    compute_stretch_energy,
-    compute_stretch_force,
     QuadraticBondStretch,
     QuadraticStretchComponent
 
@@ -97,17 +95,6 @@ end
 
 function update!(qsc::QuadraticStretchComponent)
     nothing
-end
-
-@inline function compute_stretch_energy(k::T, r0::T, distance::T)::T where T
-    k * (distance - r0)^2
-end
-
-@inline function compute_stretch_force(k::T, r0::T, distance::T, direction::Vector3{T})::Vector3{T} where T
-    if distance == zero(T)
-        return zero(direction)
-    end
-    (2 * k * (distance - r0) / distance) * direction
 end
 
 @inline function compute_energy(qbs::QuadraticBondStretch{T})::T where T

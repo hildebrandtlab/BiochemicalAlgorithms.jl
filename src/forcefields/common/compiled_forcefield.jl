@@ -15,12 +15,8 @@ export
 #  loop. The pair list is rebuilt only on demand (BALL-style), not every eval.
 #
 #  The existing per-component `compute_energy!`/`compute_forces!`/`update!`
-#  remain the slow *reference* path and are untouched; this is purely additive.
-#
-#  All energy/force formulas below are transcribed VERBATIM from
-#  stretch_component.jl / bend_component.jl / torsion_component.jl /
-#  nonbonded_component.jl so results match the reference path bit-for-bit when
-#  the accumulation type `Acc` equals the storage type `T`.
+#  remain the slow *reference* path. Both paths share the energy/force formulas
+#  in ff_compute.jl.
 # ============================================================================
 
 # --- evaluation backends -----------------------------------------------------
@@ -169,17 +165,23 @@ end
 Build a [`CompiledForceField`](@ref) from `ff`: a cached, struct-of-arrays
 evaluator suitable for repeated energy/force evaluation (e.g. inside
 `optimize_structure!`). `acc` selects the accumulation precision (`Float32` or
-`Float64`); `backend` selects `:serial` (more backends added in later stages).
+`Float64`); `backend` selects `:serial`, `:threads` or `:gpu`.
 
-Calls `update!(ff)` once to obtain the correct interaction list, then lowers it.
-The atom topology (and therefore row numbering) must not change for the lifetime
-of the returned object.
+Reads the current coordinates from the atom table and builds its own pair list.
+`ff` itself is not modified: if atoms have moved, call `update!(ff)` before
+comparing against `compute_energy!(ff)`. The atom topology (and therefore row
+numbering) must not change for the lifetime of the returned object.
 
 `max_displacement` is the largest per-atom move (Å) tolerated before the pair
 list is rebuilt. The default (`-1`) derives the safe value
 `(nonbonded_cutoff - max(vdw_cutoff, electrostatic_cutoff)) / 2`; larger explicit
 values would let pairs enter the interaction range unnoticed and throw an
 `ArgumentError`.
+
+Throws an `ArgumentError` if `ff` has an unsupported component, if
+`ff.constrained_atoms` holds an invalid row number, or if a periodic box side is
+smaller than `2 * nonbonded_cutoff` (the pair list would then contain several
+images of one pair, which minimum image would count as the nearest one each time).
 """
 function compile(ff::ForceField{T};
         acc::Type{Acc} = T,
@@ -204,9 +206,10 @@ function compile(ff::ForceField{T};
     for a in ff.constrained_atoms
         # `constrained_atoms` holds row positions into atoms(system); mirror the
         # reference path which indexes atoms(ff.system)[constrained_atoms].
-        if 1 <= a <= natoms
-            constrained_mask[a] = true
-        end
+        1 <= a <= natoms || throw(ArgumentError(
+            "constrained atom $a is out of range: `constrained_atoms` holds row " *
+            "numbers into atoms(system), which has $natoms rows"))
+        constrained_mask[a] = true
     end
 
     cff = CompiledForceField{T, Acc, typeof(b)}(
@@ -228,17 +231,30 @@ function compile(ff::ForceField{T};
     # Safe Verlet skin: a pair absent from the list was >= nonbonded_cutoff apart
     # at build time; it can only reach the (vdw/es) cutoff if atoms move more than
     # (nonbonded_cutoff - cutoff) / 2. An explicit threshold may not exceed it.
-    nb  = Acc(ff.options[:nonbonded_cutoff])
-    cut = max(Acc(ff.options[:vdw_cutoff]), Acc(ff.options[:electrostatic_cutoff]))
-    safe = max(zero(Acc), (nb - cut) / 2)
-    if max_displacement < 0
-        cff.max_displacement = safe
-    elseif Acc(max_displacement) > safe
-        throw(ArgumentError(
-            "max_displacement=$max_displacement exceeds the safe Verlet skin of $safe Å " *
-            "(half the gap between nonbonded_cutoff=$nb and the largest interaction " *
-            "cutoff=$cut); pairs outside the neighbor list could move into range " *
-            "without a rebuild. Use a smaller value or increase nonbonded_cutoff."))
+    nbc = _nonbonded_component(ff)
+    if nbc === nothing
+        # no pair list to protect, so atoms may move arbitrarily far
+        cff.max_displacement = typemax(Acc)
+    else
+        nb  = Acc(ff.options[:nonbonded_cutoff])
+        cut = max(Acc(ff.options[:vdw_cutoff]), Acc(ff.options[:electrostatic_cutoff]))
+        safe = max(zero(Acc), (nb - cut) / 2)
+        if max_displacement < 0
+            cff.max_displacement = safe
+        elseif Acc(max_displacement) > safe
+            throw(ArgumentError(
+                "max_displacement=$max_displacement exceeds the safe Verlet skin of $safe Å " *
+                "(half the gap between nonbonded_cutoff=$nb and the largest interaction " *
+                "cutoff=$cut); pairs outside the neighbor list could move into range " *
+                "without a rebuild. Use a smaller value or increase nonbonded_cutoff."))
+        end
+
+        if _periodic_box_too_small(nbc)
+            throw(ArgumentError(
+                "periodic box sides $(nbc.cache.periodic_box) must be at least " *
+                "2 * nonbonded_cutoff = $(2 * nb) Å; otherwise the pair list holds several " *
+                "images of one pair. Use a larger box or a smaller nonbonded_cutoff."))
+        end
     end
 
     _lower_bonded!(cff)
@@ -277,7 +293,7 @@ function _register_gpu_device!(device; supports_f64::Bool)
     nothing
 end
 
-# Hooks specialized for the GPU backend in ff_gpu.jl (no-ops for CPU backends).
+# Hooks specialized in BiochemicalAlgorithmsGPUExt (no-ops for CPU backends).
 _backend_init!(::CompiledForceField) = nothing        # called at end of compile
 _backend_upload_pairs!(::CompiledForceField) = nothing # called at end of rebuild_pairlist!
 
@@ -293,6 +309,10 @@ end
 
 _lower_component!(::CompiledForceField, c::AbstractForceFieldComponent) =
     throw(ArgumentError("unsupported force field component: $(typeof(c))"))
+
+# whether `compile` can lower this component; keep in sync with `_lower_component!`
+_is_compilable(::AbstractForceFieldComponent) = false
+_is_compilable(::Union{NonBondedComponent, QuadraticStretchComponent, QuadraticBendComponent, TorsionComponent}) = true
 
 # lowered separately by `_build_nonbonded_soa!` (pair lists are rebuilt on demand)
 _lower_component!(::CompiledForceField, ::NonBondedComponent) = nothing
@@ -339,16 +359,20 @@ end
     rebuild_pairlist!(cff::CompiledForceField)
 
 Recompute the cached nonbonded pair list (vdW / hydrogen-bond / electrostatic)
-from the force field's current coordinates. This is the expensive operation;
-during minimization it is invoked only periodically (see `update_frequency` /
-`max_displacement`).
+from the evaluator's own coordinates `cff.r`, not from the atom table. This is
+the expensive operation; during minimization it is invoked only periodically
+(see `update_frequency` / `max_displacement`).
 """
 function rebuild_pairlist!(cff::CompiledForceField{T, Acc}) where {T, Acc}
-    ff = cff.ff
-    nbc = nothing
-    for c in ff.components
-        c isa NonBondedComponent && (nbc = c)
+    # snapshot positions for the displacement check
+    resize!(cff.r_at_last_build, cff.natoms)
+    @inbounds for k in 1:cff.natoms
+        cff.r_at_last_build[k] = cff.r[k]
     end
+    cff.iters_since_build = 0
+
+    ff = cff.ff
+    nbc = _nonbonded_component(ff)
     nbc === nothing && return cff
 
     cff.vdw_sw = _convert_sw(Acc, nbc.cache.vdw_switching_function)
@@ -362,14 +386,16 @@ function rebuild_pairlist!(cff::CompiledForceField{T, Acc}) where {T, Acc}
     # constructor) must have populated `nbc.cache`.
     _build_nonbonded_soa!(cff, nbc)
 
-    # snapshot positions for the displacement check
-    resize!(cff.r_at_last_build, cff.natoms)
-    @inbounds for k in 1:cff.natoms
-        cff.r_at_last_build[k] = cff.r[k]
-    end
-    cff.iters_since_build = 0
     _backend_upload_pairs!(cff)   # GPU extensions re-upload the new pair arrays
     cff
+end
+
+function _nonbonded_component(ff::ForceField)
+    nbc = nothing
+    for c in ff.components
+        c isa NonBondedComponent && (nbc = c)
+    end
+    nbc
 end
 
 # largest atomic displacement since the last pair-list build
@@ -441,7 +467,7 @@ function _build_nonbonded_soa!(cff::CompiledForceField{T, Acc}, nbc::NonBondedCo
     cutoff = Acc(c.nonbonded_cutoff)
     pbc = ff.options[:periodic_boundary_conditions]::Bool
 
-    cff.box = pbc ? Vector3{Acc}(c.periodic_box) : zero(Vector3{Acc})
+    cff.box = Vector3{Acc}(_minimum_image_box(nbc))
     if cff.nl === nothing
         cff.nl = pbc ?
             CellListMap.InPlaceNeighborList(positions=cff.r, cutoff=cutoff, unitcell=Acc.(c.periodic_box)) :
