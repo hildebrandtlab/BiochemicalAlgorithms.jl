@@ -1,18 +1,3 @@
-export
-    _compute_stretch_energy,
-    _compute_stretch_force,
-    _compute_bend_energy,
-    _compute_bend_force,
-    _torsion_geometry,
-    _compute_torsion_energy,
-    _compute_torsion_force,
-    _compute_lj_energy,
-    _compute_hbond_energy,
-    _compute_es_energy,
-    _compute_lj_force,
-    _compute_hbond_force,
-    _compute_es_force
-
 @inline function _compute_stretch_energy(k::T, r0::T, distance::T)::T where T
     k * (distance - r0)^2
 end
@@ -92,28 +77,26 @@ end
     (cross2321, cross2334, len1, len2, ok, cos_ϕ)
 end
 
-@inline function _compute_torsion_energy(V::Union{T, AbstractVector{T}}, ϕ₀::Union{T, AbstractVector{T}}, f::Union{Integer, AbstractVector{<:Integer}}, div::Union{Integer, AbstractVector{<:Integer}}, a21::Vector3{T}, a23::Vector3{T}, a34::Vector3{T})::T where T
+@inline function _compute_torsion_energy(V::AbstractVector{T}, ϕ₀::AbstractVector{T}, f::AbstractVector{<:Integer}, div::AbstractVector{<:Integer}, a21::Vector3{T}, a23::Vector3{T}, a34::Vector3{T})::T where T
     _, _, _, _, ok, cos_ϕ = _torsion_geometry(a21, a23, a34)
     ok || return zero(T)
 
     acϕ = acos(cos_ϕ)
-    if V isa AbstractVector
-        terms = V ./ T.(div) .* (Ref(1) .+ cos.(T.(f) .* Ref(acϕ) .- ϕ₀))
-        return sum(terms)
-    else
-        return V / T(div) * (1 + cos(T(f) * acϕ - ϕ₀))
+    energy = zero(T)
+    @inbounds for n in eachindex(V)
+        energy += V[n] / T(div[n]) * (one(T) + cos(T(f[n]) * acϕ - ϕ₀[n]))
     end
+    energy
 end
 
-@inline function _compute_torsion_force(V::Union{T, AbstractVector{T}}, ϕ₀::Union{T, AbstractVector{T}}, f::Union{Integer, AbstractVector{<:Integer}}, div::Union{Integer, AbstractVector{<:Integer}}, a21::Vector3{T}, a23::Vector3{T}, a34::Vector3{T})::Tuple{Vector3{T}, Vector3{T}, Vector3{T}, Vector3{T}} where T
+@inline function _compute_torsion_force(V::AbstractVector{T}, ϕ₀::AbstractVector{T}, f::AbstractVector{<:Integer}, div::AbstractVector{<:Integer}, a21::Vector3{T}, a23::Vector3{T}, a34::Vector3{T})::Tuple{Vector3{T}, Vector3{T}, Vector3{T}, Vector3{T}} where T
     cross2321, cross2334, len1, len2, ok, cos_ϕ = _torsion_geometry(a21, a23, a34)
     ok || return zero(a23), zero(a23), zero(a23), zero(a23)
 
-    if V isa AbstractVector
-        terms = -V./T.(div) .* T.(f) .* (sin.(T.(f) .* Ref(acos(cos_ϕ)) .- ϕ₀))
-        ∂E∂ϕ = sum(terms)
-    else
-        ∂E∂ϕ = -V / T(div) * T(f) * sin(T(f) * acos(cos_ϕ) - ϕ₀)
+    acϕ = acos(cos_ϕ)
+    ∂E∂ϕ = zero(T)
+    @inbounds for n in eachindex(V)
+        ∂E∂ϕ -= V[n] / T(div[n]) * T(f[n]) * sin(T(f[n]) * acϕ - ϕ₀[n])
     end
 
     direction = dot(cross(cross2321, cross2334), a23)
@@ -134,86 +117,96 @@ end
     f1, f2, f3, f4
 end
 
+# ---------------------------------------------------------------------------
+#  Per-pair nonbonded math (scalar; shared by reference / serial / threaded / GPU).
+#
+#  Energy helpers return the pair's energy contribution given the squared
+#  distance `sq`. Force helpers return a scalar `factor` such that the force on
+#  atom i is `factor * (r_i - r_j)` (and `-factor * (r_i - r_j)` on j), so a
+#  single scalar unifies the CPU (SVector) and GPU (scalar SoA) loops.
+# ---------------------------------------------------------------------------
+@inline function _e_lj_pair(sq::Acc, A, B, scaling, sw::CubicSwitchingFunction{Acc}) where Acc
+    inv6 = sq^-3
+    inv6 * (inv6 * A - B) * scaling * switching_function(sw, sq)
+end
+
+@inline function _e_hb_pair(sq::Acc, A, B, scaling, sw::CubicSwitchingFunction{Acc}) where Acc
+    (sq^-6 * A - sq^-5 * B) * scaling * switching_function(sw, sq)
+end
+
+@inline function _e_es_pair(sq::Acc, q1q2, scaling, sw::CubicSwitchingFunction{Acc},
+                            ddd::Bool, pref::Acc) where Acc
+    inner = ddd ? q1q2 / 4 / sq : q1q2 / sqrt(sq)
+    inner * scaling * switching_function(sw, sq) * pref
+end
+
+@inline function _f_lj_factor(sq::Acc, A, B, scaling, sw::CubicSwitchingFunction{Acc}) where Acc
+    (sq > zero(Acc) && sq <= sw.sq_cutoff) || return zero(Acc)
+    inv6 = sq^-3
+    factor = (one(Acc) / sq) * inv6 * scaling * (12 * A * inv6 - 6 * B)
+    if sq > sw.sq_cuton
+        sval, sder = switching_derivative(sw, sq)
+        factor *= sval
+        factor += sder * (-scaling * inv6 * (inv6 * A - B))
+    end
+    factor
+end
+
+@inline function _f_hb_factor(sq::Acc, A, B, scaling, sw::CubicSwitchingFunction{Acc}) where Acc
+    (sq > zero(Acc) && sq <= sw.sq_cutoff) || return zero(Acc)
+    inv2 = one(Acc) / sq
+    factor = inv2 * sq^-5 * scaling * (12 * A * inv2 - 10 * B)
+    if sq > sw.sq_cuton
+        sval, sder = switching_derivative(sw, sq)
+        factor *= sval
+        factor += sder * (-scaling * sq^-5 * (A * inv2 - B))
+    end
+    factor
+end
+
+@inline function _f_es_factor(sq::Acc, q1q2, scaling, sw::CubicSwitchingFunction{Acc},
+                              ddd::Bool, pref::Acc) where Acc
+    (sq > zero(Acc) && sq <= sw.sq_cutoff) || return zero(Acc)
+    inv2 = one(Acc) / sq
+    inv = sqrt(inv2)
+    factor = q1q2 * inv2 * scaling * pref
+    factor *= ddd ? Acc(0.5) * inv2 : inv
+    if sq > sw.sq_cuton
+        sval, sder = switching_derivative(sw, sq)
+        factor *= sval
+        ddf = ddd ? Acc(0.25) * inv : one(Acc)
+        factor += sder * (-pref * scaling * ddf * inv * q1q2)
+    end
+    factor
+end
+
+# Minimum-image displacement for an orthorhombic box of side lengths `L`
+# (valid for cutoff < L/2). `L[1] <= 0` marks a non-periodic system.
+@inline function _disp(a::Vector3{Acc}, b::Vector3{Acc}, L::Vector3{Acc}) where Acc
+    d = a - b
+    L[1] > zero(Acc) ? d - L .* round.(d ./ L) : d
+end
+
 @inline function _compute_lj_energy(A::T, B::T, distance::T, scaling_factor::T, switch_func::CubicSwitchingFunction{T})::T where T
-    inv_dist_6::T = distance^-6
-    switch_value = switching_function(switch_func, distance^2)
-    scaling_factor * inv_dist_6 * (inv_dist_6 * A - B) * switch_value
+    _e_lj_pair(distance^2, A, B, scaling_factor, switch_func)
 end
 
 @inline function _compute_hbond_energy(A::T, B::T, distance::T, scaling_factor::T, switch_func::CubicSwitchingFunction{T})::T where T
-    switch_value = switching_function(switch_func, distance^2)
-    scaling_factor * (distance^-12 * A - distance^-10 * B) * switch_value
+    _e_hb_pair(distance^2, A, B, scaling_factor, switch_func)
 end
 
 @inline function _compute_es_energy(q1q2::T, distance::T, scaling_factor::T, distance_dependent_dielectric::Bool, switch_func::CubicSwitchingFunction{T})::T where T
-    energy::T = distance_dependent_dielectric ? q1q2 / 4 / distance^2 : q1q2 / distance
-    energy * scaling_factor * switching_function(switch_func, distance^2) * T(ES_Prefactor)
+    _e_es_pair(distance^2, q1q2, scaling_factor, switch_func, distance_dependent_dielectric, T(ES_Prefactor))
 end
 
 @inline function _compute_lj_force(A::T, B::T, sq_distance::T, direction::Vector3{T}, scaling_factor::T, switch_func::CubicSwitchingFunction{T})::Vector3{T} where T
-    if (sq_distance > zero(T) && sq_distance <= switch_func.sq_cutoff)
-        inv_distance_2 = one(T) / sq_distance
-        inv_distance_6 = sq_distance^-3
-
-        factor = inv_distance_2 * inv_distance_6 * scaling_factor * (12 * A * inv_distance_6 - 6 * B)
-
-        if (sq_distance > switch_func.sq_cuton)
-            switch_value, switch_derivative = switching_derivative(switch_func, sq_distance)
-            factor *= switch_value
-
-            energy = -scaling_factor * inv_distance_6 * (inv_distance_6 * A - B)
-            factor += switch_derivative * energy
-        end
-
-        return factor * direction
-    end
-    return zero(direction)
+    _f_lj_factor(sq_distance, A, B, scaling_factor, switch_func) * direction
 end
 
 @inline function _compute_hbond_force(A::T, B::T, sq_distance::T, direction::Vector3{T}, scaling_factor::T, switch_func::CubicSwitchingFunction{T})::Vector3{T} where T
-    if (sq_distance > zero(T) && sq_distance <= switch_func.sq_cutoff)
-        inv_distance_2 = one(T) / sq_distance
-        inv_distance_10 = sq_distance^-5
-        inv_distance_12 = sq_distance^-6
-
-        factor = inv_distance_2 * inv_distance_12 * (12 * A * inv_distance_2 - 10 * B) * scaling_factor
-
-        if (sq_distance > switch_func.sq_cuton)
-            switch_value, switch_derivative = switching_derivative(switch_func, sq_distance)
-            factor *= switch_value
-
-            energy = -scaling_factor * inv_distance_10 * (A * inv_distance_2 - B)
-            factor += switch_derivative * energy
-        end
-
-        return factor * direction
-    end
-    return zero(direction)
+    _f_hb_factor(sq_distance, A, B, scaling_factor, switch_func) * direction
 end
 
 @inline function _compute_es_force(q1q2::T, sq_distance::T, direction::Vector3{T}, scaling_factor::T, distance_dependent_dielectric::Bool, switch_func::CubicSwitchingFunction{T})::Vector3{T} where T
-    if (sq_distance > zero(T) && sq_distance <= switch_func.sq_cutoff)
-        inv_distance_2 = one(T) / sq_distance
-        inv_distance = sqrt(inv_distance_2)
-
-        factor = q1q2 * inv_distance_2 * scaling_factor * T(ES_Prefactor_force)
-
-        if distance_dependent_dielectric
-            factor *= T(0.5) * inv_distance_2
-        else
-            factor *= inv_distance
-        end
-
-        if (sq_distance > switch_func.sq_cuton)
-            switch_value, switch_derivative = switching_derivative(switch_func, sq_distance)
-            factor *= switch_value
-
-            dist_depend_factor = distance_dependent_dielectric ? T(0.25) * inv_distance : one(T)
-            energy = -T(ES_Prefactor_force) * scaling_factor * dist_depend_factor * inv_distance * q1q2
-            factor += switch_derivative * energy
-        end
-
-        return factor * direction
-    end
-    return zero(direction)
+    _f_es_factor(sq_distance, q1q2, scaling_factor, switch_func, distance_dependent_dielectric, T(ES_Prefactor_force)) * direction
 end

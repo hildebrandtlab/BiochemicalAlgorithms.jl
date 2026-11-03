@@ -1,6 +1,4 @@
 export
-    compute_bend_energy,
-    compute_bend_force,
     QuadraticAngleBend,
     QuadraticBendComponent
 
@@ -105,63 +103,6 @@ end
 
 function update!(::QuadraticBendComponent)
     nothing
-end
-
-@inline function compute_bend_energy(k::T, θ0::T, v1::Vector3{T}, v2::Vector3{T})::T where T
-    sq_length = squared_norm(v1) * squared_norm(v2)
-
-    if iszero(sq_length)
-        return zero(T)
-    end
-
-    cos_θ = dot(v1, v2) / sqrt(sq_length)
-    θ = if cos_θ > one(T)
-            zero(T)
-        elseif cos_θ < -one(T)
-            π
-        else
-            acos(cos_θ)
-        end
-
-    k * (θ - θ0)^2
-end
-
-@inline function compute_bend_force(k::T, θ0::T, v1::Vector3{T}, v2::Vector3{T})::Tuple{Vector3{T}, Vector3{T}, Vector3{T}} where T
-    v1_length = norm(v1)
-    v2_length = norm(v2)
-
-    if v1_length == zero(T) || v2_length == zero(T)
-        return zero(v1), zero(v1), zero(v1)
-    end
-
-    v1_norm = v1 / v1_length
-    v2_norm = v2 / v2_length
-
-    cos_θ = dot(v1_norm, v2_norm)
-    θ = if cos_θ > one(T)
-            zero(T)
-        elseif cos_θ < -one(T)
-            π
-        else
-            acos(cos_θ)
-        end
-
-    factor = T(2) * k * (θ - θ0)
-
-    crossv1v2 = normalize(cross(v1_norm, v2_norm))
-
-    if isnan(crossv1v2[1])
-        return zero(v1), zero(v1), zero(v1)
-    end
-
-    n1 = cross(v1_norm, crossv1v2) .* factor ./ v1_length
-    n2 = cross(v2_norm, crossv1v2) .* factor ./ v2_length
-
-    f1 = -n1
-    f2 = n1 - n2
-    f3 = n2
-
-    f1, f2, f3
 end
 
 @inline function compute_energy(qab::QuadraticAngleBend{T})::T where T

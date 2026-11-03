@@ -342,9 +342,23 @@ function setup!(nbc::NonBondedComponent{T}) where T
     nbc.cache.nonbonded_cutoff = nonbonded_cutoff
     nbc.cache.periodic_box     = periodic_box
 
+    if _periodic_box_too_small(nbc)
+        @warn "NonBondedComponent(): periodic box sides $(periodic_box) are smaller than " *
+            "2 * nonbonded_cutoff = $(2 * nonbonded_cutoff) Å. The pair list will hold several " *
+            "images of one pair, and compute_forces! counts the nearest image for each of " *
+            "them, so forces will be wrong. Use a larger box or a smaller nonbonded_cutoff."
+    end
+
     nbc.cache.bond_cache    = to_set(setdiff.(nh_1, nh_0))
     nbc.cache.geminal_cache = to_set(setdiff.(nh_2, nh_1))
     nbc.cache.vicinal_cache = to_set(setdiff.(nh_3, nh_2))
+end
+
+# With a box side below twice the pair-list cutoff, the neighbor list holds several
+# images of one pair, which minimum-image displacements cannot tell apart.
+function _periodic_box_too_small(nbc::NonBondedComponent)
+    nbc.ff.options[:periodic_boundary_conditions]::Bool &&
+        minimum(nbc.cache.periodic_box) < 2 * nbc.cache.nonbonded_cutoff
 end
 
 function update!(nbc::NonBondedComponent{T}) where T
@@ -498,24 +512,30 @@ end
     _compute_es_energy(esi.q1q2, esi.distance, esi.scaling_factor, esi.distance_dependent_dielectric, esi.switching_function)
 end
 
-function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where T
-    direction = lji.a1.r .- lji.a2.r
+# Orthorhombic box side lengths for minimum-image pair displacements; zeros when
+# the system is not periodic.
+function _minimum_image_box(nbc::NonBondedComponent{T}) where T
+    nbc.ff.options[:periodic_boundary_conditions]::Bool ? Vector3{T}(nbc.cache.periodic_box) : zero(Vector3{T})
+end
+
+function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}, box::Vector3{T} = zero(Vector3{T})) where T
+    direction = _disp(lji.a1.r, lji.a2.r, box)
     sq_distance = squared_norm(direction)
     force = _compute_lj_force(lji.A, lji.B, sq_distance, direction, lji.scaling_factor, lji.switching_function)
     lji.a1.F += force
     lji.a2.F -= force
 end
 
-function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where T
-    direction = hb.a1.r .- hb.a2.r
+function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}, box::Vector3{T} = zero(Vector3{T})) where T
+    direction = _disp(hb.a1.r, hb.a2.r, box)
     sq_distance = squared_norm(direction)
     force = _compute_hbond_force(hb.A, hb.B, sq_distance, direction, hb.scaling_factor, hb.switching_function)
     hb.a1.F += force
     hb.a2.F -= force
 end
 
-function compute_forces!(esi::ElectrostaticInteraction{T}) where T
-    direction = esi.a1.r .- esi.a2.r
+function compute_forces!(esi::ElectrostaticInteraction{T}, box::Vector3{T} = zero(Vector3{T})) where T
+    direction = _disp(esi.a1.r, esi.a2.r, box)
     sq_distance = squared_norm(direction)
     force = _compute_es_force(esi.q1q2, sq_distance, direction, esi.scaling_factor, esi.distance_dependent_dielectric, esi.switching_function)
     esi.a1.F += force
@@ -523,17 +543,20 @@ function compute_forces!(esi::ElectrostaticInteraction{T}) where T
 end
 
 function compute_forces!(nbc::NonBondedComponent)
+    box = _minimum_image_box(nbc)
+    pair_forces! = p -> compute_forces!(p, box)
+
     if isempty(nbc.ff.constrained_atoms)
-        map(compute_forces!, nbc.lj_interactions)
-        map(compute_forces!, nbc.hydrogen_bonds)
-        map(compute_forces!, nbc.electrostatic_interactions)
+        map(pair_forces!, nbc.lj_interactions)
+        map(pair_forces!, nbc.hydrogen_bonds)
+        map(pair_forces!, nbc.electrostatic_interactions)
     else
         constrained_ids = getproperty.(getindex.(Ref(atoms(nbc.ff.system)), nbc.ff.constrained_atoms), :idx)
         filter_pairs = s -> (p for p in s if (p.a1.idx ∉ constrained_ids) || (p.a2.idx ∉ constrained_ids))
 
-        map(compute_forces!, filter_pairs(nbc.lj_interactions))
-        map(compute_forces!, filter_pairs(nbc.hydrogen_bonds))
-        map(compute_forces!, filter_pairs(nbc.electrostatic_interactions))
+        map(pair_forces!, filter_pairs(nbc.lj_interactions))
+        map(pair_forces!, filter_pairs(nbc.hydrogen_bonds))
+        map(pair_forces!, filter_pairs(nbc.electrostatic_interactions))
     end
     nothing
 end
