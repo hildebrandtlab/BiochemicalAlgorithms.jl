@@ -40,7 +40,7 @@ using Revise, BiochemicalAlgorithms
    co-author trailer your harness adds by default.
 2. Every commit also needs a `Signed-off-by: Name <E-mail>` line, which CI checks. This line certifies
    the [Developer Certificate of Origin](CONTRIBUTING.md) on behalf of a human, so only add it (for
-   example with `git commit -s`) when the human user asks you to, and never in the name of a tool.
+   example with `git commit -s`) when the human user asks you to, and never in the name of an agent.
 3. Agents can only open PRs or post comments once the human user gives them explicit permission.
 4. Do not commit `Manifest.toml` files; they are ignored on purpose.
 
@@ -90,11 +90,14 @@ Build the manual locally with:
 julia --project=docs -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate(); include("docs/make.jl")'
 ```
 
+Before committing, make sure that any newly added docstrings are listed in the manual and that the
+documentation builds successfully.
+
 - Docstrings have to be listed in an `@docs` block to end up in the manual: exported names in
   `docs/src/public/`, and internal names in `docs/src/private/`.
 - When changing a tutorial, edit the `.qmd` source in `tutorials/`. The Markdown files in
   `docs/src/tutorials/` are generated from it, but are also tracked, so regenerate them by running
-  `quarto render` in `tutorials/` and commit both. Do not edit only the generated file.
+  `quarto render` in `tutorials/` and commit both. Do not edit the generated file.
 
 ## Running benchmarks
 
