@@ -148,7 +148,7 @@ cff = compile(ff)
 
     CompiledForceField{Float32, acc=Float32, SerialBackend}: 23 atoms, 22 stretches, 39 bends, 49+1 torsions, 192 vdW / 0 hbond / 192 electrostatic pairs
 
-`compile` calls `update!` on `ff` once and lowers the resulting interactions, so it reflects the atom positions at the time of the call.
+`compile` reads the atom positions at the time of the call and builds its own pair list. It does not modify `ff`, so if atoms have moved, call `update!(ff)` before comparing against `compute_energy!(ff)`. Periodic boxes must be at least `2 * nonbonded_cutoff` wide: `compile` rejects smaller ones, and `AmberFF` warns about them because its forces would be wrong.
 
 !!! warning
 The atom topology (and with it the numbering of atoms) must not change during the lifetime of a compiled force field. If atoms or bonds are added or removed, create a new `AmberFF` and compile it again.

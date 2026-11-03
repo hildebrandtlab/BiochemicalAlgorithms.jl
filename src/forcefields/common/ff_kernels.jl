@@ -1,22 +1,15 @@
 # ============================================================================
 #  Energy / force kernels for the CompiledForceField.
 #
-#  Every formula here is a verbatim transcription of the corresponding
-#  `compute_energy` / `compute_forces!` in the reference components, rewritten
-#  to read positions from `cff.r[row]` and accumulate forces into a row-indexed
-#  force buffer (no `Atom{T}` row-views, no Dict lookups). With acc == storage
-#  type the results match the reference path bit-for-bit.
+#  The formulas are shared with the reference components through ff_compute.jl.
+#  These loops read positions from `cff.r[row]` and accumulate forces into a
+#  row-indexed force buffer (no `Atom{T}` row-views, no Dict lookups).
 #
 #  The nonbonded loops are written over an index range [lo, hi] so the same code
 #  serves the serial backend (one range) and the threaded backend (one range
 #  per thread, into per-thread force buffers). Bonded terms are cheap and remain
 #  serial.
 # ============================================================================
-
-
-
-
-
 
 # ---------------------------------------------------------------------------
 #  Bonded ENERGY (serial accumulation in Acc)
@@ -42,6 +35,12 @@ function _energy_bend(cff::CompiledForceField{T, Acc}) where {T, Acc}
     e
 end
 
+# Fourier terms of torsion `n`, as views into the CSR-flattened arrays
+@inline function _torsion_terms(t::TorsionArrays, n)
+    terms = t.term_offset[n]:(t.term_offset[n+1] - one(Int32))
+    view(t.V, terms), view(t.ϕ0, terms), view(t.f, terms), view(t.div, terms)
+end
+
 function _energy_torsion(cff::CompiledForceField{T, Acc}, t::TorsionArrays{Acc}) where {T, Acc}
     r = cff.r
     e = zero(Acc)
@@ -49,86 +48,9 @@ function _energy_torsion(cff::CompiledForceField{T, Acc}, t::TorsionArrays{Acc})
         a21 = r[t.i[n]] - r[t.j[n]]
         a23 = r[t.k[n]] - r[t.j[n]]
         a34 = r[t.l[n]] - r[t.k[n]]
-        _, _, _, _, ok, cos_ϕ = _torsion_geometry(a21, a23, a34)
-        ok || continue
-        acϕ = acos(cos_ϕ)
-        lo = t.term_offset[n]; hi = t.term_offset[n+1] - one(Int32)
-        @inbounds for m in lo:hi
-            e += t.V[m] / t.div[m] * (one(Acc) + cos(t.f[m] * acϕ - t.ϕ0[m]))
-        end
+        e += _compute_torsion_energy(_torsion_terms(t, n)..., a21, a23, a34)
     end
     e
-end
-
-# ---------------------------------------------------------------------------
-#  Per-pair nonbonded math (scalar; shared by serial / threaded / GPU loops).
-#
-#  Energy helpers return the pair's energy contribution given the squared
-#  distance `sq`. Force helpers return a scalar `factor` such that the force on
-#  atom i is `factor * (r_i - r_j)` (and `-factor * (r_i - r_j)` on j) — every
-#  nonbonded force in the reference has exactly this form, so a single scalar
-#  unifies the CPU (SVector) and GPU (scalar SoA) loops.
-# ---------------------------------------------------------------------------
-@inline function _e_lj_pair(sq::Acc, A, B, scaling, sw::CubicSwitchingFunction{Acc}) where Acc
-    inv6 = sq^-3
-    inv6 * (inv6 * A - B) * scaling * switching_function(sw, sq)
-end
-
-@inline function _e_hb_pair(sq::Acc, A, B, scaling, sw::CubicSwitchingFunction{Acc}) where Acc
-    (sq^-6 * A - sq^-5 * B) * scaling * switching_function(sw, sq)
-end
-
-@inline function _e_es_pair(sq::Acc, q1q2, scaling, sw::CubicSwitchingFunction{Acc},
-                            ddd::Bool, pref::Acc) where Acc
-    inner = ddd ? q1q2 / 4 / sq : q1q2 / sqrt(sq)
-    inner * scaling * switching_function(sw, sq) * pref
-end
-
-@inline function _f_lj_factor(sq::Acc, A, B, scaling, sw::CubicSwitchingFunction{Acc}) where Acc
-    (sq > zero(Acc) && sq <= sw.sq_cutoff) || return zero(Acc)
-    inv6 = sq^-3
-    factor = (one(Acc) / sq) * inv6 * scaling * (12 * A * inv6 - 6 * B)
-    if sq > sw.sq_cuton
-        sval, sder = switching_derivative(sw, sq)
-        factor *= sval
-        factor += sder * (-scaling * inv6 * (inv6 * A - B))
-    end
-    factor
-end
-
-@inline function _f_hb_factor(sq::Acc, A, B, scaling, sw::CubicSwitchingFunction{Acc}) where Acc
-    (sq > zero(Acc) && sq <= sw.sq_cutoff) || return zero(Acc)
-    inv2 = one(Acc) / sq
-    factor = inv2 * sq^-6 * (12 * A * inv2 - 10 * B)
-    if sq > sw.sq_cuton
-        sval, sder = switching_derivative(sw, sq)
-        factor *= sval
-        factor += sder * (-scaling * sq^-5 * (A * inv2 - B))
-    end
-    factor
-end
-
-@inline function _f_es_factor(sq::Acc, q1q2, scaling, sw::CubicSwitchingFunction{Acc},
-                              ddd::Bool, pref::Acc) where Acc
-    (sq > zero(Acc) && sq <= sw.sq_cutoff) || return zero(Acc)
-    inv2 = one(Acc) / sq
-    inv = sqrt(inv2)
-    factor = q1q2 * inv2 * scaling * pref
-    factor *= ddd ? Acc(0.5) * inv2 : inv
-    if sq > sw.sq_cuton
-        sval, sder = switching_derivative(sw, sq)
-        factor *= sval
-        ddf = ddd ? Acc(0.25) * inv : one(Acc)
-        factor += sder * (-pref * scaling * ddf * inv * q1q2)
-    end
-    factor
-end
-
-# Minimum-image displacement for an orthorhombic box of side lengths `L`
-# (valid for cutoff < L/2). `L[1] <= 0` marks a non-periodic system.
-@inline function _disp(a::Vector3{Acc}, b::Vector3{Acc}, L::Vector3{Acc}) where Acc
-    d = a - b
-    L[1] > zero(Acc) ? d - L .* round.(d ./ L) : d
 end
 
 # ---------------------------------------------------------------------------
@@ -199,25 +121,11 @@ function _force_torsion!(F, cff::CompiledForceField{T, Acc}, t::TorsionArrays{Ac
         a21 = r[i] - r[j]
         a23 = r[k] - r[j]
         a34 = r[l] - r[k]
-        cross2321, cross2334, len1, len2, ok, cos_ϕ = _torsion_geometry(a21, a23, a34)
-        ok || continue
-        acϕ = acos(cos_ϕ)
-        lo = t.term_offset[n]; hi = t.term_offset[n+1] - one(Int32)
-        ∂E∂ϕ = zero(Acc)
-        @inbounds for m in lo:hi
-            ∂E∂ϕ += -t.V[m] / t.div[m] * t.f[m] * sin(t.f[m] * acϕ - t.ϕ0[m])
-        end
-        direction = dot(cross(cross2321, cross2334), a23)
-        direction > zero(Acc) && (∂E∂ϕ = -∂E∂ϕ)
-        a13 = r[k] - r[i]
-        a24 = r[l] - r[j]
-        na23 = norm(a23)
-        dEdt =  (∂E∂ϕ / (len1^2 * na23)) * cross(cross2321, a23)
-        dEdu = -(∂E∂ϕ / (len2^2 * na23)) * cross(cross2334, a23)
-        F[i] += cross(dEdt, a23)
-        F[j] += cross(a13, dEdt) + cross(dEdu, a34)
-        F[k] += cross(a21, dEdt) + cross(a24, dEdu)
-        F[l] += cross(dEdu, a23)
+        f1, f2, f3, f4 = _compute_torsion_force(_torsion_terms(t, n)..., a21, a23, a34)
+        F[i] += f1
+        F[j] += f2
+        F[k] += f3
+        F[l] += f4
     end
     nothing
 end
@@ -312,7 +220,7 @@ function compute_energy!(cff::CompiledForceField{T, Acc, ThreadedBackend}) where
     nt = length(cff.F_threads)
     vdwp = zeros(Acc, nt); hbp = zeros(Acc, nt); esp = zeros(Acc, nt)
     nlj = length(cff.lj.i); nhb = length(cff.hb.i); nes = length(cff.es.i)
-    Threads.@threads :static for t in 1:nt
+    Threads.@threads :dynamic for t in 1:nt
         lo, hi = _chunk(nlj, nt, t); vdwp[t] = _sum_lj(r, cff.lj, cff.vdw_sw, cff.box, lo, hi)
         lo, hi = _chunk(nhb, nt, t); hbp[t]  = _sum_hb(r, cff.hb, cff.vdw_sw, cff.box, lo, hi)
         lo, hi = _chunk(nes, nt, t); esp[t]  = _sum_es(r, cff.es, cff.es_sw,
@@ -355,7 +263,7 @@ function compute_forces!(cff::CompiledForceField{T, Acc, ThreadedBackend}) where
     r = cff.r
     nt = length(cff.F_threads)
     nlj = length(cff.lj.i); nhb = length(cff.hb.i); nes = length(cff.es.i)
-    Threads.@threads :static for t in 1:nt
+    Threads.@threads :dynamic for t in 1:nt
         Ft = cff.F_threads[t]
         fill!(Ft, zero(Vector3{Acc}))
         lo, hi = _chunk(nlj, nt, t); _accum_lj!(Ft, r, cff.lj, cff.vdw_sw, cff.box, lo, hi)
