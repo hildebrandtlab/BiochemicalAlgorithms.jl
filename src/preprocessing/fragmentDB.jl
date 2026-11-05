@@ -161,6 +161,8 @@ end
     label_terminal_fragments!(::AbstractAtomContainer{Float32})
     label_terminal_fragments!(::AbstractAtomContainer{T}, ::FragmentDB{T})
 
+Label terminal fragments.
+
 Attempt to label terminal fragments, i.e., assign the `N_TERMINAL`/`C_TERMINAL` flag
 to the first/last fragment of all residue chains and the `5_PRIME`/`3_PRIME` flag to
 the first/last fragment of all nucleotide chains, respectively.

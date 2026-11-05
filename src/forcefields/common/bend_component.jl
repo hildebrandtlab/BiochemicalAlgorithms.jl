@@ -108,23 +108,7 @@ end
 @inline function compute_energy(qab::QuadraticAngleBend{T})::T where T
     v1 = qab.a1.r .- qab.a2.r
     v2 = qab.a3.r .- qab.a2.r
-
-    sq_length = squared_norm(v1) * squared_norm(v2)
-
-    if iszero(sq_length)
-        return zero(T)
-    end
-
-    cos_θ = dot(v1, v2) / sqrt(sq_length)
-    θ = if cos_θ > one(T)
-            zero(T)
-        elseif cos_θ < -one(T)
-            π
-        else
-            acos(cos_θ)
-        end
-
-    qab.k * (θ - qab.θ₀)^2
+    _compute_bend_energy(qab.k, qab.θ₀, v1, v2)
 end
 
 function compute_energy!(qbc::QuadraticBendComponent{T})::T where T
@@ -137,48 +121,14 @@ function compute_energy!(qbc::QuadraticBendComponent{T})::T where T
 end
 
 function compute_forces!(qab::QuadraticAngleBend{T}) where {T<:Real}
-    # calculate the vectors between the atoms and normalize if possible
     v1 = qab.a1.r .- qab.a2.r
     v2 = qab.a3.r .- qab.a2.r
-
-    v1_length = norm(v1)
-    v2_length = norm(v2)
-
-    if v1_length == zero(T) || v2_length == zero(T)
-        return
-    end
-
-    v1 /= v1_length
-    v2 /= v2_length
-
-    cos_θ = dot(v1, v2)
-    θ = if cos_θ > one(T)
-            zero(T)
-        elseif cos_θ < -one(T)
-            π
-        else
-            acos(cos_θ)
-        end
-
-    factor = T(2) * qab.k * (θ - qab.θ₀)
-
-    # calculate the cross product of v1 and v2 and normalize if possible
-    crossv1v2 = normalize(cross(v1, v2))
-
-    if isnan(crossv1v2[1])
-        return
-    end
-
-    n1 = (cross(v1, crossv1v2)) .* factor ./ v1_length
-    n2 = (cross(v2, crossv1v2)) .* factor ./ v2_length
-
-    #@info "$(get_full_name(qab.a1))<->$(get_full_name(qab.a2))<->" *
-    #      "$(get_full_name(qab.a3)) $(n1) $(n2)"
-
-    qab.a1.F -= n1
-    qab.a2.F += n1
-    qab.a2.F -= n2
-    qab.a3.F += n2
+    
+    f1, f2, f3 = _compute_bend_force(qab.k, qab.θ₀, v1, v2)
+    
+    qab.a1.F += f1
+    qab.a2.F += f2
+    qab.a3.F += f3
 end
 
 function compute_forces!(qbc::QuadraticBendComponent)
