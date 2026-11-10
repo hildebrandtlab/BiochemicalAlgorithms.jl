@@ -1568,3 +1568,49 @@ end
         @test get_full_name(frags[3], FNT.ADD_VARIANT_EXTENSIONS_AND_ID) == "SER-C3"
     end
 end
+
+@testitem "Fragment/get_full_name variants" begin
+    FNT = BiochemicalAlgorithms.FullNameType
+
+    # flags => expected variant suffix
+    cases = [
+        Symbol[]                                     => "",
+        [:N_TERMINAL]                                => "-N",
+        [:C_TERMINAL]                                => "-C",
+        [:N_TERMINAL, :C_TERMINAL]                   => "-M",
+        [:HAS_SSBOND]                                => "-S",
+        [:N_TERMINAL, :HAS_SSBOND]                   => "-NS",
+        [:C_TERMINAL, :HAS_SSBOND]                   => "-CS",
+        [:N_TERMINAL, :C_TERMINAL, :HAS_SSBOND]      => "-MS",
+    ]
+
+    for T in [Float32, Float64]
+        for (flags, suffix) in cases
+            sys = System{T}()
+            chain = Chain(Molecule(sys))
+            # padded name checks that blanks are stripped
+            f = Fragment(chain, 42; name = " CYS ", flags = Flags(flags))
+
+            @test get_full_name(f, FNT.NO_VARIANT_EXTENSIONS) == "CYS"
+            @test get_full_name(f, FNT.ADD_VARIANT_EXTENSIONS) == "CYS$(suffix)"
+            @test get_full_name(f, FNT.ADD_RESIDUE_ID) == "CYS42"
+            @test get_full_name(f, FNT.ADD_VARIANT_EXTENSIONS_AND_ID) == "CYS$(suffix)42"
+            @test get_full_name(f) == "CYS$(suffix)"
+        end
+    end
+end
+
+@testitem "Fragment/get_full_name with disulfide bonds from PDB" begin
+    for T in [Float32, Float64]
+        # bpti.pdb contains SSBOND records for CYS 5-55, 14-38, 30-51 in chain I
+        sys = load_pdb(ball_data_path("../test/data/bpti.pdb"), T)
+
+        cys = filter(f -> f.name == "CYS", collect(fragments(sys)))
+        bonded = filter(f -> has_flag(f, :HAS_SSBOND), cys)
+        @test sort([f.number for f in bonded]) == [5, 14, 30, 38, 51, 55]
+
+        for f in bonded
+            @test get_full_name(f) == "CYS-S"
+        end
+    end
+end
