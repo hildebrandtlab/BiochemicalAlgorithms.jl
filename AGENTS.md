@@ -124,6 +124,10 @@ make sure to take them into account.
   where the surrounding code does.
 - Do not explicitly add a module prefix if the code you're adding is in the same module. E.g. do not use
   `BiochemicalAlgorithms.` for code in BiochemicalAlgorithms unless required.
+- Do not reformat lines you are not otherwise changing: keep their alignment and spacing (e.g. `kw = val`,
+  aligned `≈` columns) as they are, and do not run a formatter over whole files. Match the style of the
+  surrounding code in new lines, and do not leave trailing whitespace. Before committing, check that
+  `git diff` and `git diff -w` touch the same lines.
 
 ## Commit messages and pull requests
 
