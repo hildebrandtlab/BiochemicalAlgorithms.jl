@@ -5,6 +5,10 @@
         √(sum(squared_norm.(atoms(sys).F)) / (3 * natoms(sys)))
     end
 
+    @test_logs BiochemicalAlgorithms.CubicSwitchingFunction{Float64}(0.0, 0.0)
+    @test_logs BiochemicalAlgorithms.CubicSwitchingFunction{Float64}(15.0, 15.0)
+    @test_logs (:warn, r"cuton value should be smaller than cutoff") BiochemicalAlgorithms.CubicSwitchingFunction{Float64}(15.0, 16.0)
+
     let p = load_pdb(ball_data_path("../test/data/AlaAla.pdb"))
         infer_topology!(p)
 
@@ -132,7 +136,11 @@
             @test ff.energy["Electrostatic"] ≈ T(-346.8087761352619)
 
             compute_forces!(ff)
-            @test _rms_F(sys) ≈ T(35.035943894791984)
+            # BALL's reference value is 35.035943894791984, but that force is not
+            # the gradient of the 12-10 hydrogen bond energy (it uses r^-12 where
+            # r^-10 is needed). "CompiledForceField/regressions" checks this value's
+            # forces against finite differences of the energy.
+            @test _rms_F(sys) ≈ T(35.270259354466766)
         end
 
         # Energy test 5 (AlaGlySer) [AMBER96]
