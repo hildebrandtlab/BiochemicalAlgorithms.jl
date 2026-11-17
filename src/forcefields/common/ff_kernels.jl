@@ -12,30 +12,10 @@
 # ============================================================================
 
 # ---------------------------------------------------------------------------
-#  Bonded ENERGY (serial accumulation in Acc)
+#  Bonded terms over an interaction-index range [lo, hi]. The full-range
+#  `_energy_*`/`_force_*` wrappers serve the batch evaluator; the ranged kernels
+#  also serve the mini-batch optimizer (optimize_structure_sgd.jl).
 # ---------------------------------------------------------------------------
-function _energy_stretch(cff::CompiledForceField{T,Acc}) where {T,Acc}
-    s = cff.stretch;
-    r = cff.r
-    e = zero(Acc)
-    @inbounds for n in eachindex(s.k)
-        d = norm(r[s.i[n]] - r[s.j[n]])
-        e += _compute_stretch_energy(s.k[n], s.r0[n], d)
-    end
-    e
-end
-
-function _energy_bend(cff::CompiledForceField{T,Acc}) where {T,Acc}
-    b = cff.bend;
-    r = cff.r
-    e = zero(Acc)
-    @inbounds for n in eachindex(b.k)
-        v1 = r[b.i[n]] - r[b.j[n]]
-        v2 = r[b.l[n]] - r[b.j[n]]
-        e += _compute_bend_energy(b.k[n], b.θ0[n], v1, v2)
-    end
-    e
-end
 
 # Fourier terms of torsion `n`, as views into the CSR-flattened arrays
 @inline function _torsion_terms(t::TorsionArrays, n)
@@ -43,23 +23,11 @@ end
     view(t.V, terms), view(t.ϕ0, terms), view(t.f, terms), view(t.div, terms)
 end
 
-function _energy_torsion(cff::CompiledForceField{T, Acc}, t::TorsionArrays{Acc}) where {T, Acc}
-    r = cff.r
-    e = zero(Acc)
-    @inbounds for n in eachindex(t.i)
-        a21 = r[t.i[n]] - r[t.j[n]]
-        a23 = r[t.k[n]] - r[t.j[n]]
-        a34 = r[t.l[n]] - r[t.k[n]]
-        e += _compute_torsion_energy(_torsion_terms(t, n)..., a21, a23, a34)
-    end
-    e
-end
-
 @inline function _sum_stretch(r, s::StretchArrays{Acc}, lo, hi) where Acc
     e = zero(Acc)
     @inbounds for n in lo:hi
         d = norm(r[s.i[n]] - r[s.j[n]])
-        e += s.k[n] * (d - s.r0[n])^2
+        e += _compute_stretch_energy(s.k[n], s.r0[n], d)
     end
     e
 end
@@ -80,95 +48,57 @@ end
         a21 = r[t.i[n]] - r[t.j[n]]
         a23 = r[t.k[n]] - r[t.j[n]]
         a34 = r[t.l[n]] - r[t.k[n]]
-        _, _, _, _, ok, cos_ϕ = _torsion_geometry(a21, a23, a34)
-        ok || continue
-        acϕ = acos(cos_ϕ)
-        lo_term = t.term_offset[n];
-        hi_term = t.term_offset[n+1] - one(Int32)
-        for m in lo_term:hi_term
-            e += t.V[m] / t.div[m] * (one(Acc) + cos(t.f[m] * acϕ - t.ϕ0[m]))
-        end
+        e += _compute_torsion_energy(_torsion_terms(t, n)..., a21, a23, a34)
     end
     e
 end
 
 @inline function _accum_stretch!(F, r, s::StretchArrays{Acc}, lo, hi) where Acc
     @inbounds for n in lo:hi
-        i = s.i[n];
-        j = s.j[n]
+        i = s.i[n]; j = s.j[n]
         direction = r[i] - r[j]
-        d = norm(direction)
-        d == zero(Acc) && continue
-        direction *= 2 * s.k[n] * (d - s.r0[n]) / d
-        F[i] -= direction
-        F[j] += direction
+        force = _compute_stretch_force(s.k[n], s.r0[n], norm(direction), direction)
+        F[i] -= force
+        F[j] += force
     end
     nothing
 end
 
 @inline function _accum_bend!(F, r, b::BendArrays{Acc}, lo, hi) where Acc
     @inbounds for n in lo:hi
-        i = b.i[n];
-        j = b.j[n];
-        l = b.l[n]
-        v1 = r[i] - r[j]
-        v2 = r[l] - r[j]
-        v1_length = norm(v1);
-        v2_length = norm(v2)
-        (v1_length == zero(Acc) || v2_length == zero(Acc)) && continue
-        v1 = v1 / v1_length
-        v2 = v2 / v2_length
-        cos_θ = dot(v1, v2)
-        θ = cos_θ > one(Acc) ? zero(Acc) : cos_θ < -one(Acc) ? Acc(π) : acos(cos_θ)
-        factor = 2 * b.k[n] * (θ - b.θ0[n])
-        crossv1v2 = normalize(cross(v1, v2))
-        isnan(crossv1v2[1]) && continue
-        n1 = cross(v1, crossv1v2) .* factor ./ v1_length
-        n2 = cross(v2, crossv1v2) .* factor ./ v2_length
-        F[i] -= n1
-        F[j] += n1
-        F[j] -= n2
-        F[l] += n2
+        i = b.i[n]; j = b.j[n]; l = b.l[n]
+        f1, f2, f3 = _compute_bend_force(b.k[n], b.θ0[n], r[i] - r[j], r[l] - r[j])
+        F[i] += f1
+        F[j] += f2
+        F[l] += f3
     end
     nothing
 end
 
 @inline function _accum_torsion!(F, r, t::TorsionArrays{Acc}, lo, hi) where Acc
     @inbounds for n in lo:hi
-        i = t.i[n];
-        j = t.j[n];
-        k = t.k[n];
-        l = t.l[n]
+        i = t.i[n]; j = t.j[n]; k = t.k[n]; l = t.l[n]
         a21 = r[i] - r[j]
         a23 = r[k] - r[j]
         a34 = r[l] - r[k]
-        cross2321 = cross(a23, a21)
-        cross2334 = cross(a23, a34)
-        len1 = norm(cross2321);
-        len2 = norm(cross2334)
-        (len1 == zero(Acc) || len2 == zero(Acc)) && continue
-        cos_ϕ = clamp(dot(cross2321, cross2334) / (len1 * len2), -one(Acc), one(Acc))
-        acϕ = acos(cos_ϕ)
-        lo_term = t.term_offset[n];
-        hi_term = t.term_offset[n+1] - one(Int32)
-        ∂E∂ϕ = zero(Acc)
-        for m in lo_term:hi_term
-            ∂E∂ϕ += -t.V[m] / t.div[m] * t.f[m] * sin(t.f[m] * acϕ - t.ϕ0[m])
-        end
-        direction = dot(cross(cross2321, cross2334), a23)
-        direction > zero(Acc) && (∂E∂ϕ = -∂E∂ϕ)
-        a13 = r[k] - r[i]
-        a24 = r[l] - r[j]
-        na23 = norm(a23)
-        dEdt = (∂E∂ϕ / (len1^2 * na23)) * cross(cross2321, a23)
-        dEdu = -(∂E∂ϕ / (len2^2 * na23)) * cross(cross2334, a23)
-        F[i] += cross(dEdt, a23)
-        F[j] += cross(a13, dEdt) + cross(dEdu, a34)
-        F[k] += cross(a21, dEdt) + cross(a24, dEdu)
-        F[l] += cross(dEdu, a23)
+        f1, f2, f3, f4 = _compute_torsion_force(_torsion_terms(t, n)..., a21, a23, a34)
+        F[i] += f1
+        F[j] += f2
+        F[k] += f3
+        F[l] += f4
     end
     nothing
 end
+
+_energy_stretch(cff::CompiledForceField) = _sum_stretch(cff.r, cff.stretch, 1, length(cff.stretch.i))
+_energy_bend(cff::CompiledForceField)    = _sum_bend(cff.r, cff.bend, 1, length(cff.bend.i))
+_energy_torsion(cff::CompiledForceField{T,Acc}, t::TorsionArrays{Acc}) where {T,Acc} =
+    _sum_torsion(cff.r, t, 1, length(t.i))
+
+_force_stretch!(F, cff::CompiledForceField) = _accum_stretch!(F, cff.r, cff.stretch, 1, length(cff.stretch.i))
+_force_bend!(F, cff::CompiledForceField)    = _accum_bend!(F, cff.r, cff.bend, 1, length(cff.bend.i))
+_force_torsion!(F, cff::CompiledForceField{T,Acc}, t::TorsionArrays{Acc}) where {T,Acc} =
+    _accum_torsion!(F, cff.r, t, 1, length(t.i))
 
 # ---------------------------------------------------------------------------
 #  Nonbonded ENERGY over a pair-index range [lo, hi] (returns Acc partial sum)
@@ -199,59 +129,6 @@ end
         e += _e_es_pair(sq, p.q1q2[n], p.scaling[n], sw, ddd, pref)
     end
     e
-end
-
-
-# ---------------------------------------------------------------------------
-#  Bonded FORCES (serial accumulation into a row-indexed buffer F)
-# ---------------------------------------------------------------------------
-function _force_stretch!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
-    s = cff.stretch; r = cff.r
-    @inbounds for n in eachindex(s.k)
-        i = s.i[n];
-        j = s.j[n]
-        direction = r[i] - r[j]
-        d = norm(direction)
-        force = _compute_stretch_force(s.k[n], s.r0[n], d, direction)
-        F[i] -= force
-        F[j] += force
-    end
-    nothing
-end
-
-function _force_bend!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
-    b = cff.bend; r = cff.r
-    @inbounds for n in eachindex(b.k)
-        i = b.i[n];
-        j = b.j[n];
-        l = b.l[n]
-        v1 = r[i] - r[j]
-        v2 = r[l] - r[j]
-        f1, f2, f3 = _compute_bend_force(b.k[n], b.θ0[n], v1, v2)
-        F[i] += f1
-        F[j] += f2
-        F[l] += f3
-    end
-    nothing
-end
-
-function _force_torsion!(F, cff::CompiledForceField{T,Acc}, t::TorsionArrays{Acc}) where {T,Acc}
-    r = cff.r
-    @inbounds for n in eachindex(t.i)
-        i = t.i[n];
-        j = t.j[n];
-        k = t.k[n];
-        l = t.l[n]
-        a21 = r[i] - r[j]
-        a23 = r[k] - r[j]
-        a34 = r[l] - r[k]
-        f1, f2, f3, f4 = _compute_torsion_force(_torsion_terms(t, n)..., a21, a23, a34)
-        F[i] += f1
-        F[j] += f2
-        F[k] += f3
-        F[l] += f4
-    end
-    nothing
 end
 
 # ---------------------------------------------------------------------------
