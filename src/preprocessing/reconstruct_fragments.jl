@@ -40,7 +40,14 @@ function _get_two_reference_atoms(ref_center_atom::DBAtom{T}, allowed::Set{DBAto
     )
 end
 
-function _reconstruct_fragment!(f::Fragment{T}, template::DBFragmentVariant{T}) where T
+# `next_number` holds the number for the next inserted atom. The caller computes
+# it once (largest atom number in the system + 1) instead of scanning all atoms
+# of the system for every inserted atom, which made reconstruction O(N^2).
+function _reconstruct_fragment!(
+    f::Fragment{T},
+    template::DBFragmentVariant{T},
+    next_number::Base.RefValue{Int} = Ref(maximum(atoms(parent_system(f)).number; init = 0) + 1)
+) where T
     num_inserted_atoms = 0
 
     # Get a copy of the atom names occurring in the current fragment....
@@ -64,11 +71,12 @@ function _reconstruct_fragment!(f::Fragment{T}, template::DBFragmentVariant{T}) 
             # later on.
             new_atom = Atom(
                 f,
-                maximum(atoms(parent_system(f)).number; init = 0)+1, # does this make sense?
+                next_number[],
                 tpl_atom.element;
                 name = tpl_atom.name,
                 r = tpl_atom.r
             )
+            next_number[] += 1
 
             tpl_to_frag[tpl_atom] = new_atom
 
@@ -178,6 +186,9 @@ default/given fragment database and returns the number of inserted atoms.
 """
 function reconstruct_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     num_inserted_atoms = 0
+    # same numbering as before (largest number in the system + 1 per new atom),
+    # computed once
+    next_number = Ref(maximum(atoms(parent_system(ac)).number; init = 0) + 1)
 
     # iterate over all fragments
     for f in fragments(ac)
@@ -196,7 +207,7 @@ function reconstruct_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB{T}
         end
         f.variant = template.type
 
-        num_inserted_atoms += _reconstruct_fragment!(f, template)
+        num_inserted_atoms += _reconstruct_fragment!(f, template, next_number)
     end
 
     @info "reconstruct_fragments!(): added $(num_inserted_atoms) atoms."
