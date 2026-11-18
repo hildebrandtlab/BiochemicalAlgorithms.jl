@@ -1,11 +1,38 @@
 export
     build_bonds!
 
+# Lookup tables for build_fragment_bonds!, built once per build_bonds! call.
+# `atoms(f)` and `bonds(f)` each filter the whole system, so calling them for
+# every fragment made build_bonds! O(N^2).
+#  - `frag_atoms`: fragment idx => idx of its atoms in table order (same rows,
+#    same order as `atoms(f)`)
+#  - `bond_of`: (atom1 idx, atom2 idx), both orientations => idx of the first
+#    bond in table order between the two atoms (what `findfirst` on `bonds(f)`
+#    returned)
+function _bond_lookup(sys::System{T}) where T
+    frag_atoms = Dict{Int, Vector{Int}}()
+    at = atoms(sys)
+    for (aidx, fidx) in zip(at.idx, at.fragment_idx)
+        isnothing(fidx) && continue
+        push!(get!(Vector{Int}, frag_atoms, fidx), aidx)
+    end
+    bond_of = Dict{Tuple{Int, Int}, Int}()
+    bt = bonds(sys)
+    for (bidx, a1, a2) in zip(bt.idx, bt.atom1_idx, bt.atom2_idx)
+        get!(bond_of, (a1, a2), bidx)
+        get!(bond_of, (a2, a1), bidx)
+    end
+    frag_atoms, bond_of
+end
+
 function build_fragment_bonds!(
     f::Fragment{T},
     connections::OrderedDict{Int, DBConnection},
-    fdb::FragmentDB{T}
+    fdb::FragmentDB{T},
+    lookup = nothing
 ) where T
+    sys = parent_system(f)
+    frag_atoms, bond_of = isnothing(lookup) ? _bond_lookup(sys) : lookup
 
     # check whether our DB knows the fragment and, if so, retrieve the template
     template = get_reference_fragment(f, fdb)
@@ -22,8 +49,7 @@ function build_fragment_bonds!(
     num_bonds_built = 0
 
     # iterate over all fragment atoms
-    fatoms = atoms(f)
-    fbonds = bonds(f)
+    fatoms = AtomTable{T}(sys, get(frag_atoms, f.idx, Int[]))
     for atom in fatoms
         atom_name = strip(atom.name)
 
@@ -58,17 +84,16 @@ function build_fragment_bonds!(
                 partner_atom = partner_atoms[1]
 
                 # ok, find out if the fragment already contains the bond
-                bond_index = findfirst(
-                    b ->    (b.atom1_idx == atom.idx && b.atom2_idx == partner_atom.idx)
-                         || (b.atom1_idx == partner_atom.idx && b.atom2_idx == atom.idx),
-                    fbonds)
+                bond_idx = get(bond_of, (atom.idx, partner_atom.idx), nothing)
 
-                if isnothing(bond_index)
-                    push!(fbonds._idx, Bond(atom, partner_atom, tpl_bond.order).idx)
+                if isnothing(bond_idx)
+                    new_idx = Bond(atom, partner_atom, tpl_bond.order).idx
+                    bond_of[(atom.idx, partner_atom.idx)] = new_idx
+                    bond_of[(partner_atom.idx, atom.idx)] = new_idx
 
                     num_bonds_built += 1
                 else
-                    bond = fbonds[bond_index]
+                    bond = bond_by_idx(sys, bond_idx)
 
                     bond.order = tpl_bond.order
                 end
@@ -160,8 +185,9 @@ function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     num_bonds_built = 0
 
     # first, build the bonds inside each fragment
+    lookup = _bond_lookup(parent_system(m))
     for frag in fragments(m)
-        num_bonds_built += build_fragment_bonds!(frag, connections, fdb)
+        num_bonds_built += build_fragment_bonds!(frag, connections, fdb, lookup)
     end
 
     # now, connect the fragments that have suitable connections
@@ -170,15 +196,18 @@ function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     if num_connections > 2
         # we test all possible pairings of connection entries
         con_keys = collect(keys(connections))
+        con_vals = collect(values(connections))
+        # look the atoms up once, not once per pair
+        con_atoms = [atom_by_idx(m, k) for k in con_keys]
 
         for i in 1:num_connections
             for j in i+1:num_connections
-                con_i = connections[con_keys[i]]
-                con_j = connections[con_keys[j]]
+                con_i = con_vals[i]
+                con_j = con_vals[j]
 
                 # only create the bond if it does not exist
                 if (con_keys[i], con_keys[j]) ∉ bond_cache
-                    if try_build_connection!(atom_by_idx(m, con_keys[i]), con_i, atom_by_idx(m, con_keys[j]), con_j)
+                    if try_build_connection!(con_atoms[i], con_i, con_atoms[j], con_j)
                         push!(bond_cache, (con_keys[i], con_keys[j]))
                         push!(bond_cache, (con_keys[j], con_keys[i]))
                         num_bonds_built += 1

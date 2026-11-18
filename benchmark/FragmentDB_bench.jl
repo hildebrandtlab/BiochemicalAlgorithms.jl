@@ -22,7 +22,7 @@ fdb_suite["Creation"] = @benchmarkable FragmentDB()
 
 fdb = FragmentDB()
 
-fdb_suite["Normalize_Name"] = @benchmarkable normalize_names!(sys, $fdb) setup=(sys = prepare_mol($fdb,0))
+fdb_suite["Normalize_Name"] = @benchmarkable normalize_names!(sys, $fdb) setup=(sys = prepare_mol($fdb, 0))
 
 fdb_suite["Reconstruct_Fragments"] = @benchmarkable reconstruct_fragments!(sys, $fdb) setup=(sys = prepare_mol($fdb, 1))
 
@@ -54,6 +54,6 @@ function prepare_large_mol(fdb, template, steps)
 end
 
 # These take seconds per run before the #364 fixes, so cap the number of samples.
-fdb_suite["Reconstruct_Fragments_Large"] = @benchmarkable reconstruct_fragments!(sys, $fdb) setup=(sys = prepare_large_mol($fdb, $large_template, 1)) evals=1 samples=5
+fdb_suite["Reconstruct_Fragments_Large"] = @benchmarkable reconstruct_fragments!(sys, $fdb) setup=(sys = prepare_large_mol($fdb, $large_template, 1)) evals=1
 
-fdb_suite["Building_Bonds_Large"] = @benchmarkable build_bonds!(sys, $fdb) setup=(sys = prepare_large_mol($fdb, $large_template, 2)) evals=1 samples=5
+fdb_suite["Building_Bonds_Large"] = @benchmarkable build_bonds!(sys, $fdb) setup=(sys = prepare_large_mol($fdb, $large_template, 2)) evals=1
