@@ -28,12 +28,9 @@ fdb_suite["Reconstruct_Fragments"] = @benchmarkable reconstruct_fragments!(sys, 
 
 fdb_suite["Building_Bonds"] = @benchmarkable build_bonds!(sys, $fdb) setup=(sys = prepare_mol($fdb, 2))
 
-# Larger system for reconstruct_fragments! and build_bonds!, whose cost used to
-# grow quadratically with the number of atoms (#364). The test structure is
-# small and already contains its hydrogens, so we remove them (to make
-# reconstruct_fragments! add them back, as for a crystal structure) and append
-# LARGE_COPIES copies into one system: 9 copies give ~8k atoms after
-# reconstruction.
+# The test structure is small and already contains its hydrogens, so we remove
+# them (to make reconstruct_fragments! add them back, as for a crystal structure) 
+# and append LARGE_COPIES copies into one system
 const LARGE_COPIES = 9
 
 const large_template = let sys = load_pdb(ball_data_path("../benchmark/data/AmberFF_naming_del.pdb"))
