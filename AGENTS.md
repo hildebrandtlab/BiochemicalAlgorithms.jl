@@ -15,14 +15,17 @@
 - [`tutorials/`](tutorials/) - Quarto sources of the tutorials
 - [`benchmark/`](benchmark/) - PkgBenchmark suite
 
+Only add a new directory at this level once the human user explicitly allows it. If you add one,
+describe it in the list above.
+
 All source files are included from [`src/BiochemicalAlgorithms.jl`](src/BiochemicalAlgorithms.jl). The order
 matters, so add new files at the point where their dependencies are already defined.
 
 ## Running Julia
 
-You should have a recent binary copy of julia in your `$HOME/.juliaup/bin` directory.
-You may use this julia executable for validation. The package supports Julia 1.10 and later, so do
-not use language or library features that are newer than 1.10, even if your local julia has them.
+We recommend installing Julia via [juliaup](https://github.com/JuliaLang/juliaup), which keeps a
+recent release on your `PATH`. You may use this julia executable for validation. The package supports
+Julia 1.10 and later (see [`.github/workflows/`](.github/workflows/) for the versions tested on CI).
 
 The first precompilation of the package takes about a minute. To avoid repeating it while iterating,
 load `Revise` before the package in a long-running session:

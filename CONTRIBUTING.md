@@ -52,7 +52,7 @@ You may use AI agents and similar tools for your contributions, under the follow
 
  - You are responsible for your contribution, regardless of how it was created. Make sure that you have read and understood all of it, and that you can answer questions about it during the review.
  - The `Signed-off-by` line certifies the Developer Certificate of Origin on behalf of a human. It must always name you, never an AI agent, and only you can decide to add it.
- - Commits created with the help of an agent must include an `Assisted-by` line in their commit message, naming both the tool and the model behind it, instead of listing the tool as an author:
+ - Commits created with the help of an agent should include an `Assisted-by` line in their commit message, naming both the tool and the model behind it, instead of listing the tool as an author:
    ```
    Assisted-by: Tool (Model)
    ```
