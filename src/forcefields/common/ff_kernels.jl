@@ -1,0 +1,295 @@
+# ============================================================================
+#  Energy / force kernels for the CompiledForceField.
+#
+#  The formulas are shared with the reference components through ff_compute.jl.
+#  These loops read positions from `cff.r[row]` and accumulate forces into a
+#  row-indexed force buffer (no `Atom{T}` row-views, no Dict lookups).
+#
+#  The nonbonded loops are written over an index range [lo, hi] so the same code
+#  serves the serial backend (one range) and the threaded backend (one range
+#  per thread, into per-thread force buffers). Bonded terms are cheap and remain
+#  serial.
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+#  Bonded ENERGY (serial accumulation in Acc)
+# ---------------------------------------------------------------------------
+function _energy_stretch(cff::CompiledForceField{T, Acc}) where {T, Acc}
+    s = cff.stretch; r = cff.r
+    e = zero(Acc)
+    @inbounds for n in eachindex(s.k)
+        d = norm(r[s.i[n]] - r[s.j[n]])
+        e += _compute_stretch_energy(s.k[n], s.r0[n], d)
+    end
+    e
+end
+
+function _energy_bend(cff::CompiledForceField{T, Acc}) where {T, Acc}
+    b = cff.bend; r = cff.r
+    e = zero(Acc)
+    @inbounds for n in eachindex(b.k)
+        v1 = r[b.i[n]] - r[b.j[n]]
+        v2 = r[b.l[n]] - r[b.j[n]]
+        e += _compute_bend_energy(b.k[n], b.θ0[n], v1, v2)
+    end
+    e
+end
+
+# Fourier terms of torsion `n`, as views into the CSR-flattened arrays
+@inline function _torsion_terms(t::TorsionArrays, n)
+    terms = t.term_offset[n]:(t.term_offset[n+1] - one(Int32))
+    view(t.V, terms), view(t.ϕ0, terms), view(t.f, terms), view(t.div, terms)
+end
+
+function _energy_torsion(cff::CompiledForceField{T, Acc}, t::TorsionArrays{Acc}) where {T, Acc}
+    r = cff.r
+    e = zero(Acc)
+    @inbounds for n in eachindex(t.i)
+        a21 = r[t.i[n]] - r[t.j[n]]
+        a23 = r[t.k[n]] - r[t.j[n]]
+        a34 = r[t.l[n]] - r[t.k[n]]
+        e += _compute_torsion_energy(_torsion_terms(t, n)..., a21, a23, a34)
+    end
+    e
+end
+
+# ---------------------------------------------------------------------------
+#  Nonbonded ENERGY over a pair-index range [lo, hi] (returns Acc partial sum)
+# ---------------------------------------------------------------------------
+@inline function _sum_lj(r, p::PairLJArrays{Acc}, sw::CubicSwitchingFunction{Acc}, L::Vector3{Acc}, lo, hi) where Acc
+    e = zero(Acc)
+    @inbounds for n in lo:hi
+        sq = squared_norm(_disp(r[p.i[n]], r[p.j[n]], L))
+        e += _e_lj_pair(sq, p.A[n], p.B[n], p.scaling[n], sw)
+    end
+    e
+end
+
+@inline function _sum_hb(r, p::PairLJArrays{Acc}, sw::CubicSwitchingFunction{Acc}, L::Vector3{Acc}, lo, hi) where Acc
+    e = zero(Acc)
+    @inbounds for n in lo:hi
+        sq = squared_norm(_disp(r[p.i[n]], r[p.j[n]], L))
+        e += _e_hb_pair(sq, p.A[n], p.B[n], p.scaling[n], sw)
+    end
+    e
+end
+
+@inline function _sum_es(r, p::PairESArrays{Acc}, sw::CubicSwitchingFunction{Acc},
+                         ddd::Bool, pref::Acc, L::Vector3{Acc}, lo, hi) where Acc
+    e = zero(Acc)
+    @inbounds for n in lo:hi
+        sq = squared_norm(_disp(r[p.i[n]], r[p.j[n]], L))
+        e += _e_es_pair(sq, p.q1q2[n], p.scaling[n], sw, ddd, pref)
+    end
+    e
+end
+
+# ---------------------------------------------------------------------------
+#  Bonded FORCES (serial accumulation into a row-indexed buffer F)
+# ---------------------------------------------------------------------------
+function _force_stretch!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
+    s = cff.stretch; r = cff.r
+    @inbounds for n in eachindex(s.k)
+        i = s.i[n]; j = s.j[n]
+        direction = r[i] - r[j]
+        d = norm(direction)
+        force = _compute_stretch_force(s.k[n], s.r0[n], d, direction)
+        F[i] -= force
+        F[j] += force
+    end
+    nothing
+end
+
+function _force_bend!(F, cff::CompiledForceField{T, Acc}) where {T, Acc}
+    b = cff.bend; r = cff.r
+    @inbounds for n in eachindex(b.k)
+        i = b.i[n]; j = b.j[n]; l = b.l[n]
+        v1 = r[i] - r[j]
+        v2 = r[l] - r[j]
+        f1, f2, f3 = _compute_bend_force(b.k[n], b.θ0[n], v1, v2)
+        F[i] += f1
+        F[j] += f2
+        F[l] += f3
+    end
+    nothing
+end
+
+function _force_torsion!(F, cff::CompiledForceField{T, Acc}, t::TorsionArrays{Acc}) where {T, Acc}
+    r = cff.r
+    @inbounds for n in eachindex(t.i)
+        i = t.i[n]; j = t.j[n]; k = t.k[n]; l = t.l[n]
+        a21 = r[i] - r[j]
+        a23 = r[k] - r[j]
+        a34 = r[l] - r[k]
+        f1, f2, f3, f4 = _compute_torsion_force(_torsion_terms(t, n)..., a21, a23, a34)
+        F[i] += f1
+        F[j] += f2
+        F[k] += f3
+        F[l] += f4
+    end
+    nothing
+end
+
+# ---------------------------------------------------------------------------
+#  Nonbonded FORCES over a pair-index range [lo, hi] into buffer F
+# ---------------------------------------------------------------------------
+@inline function _accum_lj!(F, r, p::PairLJArrays{Acc}, sw::CubicSwitchingFunction{Acc}, L::Vector3{Acc}, lo, hi) where Acc
+    @inbounds for n in lo:hi
+        i = p.i[n]; j = p.j[n]
+        direction = _disp(r[i], r[j], L)
+        factor = _f_lj_factor(squared_norm(direction), p.A[n], p.B[n], p.scaling[n], sw)
+        iszero(factor) && continue          # skip the (zero) force write for out-of-cutoff pairs
+        force = factor * direction
+        F[i] += force
+        F[j] -= force
+    end
+    nothing
+end
+
+@inline function _accum_hb!(F, r, p::PairLJArrays{Acc}, sw::CubicSwitchingFunction{Acc}, L::Vector3{Acc}, lo, hi) where Acc
+    @inbounds for n in lo:hi
+        i = p.i[n]; j = p.j[n]
+        direction = _disp(r[i], r[j], L)
+        factor = _f_hb_factor(squared_norm(direction), p.A[n], p.B[n], p.scaling[n], sw)
+        iszero(factor) && continue
+        force = factor * direction
+        F[i] += force
+        F[j] -= force
+    end
+    nothing
+end
+
+@inline function _accum_es!(F, r, p::PairESArrays{Acc}, sw::CubicSwitchingFunction{Acc},
+                            ddd::Bool, pref::Acc, L::Vector3{Acc}, lo, hi) where Acc
+    @inbounds for n in lo:hi
+        i = p.i[n]; j = p.j[n]
+        direction = _disp(r[i], r[j], L)
+        factor = _f_es_factor(squared_norm(direction), p.q1q2[n], p.scaling[n], sw, ddd, pref)
+        iszero(factor) && continue
+        force = factor * direction
+        F[i] += force
+        F[j] -= force
+    end
+    nothing
+end
+
+# even split of 1:N into `nt` contiguous chunks; returns (lo, hi) for chunk t
+@inline function _chunk(N::Integer, nt::Integer, t::Integer)
+    lo = ((t - 1) * N) ÷ nt + 1
+    hi = (t * N) ÷ nt
+    (lo, hi)
+end
+
+# ---------------------------------------------------------------------------
+#  Bonded energy/force convenience (shared by all backends)
+# ---------------------------------------------------------------------------
+function _energy_bonded(cff::CompiledForceField{T, Acc}) where {T, Acc}
+    _energy_stretch(cff), _energy_bend(cff),
+    _energy_torsion(cff, cff.proper), _energy_torsion(cff, cff.improper)
+end
+
+function _force_bonded!(F, cff::CompiledForceField)
+    _force_stretch!(F, cff)
+    _force_bend!(F, cff)
+    _force_torsion!(F, cff, cff.proper)
+    _force_torsion!(F, cff, cff.improper)
+    nothing
+end
+
+# ---------------------------------------------------------------------------
+#  Public evaluation entry points (dispatch on backend)
+# ---------------------------------------------------------------------------
+"""
+    compute_energy!(cff::CompiledForceField) -> Acc
+
+Evaluate the total energy at the evaluator's current coordinates, filling
+`cff.energy` with the per-category breakdown (same keys as the reference
+`ForceField` path).
+"""
+function compute_energy!(cff::CompiledForceField{T, Acc, SerialBackend}) where {T, Acc}
+    r = cff.r
+    nlj = length(cff.lj.i); nhb = length(cff.hb.i); nes = length(cff.es.i)
+    vdw   = _sum_lj(r, cff.lj, cff.vdw_sw, cff.box, 1, nlj)
+    hbond = _sum_hb(r, cff.hb, cff.vdw_sw, cff.box, 1, nhb)
+    es    = _sum_es(r, cff.es, cff.es_sw, cff.distance_dependent_dielectric, cff.es_prefactor, cff.box, 1, nes)
+    _finish_energy!(cff, vdw, hbond, es)
+end
+
+function compute_energy!(cff::CompiledForceField{T, Acc, ThreadedBackend}) where {T, Acc}
+    r = cff.r
+    nt = length(cff.F_threads)
+    vdwp = zeros(Acc, nt); hbp = zeros(Acc, nt); esp = zeros(Acc, nt)
+    nlj = length(cff.lj.i); nhb = length(cff.hb.i); nes = length(cff.es.i)
+    Threads.@threads :dynamic for t in 1:nt
+        lo, hi = _chunk(nlj, nt, t); vdwp[t] = _sum_lj(r, cff.lj, cff.vdw_sw, cff.box, lo, hi)
+        lo, hi = _chunk(nhb, nt, t); hbp[t]  = _sum_hb(r, cff.hb, cff.vdw_sw, cff.box, lo, hi)
+        lo, hi = _chunk(nes, nt, t); esp[t]  = _sum_es(r, cff.es, cff.es_sw,
+            cff.distance_dependent_dielectric, cff.es_prefactor, cff.box, lo, hi)
+    end
+    _finish_energy!(cff, sum(vdwp), sum(hbp), sum(esp))
+end
+
+function _finish_energy!(cff::CompiledForceField{T, Acc}, vdw, hbond, es) where {T, Acc}
+    stretch, bend, proper, improper = _energy_bonded(cff)
+    cff.energy["Bond Stretches"]   = stretch
+    cff.energy["Angle Bends"]      = bend
+    cff.energy["Proper Torsion"]   = proper
+    cff.energy["Improper Torsion"] = improper
+    cff.energy["Van der Waals"]    = vdw
+    cff.energy["Hydrogen Bonds"]   = hbond
+    cff.energy["Electrostatic"]    = es
+    stretch + bend + proper + improper + vdw + hbond + es
+end
+
+"""
+    compute_forces!(cff::CompiledForceField)
+
+Zero and recompute forces at the current coordinates. Forces on constrained
+atoms are zeroed afterwards.
+"""
+function compute_forces!(cff::CompiledForceField{T, Acc, SerialBackend}) where {T, Acc}
+    F = cff.F
+    fill!(F, zero(Vector3{Acc}))
+    _force_bonded!(F, cff)
+    _accum_lj!(F, cff.r, cff.lj, cff.vdw_sw, cff.box, 1, length(cff.lj.i))
+    _accum_hb!(F, cff.r, cff.hb, cff.vdw_sw, cff.box, 1, length(cff.hb.i))
+    _accum_es!(F, cff.r, cff.es, cff.es_sw, cff.distance_dependent_dielectric,
+               cff.es_prefactor_force, cff.box, 1, length(cff.es.i))
+    _apply_constraints!(cff)
+    nothing
+end
+
+function compute_forces!(cff::CompiledForceField{T, Acc, ThreadedBackend}) where {T, Acc}
+    r = cff.r
+    nt = length(cff.F_threads)
+    nlj = length(cff.lj.i); nhb = length(cff.hb.i); nes = length(cff.es.i)
+    Threads.@threads :dynamic for t in 1:nt
+        Ft = cff.F_threads[t]
+        fill!(Ft, zero(Vector3{Acc}))
+        lo, hi = _chunk(nlj, nt, t); _accum_lj!(Ft, r, cff.lj, cff.vdw_sw, cff.box, lo, hi)
+        lo, hi = _chunk(nhb, nt, t); _accum_hb!(Ft, r, cff.hb, cff.vdw_sw, cff.box, lo, hi)
+        lo, hi = _chunk(nes, nt, t); _accum_es!(Ft, r, cff.es, cff.es_sw,
+            cff.distance_dependent_dielectric, cff.es_prefactor_force, cff.box, lo, hi)
+    end
+    # bonded into the main buffer, then reduce the per-thread nonbonded buffers
+    F = cff.F
+    fill!(F, zero(Vector3{Acc}))
+    _force_bonded!(F, cff)
+    @inbounds for t in 1:nt
+        Ft = cff.F_threads[t]
+        for k in 1:cff.natoms
+            F[k] += Ft[k]
+        end
+    end
+    _apply_constraints!(cff)
+    nothing
+end
+
+@inline function _apply_constraints!(cff::CompiledForceField{T, Acc}) where {T, Acc}
+    any(cff.constrained_mask) || return nothing
+    @inbounds for k in 1:cff.natoms
+        cff.constrained_mask[k] && (cff.F[k] = zero(Vector3{Acc}))
+    end
+    nothing
+end
+

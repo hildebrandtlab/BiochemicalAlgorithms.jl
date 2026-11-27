@@ -29,10 +29,10 @@ end
 """
     SESEdge{T}
 
-An edge on the SES, either *convex* (an arc on an atom — the boundary
-between a contact face and a toric face), *concave* (an arc on the probe
-sphere — the boundary between a spheric face and a toric face), or
-*singular* (a self-intersection where 4+ atoms touch the probe).
+An edge of the solvent-excluded surface (SES).
+
+An edge is either *convex* (an arc on an atom — the boundary between a contact face and a toric face), *concave* (an arc on the probe
+sphere — the boundary between a spheric face and a toric face), or *singular* (a self-intersection where 4+ atoms touch the probe).
 
 # Fields
  - `type::SESEdgeType.T`

@@ -32,8 +32,10 @@ const ES_Prefactor_force = ustrip(Constants.N_A * Constants.e₀^2 / (4.0 * π *
         inverse_distance_off_on_3 = (sq_cutoff - sq_cuton)^3
 
         if (inverse_distance_off_on_3 <= zero(T))
-            @warn "NonBondedComponent(): cuton value should be smaller than cutoff -- " *
+            if sq_cuton > sq_cutoff
+                @warn "NonBondedComponent(): cuton value should be smaller than cutoff -- " *
                     "switching function disabled."
+            end
 
             inverse_distance_off_on_3 = zero(T)
         else
@@ -340,9 +342,23 @@ function setup!(nbc::NonBondedComponent{T}) where T
     nbc.cache.nonbonded_cutoff = nonbonded_cutoff
     nbc.cache.periodic_box     = periodic_box
 
+    if _periodic_box_too_small(nbc)
+        @warn "NonBondedComponent(): periodic box sides $(periodic_box) are smaller than " *
+            "2 * nonbonded_cutoff = $(2 * nonbonded_cutoff) Å. The pair list will hold several " *
+            "images of one pair, and compute_forces! counts the nearest image for each of " *
+            "them, so forces will be wrong. Use a larger box or a smaller nonbonded_cutoff."
+    end
+
     nbc.cache.bond_cache    = to_set(setdiff.(nh_1, nh_0))
     nbc.cache.geminal_cache = to_set(setdiff.(nh_2, nh_1))
     nbc.cache.vicinal_cache = to_set(setdiff.(nh_3, nh_2))
+end
+
+# With a box side below twice the pair-list cutoff, the neighbor list holds several
+# images of one pair, which minimum-image displacements cannot tell apart.
+function _periodic_box_too_small(nbc::NonBondedComponent)
+    nbc.ff.options[:periodic_boundary_conditions]::Bool &&
+        minimum(nbc.cache.periodic_box) < 2 * nbc.cache.nonbonded_cutoff
 end
 
 function update!(nbc::NonBondedComponent{T}) where T
@@ -485,177 +501,62 @@ function update!(nbc::NonBondedComponent{T}) where T
 end
 
 @inline function compute_energy(lji::LennardJonesInteraction{T, 12, 6})::T where T
-    inv_dist_6::T = lji.distance^-6
-
-    inv_dist_6 * (inv_dist_6 * lji.A - lji.B) * lji.scaling_factor * switching_function(lji.switching_function, lji.distance^2)
+    _compute_lj_energy(lji.A, lji.B, lji.distance, lji.scaling_factor, lji.switching_function)
 end
 
 @inline function compute_energy(hb::LennardJonesInteraction{T, 12, 10})::T where T
-    hb.distance^-12 * hb.A - hb.distance^-10 * hb.B * hb.scaling_factor * switching_function(hb.switching_function, hb.distance^2)
+    _compute_hbond_energy(hb.A, hb.B, hb.distance, hb.scaling_factor, hb.switching_function)
 end
 
 @inline function compute_energy(esi::ElectrostaticInteraction{T})::T where T
-    energy::T = esi.distance_dependent_dielectric ? esi.q1q2 / 4 / esi.distance^2 : esi.q1q2 / esi.distance
-
-    energy * esi.scaling_factor * switching_function(esi.switching_function, esi.distance^2) * T(ES_Prefactor)
+    _compute_es_energy(esi.q1q2, esi.distance, esi.scaling_factor, esi.distance_dependent_dielectric, esi.switching_function)
 end
 
-function compute_energy!(nbc::NonBondedComponent{T})::T where T
-    # iterate over all interactions in the system
-    vdw_energy   = mapreduce(compute_energy, +, nbc.lj_interactions;            init=zero(T))
-    hbond_energy = mapreduce(compute_energy, +, nbc.hydrogen_bonds;             init=zero(T))
-    es_energy    = mapreduce(compute_energy, +, nbc.electrostatic_interactions; init=zero(T))
-
-    nbc.energy["Van der Waals"]  = vdw_energy
-    nbc.energy["Hydrogen Bonds"] = hbond_energy
-    nbc.energy["Electrostatic"]  = es_energy
-
-    vdw_energy + hbond_energy + es_energy
+# Orthorhombic box side lengths for minimum-image pair displacements; zeros when
+# the system is not periodic.
+function _minimum_image_box(nbc::NonBondedComponent{T}) where T
+    nbc.ff.options[:periodic_boundary_conditions]::Bool ? Vector3{T}(nbc.cache.periodic_box) : zero(Vector3{T})
 end
 
-function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}) where T
-    direction = lji.a1.r .- lji.a2.r
-
+function compute_forces!(lji::LennardJonesInteraction{T, 12, 6}, box::Vector3{T} = zero(Vector3{T})) where T
+    direction = _disp(lji.a1.r, lji.a2.r, box)
     sq_distance = squared_norm(direction)
-
-    if (sq_distance > zero(T) && sq_distance <= lji.switching_function.sq_cutoff)
-        factor = one(T) / sq_distance
-        inv_distance_6 = sq_distance^-3
-
-        factor *= inv_distance_6 * lji.scaling_factor * (12 * lji.A * inv_distance_6 - 6 * lji.B)
-
-        # do we have to use the switching function (cuton <= distance <= cutoff)?
-        if (sq_distance > lji.switching_function.sq_cuton)
-            switch_value, switch_derivative = switching_derivative(lji.switching_function, sq_distance)
-
-            # First, multiply the current force with the switching function
-            factor *= switch_value
-
-            # Second, we add the product of the energy and the derivative
-            # of the switching function (the total force is the derivative of
-            # a product of functions)
-            energy = -lji.scaling_factor *
-                inv_distance_6 * (inv_distance_6 * lji.A - lji.B)
-
-            factor += switch_derivative * energy
-        end
-
-        force = factor * direction
-
-        #@info "vdW $(get_full_name(lji.a1))<->$(get_full_name(lji.a2)) $(force)"
-
-        lji.a1.F += force
-        lji.a2.F -= force
-    end
+    force = _compute_lj_force(lji.A, lji.B, sq_distance, direction, lji.scaling_factor, lji.switching_function)
+    lji.a1.F += force
+    lji.a2.F -= force
 end
 
-function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}) where T
-    direction = hb.a1.r .- hb.a2.r
-
+function compute_forces!(hb::LennardJonesInteraction{T, 12, 10}, box::Vector3{T} = zero(Vector3{T})) where T
+    direction = _disp(hb.a1.r, hb.a2.r, box)
     sq_distance = squared_norm(direction)
-
-    if (sq_distance > zero(T) && sq_distance <= hb.switching_function.sq_cutoff)
-        inv_distance_2 =  one(T) / sq_distance
-        inv_distance_10 = sq_distance^-5
-        inv_distance_12 = sq_distance^-6
-
-        factor = inv_distance_2
-
-        factor *= inv_distance_12 * (12 * hb.A * inv_distance_2 - 10 * hb.B);
-
-        # do we have to use the switching function (cuton <= distance <= cutoff)?
-        if (sq_distance > hb.switching_function.sq_cuton)
-            switch_value, switch_derivative = switching_derivative(hb.switching_function, sq_distance)
-
-            # First, multiply the current force with the switching function
-            factor *= switch_value
-
-            # Second, we add the product of the energy and the derivative
-            # of the switching function (the total force is the derivative of
-            # a product of functions)
-            energy = -hb.scaling_factor *
-                inv_distance_10 * (hb.A * inv_distance_2 - hb.B)
-
-            factor += switch_derivative * energy
-        end
-
-        force = factor * direction
-
-        #@info "HB $(get_full_name(hb.a1))<->$(get_full_name(hb.a2)) $(force)"
-
-
-        hb.a1.F += force
-        hb.a2.F -= force
-    end
+    force = _compute_hbond_force(hb.A, hb.B, sq_distance, direction, hb.scaling_factor, hb.switching_function)
+    hb.a1.F += force
+    hb.a2.F -= force
 end
 
-function compute_forces!(esi::ElectrostaticInteraction{T}) where T
-    direction = esi.a1.r .- esi.a2.r
-
+function compute_forces!(esi::ElectrostaticInteraction{T}, box::Vector3{T} = zero(Vector3{T})) where T
+    direction = _disp(esi.a1.r, esi.a2.r, box)
     sq_distance = squared_norm(direction)
-
-    if (sq_distance > zero(T) && sq_distance <= esi.switching_function.sq_cutoff)
-        inv_distance_2 = one(T) / sq_distance
-        inv_distance = sqrt(inv_distance_2)
-
-        factor = esi.q1q2 * inv_distance_2 * esi.scaling_factor * ES_Prefactor_force
-
-        # distinguish between constant and distance dependent dielectric
-        if esi.distance_dependent_dielectric
-            # distance dependent dielectric:  epsilon = 4 * r_ij
-            # 4 reduces to 2 (due to derivation of the energy)
-            factor *= 0.5 * inv_distance_2
-        else
-            # distance independent dielectric constant
-            factor *= inv_distance
-        end
-
-        # we have to use the switching function (cuton <= distance <= cutoff)
-        if (sq_distance > esi.switching_function.sq_cuton)
-            switch_value, switch_derivative = switching_derivative(esi.switching_function, sq_distance)
-
-            # First, multiply the current force with the switching function
-            factor *= switch_value
-
-            # Second, we add the product of the energy and the derivative
-            # of the switching function (the total force is the derivative of
-            # a product of functions)
-            # we save the multiplication by distance to avoid the normalization
-            # of the direction vector
-            # In fact, we calculate the negative energy, since we de not
-            # calculate the force, but the derivative of the energy above.
-
-            # calculate the electrostatic energy
-            dist_depend_factor = ((esi.distance_dependent_dielectric)
-                ? T(0.25) * inv_distance : one(T))
-
-            energy = -T(ES_Prefactor_force) * esi.scaling_factor * dist_depend_factor *
-                inv_distance * esi.q1q2
-
-            factor += switch_derivative * energy
-        end
-
-        force = factor * direction
-
-        # @info "ES force $(get_full_name(esi.a1))<->$(get_full_name(esi.a2)) $(force)"
-
-        esi.a1.F += force
-        esi.a2.F -= force
-    end
+    force = _compute_es_force(esi.q1q2, sq_distance, direction, esi.scaling_factor, esi.distance_dependent_dielectric, esi.switching_function)
+    esi.a1.F += force
+    esi.a2.F -= force
 end
 
 function compute_forces!(nbc::NonBondedComponent)
+    box = _minimum_image_box(nbc)
+    pair_forces! = p -> compute_forces!(p, box)
+
     if isempty(nbc.ff.constrained_atoms)
-        map(compute_forces!, nbc.lj_interactions)
-        map(compute_forces!, nbc.hydrogen_bonds)
-        map(compute_forces!, nbc.electrostatic_interactions)
+        map(pair_forces!, nbc.lj_interactions)
+        map(pair_forces!, nbc.hydrogen_bonds)
+        map(pair_forces!, nbc.electrostatic_interactions)
     else
         constrained_ids = getproperty.(getindex.(Ref(atoms(nbc.ff.system)), nbc.ff.constrained_atoms), :idx)
         filter_pairs = s -> (p for p in s if (p.a1.idx ∉ constrained_ids) || (p.a2.idx ∉ constrained_ids))
 
-        map(compute_forces!, filter_pairs(nbc.lj_interactions))
-        map(compute_forces!, filter_pairs(nbc.hydrogen_bonds))
-        map(compute_forces!, filter_pairs(nbc.electrostatic_interactions))
+        map(pair_forces!, filter_pairs(nbc.lj_interactions))
+        map(pair_forces!, filter_pairs(nbc.hydrogen_bonds))
+        map(pair_forces!, filter_pairs(nbc.electrostatic_interactions))
     end
     nothing
 end
@@ -677,3 +578,18 @@ function print_warnings(nbc::NonBondedComponent)
                 "$(get_full_name(atom_2, FullNameType.ADD_VARIANT_EXTENSIONS_AND_ID)))"
     end
 end
+
+function compute_energy!(nbc::NonBondedComponent{T})::T where T
+    # iterate over all interactions in the system
+    vdw_energy   = mapreduce(compute_energy, +, nbc.lj_interactions;            init=zero(T))
+    hbond_energy = mapreduce(compute_energy, +, nbc.hydrogen_bonds;             init=zero(T))
+    es_energy    = mapreduce(compute_energy, +, nbc.electrostatic_interactions; init=zero(T))
+
+    nbc.energy["Van der Waals"]  = vdw_energy
+    nbc.energy["Hydrogen Bonds"] = hbond_energy
+    nbc.energy["Electrostatic"]  = es_energy
+
+    vdw_energy + hbond_energy + es_energy
+end
+
+include("ff_compute.jl")
