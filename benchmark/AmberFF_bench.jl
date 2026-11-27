@@ -56,6 +56,16 @@ cff_suite["_energy_improper"] = @benchmarkable BiochemicalAlgorithms._energy_tor
  cff_suite["_sum_hb"] = @benchmarkable BiochemicalAlgorithms._sum_hb($cff.r, $cff.hb, $cff.vdw_sw, $cff.box, 1, length($cff.hb.i))
  cff_suite["_sum_es"] = @benchmarkable BiochemicalAlgorithms._sum_es($cff.r, $cff.es, $cff.es_sw, $cff.distance_dependent_dielectric, $cff.es_prefactor, $cff.box, 1, length($cff.es.i))
 
+# Pair-list rebuild: the CellListMap neighbor search plus the serial SoA loop
+# that classifies each candidate pair (exclusions, 1-4 scaling, LJ/HB
+# parameters). The second entry times only the neighbor search, so the SoA
+# loop takes the difference.
+cff_suite["rebuild_pairlist!"] = @benchmarkable rebuild_pairlist!($cff)
+cff_suite["rebuild_pairlist!: neighbor search"] = @benchmarkable begin
+    BiochemicalAlgorithms.CellListMap.update!($cff.nl; positions=$cff.r)
+    BiochemicalAlgorithms.CellListMap.neighborlist!($cff.nl)
+end
+
 # Comparison benchmarks: reference vs compiled (Float32 acc)
 comparison_suite = SUITE["ForceFields"]["Comparison"]
 
@@ -64,6 +74,8 @@ comparison_suite["Forces: AmberFF vs CompiledForceField (Float32)"] = @benchmark
 
 # Comparison benchmarks: reference vs compiled (Float64 acc)
 cff64 = compile(a_ff; acc=Float64)
+
+cff_suite["rebuild_pairlist! (Float64)"] = @benchmarkable rebuild_pairlist!($cff64)
 
 comparison_suite["Energy: AmberFF vs CompiledForceField (Float64)"] = @benchmarkable (compute_energy!($a_ff), compute_energy!($cff64))
 comparison_suite["Forces: AmberFF vs CompiledForceField (Float64)"] = @benchmarkable (compute_forces!($a_ff), compute_forces!($cff64))
