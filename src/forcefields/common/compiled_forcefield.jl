@@ -80,6 +80,47 @@ struct PairESArrays{Acc}
 end
 PairESArrays{Acc}() where Acc = PairESArrays{Acc}(Int32[], Int32[], Acc[], Acc[])
 
+# Relationship of an atom pair in the exclusion table (`NonbondedTables.excl_kind`).
+const EXCL_NONE    = 0x00
+const EXCL_BOND    = 0x01   # 1-2: excluded
+const EXCL_GEMINAL = 0x02   # 1-3: excluded
+const EXCL_VICINAL = 0x03   # 1-4: scaled
+
+# Lookup tables for the pair classification in `_build_nonbonded_soa!`, built
+# once by `compile` from the `NonBondedComponent` caches. They replace the
+# per-pair lookups in `Dict`s keyed by atom-type strings and in `Set{Pair}`s
+# keyed by atom idx with integer-indexed array reads.
+struct NonbondedTables{Acc}
+    # atom type name -> index into the parameter matrices. The last index
+    # (`size(lj_A, 1)`) stands for every type without parameters.
+    type_index::Dict{String, Int32}
+    # type index per atom row; refreshed at every pair-list build
+    atom_type::Vector{Int32}
+
+    # vdW parameters for types (t1, t2); valid where lj_has[t1, t2]
+    lj_A::Matrix{Acc}
+    lj_B::Matrix{Acc}
+    lj_has::Matrix{Bool}
+    # hydrogen-bond parameters, filled for both orders of each type pair
+    hb_A::Matrix{Acc}
+    hb_B::Matrix{Acc}
+    hb_has::Matrix{Bool}
+
+    # 1-2, 1-3 and 1-4 partners per atom row, CSR-flattened: the partners of
+    # row i are excl_row[excl_offset[i]:excl_offset[i+1]-1], with their
+    # relationship (EXCL_*) in excl_kind
+    excl_offset::Vector{Int32}
+    excl_row::Vector{Int32}
+    excl_kind::Vector{UInt8}
+end
+
+function NonbondedTables{Acc}() where Acc
+    NonbondedTables{Acc}(Dict{String, Int32}(), Int32[],
+        zeros(Acc, 1, 1), zeros(Acc, 1, 1), fill(false, 1, 1),
+        zeros(Acc, 1, 1), zeros(Acc, 1, 1), fill(false, 1, 1),
+        Int32[1], Int32[], UInt8[])
+end
+
 # --- the compiled evaluator --------------------------------------------------
 """
     CompiledForceField{T, Acc, B}
@@ -142,6 +183,9 @@ mutable struct CompiledForceField{T, Acc, B <: EvalBackend}
     # orthorhombic periodic box side lengths for minimum-image pair
     # displacements; zeros when the system is not periodic
     box::Vector3{Acc}
+
+    # integer-indexed parameter and exclusion tables for the pair-list build
+    nbt::NonbondedTables{Acc}
 end
 
 @inline accumulation_type(::CompiledForceField{T, Acc}) where {T, Acc} = Acc
@@ -226,6 +270,7 @@ function compile(ff::ForceField{T};
         Int(update_frequency), Acc(max_displacement),
         Vector{Vector3{Acc}}(undef, natoms), 0,
         nothing, nothing, zero(Vector3{Acc}),
+        NonbondedTables{Acc}(),
     )
 
     # Safe Verlet skin: a pair absent from the list was >= nonbonded_cutoff apart
@@ -255,6 +300,8 @@ function compile(ff::ForceField{T};
                 "2 * nonbonded_cutoff = $(2 * nb) Å; otherwise the pair list holds several " *
                 "images of one pair. Use a larger box or a smaller nonbonded_cutoff."))
         end
+
+        cff.nbt = _build_nonbonded_tables(cff, nbc)
     end
 
     _lower_bonded!(cff)
@@ -482,13 +529,14 @@ function _build_nonbonded_soa!(cff::CompiledForceField{T, Acc}, nbc::NonBondedCo
     pairs::Vector{Tuple{Int, Int, Acc}} = CellListMap.neighborlist!(cff.nl)
 
     at    = atoms(ff.system)::AtomTable{T}
-    idxc  = at.idx
     chgc  = at.charge
-    typc  = at.atom_type
-    bond  = c.bond_cache; gem = c.geminal_cache; vic = c.vicinal_cache
-    ljc   = c.lj_combinations; hbc = c.hydrogen_bond_combinations
     s_es  = Acc(c.scaling_es_1_4)
     s_vdw = Acc(c.scaling_vdw_1_4)
+
+    # atom types may change between builds; parameters per type pair may not
+    nbt = cff.nbt
+    _refresh_atom_types!(nbt, at.atom_type)
+    tyc = nbt.atom_type
 
     lj = cff.lj; hb = cff.hb; es = cff.es
     empty!(lj.i); empty!(lj.j); empty!(lj.A); empty!(lj.B); empty!(lj.scaling)
@@ -498,10 +546,10 @@ function _build_nonbonded_soa!(cff::CompiledForceField{T, Acc}, nbc::NonBondedCo
 
     @inbounds for cand in pairs
         i = cand[1]::Int; j = cand[2]::Int
-        ii = idxc[i]; jj = idxc[j]
         # exclude 1-2 (bond) and 1-3 (geminal) interactions
-        ((ii => jj) in bond || (ii => jj) in gem) && continue
-        vicinal = (ii => jj) in vic
+        kind = _exclusion_kind(nbt, i, j)
+        (kind == EXCL_BOND || kind == EXCL_GEMINAL) && continue
+        vicinal = kind == EXCL_VICINAL
 
         q1q2 = Acc(chgc[i]) * Acc(chgc[j])
         if q1q2 != zero(Acc)
@@ -509,34 +557,104 @@ function _build_nonbonded_soa!(cff::CompiledForceField{T, Acc}, nbc::NonBondedCo
             push!(es.q1q2, q1q2); push!(es.scaling, vicinal ? s_es : one(Acc))
         end
 
-        t1 = typc[i]; t2 = typc[j]
-        if !vicinal
-            h = get(hbc, (I=t1, J=t2), missing)
-            ismissing(h) && (h = get(hbc, (I=t2, J=t1), missing))
-            if !ismissing(h)
-                push!(hb.i, Int32(i)); push!(hb.j, Int32(j))
-                push!(hb.A, Acc(only(h.A))); push!(hb.B, Acc(only(h.B))); push!(hb.scaling, one(Acc))
-            else
-                p = get(ljc, (I=t1, J=t2), missing)
-                if !ismissing(p)
-                    push!(lj.i, Int32(i)); push!(lj.j, Int32(j))
-                    push!(lj.A, Acc(p.A_ij)); push!(lj.B, Acc(p.B_ij)); push!(lj.scaling, one(Acc))
-                else
-                    _record_unassigned_lj!(nbc, at, i, j)
-                end
-            end
+        t1 = tyc[i]; t2 = tyc[j]
+        if !vicinal && nbt.hb_has[t1, t2]
+            push!(hb.i, Int32(i)); push!(hb.j, Int32(j))
+            push!(hb.A, nbt.hb_A[t1, t2]); push!(hb.B, nbt.hb_B[t1, t2]); push!(hb.scaling, one(Acc))
+        elseif nbt.lj_has[t1, t2]
+            # 1-4 (torsion) pairs get scaled vdW
+            push!(lj.i, Int32(i)); push!(lj.j, Int32(j))
+            push!(lj.A, nbt.lj_A[t1, t2]); push!(lj.B, nbt.lj_B[t1, t2])
+            push!(lj.scaling, vicinal ? s_vdw : one(Acc))
         else
-            # 1-4 (torsion) pair: scaled vdW
-            p = get(ljc, (I=t1, J=t2), missing)
-            if !ismissing(p)
-                push!(lj.i, Int32(i)); push!(lj.j, Int32(j))
-                push!(lj.A, Acc(p.A_ij)); push!(lj.B, Acc(p.B_ij)); push!(lj.scaling, s_vdw)
-            else
-                _record_unassigned_lj!(nbc, at, i, j)
-            end
+            _record_unassigned_lj!(nbc, at, i, j)
         end
     end
     nothing
+end
+
+# Relationship (EXCL_*) between atom rows i and j. A row has at most a few
+# dozen 1-2/1-3/1-4 partners, so a linear scan beats any hashing.
+@inline function _exclusion_kind(nbt::NonbondedTables, i::Integer, j::Integer)
+    jj = Int32(j)
+    @inbounds for p in nbt.excl_offset[i]:(nbt.excl_offset[i + 1] - Int32(1))
+        nbt.excl_row[p] == jj && return nbt.excl_kind[p]
+    end
+    EXCL_NONE
+end
+
+function _refresh_atom_types!(nbt::NonbondedTables, types::AbstractVector{<:AbstractString})
+    unknown = Int32(size(nbt.lj_A, 1))
+    resize!(nbt.atom_type, length(types))
+    @inbounds for k in eachindex(types)
+        nbt.atom_type[k] = get(nbt.type_index, types[k], unknown)
+    end
+    nbt
+end
+
+# Lower the NonBondedComponent caches (set up by `setup!(nbc)`) into integer
+# tables. The lookups they replace in `_build_nonbonded_soa!` must give the
+# same answers:
+#  - vdW parameters for (t1, t2) come from lj_combinations[(t1, t2)] only;
+#  - hydrogen-bond parameters for (t1, t2) come from
+#    hydrogen_bond_combinations[(t1, t2)], or else from [(t2, t1)];
+#  - the bond, geminal and vicinal sets are disjoint and hold both orders of
+#    each pair, so every pair has at most one relationship.
+function _build_nonbonded_tables(cff::CompiledForceField{T, Acc}, nbc::NonBondedComponent{T}) where {T, Acc}
+    c   = nbc.cache
+    ljc = c.lj_combinations
+    hbc = c.hydrogen_bond_combinations
+
+    type_index = Dict{String, Int32}()
+    for k in Iterators.flatten((keys(ljc), keys(hbc))), name in (k.I, k.J)
+        get!(type_index, name, Int32(length(type_index) + 1))
+    end
+    n = length(type_index) + 1   # last index: types without parameters
+
+    lj_A = zeros(Acc, n, n); lj_B = zeros(Acc, n, n); lj_has = fill(false, n, n)
+    for (k, p) in ljc
+        a = type_index[k.I]; b = type_index[k.J]
+        lj_A[a, b] = Acc(p.A_ij); lj_B[a, b] = Acc(p.B_ij); lj_has[a, b] = true
+    end
+
+    hb_A = zeros(Acc, n, n); hb_B = zeros(Acc, n, n); hb_has = fill(false, n, n)
+    for (k, h) in hbc
+        a = type_index[k.I]; b = type_index[k.J]
+        hb_A[a, b] = Acc(h.A); hb_B[a, b] = Acc(h.B); hb_has[a, b] = true
+    end
+    # reverse order only where that order has no entry of its own
+    for (k, h) in hbc
+        a = type_index[k.I]; b = type_index[k.J]
+        if !hb_has[b, a]
+            hb_A[b, a] = Acc(h.A); hb_B[b, a] = Acc(h.B); hb_has[b, a] = true
+        end
+    end
+
+    # exclusion table in CSR form, keyed by atom row instead of atom idx
+    natoms = cff.natoms
+    sets   = (c.bond_cache, c.geminal_cache, c.vicinal_cache)
+    kinds  = (EXCL_BOND, EXCL_GEMINAL, EXCL_VICINAL)
+    count  = zeros(Int32, natoms)
+    for s in sets, (a, _) in s
+        count[cff.idx2row[a]] += Int32(1)
+    end
+    excl_offset = Vector{Int32}(undef, natoms + 1)
+    excl_offset[1] = 1
+    for k in 1:natoms
+        excl_offset[k + 1] = excl_offset[k] + count[k]
+    end
+    excl_row  = Vector{Int32}(undef, excl_offset[end] - 1)
+    excl_kind = Vector{UInt8}(undef, excl_offset[end] - 1)
+    next = excl_offset[1:natoms]
+    for (s, kind) in zip(sets, kinds), (a, b) in s
+        ra = cff.idx2row[a]
+        p = next[ra]
+        excl_row[p] = cff.idx2row[b]; excl_kind[p] = kind
+        next[ra] = p + Int32(1)
+    end
+
+    NonbondedTables{Acc}(type_index, Int32[], lj_A, lj_B, lj_has, hb_A, hb_B, hb_has,
+        excl_offset, excl_row, excl_kind)
 end
 
 # ----------------------------------------------------------------------------
