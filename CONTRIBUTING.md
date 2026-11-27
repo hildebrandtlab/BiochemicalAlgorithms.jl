@@ -44,7 +44,7 @@ All contributions to this project need to be in agreement with the Developer Cer
 ```
 Signed-off-by: Name <E-mail>
 ```
-You can use the `--signoff` (or `-s`) option of the `git commit` command to facilitate this process. Commits created automatically by Dependabot are exempt from this requirement.
+You can use the `--signoff` (or `-s`) option of the `git commit` command to facilitate this process.
 
 ## Usage of AI agents
 
