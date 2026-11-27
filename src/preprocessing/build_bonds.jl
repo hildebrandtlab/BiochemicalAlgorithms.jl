@@ -2,8 +2,6 @@ export
     build_bonds!
 
 # Lookup tables for build_fragment_bonds!, built once per build_bonds! call.
-# `atoms(f)` and `bonds(f)` each filter the whole system, so calling them for
-# every fragment made build_bonds! O(N^2).
 #  - `frag_atoms`: fragment idx => idx of its atoms in table order (same rows,
 #    same order as `atoms(f)`)
 #  - `bond_of`: (atom1 idx, atom2 idx), both orientations => idx of the first
@@ -28,7 +26,7 @@ end
 function build_fragment_bonds!(
     f::Fragment{T},
     connections::OrderedDict{Int, DBConnection},
-    fdb::FragmentDB{T},
+    fdb::FragmentDB{T};
     lookup = nothing
 ) where T
     sys = parent_system(f)
@@ -187,7 +185,7 @@ function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     # first, build the bonds inside each fragment
     lookup = _bond_lookup(parent_system(m))
     for frag in fragments(m)
-        num_bonds_built += build_fragment_bonds!(frag, connections, fdb, lookup)
+        num_bonds_built += build_fragment_bonds!(frag, connections, fdb; lookup)
     end
 
     # now, connect the fragments that have suitable connections
@@ -197,7 +195,6 @@ function build_bonds!(m::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
         # we test all possible pairings of connection entries
         con_keys = collect(keys(connections))
         con_vals = collect(values(connections))
-        # look the atoms up once, not once per pair
         con_atoms = [atom_by_idx(m, k) for k in con_keys]
 
         for i in 1:num_connections

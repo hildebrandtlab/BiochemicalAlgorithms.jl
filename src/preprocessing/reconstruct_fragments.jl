@@ -40,12 +40,10 @@ function _get_two_reference_atoms(ref_center_atom::DBAtom{T}, allowed::Set{DBAto
     )
 end
 
-# `next_number` holds the number for the next inserted atom. The caller computes
-# it once (largest atom number in the system + 1) instead of scanning all atoms
-# of the system for every inserted atom, which made reconstruction O(N^2).
 function _reconstruct_fragment!(
     f::Fragment{T},
-    template::DBFragmentVariant{T},
+    template::DBFragmentVariant{T};
+    # number for the next atom
     next_number::Base.RefValue{Int} = Ref(maximum(atoms(parent_system(f)).number; init = 0) + 1)
 ) where T
     num_inserted_atoms = 0
@@ -186,8 +184,6 @@ default/given fragment database and returns the number of inserted atoms.
 """
 function reconstruct_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB{T}) where T
     num_inserted_atoms = 0
-    # same numbering as before (largest number in the system + 1 per new atom),
-    # computed once
     next_number = Ref(maximum(atoms(parent_system(ac)).number; init = 0) + 1)
 
     # iterate over all fragments
@@ -207,7 +203,7 @@ function reconstruct_fragments!(ac::AbstractAtomContainer{T}, fdb::FragmentDB{T}
         end
         f.variant = template.type
 
-        num_inserted_atoms += _reconstruct_fragment!(f, template, next_number)
+        num_inserted_atoms += _reconstruct_fragment!(f, template; next_number)
     end
 
     @info "reconstruct_fragments!(): added $(num_inserted_atoms) atoms."
